@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>موقعي الاحترافي</title>
+
+<style>
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
+    font-family:Tahoma, sans-serif;
+}
+
+body{
+    background:#f4f4f4;
+    color:#333;
+}
+
+header{
+    background:#1e293b;
+    color:white;
+    padding:20px;
+}
+
+nav{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+}
+
+.logo{
+    font-size:28px;
+    font-weight:bold;
+}
+
+nav ul{
+    list-style:none;
+    display:flex;
+    gap:20px;
+}
+
+nav ul li a{
+    color:white;
+    text-decoration:none;
+    transition:0.3s;
+}
+
+nav ul li a:hover{
+    color:#38bdf8;
+}
+
+.hero{
+    text-align:center;
+    padding:100px 20px;
+    background:linear-gradient(135deg,#0f172a,#2563eb);
+    color:white;
+}
+
+.hero h1{
+    font-size:50px;
+    margin-bottom:20px;
+}
+
+.hero p{
+    font-size:20px;
+    margin-bottom:30px;
+}
+
+.btn{
+    background:white;
+    color:#2563eb;
+    padding:12px 25px;
+    border-radius:8px;
+    text-decoration:none;
+    font-weight:bold;
+}
+
+.services{
+    padding:60px 20px;
+}
+
+.services h2{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+    gap:20px;
+}
+
+.card{
+    background:white;
+    padding:25px;
+    border-radius:12px;
+    box-shadow:0 5px 15px rgba(0,0,0,0.1);
+    text-align:center;
+}
+
+.contact{
+    background:white;
+    padding:50px 20px;
+    margin-top:30px;
+}
+
+.contact h2{
+    text-align:center;
+    margin-bottom:20px;
+}
+
+form{
+    max-width:500px;
+    margin:auto;
+}
+
+input, textarea{
+    width:100%;
+    padding:12px;
+    margin:10px 0;
+    border:1px solid #ccc;
+    border-radius:8px;
+}
+
+button{
+    background:#2563eb;
+    color:white;
+    border:none;
+    padding:12px 25px;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+footer{
+    background:#1e293b;
+    color:white;
+    text-align:center;
+    padding:20px;
+    margin-top:30px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <nav>
+        <div class="logo">موقعي</div>
+        <ul>
+            <li><a href="#">الرئيسية</a></li>
+            <li><a href="#">الخدمات</a></li>
+            <li><a href="#">من نحن</a></li>
+            <li><a href="#">اتصل بنا</a></li>
+        </ul>
+    </nav>
+</header>
+
+<section class="hero">
+    <h1>مرحباً بك في موقعي</h1>
+    <p>موقع احترافي سريع ومتجاوب مع جميع الأجهزة</p>
+    <a href="#" class="btn">ابدأ الآن</a>
+</section>
+
+<section class="services">
+    <h2>خدماتنا</h2>
+    <div class="cards">
+        <div class="card">
+            <h3>تصميم مواقع</h3>
+            <p>تصميم مواقع حديثة واحترافية.</p>
+        </div>
+
+        <div class="card">
+            <h3>تطوير ويب</h3>
+            <p>برمجة مواقع وتطبيقات عالية الجودة.</p>
+        </div>
+
+        <div class="card">
+            <h3>دعم فني</h3>
+            <p>مساعدة وصيانة مستمرة لموقعك.</p>
+        </div>
+    </div>
+</section>
+
+<section class="contact">
+    <h2>تواصل معنا</h2>
+    <form>
+        <input type="text" placeholder="الاسم">
+        <input type="email" placeholder="البريد الإلكتروني">
+        <textarea rows="5" placeholder="رسالتك"></textarea>
+        <button type="submit">إرسال</button>
+    </form>
+</section>
+
+<footer>
+    © 2026 جميع الحقوق محفوظة
+</footer>
+
+</body>
+</html>
