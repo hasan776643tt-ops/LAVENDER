@@ -1,14 +1,24 @@
+import { useState } from "react";
 
 export default function App() {
+  const [name, setName] = useState("");
+
   return (
     <div>
-      <div>
-  <h1>إدارة المزارع الذكية</h1>
-  <p>أهلاً بك في المشروع</p>
+      <h1>إدارة المزارع الذكية</h1>
 
-<div><input type="text" placeholder="اسم المزارع" />
- <button>إضافة مزارع</button>   </div>
- </div>
-</div> );
+      <p>أهلاً بك في المشروع</p>
+
+      <input
+        type="text"
+        placeholder="اسم المزارع"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <button>إضافة مزارع</button>
+
+      <p>اسم المزارع: {name}</p>
+    </div>
+  );
 }
-/
