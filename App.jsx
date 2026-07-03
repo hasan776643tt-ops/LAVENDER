@@ -2,6 +2,14 @@ import { useState } from "react";
 
 export default function App() {
   const [name, setName] = useState("");
+  const [farms, setFarms] = useState([]);
+
+  const addFarm = () => {
+    if (name === "") return;
+
+    setFarms([...farms, name]);
+    setName("");
+  };
 
   return (
     <div>
@@ -16,9 +24,17 @@ export default function App() {
         onChange={(e) => setName(e.target.value)}
       />
 
-      <button>إضافة مزارع</button>
+      <button onClick={addFarm}>
+        إضافة مزارع
+      </button>
 
-      <p>اسم المزارع: {name}</p>
+      <h2>قائمة المزارع</h2>
+
+      <ul>
+        {farms.map((farm, index) => (
+          <li key={index}>{farm}</li>
+        ))}
+      </ul>
     </div>
   );
 }
