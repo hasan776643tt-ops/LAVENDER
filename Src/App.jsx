@@ -1,36 +1,28 @@
-import { useState } from "react";
+
+import { Routes, Route, Link } from "react-router-dom";
+
+import Home from "./pages/Home";
+import Services from "./pages/Services";
+import Contact from "./pages/Contact";
 
 export default function App() {
-  const [farmName, setFarmName] = useState("");
-  const [farms, setFarms] = useState([]);
-
-  const addFarm = () => {
-    if (farmName.trim() === "") return;
-
-    setFarms([...farms, farmName]);
-    setFarmName("");
-  };
-
   return (
     <div>
-      <h1>إدارة المزارع الذكية</h1>
+      <nav>
+        <Link to="/">الرئيسية</Link>
+        {" | "}
+        <Link to="/services">الخدمات</Link>
+        {" | "}
+        <Link to="/contact">تواصل معنا</Link>
+      </nav>
 
-      <input
-        type="text"
-        placeholder="اسم المزرعة"
-        value={farmName}
-        onChange={(e) => setFarmName(e.target.value)}
-      />
+      <hr />
 
-      <button onClick={addFarm}>إضافة مزرعة</button>
-
-      <h2>المزارع</h2>
-
-      <ul>
-        {farms.map((farm, index) => (
-          <li key={index}>{farm}</li>
-        ))}
-      </ul>
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/services" element={<Services />} />
+        <Route path="/contact" element={<Contact />} />
+      </Routes>
     </div>
   );
 }
