@@ -1,46 +1,80 @@
+
+import { useState } from "react";
+
 export default function Users() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState("مزارع");
+  const [users, setUsers] = useState([]);
+
+  const addUser = () => {
+    if (!name || !email) return;
+
+    const newUser = {
+      name,
+      email,
+      role,
+    };
+
+    setUsers([...users, newUser]);
+
+    setName("");
+    setEmail("");
+    setRole("مزارع");
+  };
+
   return (
     <div>
       <h1>👤 إدارة المستخدمين</h1>
 
-      <p>
-        من هنا يمكن إدارة جميع مستخدمي النظام.
-      </p>
-
-      <h2>إضافة مستخدم جديد</h2>
-
-      <label>الاسم</label>
-      <br />
       <input
         type="text"
-        placeholder="أدخل اسم المستخدم"
+        placeholder="اسم المستخدم"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
       />
 
-      <br /><br />
-
-      <label>البريد الإلكتروني</label>
       <br />
+      <br />
+
       <input
         type="email"
-        placeholder="أدخل البريد الإلكتروني"
+        placeholder="البريد الإلكتروني"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
       />
 
-      <br /><br />
-
-      <label>نوع المستخدم</label>
       <br />
-      <select>
+      <br />
+
+      <select
+        value={role}
+        onChange={(e) => setRole(e.target.value)}
+      >
         <option>مزارع</option>
         <option>مهندس زراعي</option>
         <option>مشرف</option>
         <option>مدير النظام</option>
       </select>
 
-      <br /><br />
+      <br />
+      <br />
 
-      <button>
-        حفظ المستخدم
+      <button onClick={addUser}>
+        إضافة مستخدم
       </button>
+
+      <hr />
+
+      <h2>قائمة المستخدمين</h2>
+
+      <ul>
+        {users.map((user, index) => (
+          <li key={index}>
+            {user.name} - {user.email} - {user.role}
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
