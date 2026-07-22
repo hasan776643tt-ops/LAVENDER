@@ -1,3 +1,4 @@
+
 import { Routes, Route, Link } from "react-router-dom";
 
 import Header from "./components/Header";
@@ -15,6 +16,9 @@ import Fertilizers from "./pages/Fertilizers";
 import Pesticides from "./pages/Pesticides";
 import Diseases from "./pages/Diseases";
 
+import AI from "./pages/AI";
+import Engineer from "./pages/Engineer";
+
 import Weather from "./pages/Weather";
 import Map from "./pages/Map";
 
@@ -28,6 +32,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 
 import Settings from "./pages/Settings";
+
 
 export default function App() {
   return (
@@ -67,6 +72,12 @@ export default function App() {
         <Link to="/diseases">الأمراض</Link>
         {" | "}
 
+        <Link to="/ai">المساعد الذكي</Link>
+        {" | "}
+
+        <Link to="/engineer">المهندس الزراعي</Link>
+        {" | "}
+
         <Link to="/weather">الطقس</Link>
         {" | "}
 
@@ -95,7 +106,9 @@ export default function App() {
 
       </nav>
 
+
       <hr />
+
 
       <Routes>
 
@@ -105,11 +118,13 @@ export default function App() {
 
         <Route path="/users" element={<Users />} />
 
+
         <Route path="/farms" element={<Farms />} />
 
         <Route path="/fields" element={<Fields />} />
 
         <Route path="/crops" element={<Crops />} />
+
 
         <Route path="/irrigation" element={<Irrigation />} />
 
@@ -119,19 +134,29 @@ export default function App() {
 
         <Route path="/diseases" element={<Diseases />} />
 
+
+        <Route path="/ai" element={<AI />} />
+
+        <Route path="/engineer" element={<Engineer />} />
+
+
         <Route path="/weather" element={<Weather />} />
 
         <Route path="/map" element={<Map />} />
+
 
         <Route path="/expenses" element={<Expenses />} />
 
         <Route path="/reports" element={<Reports />} />
 
+
         <Route path="/services" element={<Services />} />
 
         <Route path="/contact" element={<Contact />} />
 
+
         <Route path="/settings" element={<Settings />} />
+
 
         <Route path="/login" element={<Login />} />
 
