@@ -1,30 +1,43 @@
+
 import { useState } from "react";
 
 export default function Farms() {
   const [farmName, setFarmName] = useState("");
   const [farmArea, setFarmArea] = useState("");
-  const [cropType, setCropType] = useState("");
+  const [location, setLocation] = useState("");
   const [farms, setFarms] = useState([]);
 
   const addFarm = () => {
     if (!farmName) return;
 
     const newFarm = {
+      id: Date.now(),
       name: farmName,
       area: farmArea,
-      crop: cropType,
+      location: location,
     };
 
     setFarms([...farms, newFarm]);
 
     setFarmName("");
     setFarmArea("");
-    setCropType("");
+    setLocation("");
   };
+
+
+  const deleteFarm = (id) => {
+    const updatedFarms = farms.filter(
+      (farm) => farm.id !== id
+    );
+
+    setFarms(updatedFarms);
+  };
+
 
   return (
     <div>
-      <h1>إدارة المزارع</h1>
+
+      <h1>🌾 إدارة المزارع</h1>
 
       <input
         type="text"
@@ -33,42 +46,60 @@ export default function Farms() {
         onChange={(e) => setFarmName(e.target.value)}
       />
 
-      <br />
-      <br />
+      <br /><br />
 
       <input
         type="number"
-        placeholder="مساحة المزرعة"
+        placeholder="مساحة المزرعة بالدونم"
         value={farmArea}
         onChange={(e) => setFarmArea(e.target.value)}
       />
 
-      <br />
-      <br />
+      <br /><br />
 
       <input
         type="text"
-        placeholder="نوع المحصول"
-        value={cropType}
-        onChange={(e) => setCropType(e.target.value)}
+        placeholder="موقع المزرعة"
+        value={location}
+        onChange={(e) => setLocation(e.target.value)}
       />
 
-      <br />
-      <br />
+      <br /><br />
 
-      <button onClick={addFarm}>إضافة مزرعة</button>
+      <button onClick={addFarm}>
+        إضافة مزرعة
+      </button>
+
 
       <hr />
+
 
       <h2>قائمة المزارع</h2>
 
       <ul>
-        {farms.map((farm, index) => (
-          <li key={index}>
-            {farm.name} - {farm.area} دونم - {farm.crop}
+
+        {farms.map((farm) => (
+
+          <li key={farm.id}>
+
+            🌾 {farm.name}
+            {" - "}
+            {farm.area} دونم
+            {" - "}
+            📍 {farm.location}
+
+            <button
+              onClick={() => deleteFarm(farm.id)}
+            >
+              حذف
+            </button>
+
           </li>
+
         ))}
+
       </ul>
+
     </div>
   );
 }
