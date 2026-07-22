@@ -1,65 +1,56 @@
 import { useState } from "react";
 
-export default function Pesticides() {
+export default function Fertilizers() {
 
-  const [name, setName] = useState("");
-  const [field, setField] = useState("");
+  const [type, setType] = useState("");
   const [quantity, setQuantity] = useState("");
-  const [purpose, setPurpose] = useState("");
-  const [sprayDate, setSprayDate] = useState("");
-  const [safetyPeriod, setSafetyPeriod] = useState("");
+  const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
 
-  const [pesticides, setPesticides] = useState([]);
-
-
-  const addPesticide = () => {
-
-    if (!name) return;
+  const [fertilizers, setFertilizers] = useState([]);
 
 
-    const newPesticide = {
+  const addFertilizer = () => {
+
+    if (!type) return;
+
+
+    const newFertilizer = {
 
       id: Date.now(),
 
-      name: name,
-
-      field: field,
+      type: type,
 
       quantity: quantity,
 
-      purpose: purpose,
+      date: date,
 
-      date: sprayDate,
-
-      safety: safetyPeriod,
+      notes: notes,
 
     };
 
 
-    setPesticides([
-      ...pesticides,
-      newPesticide
+    setFertilizers([
+      ...fertilizers,
+      newFertilizer
     ]);
 
 
-    setName("");
-    setField("");
+    setType("");
     setQuantity("");
-    setPurpose("");
-    setSprayDate("");
-    setSafetyPeriod("");
+    setDate("");
+    setNotes("");
 
   };
 
 
-  const deletePesticide = (id) => {
+  const deleteFertilizer = (id) => {
 
-    const updatedPesticides =
-      pesticides.filter(
+    setFertilizers(
+      fertilizers.filter(
         (item) => item.id !== id
-      );
-
-    setPesticides(updatedPesticides);
+      )
+    );
 
   };
 
@@ -67,28 +58,19 @@ export default function Pesticides() {
   return (
     <div>
 
-      <h1>🧪 إدارة المبيدات</h1>
+      <h1>🌾 إدارة الأسمدة</h1>
 
 
-      <h2>إضافة مبيد جديد</h2>
-
-
-      <input
-        type="text"
-        placeholder="اسم المبيد"
-        value={name}
-        onChange={(e)=>setName(e.target.value)}
-      />
-
-
-      <br /><br />
+      <h2>
+        إضافة سماد جديد
+      </h2>
 
 
       <input
         type="text"
-        placeholder="الحقل أو المحصول"
-        value={field}
-        onChange={(e)=>setField(e.target.value)}
+        placeholder="نوع السماد"
+        value={type}
+        onChange={(e)=>setType(e.target.value)}
       />
 
 
@@ -107,73 +89,63 @@ export default function Pesticides() {
 
 
       <input
-        type="text"
-        placeholder="سبب الاستخدام"
-        value={purpose}
-        onChange={(e)=>setPurpose(e.target.value)}
-      />
-
-
-      <br /><br />
-
-
-      <label>
-        تاريخ الرش
-      </label>
-
-      <br />
-
-      <input
         type="date"
-        value={sprayDate}
-        onChange={(e)=>setSprayDate(e.target.value)}
+        value={date}
+        onChange={(e)=>setDate(e.target.value)}
       />
 
 
       <br /><br />
 
 
-      <input
-        type="text"
-        placeholder="فترة الأمان"
-        value={safetyPeriod}
-        onChange={(e)=>setSafetyPeriod(e.target.value)}
+      <textarea
+        placeholder="ملاحظات"
+        value={notes}
+        onChange={(e)=>setNotes(e.target.value)}
       />
 
 
       <br /><br />
 
 
-      <button onClick={addPesticide}>
-        حفظ المبيد
+      <button onClick={addFertilizer}>
+        حفظ السماد
       </button>
 
 
       <hr />
 
 
-      <h2>سجل المبيدات</h2>
+      <h2>
+        سجل الأسمدة
+      </h2>
 
 
       <ul>
 
-        {pesticides.map((item)=>(
+        {fertilizers.map((item)=>(
 
           <li key={item.id}>
 
-            🧪 {item.name}
+            🌾 النوع: {item.type}
 
-            {" - "}
+            <br />
 
             الكمية: {item.quantity}
 
-            {" - "}
+            <br />
 
-            الحقل: {item.field}
+            التاريخ: {item.date}
 
+            <br />
+
+            الملاحظات: {item.notes}
+
+
+            <br />
 
             <button
-              onClick={()=>deletePesticide(item.id)}
+              onClick={()=>deleteFertilizer(item.id)}
             >
               حذف
             </button>
