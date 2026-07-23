@@ -24,6 +24,8 @@ export default function FarmProvider({ children }) {
 
   const [users, setUsers] = useState([]);
 
+  const [consultations, setConsultations] = useState([]);
+
 
   return (
 
@@ -60,6 +62,9 @@ export default function FarmProvider({ children }) {
 
         users,
         setUsers,
+
+        consultations,
+        setConsultations,
 
       }}
 
