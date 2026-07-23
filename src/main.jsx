@@ -5,6 +5,7 @@ import { BrowserRouter } from "react-router-dom";
 import App from "./App.jsx";
 import "./App.css";
 
+import FarmProvider from "./context/FarmContext";
 
 ReactDOM.createRoot(
   document.getElementById("root")
@@ -12,11 +13,15 @@ ReactDOM.createRoot(
 
   <React.StrictMode>
 
-    <BrowserRouter>
+    <FarmProvider>
 
-      <App />
+      <BrowserRouter>
 
-    </BrowserRouter>
+        <App />
+
+      </BrowserRouter>
+
+    </FarmProvider>
 
   </React.StrictMode>
 
