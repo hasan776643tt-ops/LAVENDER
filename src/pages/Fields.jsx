@@ -2,7 +2,11 @@ import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
 export default function Fields() {
-  const { fields, setFields } = useContext(FarmContext);
+  const {
+    farms,
+    fields,
+    setFields,
+  } = useContext(FarmContext);
 
   const [fieldName, setFieldName] = useState("");
   const [farmName, setFarmName] = useState("");
@@ -11,7 +15,7 @@ export default function Fields() {
   const [crop, setCrop] = useState("");
 
   const addField = () => {
-    if (!fieldName) return;
+    if (!fieldName || !farmName) return;
 
     const newField = {
       id: Date.now(),
@@ -32,11 +36,11 @@ export default function Fields() {
   };
 
   const deleteField = (id) => {
-    const updatedFields = fields.filter(
-      (field) => field.id !== id
+    setFields(
+      fields.filter(
+        (field) => field.id !== id
+      )
     );
-
-    setFields(updatedFields);
   };
 
   return (
@@ -49,17 +53,32 @@ export default function Fields() {
         type="text"
         placeholder="اسم الحقل"
         value={fieldName}
-        onChange={(e) => setFieldName(e.target.value)}
+        onChange={(e) =>
+          setFieldName(e.target.value)
+        }
       />
 
       <br /><br />
 
-      <input
-        type="text"
-        placeholder="اسم المزرعة"
+      <select
         value={farmName}
-        onChange={(e) => setFarmName(e.target.value)}
-      />
+        onChange={(e) =>
+          setFarmName(e.target.value)
+        }
+      >
+        <option value="">
+          اختر المزرعة
+        </option>
+
+        {farms.map((farm) => (
+          <option
+            key={farm.id}
+            value={farm.name}
+          >
+            {farm.name}
+          </option>
+        ))}
+      </select>
 
       <br /><br />
 
@@ -67,7 +86,9 @@ export default function Fields() {
         type="text"
         placeholder="نوع التربة"
         value={soilType}
-        onChange={(e) => setSoilType(e.target.value)}
+        onChange={(e) =>
+          setSoilType(e.target.value)
+        }
       />
 
       <br /><br />
@@ -76,7 +97,9 @@ export default function Fields() {
         type="number"
         placeholder="مساحة الحقل"
         value={area}
-        onChange={(e) => setArea(e.target.value)}
+        onChange={(e) =>
+          setArea(e.target.value)
+        }
       />
 
       <br /><br />
@@ -85,7 +108,9 @@ export default function Fields() {
         type="text"
         placeholder="المحصول"
         value={crop}
-        onChange={(e) => setCrop(e.target.value)}
+        onChange={(e) =>
+          setCrop(e.target.value)
+        }
       />
 
       <br /><br />
@@ -112,7 +137,9 @@ export default function Fields() {
             🟤 {field.soil}
 
             <button
-              onClick={() => deleteField(field.id)}
+              onClick={() =>
+                deleteField(field.id)
+              }
             >
               حذف
             </button>
