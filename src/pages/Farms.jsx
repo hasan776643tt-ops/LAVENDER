@@ -1,11 +1,12 @@
-
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
 
 export default function Farms() {
+  const { farms, setFarms } = useContext(FarmContext);
+
   const [farmName, setFarmName] = useState("");
   const [farmArea, setFarmArea] = useState("");
   const [location, setLocation] = useState("");
-  const [farms, setFarms] = useState([]);
 
   const addFarm = () => {
     if (!farmName) return;
@@ -24,7 +25,6 @@ export default function Farms() {
     setLocation("");
   };
 
-
   const deleteFarm = (id) => {
     const updatedFarms = farms.filter(
       (farm) => farm.id !== id
@@ -33,10 +33,8 @@ export default function Farms() {
     setFarms(updatedFarms);
   };
 
-
   return (
     <div>
-
       <h1>🌾 إدارة المزارع</h1>
 
       <input
@@ -46,7 +44,8 @@ export default function Farms() {
         onChange={(e) => setFarmName(e.target.value)}
       />
 
-      <br /><br />
+      <br />
+      <br />
 
       <input
         type="number"
@@ -55,7 +54,8 @@ export default function Farms() {
         onChange={(e) => setFarmArea(e.target.value)}
       />
 
-      <br /><br />
+      <br />
+      <br />
 
       <input
         type="text"
@@ -64,24 +64,20 @@ export default function Farms() {
         onChange={(e) => setLocation(e.target.value)}
       />
 
-      <br /><br />
+      <br />
+      <br />
 
       <button onClick={addFarm}>
         إضافة مزرعة
       </button>
 
-
       <hr />
-
 
       <h2>قائمة المزارع</h2>
 
       <ul>
-
         {farms.map((farm) => (
-
           <li key={farm.id}>
-
             🌾 {farm.name}
             {" - "}
             {farm.area} دونم
@@ -93,13 +89,9 @@ export default function Farms() {
             >
               حذف
             </button>
-
           </li>
-
         ))}
-
       </ul>
-
     </div>
   );
 }
