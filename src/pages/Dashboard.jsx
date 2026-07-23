@@ -1,125 +1,82 @@
-import { useState } from "react";
+
+import { useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
 
 export default function Dashboard() {
-
-  const [stats] = useState({
-
-    farms: 0,
-
-    fields: 0,
-
-    crops: 0,
-
-    irrigation: 0,
-
-    fertilizers: 0,
-
-    pesticides: 0,
-
-    diseases: 0,
-
-    expenses: 0,
-
-  });
-
+  const {
+    farms,
+    fields,
+    crops,
+    irrigations,
+    fertilizers,
+    pesticides,
+    diseases,
+    expenses,
+  } = useContext(FarmContext);
 
   return (
     <div>
-
       <h1>📊 لوحة التحكم</h1>
 
-
-      <h2>
-        نظام إدارة المزارع الذكية
-      </h2>
-
+      <h2>نظام إدارة المزارع الذكية</h2>
 
       <p>
         ملخص سريع لجميع بيانات المزرعة.
       </p>
 
-
       <hr />
 
-
-      <h2>
-        📈 إحصائيات النظام
-      </h2>
-
+      <h2>📈 إحصائيات النظام</h2>
 
       <div>
-
-
         <p>
-          🌾 عدد المزارع: {stats.farms}
+          🌾 عدد المزارع: {farms.length}
         </p>
 
-
         <p>
-          🌱 عدد الحقول: {stats.fields}
+          🌱 عدد الحقول: {fields.length}
         </p>
 
-
         <p>
-          🌿 عدد المحاصيل: {stats.crops}
+          🌿 عدد المحاصيل: {crops.length}
         </p>
 
-
         <p>
-          💧 عمليات الري: {stats.irrigation}
+          💧 عمليات الري: {irrigations.length}
         </p>
 
-
         <p>
-          🌾 عمليات التسميد: {stats.fertilizers}
+          🌾 عمليات التسميد: {fertilizers.length}
         </p>
 
-
         <p>
-          🧪 المبيدات: {stats.pesticides}
+          🧪 المبيدات: {pesticides.length}
         </p>
 
-
         <p>
-          🦠 الأمراض والآفات: {stats.diseases}
+          🦠 الأمراض والآفات: {diseases.length}
         </p>
 
-
         <p>
-          💰 المصروفات: {stats.expenses}
+          💰 المصروفات: {expenses.length}
         </p>
-
-
       </div>
-
 
       <hr />
 
-
-      <h2>
-        🕒 آخر النشاطات
-      </h2>
-
+      <h2>🕒 آخر النشاطات</h2>
 
       <ul>
-
         <li>
           لا توجد عمليات جديدة حاليًا
         </li>
-
       </ul>
-
 
       <hr />
 
-
-      <h2>
-        🔔 التنبيهات
-      </h2>
-
+      <h2>🔔 التنبيهات</h2>
 
       <ul>
-
         <li>
           ⚠️ مواعيد الري القادمة
         </li>
@@ -131,10 +88,7 @@ export default function Dashboard() {
         <li>
           ⚠️ مراجعة استشارات المهندس
         </li>
-
       </ul>
-
-
     </div>
   );
 }
