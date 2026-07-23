@@ -3,44 +3,79 @@ import { createContext, useState } from "react";
 export const FarmContext = createContext();
 
 export default function FarmProvider({ children }) {
+
   const [farms, setFarms] = useState([]);
+
   const [fields, setFields] = useState([]);
+
   const [crops, setCrops] = useState([]);
+
   const [irrigations, setIrrigations] = useState([]);
+
   const [fertilizers, setFertilizers] = useState([]);
+
   const [pesticides, setPesticides] = useState([]);
+
   const [diseases, setDiseases] = useState([]);
+
   const [expenses, setExpenses] = useState([]);
 
+  const [locations, setLocations] = useState([]);
+
+
   return (
+
     <FarmContext.Provider
-      value={{
-        farms,
-        setFarms,
 
-        fields,
-        setFields,
+      value={
 
-        crops,
-        setCrops,
+        {
 
-        irrigations,
-        setIrrigations,
+          farms,
+          setFarms,
 
-        fertilizers,
-        setFertilizers,
 
-        pesticides,
-        setPesticides,
+          fields,
+          setFields,
 
-        diseases,
-        setDiseases,
 
-        expenses,
-        setExpenses,
-      }}
+          crops,
+          setCrops,
+
+
+          irrigations,
+          setIrrigations,
+
+
+          fertilizers,
+          setFertilizers,
+
+
+          pesticides,
+          setPesticides,
+
+
+          diseases,
+          setDiseases,
+
+
+          expenses,
+          setExpenses,
+
+
+          locations,
+          setLocations,
+
+        }
+
+      }
+
     >
+
       {children}
+
     </FarmContext.Provider>
+
   );
+
 }
