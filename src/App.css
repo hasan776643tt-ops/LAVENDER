@@ -1,4 +1,26 @@
-/* Main Layout */
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #f5f7f5;
+  direction: rtl;
+}
+
+
+/* Header */
+
+header {
+  background-color: #2e7d32;
+  color: white;
+  text-align: center;
+  padding: 20px;
+}
+
+header h1 {
+  margin: 0;
+}
+
+
+/* Layout */
 
 .layout {
   display: flex;
@@ -12,32 +34,30 @@ aside {
   width: 230px;
   background-color: white;
   padding: 20px;
+  box-shadow: 0 0 5px #ccc;
 }
-
 
 aside h2 {
   color: #2e7d32;
 }
-
 
 aside ul {
   list-style: none;
   padding: 0;
 }
 
-
 aside li {
   margin: 15px 0;
 }
 
-
 aside a {
   text-decoration: none;
   color: #333;
+  font-weight: bold;
 }
 
 
-/* Page Content */
+/* Main Content */
 
 main {
   flex: 1;
@@ -45,13 +65,96 @@ main {
 }
 
 
+/* Navigation */
+
+nav {
+  background-color: white;
+  padding: 15px;
+  text-align: center;
+  border-bottom: 1px solid #ddd;
+}
+
+nav a {
+  text-decoration: none;
+  color: #2e7d32;
+  font-weight: bold;
+  margin: 5px;
+}
+
+nav a:hover {
+  color: #1b5e20;
+}
+
+
+/* Inputs */
+
+input,
+textarea,
+select {
+
+  width: 90%;
+  padding: 10px;
+  margin-top: 5px;
+
+  border: 1px solid #ccc;
+  border-radius: 5px;
+
+}
+
+
+/* Buttons */
+
+button {
+
+  background-color: #2e7d32;
+
+  color: white;
+
+  border: none;
+
+  padding: 10px 20px;
+
+  border-radius: 5px;
+
+  cursor: pointer;
+
+}
+
+
+button:hover {
+
+  background-color: #1b5e20;
+
+}
+
+
 /* Cards */
 
 .card {
-  background: white;
+
+  background-color: white;
+
   padding: 20px;
+
   margin: 10px;
+
   border-radius: 10px;
+
+  box-shadow: 0 2px 5px #ccc;
+
+}
+
+
+/* Footer */
+
+footer {
+
+  text-align: center;
+
+  background-color: white;
+
+  padding: 15px;
+
 }
 
 
@@ -60,11 +163,32 @@ main {
 @media (max-width: 600px) {
 
   .layout {
+
     flex-direction: column;
+
   }
 
+
   aside {
+
     width: auto;
+
+  }
+
+
+  nav {
+
+    display: flex;
+
+    flex-direction: column;
+
+  }
+
+
+  nav a {
+
+    margin: 8px;
+
   }
 
 }
