@@ -8,45 +8,19 @@ export default function Header() {
         🌱 Smart Farm Management
       </h1>
 
-
       <nav>
 
-        <Link to="/">
-          الرئيسية
-        </Link>
-
-        {" | "}
-
-        <Link to="/dashboard">
-          لوحة التحكم
-        </Link>
-
-        {" | "}
-
-        <Link to="/farms">
-          المزارع
-        </Link>
-
-        {" | "}
-
-        <Link to="/fields">
-          الحقول
-        </Link>
-
-        {" | "}
-
-        <Link to="/crops">
-          المحاصيل
-        </Link>
-
-        {" | "}
-
         <Link to="/login">
-          دخول
+          تسجيل الدخول
+        </Link>
+
+        {" | "}
+
+        <Link to="/register">
+          إنشاء حساب
         </Link>
 
       </nav>
-
 
     </header>
   );
