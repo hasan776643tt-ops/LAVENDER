@@ -1,23 +1,25 @@
+import { Link } from "react-router-dom";
+
 export default function Sidebar() {
 
   const menuItems = [
-    "الرئيسية",
-    "لوحة التحكم",
-    "المزارع",
-    "الحقول",
-    "المحاصيل",
-    "الري",
-    "الأسمدة",
-    "المبيدات",
-    "الأمراض",
-    "الطقس",
-    "الخريطة",
-    "المصاريف",
-    "التقارير",
-    "الذكاء الاصطناعي",
-    "المهندس الزراعي",
-    "المستخدمون",
-    "الإعدادات",
+    { name: "الرئيسية", path: "/" },
+    { name: "لوحة التحكم", path: "/dashboard" },
+    { name: "المزارع", path: "/farms" },
+    { name: "الحقول", path: "/fields" },
+    { name: "المحاصيل", path: "/crops" },
+    { name: "الري", path: "/irrigation" },
+    { name: "الأسمدة", path: "/fertilizers" },
+    { name: "المبيدات", path: "/pesticides" },
+    { name: "الأمراض", path: "/diseases" },
+    { name: "الطقس", path: "/weather" },
+    { name: "الخريطة", path: "/map" },
+    { name: "المصاريف", path: "/expenses" },
+    { name: "التقارير", path: "/reports" },
+    { name: "الذكاء الاصطناعي", path: "/ai" },
+    { name: "المهندس الزراعي", path: "/engineer" },
+    { name: "المستخدمون", path: "/users" },
+    { name: "الإعدادات", path: "/settings" },
   ];
 
   return (
@@ -31,8 +33,10 @@ export default function Sidebar() {
 
         {menuItems.map((item) => (
 
-          <li key={item}>
-            {item}
+          <li key={item.path}>
+            <Link to={item.path}>
+              {item.name}
+            </Link>
           </li>
 
         ))}
@@ -41,5 +45,4 @@ export default function Sidebar() {
 
     </aside>
   );
-
 }
