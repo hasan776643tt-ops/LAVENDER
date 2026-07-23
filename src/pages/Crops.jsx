@@ -1,9 +1,12 @@
-
 import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
 export default function Crops() {
-  const { crops, setCrops } = useContext(FarmContext);
+  const {
+    fields,
+    crops,
+    setCrops,
+  } = useContext(FarmContext);
 
   const [cropName, setCropName] = useState("");
   const [variety, setVariety] = useState("");
@@ -13,7 +16,7 @@ export default function Crops() {
   const [seedQuantity, setSeedQuantity] = useState("");
 
   const addCrop = () => {
-    if (!cropName) return;
+    if (!cropName || !fieldName) return;
 
     const newCrop = {
       id: Date.now(),
@@ -25,7 +28,10 @@ export default function Crops() {
       seeds: seedQuantity,
     };
 
-    setCrops([...crops, newCrop]);
+    setCrops([
+      ...crops,
+      newCrop,
+    ]);
 
     setCropName("");
     setVariety("");
@@ -36,15 +42,16 @@ export default function Crops() {
   };
 
   const deleteCrop = (id) => {
-    const updatedCrops = crops.filter(
-      (crop) => crop.id !== id
+    setCrops(
+      crops.filter(
+        (crop) => crop.id !== id
+      )
     );
-
-    setCrops(updatedCrops);
   };
 
   return (
     <div>
+
       <h1>🌿 إدارة المحاصيل</h1>
 
       <h2>إضافة محصول جديد</h2>
@@ -53,7 +60,9 @@ export default function Crops() {
         type="text"
         placeholder="اسم المحصول"
         value={cropName}
-        onChange={(e) => setCropName(e.target.value)}
+        onChange={(e) =>
+          setCropName(e.target.value)
+        }
       />
 
       <br /><br />
@@ -62,40 +71,65 @@ export default function Crops() {
         type="text"
         placeholder="صنف المحصول"
         value={variety}
-        onChange={(e) => setVariety(e.target.value)}
+        onChange={(e) =>
+          setVariety(e.target.value)
+        }
       />
 
       <br /><br />
 
-      <input
-        type="text"
-        placeholder="الحقل المرتبط"
+      <select
         value={fieldName}
-        onChange={(e) => setFieldName(e.target.value)}
-      />
+        onChange={(e) =>
+          setFieldName(e.target.value)
+        }
+      >
+
+        <option value="">
+          اختر الحقل
+        </option>
+
+        {fields.map((field) => (
+          <option
+            key={field.id}
+            value={field.name}
+          >
+            {field.name}
+          </option>
+        ))}
+
+      </select>
 
       <br /><br />
 
-      <label>تاريخ الزراعة</label>
+      <label>
+        تاريخ الزراعة
+      </label>
 
       <br />
 
       <input
         type="date"
         value={plantingDate}
-        onChange={(e) => setPlantingDate(e.target.value)}
+        onChange={(e) =>
+          setPlantingDate(e.target.value)
+        }
       />
 
       <br /><br />
 
-      <label>تاريخ الحصاد</label>
+      <label>
+        تاريخ الحصاد
+      </label>
 
       <br />
 
       <input
         type="date"
         value={harvestDate}
-        onChange={(e) => setHarvestDate(e.target.value)}
+        onChange={(e) =>
+          setHarvestDate(e.target.value)
+        }
       />
 
       <br /><br />
@@ -104,7 +138,9 @@ export default function Crops() {
         type="number"
         placeholder="كمية البذور"
         value={seedQuantity}
-        onChange={(e) => setSeedQuantity(e.target.value)}
+        onChange={(e) =>
+          setSeedQuantity(e.target.value)
+        }
       />
 
       <br /><br />
@@ -118,8 +154,11 @@ export default function Crops() {
       <h2>قائمة المحاصيل</h2>
 
       <ul>
+
         {crops.map((crop) => (
+
           <li key={crop.id}>
+
             🌿 {crop.name}
             {" - "}
             🌱 {crop.variety}
@@ -129,13 +168,19 @@ export default function Crops() {
             📏 البذور: {crop.seeds}
 
             <button
-              onClick={() => deleteCrop(crop.id)}
+              onClick={() =>
+                deleteCrop(crop.id)
+              }
             >
               حذف
             </button>
+
           </li>
+
         ))}
+
       </ul>
+
     </div>
   );
 }
