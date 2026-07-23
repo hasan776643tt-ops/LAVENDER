@@ -1,20 +1,14 @@
-import { useState } from "react";
+import { useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
 
 export default function Reports() {
 
-  const [report] = useState({
-
-    farms: 0,
-
-    fields: 0,
-
-    crops: 0,
-
-    expenses: 0,
-
-    production: 0,
-
-  });
+  const {
+    farms,
+    fields,
+    crops,
+    expenses,
+  } = useContext(FarmContext);
 
 
   return (
@@ -37,24 +31,24 @@ export default function Reports() {
       <ul>
 
         <li>
-          🌾 عدد المزارع: {report.farms}
+          🌾 عدد المزارع: {farms.length}
         </li>
 
-        <li>
-          🌱 عدد الحقول: {report.fields}
-        </li>
 
         <li>
-          🌿 عدد المحاصيل: {report.crops}
+          🌱 عدد الحقول: {fields.length}
         </li>
 
-        <li>
-          💰 إجمالي المصاريف: {report.expenses}
-        </li>
 
         <li>
-          📦 الإنتاج: {report.production}
+          🌿 عدد المحاصيل: {crops.length}
         </li>
+
+
+        <li>
+          💰 إجمالي المصاريف: {expenses.length}
+        </li>
+
 
       </ul>
 
@@ -67,15 +61,30 @@ export default function Reports() {
 
       <ul>
 
-        <li>تقرير المحاصيل</li>
+        <li>
+          تقرير المحاصيل
+        </li>
 
-        <li>تقرير الري</li>
 
-        <li>تقرير التسميد</li>
+        <li>
+          تقرير الري
+        </li>
 
-        <li>تقرير المبيدات</li>
 
-        <li>تقرير المصاريف</li>
+        <li>
+          تقرير التسميد
+        </li>
+
+
+        <li>
+          تقرير المبيدات
+        </li>
+
+
+        <li>
+          تقرير المصاريف
+        </li>
+
 
       </ul>
 
