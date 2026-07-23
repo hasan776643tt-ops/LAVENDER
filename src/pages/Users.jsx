@@ -1,16 +1,19 @@
-
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
 
 export default function Users() {
+
+  const {
+    users,
+    setUsers,
+  } = useContext(FarmContext);
+
 
   const [name, setName] = useState("");
 
   const [email, setEmail] = useState("");
 
   const [role, setRole] = useState("مزارع");
-
-
-  const [users, setUsers] = useState([]);
 
 
 
@@ -34,7 +37,7 @@ export default function Users() {
 
     setUsers([
       ...users,
-      newUser
+      newUser,
     ]);
 
 
@@ -50,13 +53,11 @@ export default function Users() {
 
   const deleteUser = (id) => {
 
-    const updatedUsers =
+    setUsers(
       users.filter(
-        (user)=> user.id !== id
-      );
-
-
-    setUsers(updatedUsers);
+        (user) => user.id !== id
+      )
+    );
 
   };
 
@@ -66,25 +67,25 @@ export default function Users() {
 
     <div>
 
-
       <h1>
         👤 إدارة المستخدمين
       </h1>
 
 
+      <h2>
+        إضافة مستخدم جديد
+      </h2>
+
+
 
       <input
-
         type="text"
-
         placeholder="اسم المستخدم"
-
         value={name}
-
-        onChange={(e)=>setName(e.target.value)}
-
+        onChange={(e) =>
+          setName(e.target.value)
+        }
       />
-
 
 
       <br /><br />
@@ -92,17 +93,13 @@ export default function Users() {
 
 
       <input
-
         type="email"
-
         placeholder="البريد الإلكتروني"
-
         value={email}
-
-        onChange={(e)=>setEmail(e.target.value)}
-
+        onChange={(e) =>
+          setEmail(e.target.value)
+        }
       />
-
 
 
       <br /><br />
@@ -110,24 +107,30 @@ export default function Users() {
 
 
       <select
-
         value={role}
-
-        onChange={(e)=>setRole(e.target.value)}
-
+        onChange={(e) =>
+          setRole(e.target.value)
+        }
       >
 
-        <option>مزارع</option>
+        <option>
+          مزارع
+        </option>
 
-        <option>مهندس زراعي</option>
+        <option>
+          مهندس زراعي
+        </option>
 
-        <option>مشرف</option>
+        <option>
+          مشرف
+        </option>
 
-        <option>مدير النظام</option>
+        <option>
+          مدير النظام
+        </option>
 
 
       </select>
-
 
 
       <br /><br />
@@ -135,15 +138,11 @@ export default function Users() {
 
 
       <button onClick={addUser}>
-
         إضافة مستخدم
-
       </button>
 
 
-
       <hr />
-
 
 
       <h2>
@@ -154,12 +153,9 @@ export default function Users() {
 
       <ul>
 
-
-        {users.map((user)=>(
-
+        {users.map((user) => (
 
           <li key={user.id}>
-
 
             👤 {user.name}
 
@@ -172,30 +168,23 @@ export default function Users() {
             🔑 الصلاحية: {user.role}
 
 
-
             <br />
 
 
             <button
-
-              onClick={()=>deleteUser(user.id)}
-
+              onClick={() =>
+                deleteUser(user.id)
+              }
             >
-
               حذف
-
             </button>
-
 
 
           </li>
 
-
         ))}
 
-
       </ul>
-
 
 
     </div>
