@@ -1,7 +1,6 @@
+import { Routes, Route } from "react-router-dom";
 
-import { Routes, Route, Link } from "react-router-dom";
-
-import Header from "./components/Header";
+import MainLayout from "./layouts/MainLayout";
 
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
@@ -33,82 +32,9 @@ import Register from "./pages/Register";
 
 import Settings from "./pages/Settings";
 
-
 export default function App() {
   return (
-    <div>
-
-      <Header />
-
-      <nav>
-
-        <Link to="/">الرئيسية</Link>
-        {" | "}
-
-        <Link to="/dashboard">لوحة التحكم</Link>
-        {" | "}
-
-        <Link to="/users">المستخدمون</Link>
-        {" | "}
-
-        <Link to="/farms">المزارع</Link>
-        {" | "}
-
-        <Link to="/fields">الحقول</Link>
-        {" | "}
-
-        <Link to="/crops">المحاصيل</Link>
-        {" | "}
-
-        <Link to="/irrigation">الري</Link>
-        {" | "}
-
-        <Link to="/fertilizers">التسميد</Link>
-        {" | "}
-
-        <Link to="/pesticides">المبيدات</Link>
-        {" | "}
-
-        <Link to="/diseases">الأمراض</Link>
-        {" | "}
-
-        <Link to="/ai">المساعد الذكي</Link>
-        {" | "}
-
-        <Link to="/engineer">المهندس الزراعي</Link>
-        {" | "}
-
-        <Link to="/weather">الطقس</Link>
-        {" | "}
-
-        <Link to="/map">الخريطة</Link>
-        {" | "}
-
-        <Link to="/expenses">المصاريف</Link>
-        {" | "}
-
-        <Link to="/reports">التقارير</Link>
-        {" | "}
-
-        <Link to="/services">الخدمات</Link>
-        {" | "}
-
-        <Link to="/contact">تواصل معنا</Link>
-        {" | "}
-
-        <Link to="/settings">الإعدادات</Link>
-        {" | "}
-
-        <Link to="/login">دخول</Link>
-        {" | "}
-
-        <Link to="/register">تسجيل</Link>
-
-      </nav>
-
-
-      <hr />
-
+    <MainLayout>
 
       <Routes>
 
@@ -118,13 +44,11 @@ export default function App() {
 
         <Route path="/users" element={<Users />} />
 
-
         <Route path="/farms" element={<Farms />} />
 
         <Route path="/fields" element={<Fields />} />
 
         <Route path="/crops" element={<Crops />} />
-
 
         <Route path="/irrigation" element={<Irrigation />} />
 
@@ -134,29 +58,23 @@ export default function App() {
 
         <Route path="/diseases" element={<Diseases />} />
 
-
         <Route path="/ai" element={<AI />} />
 
         <Route path="/engineer" element={<Engineer />} />
-
 
         <Route path="/weather" element={<Weather />} />
 
         <Route path="/map" element={<Map />} />
 
-
         <Route path="/expenses" element={<Expenses />} />
 
         <Route path="/reports" element={<Reports />} />
-
 
         <Route path="/services" element={<Services />} />
 
         <Route path="/contact" element={<Contact />} />
 
-
         <Route path="/settings" element={<Settings />} />
-
 
         <Route path="/login" element={<Login />} />
 
@@ -164,6 +82,6 @@ export default function App() {
 
       </Routes>
 
-    </div>
+    </MainLayout>
   );
 }
