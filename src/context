@@ -22,53 +22,46 @@ export default function FarmProvider({ children }) {
 
   const [locations, setLocations] = useState([]);
 
+  const [users, setUsers] = useState([]);
+
 
   return (
 
     <FarmContext.Provider
 
-      value={
+      value={{
 
-        {
+        farms,
+        setFarms,
 
-          farms,
-          setFarms,
+        fields,
+        setFields,
 
+        crops,
+        setCrops,
 
-          fields,
-          setFields,
+        irrigations,
+        setIrrigations,
 
+        fertilizers,
+        setFertilizers,
 
-          crops,
-          setCrops,
+        pesticides,
+        setPesticides,
 
+        diseases,
+        setDiseases,
 
-          irrigations,
-          setIrrigations,
+        expenses,
+        setExpenses,
 
+        locations,
+        setLocations,
 
-          fertilizers,
-          setFertilizers,
+        users,
+        setUsers,
 
-
-          pesticides,
-          setPesticides,
-
-
-          diseases,
-          setDiseases,
-
-
-          expenses,
-          setExpenses,
-
-
-          locations,
-          setLocations,
-
-        }
-
-      }
+      }}
 
     >
 
