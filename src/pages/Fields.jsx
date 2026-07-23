@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
 
 export default function Fields() {
+  const { fields, setFields } = useContext(FarmContext);
 
   const [fieldName, setFieldName] = useState("");
   const [farmName, setFarmName] = useState("");
@@ -8,11 +10,7 @@ export default function Fields() {
   const [area, setArea] = useState("");
   const [crop, setCrop] = useState("");
 
-  const [fields, setFields] = useState([]);
-
-
   const addField = () => {
-
     if (!fieldName) return;
 
     const newField = {
@@ -24,7 +22,6 @@ export default function Fields() {
       crop: crop,
     };
 
-
     setFields([...fields, newField]);
 
     setFieldName("");
@@ -34,100 +31,79 @@ export default function Fields() {
     setCrop("");
   };
 
-
   const deleteField = (id) => {
-
     const updatedFields = fields.filter(
       (field) => field.id !== id
     );
 
     setFields(updatedFields);
-
   };
-
 
   return (
     <div>
-
       <h1>🌱 إدارة الحقول</h1>
 
-
       <h2>إضافة حقل جديد</h2>
-
 
       <input
         type="text"
         placeholder="اسم الحقل"
         value={fieldName}
-        onChange={(e)=>setFieldName(e.target.value)}
+        onChange={(e) => setFieldName(e.target.value)}
       />
 
-
       <br /><br />
-
 
       <input
         type="text"
         placeholder="اسم المزرعة"
         value={farmName}
-        onChange={(e)=>setFarmName(e.target.value)}
+        onChange={(e) => setFarmName(e.target.value)}
       />
 
-
       <br /><br />
-
 
       <input
         type="text"
         placeholder="نوع التربة"
         value={soilType}
-        onChange={(e)=>setSoilType(e.target.value)}
+        onChange={(e) => setSoilType(e.target.value)}
       />
 
-
       <br /><br />
-
 
       <input
         type="number"
         placeholder="مساحة الحقل"
         value={area}
-        onChange={(e)=>setArea(e.target.value)}
+        onChange={(e) => setArea(e.target.value)}
       />
 
-
       <br /><br />
-
 
       <input
         type="text"
         placeholder="المحصول"
         value={crop}
-        onChange={(e)=>setCrop(e.target.value)}
+        onChange={(e) => setCrop(e.target.value)}
       />
 
-
       <br /><br />
-
 
       <button onClick={addField}>
         حفظ الحقل
       </button>
 
-
       <hr />
-
 
       <h2>قائمة الحقول</h2>
 
-
       <ul>
-
-        {fields.map((field)=>(
-
+        {fields.map((field) => (
           <li key={field.id}>
-
             🌱 {field.name}
+            {" - "}
+            🏡 {field.farm}
             {" - "}
             🌾 {field.crop}
             {" - "}
@@ -135,20 +111,14 @@ export default function Fields() {
             {" - "}
             🟤 {field.soil}
 
-
             <button
-              onClick={()=>deleteField(field.id)}
+              onClick={() => deleteField(field.id)}
             >
               حذف
             </button>
-
           </li>
-
         ))}
-
       </ul>
-
-
     </div>
   );
 }
