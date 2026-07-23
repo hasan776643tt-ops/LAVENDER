@@ -1,13 +1,18 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
 
 export default function Expenses() {
+
+  const {
+    expenses,
+    setExpenses,
+  } = useContext(FarmContext);
+
 
   const [type, setType] = useState("");
   const [amount, setAmount] = useState("");
   const [date, setDate] = useState("");
   const [notes, setNotes] = useState("");
-
-  const [expenses, setExpenses] = useState([]);
 
 
   const addExpense = () => {
@@ -32,7 +37,7 @@ export default function Expenses() {
 
     setExpenses([
       ...expenses,
-      newExpense
+      newExpense,
     ]);
 
 
@@ -46,12 +51,11 @@ export default function Expenses() {
 
   const deleteExpense = (id) => {
 
-    const updatedExpenses =
+    setExpenses(
       expenses.filter(
         (item) => item.id !== id
-      );
-
-    setExpenses(updatedExpenses);
+      )
+    );
 
   };
 
@@ -77,7 +81,9 @@ export default function Expenses() {
         type="text"
         placeholder="نوع المصروف"
         value={type}
-        onChange={(e)=>setType(e.target.value)}
+        onChange={(e) =>
+          setType(e.target.value)
+        }
       />
 
 
@@ -88,7 +94,9 @@ export default function Expenses() {
         type="number"
         placeholder="القيمة"
         value={amount}
-        onChange={(e)=>setAmount(e.target.value)}
+        onChange={(e) =>
+          setAmount(e.target.value)
+        }
       />
 
 
@@ -99,12 +107,16 @@ export default function Expenses() {
         التاريخ
       </label>
 
+
       <br />
+
 
       <input
         type="date"
         value={date}
-        onChange={(e)=>setDate(e.target.value)}
+        onChange={(e) =>
+          setDate(e.target.value)
+        }
       />
 
 
@@ -114,7 +126,9 @@ export default function Expenses() {
       <textarea
         placeholder="ملاحظات"
         value={notes}
-        onChange={(e)=>setNotes(e.target.value)}
+        onChange={(e) =>
+          setNotes(e.target.value)
+        }
       />
 
 
@@ -141,26 +155,36 @@ export default function Expenses() {
 
       <ul>
 
-        {expenses.map((item)=>(
+        {expenses.map((item) => (
 
           <li key={item.id}>
 
-            💰 {item.type}
-
-            {" - "}
-
-            {item.amount}
+            💰 النوع: {item.type}
 
             <br />
 
-            📅 {item.date}
+            💵 القيمة: {item.amount}
+
+            <br />
+
+            📅 التاريخ: {item.date}
+
+            <br />
+
+            📝 الملاحظات: {item.notes}
+
+
+            <br />
 
 
             <button
-              onClick={()=>deleteExpense(item.id)}
+              onClick={() =>
+                deleteExpense(item.id)
+              }
             >
               حذف
             </button>
+
 
           </li>
 
