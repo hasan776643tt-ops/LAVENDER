@@ -1,12 +1,18 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
 
 export default function Map() {
+
+  const {
+    farms,
+    locations,
+    setLocations,
+  } = useContext(FarmContext);
+
 
   const [farmName, setFarmName] = useState("");
   const [latitude, setLatitude] = useState("");
   const [longitude, setLongitude] = useState("");
-
-  const [locations, setLocations] = useState([]);
 
 
   const addLocation = () => {
@@ -29,7 +35,7 @@ export default function Map() {
 
     setLocations([
       ...locations,
-      newLocation
+      newLocation,
     ]);
 
 
@@ -42,28 +48,54 @@ export default function Map() {
 
   const deleteLocation = (id) => {
 
-    const updatedLocations =
+    setLocations(
       locations.filter(
         (item) => item.id !== id
-      );
-
-    setLocations(updatedLocations);
+      )
+    );
 
   };
 
 
   return (
+
     <div>
 
       <h1>📍 خريطة المزارع و GPS</h1>
 
 
-      <input
-        type="text"
-        placeholder="اسم المزرعة"
+      <h2>
+        إضافة موقع مزرعة
+      </h2>
+
+
+      <select
         value={farmName}
-        onChange={(e)=>setFarmName(e.target.value)}
-      />
+        onChange={(e) =>
+          setFarmName(e.target.value)
+        }
+      >
+
+        <option value="">
+          اختر المزرعة
+        </option>
+
+
+        {farms.map((farm) => (
+
+          <option
+            key={farm.id}
+            value={farm.name}
+          >
+
+            {farm.name}
+
+          </option>
+
+        ))}
+
+
+      </select>
 
 
       <br /><br />
@@ -73,7 +105,9 @@ export default function Map() {
         type="number"
         placeholder="خط العرض Latitude"
         value={latitude}
-        onChange={(e)=>setLatitude(e.target.value)}
+        onChange={(e) =>
+          setLatitude(e.target.value)
+        }
       />
 
 
@@ -84,7 +118,9 @@ export default function Map() {
         type="number"
         placeholder="خط الطول Longitude"
         value={longitude}
-        onChange={(e)=>setLongitude(e.target.value)}
+        onChange={(e) =>
+          setLongitude(e.target.value)
+        }
       />
 
 
@@ -92,7 +128,7 @@ export default function Map() {
 
 
       <button onClick={addLocation}>
-        إضافة موقع مزرعة
+        حفظ موقع المزرعة
       </button>
 
 
@@ -101,12 +137,12 @@ export default function Map() {
 
       <div
         style={{
-          width:"100%",
-          height:"300px",
-          border:"2px solid gray",
-          display:"flex",
-          alignItems:"center",
-          justifyContent:"center",
+          width: "100%",
+          height: "300px",
+          border: "2px solid gray",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
 
@@ -122,7 +158,7 @@ export default function Map() {
 
       <ul>
 
-        {locations.map((item)=>(
+        {locations.map((item) => (
 
           <li key={item.id}>
 
@@ -138,10 +174,13 @@ export default function Map() {
 
 
             <button
-              onClick={()=>deleteLocation(item.id)}
+              onClick={() =>
+                deleteLocation(item.id)
+              }
             >
               حذف
             </button>
+
 
           </li>
 
@@ -151,5 +190,7 @@ export default function Map() {
 
 
     </div>
+
   );
+
 }
