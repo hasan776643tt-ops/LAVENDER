@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function Home() {
   return (
     <div>
@@ -22,9 +24,34 @@ export default function Home() {
         <li>👨‍🌾 التواصل مع المهندس الزراعي</li>
       </ul>
 
-      <button>
-        ابدأ الآن
-      </button>
+      <div>
+
+        <Link to="/register">
+          <button>
+            ابدأ الآن
+          </button>
+        </Link>
+
+        <Link to="/login">
+          <button>
+            تسجيل دخول
+          </button>
+        </Link>
+
+        <Link to="/dashboard">
+          <button>
+            لوحة التحكم
+          </button>
+        </Link>
+
+        <Link to="/services">
+          <button>
+            الخدمات
+          </button>
+        </Link>
+
+      </div>
+
     </div>
   );
 }
