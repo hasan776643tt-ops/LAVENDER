@@ -1,21 +1,31 @@
-import * as userRepository from "../repositories/userRepository";
+import userRepository from "../repositories/userRepository.js";
 
-export const getAllUsers = async () => {
-  return await userRepository.getAllUsers();
+
+// جلب المستخدمين
+export const getUsersService = async () => {
+  return await userRepository.getAll();
 };
 
-export const getUserById = async (id) => {
-  return await userRepository.getUserById(id);
+
+// جلب مستخدم حسب الرقم
+export const getUserByIdService = async (id) => {
+  return await userRepository.getById(id);
 };
 
-export const createUser = async (userData) => {
-  return await userRepository.createUser(userData);
+
+// إنشاء مستخدم
+export const createUserService = async (data) => {
+  return await userRepository.create(data);
 };
 
-export const updateUser = async (id, userData) => {
-  return await userRepository.updateUser(id, userData);
+
+// تعديل مستخدم
+export const updateUserService = async (id, data) => {
+  return await userRepository.update(id, data);
 };
 
-export const deleteUser = async (id) => {
-  return await userRepository.deleteUser(id);
+
+// حذف مستخدم
+export const deleteUserService = async (id) => {
+  return await userRepository.delete(id);
 };
