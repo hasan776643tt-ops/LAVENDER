@@ -1,21 +1,31 @@
-import * as cropRepository from "../repositories/cropRepository";
+import cropRepository from "../repositories/cropRepository.js";
 
-export const getAllCrops = async () => {
-  return await cropRepository.getAllCrops();
+
+// جلب جميع المحاصيل
+export const getCropsService = async () => {
+  return await cropRepository.getAll();
 };
 
-export const getCropById = async (id) => {
-  return await cropRepository.getCropById(id);
+
+// جلب محصول حسب الرقم
+export const getCropByIdService = async (id) => {
+  return await cropRepository.getById(id);
 };
 
-export const createCrop = async (cropData) => {
-  return await cropRepository.createCrop(cropData);
+
+// إنشاء محصول جديد
+export const createCropService = async (data) => {
+  return await cropRepository.create(data);
 };
 
-export const updateCrop = async (id, cropData) => {
-  return await cropRepository.updateCrop(id, cropData);
+
+// تعديل محصول
+export const updateCropService = async (id, data) => {
+  return await cropRepository.update(id, data);
 };
 
-export const deleteCrop = async (id) => {
-  return await cropRepository.deleteCrop(id);
+
+// حذف محصول
+export const deleteCropService = async (id) => {
+  return await cropRepository.delete(id);
 };
