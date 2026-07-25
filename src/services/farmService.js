@@ -1,21 +1,31 @@
-import * as farmRepository from "../repositories/farmRepository";
+import farmRepository from "../repositories/farmRepository.js";
 
-export const getAllFarms = async () => {
-  return await farmRepository.getAllFarms();
+
+// جلب جميع المزارع
+export const getFarmsService = async () => {
+  return await farmRepository.getAll();
 };
 
-export const getFarmById = async (id) => {
-  return await farmRepository.getFarmById(id);
+
+// جلب مزرعة حسب الرقم
+export const getFarmByIdService = async (id) => {
+  return await farmRepository.getById(id);
 };
 
-export const createFarm = async (farmData) => {
-  return await farmRepository.createFarm(farmData);
+
+// إنشاء مزرعة جديدة
+export const createFarmService = async (data) => {
+  return await farmRepository.create(data);
 };
 
-export const updateFarm = async (id, farmData) => {
-  return await farmRepository.updateFarm(id, farmData);
+
+// تعديل مزرعة
+export const updateFarmService = async (id, data) => {
+  return await farmRepository.update(id, data);
 };
 
-export const deleteFarm = async (id) => {
-  return await farmRepository.deleteFarm(id);
+
+// حذف مزرعة
+export const deleteFarmService = async (id) => {
+  return await farmRepository.delete(id);
 };
