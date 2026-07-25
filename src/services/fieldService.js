@@ -1,21 +1,31 @@
-import * as fieldRepository from "../repositories/fieldRepository";
+import fieldRepository from "../repositories/fieldRepository.js";
 
-export const getAllFields = async () => {
-  return await fieldRepository.getAllFields();
+
+// جلب جميع الحقول
+export const getFieldsService = async () => {
+  return await fieldRepository.getAll();
 };
 
-export const getFieldById = async (id) => {
-  return await fieldRepository.getFieldById(id);
+
+// جلب حقل حسب الرقم
+export const getFieldByIdService = async (id) => {
+  return await fieldRepository.getById(id);
 };
 
-export const createField = async (fieldData) => {
-  return await fieldRepository.createField(fieldData);
+
+// إنشاء حقل جديد
+export const createFieldService = async (data) => {
+  return await fieldRepository.create(data);
 };
 
-export const updateField = async (id, fieldData) => {
-  return await fieldRepository.updateField(id, fieldData);
+
+// تعديل حقل
+export const updateFieldService = async (id, data) => {
+  return await fieldRepository.update(id, data);
 };
 
-export const deleteField = async (id) => {
-  return await fieldRepository.deleteField(id);
+
+// حذف حقل
+export const deleteFieldService = async (id) => {
+  return await fieldRepository.delete(id);
 };
