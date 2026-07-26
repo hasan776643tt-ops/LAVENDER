@@ -11,41 +11,27 @@ export default function Expenses() {
     setExpenses,
   } = useContext(FarmContext);
 
-  const [type, setType] =
-    useState("");
-
-  const [amount, setAmount] =
-    useState("");
-
-  const [currency, setCurrency] =
-    useState("ل.س");
-
+  const [category, setCategory] = useState("");
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("ل.س");
   const [paymentMethod, setPaymentMethod] =
     useState("نقدي");
 
-  const [supplier, setSupplier] =
-    useState("");
+  const [priority, setPriority] =
+    useState("متوسطة");
 
-  const [invoice, setInvoice] =
-    useState("");
-
-  const [date, setDate] =
-    useState("");
-
-  const [notes, setNotes] =
-    useState("");
+  const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
 
   const addExpense = () => {
 
-    if (!type || !amount) {
-      return;
-    }
+    if (!category || !amount) return;
 
     const newExpense = {
 
       id: Date.now(),
 
-      type,
+      category,
 
       amount: Number(amount),
 
@@ -53,16 +39,14 @@ export default function Expenses() {
 
       paymentMethod,
 
-      supplier,
-
-      invoice,
+      priority,
 
       date,
 
       notes,
 
       createdAt:
-        new Date().toLocaleString("ar"),
+        new Date().toLocaleString("ar-SY"),
 
     };
 
@@ -71,13 +55,13 @@ export default function Expenses() {
       newExpense,
     ]);
 
-    setType("");
+    setCategory("");
     setAmount("");
-    setSupplier("");
-    setInvoice("");
+    setCurrency("ل.س");
+    setPaymentMethod("نقدي");
+    setPriority("متوسطة");
     setDate("");
     setNotes("");
-
   };
 
   const deleteExpense = (id) => {
@@ -90,10 +74,10 @@ export default function Expenses() {
 
   };
 
-  const total =
+  const totalExpenses =
     expenses.reduce(
       (sum, item) =>
-        sum + item.amount,
+        sum + Number(item.amount),
       0
     );
 
@@ -105,19 +89,19 @@ export default function Expenses() {
         💰 إدارة المصاريف
       </h1>
 
-      <Card title="إضافة مصروف">
+      <Card title="إضافة مصروف جديد">
 
         <select
-          value={type}
+          value={category}
           onChange={(e) =>
-            setType(
+            setCategory(
               e.target.value
             )
           }
         >
 
           <option value="">
-            اختر نوع المصروف
+            اختر التصنيف
           </option>
 
           <option>
@@ -125,11 +109,7 @@ export default function Expenses() {
           </option>
 
           <option>
-            مبيدات
-          </option>
-
-          <option>
-            ري
+            مبيد
           </option>
 
           <option>
@@ -137,11 +117,19 @@ export default function Expenses() {
           </option>
 
           <option>
+            ري
+          </option>
+
+          <option>
             أجور عمال
           </option>
 
           <option>
-            صيانة
+            معدات
+          </option>
+
+          <option>
+            نقل
           </option>
 
           <option>
@@ -215,29 +203,28 @@ export default function Expenses() {
 
         <br /><br />
 
-        <input
-          type="text"
-          placeholder="اسم المورد"
-          value={supplier}
+        <select
+          value={priority}
           onChange={(e) =>
-            setSupplier(
+            setPriority(
               e.target.value
             )
           }
-        />
+        >
 
-        <br /><br />
+          <option>
+            منخفضة
+          </option>
 
-        <input
-          type="text"
-          placeholder="رقم الفاتورة"
-          value={invoice}
-          onChange={(e) =>
-            setInvoice(
-              e.target.value
-            )
-          }
-        />
+          <option>
+            متوسطة
+          </option>
+
+          <option>
+            عالية
+          </option>
+
+        </select>
 
         <br /><br />
 
@@ -273,27 +260,31 @@ export default function Expenses() {
 
       </Card>
 
-      <Card title="📊 ملخص مالي">
-
-        <h2>
-          {total}
-        </h2>
+      <Card title="ملخص المصاريف">
 
         <p>
-          إجمالي المصاريف
+          💵 إجمالي المصاريف:
+          {" "}
+          {totalExpenses}
+        </p>
+
+        <p>
+          📊 عدد العمليات:
+          {" "}
+          {expenses.length}
         </p>
 
       </Card>
 
       <h2>
-        📑 سجل المصاريف
+        📋 سجل المصاريف
       </h2>
 
       {expenses.map((item) => (
 
         <Card
           key={item.id}
-          title={item.type}
+          title={item.category}
         >
 
           <p>
@@ -305,21 +296,15 @@ export default function Expenses() {
           </p>
 
           <p>
-            🏦 طريقة الدفع:
+            💳 الدفع:
             {" "}
             {item.paymentMethod}
           </p>
 
           <p>
-            🏢 المورد:
+            🔥 الأولوية:
             {" "}
-            {item.supplier}
-          </p>
-
-          <p>
-            🧾 الفاتورة:
-            {" "}
-            {item.invoice}
+            {item.priority}
           </p>
 
           <p>
@@ -334,6 +319,12 @@ export default function Expenses() {
             {item.notes}
           </p>
 
+          <p>
+            🕒 الإضافة:
+            {" "}
+            {item.createdAt}
+          </p>
+
           <Button
             onClick={() =>
               deleteExpense(
@@ -341,7 +332,7 @@ export default function Expenses() {
               )
             }
           >
-            حذف
+            حذف المصروف
           </Button>
 
         </Card>
