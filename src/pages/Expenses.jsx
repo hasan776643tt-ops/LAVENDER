@@ -11,27 +11,41 @@ export default function Expenses() {
     setExpenses,
   } = useContext(FarmContext);
 
-  const [category, setCategory] = useState("");
-  const [amount, setAmount] = useState("");
-  const [currency, setCurrency] = useState("ل.س");
+  const [type, setType] =
+    useState("");
+
+  const [amount, setAmount] =
+    useState("");
+
+  const [currency, setCurrency] =
+    useState("ل.س - الليرة السورية");
+
   const [paymentMethod, setPaymentMethod] =
     useState("نقدي");
 
-  const [priority, setPriority] =
-    useState("متوسطة");
+  const [supplier, setSupplier] =
+    useState("");
 
-  const [date, setDate] = useState("");
-  const [notes, setNotes] = useState("");
+  const [invoice, setInvoice] =
+    useState("");
+
+  const [date, setDate] =
+    useState("");
+
+  const [notes, setNotes] =
+    useState("");
 
   const addExpense = () => {
 
-    if (!category || !amount) return;
+    if (!type || !amount) {
+      return;
+    }
 
     const newExpense = {
 
       id: Date.now(),
 
-      category,
+      type,
 
       amount: Number(amount),
 
@@ -39,14 +53,16 @@ export default function Expenses() {
 
       paymentMethod,
 
-      priority,
+      supplier,
+
+      invoice,
 
       date,
 
       notes,
 
       createdAt:
-        new Date().toLocaleString("ar-SY"),
+        new Date().toLocaleString("ar"),
 
     };
 
@@ -55,13 +71,13 @@ export default function Expenses() {
       newExpense,
     ]);
 
-    setCategory("");
+    setType("");
     setAmount("");
-    setCurrency("ل.س");
-    setPaymentMethod("نقدي");
-    setPriority("متوسطة");
+    setSupplier("");
+    setInvoice("");
     setDate("");
     setNotes("");
+
   };
 
   const deleteExpense = (id) => {
@@ -74,10 +90,10 @@ export default function Expenses() {
 
   };
 
-  const totalExpenses =
+  const total =
     expenses.reduce(
       (sum, item) =>
-        sum + Number(item.amount),
+        sum + item.amount,
       0
     );
 
@@ -86,22 +102,22 @@ export default function Expenses() {
     <div>
 
       <h1>
-        💰 إدارة المصاريف
+        💰 إدارة المصاريف الذكية
       </h1>
 
       <Card title="إضافة مصروف جديد">
 
         <select
-          value={category}
+          value={type}
           onChange={(e) =>
-            setCategory(
+            setType(
               e.target.value
             )
           }
         >
 
           <option value="">
-            اختر التصنيف
+            اختر نوع المصروف
           </option>
 
           <option>
@@ -109,11 +125,7 @@ export default function Expenses() {
           </option>
 
           <option>
-            مبيد
-          </option>
-
-          <option>
-            وقود
+            مبيدات
           </option>
 
           <option>
@@ -121,15 +133,23 @@ export default function Expenses() {
           </option>
 
           <option>
+            وقود
+          </option>
+
+          <option>
             أجور عمال
           </option>
 
           <option>
-            معدات
+            صيانة
           </option>
 
           <option>
-            نقل
+            معدات زراعية
+          </option>
+
+          <option>
+            نقل وشحن
           </option>
 
           <option>
@@ -163,15 +183,83 @@ export default function Expenses() {
         >
 
           <option>
-            ل.س
+            ل.س - الليرة السورية
           </option>
 
           <option>
-            $
+            $ - الدولار الأمريكي
           </option>
 
           <option>
-            ₺
+            € - اليورو
+          </option>
+
+          <option>
+            ₺ - الليرة التركية
+          </option>
+
+          <option>
+            ر.س - الريال السعودي
+          </option>
+
+          <option>
+            د.إ - الدرهم الإماراتي
+          </option>
+
+          <option>
+            ر.ق - الريال القطري
+          </option>
+
+          <option>
+            د.ك - الدينار الكويتي
+          </option>
+
+          <option>
+            د.ب - الدينار البحريني
+          </option>
+
+          <option>
+            ر.ع - الريال العماني
+          </option>
+
+          <option>
+            د.أ - الدينار الأردني
+          </option>
+
+          <option>
+            ل.ل - الليرة اللبنانية
+          </option>
+
+          <option>
+            د.ع - الدينار العراقي
+          </option>
+
+          <option>
+            ج.م - الجنيه المصري
+          </option>
+
+          <option>
+            د.ل - الدينار الليبي
+          </option>
+
+          <option>
+            د.ت - الدينار التونسي
+          </option>
+
+          <option>
+            د.ج - الدينار الجزائري
+          </option>
+
+          <option>
+            د.م - الدرهم المغربي
+          </option>
+
+          <option>
+            م.أ - الأوقية الموريتانية
+          </option>
+
+          <option>
+            ر.ي - الريال اليمني
           </option>
 
         </select>
@@ -199,32 +287,37 @@ export default function Expenses() {
             بطاقة مصرفية
           </option>
 
+          <option>
+            محفظة إلكترونية
+          </option>
+
         </select>
 
         <br /><br />
 
-        <select
-          value={priority}
+        <input
+          type="text"
+          placeholder="اسم المورد"
+          value={supplier}
           onChange={(e) =>
-            setPriority(
+            setSupplier(
               e.target.value
             )
           }
-        >
+        />
 
-          <option>
-            منخفضة
-          </option>
+        <br /><br />
 
-          <option>
-            متوسطة
-          </option>
-
-          <option>
-            عالية
-          </option>
-
-        </select>
+        <input
+          type="text"
+          placeholder="رقم الفاتورة"
+          value={invoice}
+          onChange={(e) =>
+            setInvoice(
+              e.target.value
+            )
+          }
+        />
 
         <br /><br />
 
@@ -241,7 +334,7 @@ export default function Expenses() {
         <br /><br />
 
         <textarea
-          placeholder="ملاحظات"
+          placeholder="ملاحظات إضافية"
           value={notes}
           onChange={(e) =>
             setNotes(
@@ -260,16 +353,18 @@ export default function Expenses() {
 
       </Card>
 
-      <Card title="ملخص المصاريف">
+      <Card title="📊 الملخص المالي">
+
+        <h2>
+          {total}
+        </h2>
 
         <p>
-          💵 إجمالي المصاريف:
-          {" "}
-          {totalExpenses}
+          إجمالي المصاريف المسجلة
         </p>
 
         <p>
-          📊 عدد العمليات:
+          عدد العمليات:
           {" "}
           {expenses.length}
         </p>
@@ -277,34 +372,44 @@ export default function Expenses() {
       </Card>
 
       <h2>
-        📋 سجل المصاريف
+        📑 سجل المصاريف
       </h2>
 
       {expenses.map((item) => (
 
         <Card
           key={item.id}
-          title={item.category}
+          title={item.type}
         >
 
           <p>
             💵 القيمة:
             {" "}
             {item.amount}
+          </p>
+
+          <p>
+            💱 العملة:
             {" "}
             {item.currency}
           </p>
 
           <p>
-            💳 الدفع:
+            🏦 طريقة الدفع:
             {" "}
             {item.paymentMethod}
           </p>
 
           <p>
-            🔥 الأولوية:
+            🏢 المورد:
             {" "}
-            {item.priority}
+            {item.supplier}
+          </p>
+
+          <p>
+            🧾 رقم الفاتورة:
+            {" "}
+            {item.invoice}
           </p>
 
           <p>
@@ -320,7 +425,7 @@ export default function Expenses() {
           </p>
 
           <p>
-            🕒 الإضافة:
+            🕒 وقت التسجيل:
             {" "}
             {item.createdAt}
           </p>
@@ -332,7 +437,7 @@ export default function Expenses() {
               )
             }
           >
-            حذف المصروف
+            حذف
           </Button>
 
         </Card>
