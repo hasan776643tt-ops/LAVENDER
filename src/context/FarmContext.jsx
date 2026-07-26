@@ -1,9 +1,14 @@
-import { createContext, useState } from "react";
+import { createContext, useState, useEffect } from "react";
 
 export const FarmContext = createContext();
 
 export default function FarmProvider({ children }) {
-  const [farms, setFarms] = useState([]);
+
+  const [farms, setFarms] = useState(() => {
+    const savedFarms = localStorage.getItem("farms");
+    return savedFarms ? JSON.parse(savedFarms) : [];
+  });
+
   const [fields, setFields] = useState([]);
   const [crops, setCrops] = useState([]);
   const [irrigations, setIrrigations] = useState([]);
@@ -13,6 +18,10 @@ export default function FarmProvider({ children }) {
   const [expenses, setExpenses] = useState([]);
   const [locations, setLocations] = useState([]);
   const [users, setUsers] = useState([]);
+
+  useEffect(() => {
+    localStorage.setItem("farms", JSON.stringify(farms));
+  }, [farms]);
 
   return (
     <FarmContext.Provider
