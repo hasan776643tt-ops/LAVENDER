@@ -1,4 +1,9 @@
-import { useState, useContext } from "react";
+import {
+  useState,
+  useContext,
+  useMemo,
+} from "react";
+
 import { FarmContext } from "../context/FarmContext";
 
 import Card from "../components/Card";
@@ -9,451 +14,649 @@ export default function Fertilizers() {
 
 
   const {
-    farms,
-    fields,
-    fertilizers,
+    farms = [],
+    fields = [],
+    fertilizers = [],
     setFertilizers,
   } = useContext(FarmContext);
 
 
 
-  const [farmName, setFarmName] = useState("");
+  const [form, setForm] = useState({
 
-  const [fieldName, setFieldName] = useState("");
+    farm: "",
+    field: "",
 
-  const [type, setType] = useState("");
+    crop: "",
 
-  const [quantity, setQuantity] = useState("");
+    type: "",
 
-  const [unit, setUnit] = useState("كغ");
+    category: "كيميائي",
 
-  const [method, setMethod] = useState("");
+    quantity: "",
 
-  const [date, setDate] = useState("");
+    unit: "كغ",
 
-  const [notes, setNotes] = useState("");
+    method: "تربة",
+
+    stage: "",
+
+    supplier: "",
+
+    cost: "",
+
+    currency: "ل.س",
+
+    date: "",
+
+    notes: "",
+
+  });
 
 
 
-  const addFertilizer = () => {
+  const updateForm = (key,value)=>{
+
+    setForm({
+
+      ...form,
+
+      [key]: value,
+
+    });
+
+  };
+
+
+
+  const filteredFields = useMemo(()=>{
+
+    if(!form.farm)
+      return fields;
+
+
+    return fields.filter(
+
+      field =>
+      field.farm === form.farm ||
+      field.farmName === form.farm
+
+    );
+
+  },[fields,form.farm]);
+
+
+
+
+
+  const totalQuantity = useMemo(()=>{
+
+
+    return fertilizers.reduce(
+
+      (sum,item)=>
+
+      sum + Number(item.quantity || 0),
+
+      0
+
+    );
+
+
+  },[fertilizers]);
+
+
+
+
+
+  const smartAdvice = useMemo(()=>{
+
+
+    if(form.category==="كيميائي")
+
+      return "⚠️ يفضل الالتزام بالجرعة وعدم الإفراط.";
+
+
+    if(form.category==="عضوي")
+
+      return "🌱 السماد العضوي يحسن خصوبة التربة.";
+
+
+    return "✅ تابع حالة المحصول بعد التسميد.";
+
+  },[form.category]);
+
+
+
+
+
+  const addFertilizer = ()=>{
 
 
     if(
-      !farmName ||
-      !fieldName ||
-      !type
-    ) return;
+      !form.farm ||
+      !form.field ||
+      !form.type
+    )
+    return;
 
 
 
-    const newFertilizer = {
-
+    const newItem = {
 
       id: Date.now(),
 
-      farm: farmName,
+      ...form,
 
-      field: fieldName,
 
-      type,
-
-      quantity,
-
-      unit,
-
-      method,
-
-      date,
-
-      notes,
+      createdAt:
+      new Date().toISOString(),
 
     };
 
 
 
     setFertilizers([
+
       ...fertilizers,
-      newFertilizer
+
+      newItem
+
     ]);
 
 
 
-    setFarmName("");
+    setForm({
 
-    setFieldName("");
+      farm:"",
+      field:"",
+      crop:"",
+      type:"",
+      category:"كيميائي",
+      quantity:"",
+      unit:"كغ",
+      method:"تربة",
+      stage:"",
+      supplier:"",
+      cost:"",
+      currency:"ل.س",
+      date:"",
+      notes:"",
 
-    setType("");
+    });
 
-    setQuantity("");
-
-    setUnit("كغ");
-
-    setMethod("");
-
-    setDate("");
-
-    setNotes("");
 
   };
 
 
 
 
-  const deleteFertilizer = (id)=>{
+
+  const deleteFertilizer=(id)=>{
 
 
     setFertilizers(
 
       fertilizers.filter(
-        item => item.id !== id
+
+        item=>item.id!==id
+
       )
 
     );
-
 
   };
 
 
 
-  const farmFields = fields.filter(
-    field =>
-    field.farm === farmName
-  );
 
 
+return (
 
+<div>
 
-  return (
 
-    <div>
+<h1>
+🌾 نظام إدارة الأسمدة الذكي
+</h1>
 
 
-      <h1>
-        🌾 إدارة الأسمدة الذكية
-      </h1>
 
+<Card title="إضافة عملية تسميد">
 
 
-      <Card title="إضافة عملية تسميد جديدة">
 
+<select
+value={form.farm}
+onChange={e=>
+updateForm(
+"farm",
+e.target.value
+)
+}
+>
 
-        <select
+<option value="">
+اختر المزرعة
+</option>
 
-          value={farmName}
 
-          onChange={(e)=>{
+{
+farms.map(farm=>(
 
-            setFarmName(e.target.value);
+<option
+key={farm.id}
+value={farm.name}
+>
 
-            setFieldName("");
+{farm.name}
 
-          }}
+</option>
 
-        >
+))
+}
 
-          <option value="">
-            اختر المزرعة
-          </option>
+</select>
 
 
-          {
-            farms.map(farm=>(
 
-              <option
-                key={farm.id}
-                value={farm.name}
-              >
+<br/><br/>
 
-                {farm.name}
 
-              </option>
 
-            ))
-          }
+<select
+value={form.field}
+onChange={e=>
+updateForm(
+"field",
+e.target.value
+)
+}
+>
 
+<option value="">
+اختر الحقل
+</option>
 
-        </select>
 
+{
+filteredFields.map(field=>(
 
+<option
+key={field.id}
+value={field.name}
+>
 
-        <br/><br/>
+{field.name}
 
+</option>
 
+))
+}
 
+</select>
 
-        <select
 
-          value={fieldName}
 
-          onChange={(e)=>
-            setFieldName(e.target.value)
-          }
+<br/><br/>
 
-        >
 
-          <option value="">
-            اختر الحقل
-          </option>
 
+<input
 
-          {
-            farmFields.map(field=>(
+placeholder="اسم المحصول"
 
-              <option
+value={form.crop}
 
-                key={field.id}
+onChange={e=>
+updateForm(
+"crop",
+e.target.value
+)
+}
 
-                value={field.name}
+/>
 
-              >
 
-                {field.name}
 
-              </option>
+<br/><br/>
 
-            ))
-          }
 
 
-        </select>
+<select
+value={form.category}
+onChange={e=>
+updateForm(
+"category",
+e.target.value
+)
+}
+>
 
+<option>
+عضوي
+</option>
 
+<option>
+كيميائي
+</option>
 
+<option>
+ورقي
+</option>
 
-        <br/><br/>
+<option>
+مركب
+</option>
 
+</select>
 
 
 
-        <input
+<br/><br/>
 
-          type="text"
 
-          placeholder="نوع السماد"
 
-          value={type}
+<input
 
-          onChange={(e)=>
-            setType(e.target.value)
-          }
+placeholder="نوع السماد"
 
-        />
+value={form.type}
 
+onChange={e=>
+updateForm(
+"type",
+e.target.value
+)
+}
 
+/>
 
-        <br/><br/>
 
 
+<br/><br/>
 
 
-        <input
 
-          type="number"
+<input
 
-          placeholder="كمية السماد"
+type="number"
 
-          value={quantity}
+placeholder="الكمية"
 
-          onChange={(e)=>
-            setQuantity(e.target.value)
-          }
+value={form.quantity}
 
-        />
+onChange={e=>
+updateForm(
+"quantity",
+e.target.value
+)
+}
 
+/>
 
 
 
-        <select
+<select
+value={form.unit}
+onChange={e=>
+updateForm(
+"unit",
+e.target.value
+)
+}
+>
 
-          value={unit}
+<option>
+كغ
+</option>
 
-          onChange={(e)=>
-            setUnit(e.target.value)
-          }
+<option>
+طن
+</option>
 
-        >
+<option>
+لتر
+</option>
 
-          <option>
-            كغ
-          </option>
+</select>
 
 
-          <option>
-            طن
-          </option>
 
+<br/><br/>
 
-          <option>
-            لتر
-          </option>
 
 
-        </select>
+<select
+value={form.method}
+onChange={e=>
+updateForm(
+"method",
+e.target.value
+)
+}
+>
 
+<option>
+تربة
+</option>
 
+<option>
+رش
+</option>
 
-        <br/><br/>
+<option>
+مع الري
+</option>
 
+</select>
 
 
 
-        <input
+<br/><br/>
 
-          type="text"
 
-          placeholder="طريقة التسميد (تربة، رش، ري)"
 
-          value={method}
+<input
 
-          onChange={(e)=>
-            setMethod(e.target.value)
-          }
+placeholder="مرحلة المحصول"
 
-        />
+value={form.stage}
 
+onChange={e=>
+updateForm(
+"stage",
+e.target.value
+)
+}
 
+/>
 
-        <br/><br/>
 
 
+<br/><br/>
 
 
-        <label>
-          تاريخ التسميد
-        </label>
 
+<input
 
-        <input
+placeholder="المورد"
 
-          type="date"
+value={form.supplier}
 
-          value={date}
+onChange={e=>
+updateForm(
+"supplier",
+e.target.value
+)
+}
 
-          onChange={(e)=>
-            setDate(e.target.value)
-          }
+/>
 
-        />
 
 
+<br/><br/>
 
-        <br/><br/>
 
 
+<input
 
+type="number"
 
-        <textarea
+placeholder="التكلفة"
 
-          placeholder="ملاحظات"
+value={form.cost}
 
-          value={notes}
+onChange={e=>
+updateForm(
+"cost",
+e.target.value
+)
+}
 
-          onChange={(e)=>
-            setNotes(e.target.value)
-          }
+/>
 
-        />
 
 
+<br/><br/>
 
-        <br/><br/>
 
 
+<input
 
+type="date"
 
-        <Button onClick={addFertilizer}>
+value={form.date}
 
-          حفظ عملية التسميد
+onChange={e=>
+updateForm(
+"date",
+e.target.value
+)
+}
 
-        </Button>
+/>
 
 
 
-      </Card>
+<br/><br/>
 
 
 
+<textarea
 
+placeholder="ملاحظات"
 
-      <h2>
-        سجل عمليات التسميد
-      </h2>
+value={form.notes}
 
+onChange={e=>
+updateForm(
+"notes",
+e.target.value
+)
+}
 
+/>
 
 
-      {
-        fertilizers.map(item=>(
 
+<p>
+🤖 التوصية:
+{smartAdvice}
+</p>
 
-          <Card
 
-            key={item.id}
 
-            title={item.type}
+<Button onClick={addFertilizer}>
+حفظ عملية التسميد
+</Button>
 
-          >
 
+</Card>
 
-            <p>
-              🏡 المزرعة: {item.farm}
-            </p>
 
 
-            <p>
-              🌱 الحقل: {item.field}
-            </p>
 
 
-            <p>
-              ⚖️ الكمية:
-              {item.quantity} {item.unit}
-            </p>
+<Card title="📊 إحصائيات الأسمدة">
 
+<p>
+عدد العمليات:
+{fertilizers.length}
+</p>
 
-            <p>
-              🚜 الطريقة:
-              {item.method}
-            </p>
 
+<p>
+إجمالي الكمية:
+{totalQuantity}
+</p>
 
-            <p>
-              📅 التاريخ:
-              {item.date}
-            </p>
 
+</Card>
 
-            <p>
-              📝 الملاحظات:
-              {item.notes}
-            </p>
 
 
 
-            <Button
 
-              onClick={()=>
-                deleteFertilizer(item.id)
-              }
+<Card title="📋 سجل التسميد">
 
-            >
 
-              حذف
+{
 
-            </Button>
+fertilizers.map(item=>(
 
+<Card
+key={item.id}
+title={item.type}
+>
 
 
-          </Card>
+<p>
+🏡 {item.farm}
+</p>
 
+<p>
+🌱 {item.field}
+</p>
 
-        ))
-      }
+<p>
+📦 {item.quantity} {item.unit}
+</p>
 
+<p>
+🧪 {item.category}
+</p>
 
+<p>
+🚜 {item.method}
+</p>
 
-    </div>
+<p>
+💰 {item.cost} {item.currency}
+</p>
 
-  );
+
+<Button
+onClick={()=>
+deleteFertilizer(item.id)
+}
+>
+حذف
+</Button>
+
+
+</Card>
+
+))
+
+}
+
+
+</Card>
+
+
+</div>
+
+);
 
 }
