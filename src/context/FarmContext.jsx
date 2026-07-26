@@ -3,8 +3,13 @@ import { createContext, useState, useEffect } from "react";
 export const FarmContext = createContext();
 
 const getStorageData = (key) => {
-  const data = localStorage.getItem(key);
-  return data ? JSON.parse(data) : [];
+  try {
+    const data = localStorage.getItem(key);
+    return data ? JSON.parse(data) : [];
+  } catch (error) {
+    console.error(`خطأ في قراءة ${key}`, error);
+    return [];
+  }
 };
 
 export default function FarmProvider({ children }) {
@@ -50,52 +55,126 @@ export default function FarmProvider({ children }) {
   );
 
   useEffect(() => {
-    localStorage.setItem("farms", JSON.stringify(farms));
-    localStorage.setItem("fields", JSON.stringify(fields));
-    localStorage.setItem("crops", JSON.stringify(crops));
-    localStorage.setItem("irrigations", JSON.stringify(irrigations));
-    localStorage.setItem("fertilizers", JSON.stringify(fertilizers));
-    localStorage.setItem("pesticides", JSON.stringify(pesticides));
-    localStorage.setItem("diseases", JSON.stringify(diseases));
-    localStorage.setItem("expenses", JSON.stringify(expenses));
-    localStorage.setItem("locations", JSON.stringify(locations));
-    localStorage.setItem("users", JSON.stringify(users));
-  }, [
-    farms,
-    fields,
-    crops,
-    irrigations,
-    fertilizers,
-    pesticides,
-    diseases,
-    expenses,
-    locations,
-    users,
-  ]);
+    localStorage.setItem(
+      "farms",
+      JSON.stringify(farms)
+    );
+  }, [farms]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "fields",
+      JSON.stringify(fields)
+    );
+  }, [fields]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "crops",
+      JSON.stringify(crops)
+    );
+  }, [crops]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "irrigations",
+      JSON.stringify(irrigations)
+    );
+  }, [irrigations]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "fertilizers",
+      JSON.stringify(fertilizers)
+    );
+  }, [fertilizers]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "pesticides",
+      JSON.stringify(pesticides)
+    );
+  }, [pesticides]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "diseases",
+      JSON.stringify(diseases)
+    );
+  }, [diseases]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "expenses",
+      JSON.stringify(expenses)
+    );
+  }, [expenses]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "locations",
+      JSON.stringify(locations)
+    );
+  }, [locations]);
+
+  useEffect(() => {
+    localStorage.setItem(
+      "users",
+      JSON.stringify(users)
+    );
+  }, [users]);
+
+  const resetSystem = () => {
+
+    localStorage.clear();
+
+    setFarms([]);
+    setFields([]);
+    setCrops([]);
+    setIrrigations([]);
+    setFertilizers([]);
+    setPesticides([]);
+    setDiseases([]);
+    setExpenses([]);
+    setLocations([]);
+    setUsers([]);
+
+  };
 
   return (
     <FarmContext.Provider
       value={{
         farms,
         setFarms,
+
         fields,
         setFields,
+
         crops,
         setCrops,
+
         irrigations,
         setIrrigations,
+
         fertilizers,
         setFertilizers,
+
         pesticides,
         setPesticides,
+
         diseases,
         setDiseases,
+
         expenses,
         setExpenses,
+
         locations,
         setLocations,
+
         users,
         setUsers,
+
+        resetSystem,
       }}
     >
       {children}
