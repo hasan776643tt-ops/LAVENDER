@@ -1,102 +1,143 @@
 import { useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
+import Card from "../components/Card";
+import Button from "../components/Button";
+
 export default function Reports() {
 
   const {
     farms,
     fields,
     crops,
+    irrigations,
+    fertilizers,
+    pesticides,
+    diseases,
     expenses,
   } = useContext(FarmContext);
 
-
   return (
+
     <div>
 
-      <h1>📈 تقارير المزرعة</h1>
+      <h1>
+        📊 التقارير والإحصائيات
+      </h1>
 
+      <Card title="ملخص النظام">
 
-      <p>
-        صفحة التقارير تعرض ملخص بيانات نظام إدارة المزارع.
-      </p>
+        <p>
+          🌾 عدد المزارع:
+          {" "}
+          {farms.length}
+        </p>
 
+        <p>
+          🌱 عدد الحقول:
+          {" "}
+          {fields.length}
+        </p>
 
-      <hr />
+        <p>
+          🌿 عدد المحاصيل:
+          {" "}
+          {crops.length}
+        </p>
 
+        <p>
+          💧 عمليات الري:
+          {" "}
+          {irrigations.length}
+        </p>
 
-      <h2>🌱 تقرير عام</h2>
+        <p>
+          🌾 عمليات التسميد:
+          {" "}
+          {fertilizers.length}
+        </p>
 
+        <p>
+          🧪 عمليات المبيدات:
+          {" "}
+          {pesticides.length}
+        </p>
 
-      <ul>
+        <p>
+          🦠 الأمراض المسجلة:
+          {" "}
+          {diseases.length}
+        </p>
 
-        <li>
-          🌾 عدد المزارع: {farms.length}
-        </li>
+        <p>
+          💰 المصاريف:
+          {" "}
+          {expenses.length}
+        </p>
 
+      </Card>
 
-        <li>
-          🌱 عدد الحقول: {fields.length}
-        </li>
+      <Card title="التقارير المتاحة">
 
+        <p>
+          🌾 تقرير المزارع
+        </p>
 
-        <li>
-          🌿 عدد المحاصيل: {crops.length}
-        </li>
+        <p>
+          🌱 تقرير الحقول
+        </p>
 
+        <p>
+          🌿 تقرير المحاصيل
+        </p>
 
-        <li>
-          💰 إجمالي المصاريف: {expenses.length}
-        </li>
+        <p>
+          💧 تقرير الري
+        </p>
 
+        <p>
+          🌾 تقرير الأسمدة
+        </p>
 
-      </ul>
+        <p>
+          🧪 تقرير المبيدات
+        </p>
 
+        <p>
+          🦠 تقرير الأمراض
+        </p>
 
-      <hr />
+        <p>
+          💰 تقرير المصاريف
+        </p>
 
+      </Card>
 
-      <h2>📊 التقارير المتاحة</h2>
+      <Card title="التوصيات الذكية">
 
+        <p>
+          إذا زاد عدد الأمراض المسجلة،
+          يوصى بمراجعة برنامج المكافحة.
+        </p>
 
-      <ul>
+        <p>
+          إذا انخفض عدد عمليات الري،
+          يوصى بمراجعة خطة الري.
+        </p>
 
-        <li>
-          تقرير المحاصيل
-        </li>
+        <p>
+          متابعة التسميد بشكل دوري
+          لتحسين الإنتاجية.
+        </p>
 
+      </Card>
 
-        <li>
-          تقرير الري
-        </li>
-
-
-        <li>
-          تقرير التسميد
-        </li>
-
-
-        <li>
-          تقرير المبيدات
-        </li>
-
-
-        <li>
-          تقرير المصاريف
-        </li>
-
-
-      </ul>
-
-
-      <hr />
-
-
-      <button>
-        إنشاء تقرير
-      </button>
-
+      <Button>
+        إنشاء تقرير PDF
+      </Button>
 
     </div>
+
   );
+
 }
