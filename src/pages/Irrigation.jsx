@@ -1,51 +1,67 @@
 import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
+import Card from "../components/Card";
+import Button from "../components/Button";
+
 export default function Irrigation() {
 
   const {
+    farms,
     fields,
     irrigations,
     setIrrigations,
   } = useContext(FarmContext);
 
 
+  const [farmName, setFarmName] = useState("");
   const [fieldName, setFieldName] = useState("");
   const [method, setMethod] = useState("");
   const [water, setWater] = useState("");
+  const [duration, setDuration] = useState("");
   const [date, setDate] = useState("");
+  const [notes, setNotes] = useState("");
 
 
   const addIrrigation = () => {
 
-    if (!fieldName || !method || !water) return;
+    if (!farmName || !fieldName || !method) return;
 
 
     const newIrrigation = {
 
       id: Date.now(),
 
+      farm: farmName,
+
       field: fieldName,
 
-      method: method,
+      method,
 
-      water: water,
+      water,
 
-      date: date,
+      duration,
+
+      date,
+
+      notes,
 
     };
 
 
     setIrrigations([
       ...irrigations,
-      newIrrigation,
+      newIrrigation
     ]);
 
 
+    setFarmName("");
     setFieldName("");
     setMethod("");
     setWater("");
+    setDuration("");
     setDate("");
+    setNotes("");
 
   };
 
@@ -61,140 +77,225 @@ export default function Irrigation() {
   };
 
 
+  const farmFields = fields.filter(
+    (field) => field.farm === farmName
+  );
+
+
   return (
+
     <div>
 
       <h1>💧 إدارة الري</h1>
 
-      <p>
-        تسجيل عمليات ري الحقول ومتابعتها.
-      </p>
+
+      <Card title="إضافة عملية ري جديدة">
 
 
-      <h2>
-        إضافة عملية ري
-      </h2>
+        <select
+          value={farmName}
+          onChange={(e)=>
+            setFarmName(e.target.value)
+          }
+        >
 
-
-      <select
-        value={fieldName}
-        onChange={(e) =>
-          setFieldName(e.target.value)
-        }
-      >
-
-        <option value="">
-          اختر الحقل
-        </option>
-
-
-        {fields.map((field) => (
-
-          <option
-            key={field.id}
-            value={field.name}
-          >
-
-            {field.name}
-
+          <option value="">
+            اختر المزرعة
           </option>
 
-        ))}
+
+          {farms.map((farm)=>(
+
+            <option
+              key={farm.id}
+              value={farm.name}
+            >
+              {farm.name}
+            </option>
+
+          ))}
 
 
-      </select>
+        </select>
 
 
-      <br /><br />
+        <br /><br />
 
 
-      <input
-        type="text"
-        placeholder="طريقة الري (تنقيط، رش...)"
-        value={method}
-        onChange={(e) =>
-          setMethod(e.target.value)
-        }
-      />
+        <select
+          value={fieldName}
+          onChange={(e)=>
+            setFieldName(e.target.value)
+          }
+        >
+
+          <option value="">
+            اختر الحقل
+          </option>
 
 
-      <br /><br />
+          {farmFields.map((field)=>(
+
+            <option
+              key={field.id}
+              value={field.name}
+            >
+              {field.name}
+            </option>
+
+          ))}
 
 
-      <input
-        type="number"
-        placeholder="كمية المياه"
-        value={water}
-        onChange={(e) =>
-          setWater(e.target.value)
-        }
-      />
+        </select>
 
 
-      <br /><br />
+        <br /><br />
 
 
-      <input
-        type="date"
-        value={date}
-        onChange={(e) =>
-          setDate(e.target.value)
-        }
-      />
+        <input
+          type="text"
+          placeholder="طريقة الري (تنقيط، غمر، رش)"
+          value={method}
+          onChange={(e)=>
+            setMethod(e.target.value)
+          }
+        />
 
 
-      <br /><br />
+        <br /><br />
 
 
-      <button onClick={addIrrigation}>
-        حفظ عملية الري
-      </button>
+        <input
+          type="number"
+          placeholder="كمية المياه"
+          value={water}
+          onChange={(e)=>
+            setWater(e.target.value)
+          }
+        />
 
 
-      <hr />
+        <br /><br />
+
+
+        <input
+          type="number"
+          placeholder="مدة الري بالدقائق"
+          value={duration}
+          onChange={(e)=>
+            setDuration(e.target.value)
+          }
+        />
+
+
+        <br /><br />
+
+
+        <label>
+          تاريخ الري
+        </label>
+
+
+        <input
+          type="date"
+          value={date}
+          onChange={(e)=>
+            setDate(e.target.value)
+          }
+        />
+
+
+        <br /><br />
+
+
+        <textarea
+          placeholder="ملاحظات"
+          value={notes}
+          onChange={(e)=>
+            setNotes(e.target.value)
+          }
+        />
+
+
+        <br /><br />
+
+
+        <Button onClick={addIrrigation}>
+          حفظ عملية الري
+        </Button>
+
+
+      </Card>
+
 
 
       <h2>
-        سجل الري
+        سجل عمليات الري
       </h2>
 
 
-      <ul>
 
-        {irrigations.map((item) => (
+      {irrigations.map((item)=>(
 
-          <li key={item.id}>
 
+        <Card
+          key={item.id}
+          title={`💧 ${item.field}`}
+        >
+
+          <p>
+            🏡 المزرعة: {item.farm}
+          </p>
+
+
+          <p>
             🌱 الحقل: {item.field}
+          </p>
 
-            <br />
 
-            💧 الطريقة: {item.method}
+          <p>
+            🚰 طريقة الري: {item.method}
+          </p>
 
-            <br />
 
-            🚰 المياه: {item.water}
+          <p>
+            💦 كمية المياه: {item.water}
+          </p>
 
-            <br />
 
+          <p>
+            ⏱ مدة الري: {item.duration} دقيقة
+          </p>
+
+
+          <p>
             📅 التاريخ: {item.date}
+          </p>
 
 
-            <button
-              onClick={() =>
-                deleteIrrigation(item.id)
-              }
-            >
-              حذف
-            </button>
+          <p>
+            📝 الملاحظات: {item.notes}
+          </p>
 
-          </li>
 
-        ))}
 
-      </ul>
+          <Button
+            onClick={() =>
+              deleteIrrigation(item.id)
+            }
+          >
+            حذف عملية الري
+          </Button>
+
+
+        </Card>
+
+
+      ))}
 
 
     </div>
+
   );
+
 }
