@@ -5,36 +5,27 @@ import Card from "../components/Card";
 import Button from "../components/Button";
 
 export default function Fields() {
+
   const {
     farms,
     fields,
     setFields,
   } = useContext(FarmContext);
 
+
   const [fieldName, setFieldName] = useState("");
   const [farmName, setFarmName] = useState("");
   const [soilType, setSoilType] = useState("");
   const [area, setArea] = useState("");
   const [crop, setCrop] = useState("");
-  const [plantingDate, setPlantingDate] =
-    useState("");
+  const [plantingDate, setPlantingDate] = useState("");
   const [notes, setNotes] = useState("");
 
-  const addField = () => {
-    if (!fieldName || !farmName) return;
+  const [editId, setEditId] = useState(null);
 
-    const newField = {
-      id: Date.now(),
-      name: fieldName,
-      farm: farmName,
-      soil: soilType,
-      area,
-      crop,
-      plantingDate,
-      notes,
-    };
 
-    setFields([...fields, newField]);
+
+  const clearForm = () => {
 
     setFieldName("");
     setFarmName("");
@@ -43,146 +34,336 @@ export default function Fields() {
     setCrop("");
     setPlantingDate("");
     setNotes("");
+    setEditId(null);
+
   };
+
+
+
+  const saveField = () => {
+
+    if (!fieldName || !farmName) return;
+
+
+    const fieldData = {
+
+      name: fieldName,
+      farm: farmName,
+      soil: soilType,
+      area,
+      crop,
+      plantingDate,
+      notes,
+
+    };
+
+
+
+    if (editId) {
+
+
+      setFields(
+
+        fields.map((field) =>
+
+          field.id === editId
+
+          ? {
+              ...field,
+              ...fieldData
+            }
+
+          : field
+
+        )
+
+      );
+
+
+    } else {
+
+
+      const newField = {
+
+        id: Date.now(),
+
+        ...fieldData,
+
+      };
+
+
+      setFields([
+        ...fields,
+        newField
+      ]);
+
+    }
+
+
+    clearForm();
+
+  };
+
+
+
+
+  const editField = (field) => {
+
+    setFieldName(field.name);
+    setFarmName(field.farm);
+    setSoilType(field.soil);
+    setArea(field.area);
+    setCrop(field.crop);
+    setPlantingDate(field.plantingDate);
+    setNotes(field.notes);
+
+    setEditId(field.id);
+
+  };
+
+
+
 
   const deleteField = (id) => {
+
     setFields(
+
       fields.filter(
+
         (field) => field.id !== id
+
       )
+
     );
+
   };
 
+
+
   return (
+
     <div>
+
       <h1>🌱 إدارة الحقول</h1>
 
-      <Card title="إضافة حقل جديد">
+
+
+      <Card
+        title={
+          editId
+          ? "تعديل الحقل"
+          : "إضافة حقل جديد"
+        }
+      >
+
 
         <input
           type="text"
           placeholder="اسم الحقل"
           value={fieldName}
-          onChange={(e) =>
+          onChange={(e)=>
             setFieldName(e.target.value)
           }
         />
 
-        <br /><br />
+        <br/><br/>
+
 
         <select
           value={farmName}
-          onChange={(e) =>
+          onChange={(e)=>
             setFarmName(e.target.value)
           }
         >
+
           <option value="">
             اختر المزرعة
           </option>
 
-          {farms.map((farm) => (
-            <option
-              key={farm.id}
-              value={farm.name}
-            >
-              {farm.name}
-            </option>
-          ))}
+
+          {
+            farms.map((farm)=>(
+
+              <option
+                key={farm.id}
+                value={farm.name}
+              >
+                {farm.name}
+              </option>
+
+            ))
+          }
+
+
         </select>
 
-        <br /><br />
+
+        <br/><br/>
+
 
         <input
           type="text"
           placeholder="نوع التربة"
           value={soilType}
-          onChange={(e) =>
+          onChange={(e)=>
             setSoilType(e.target.value)
           }
         />
 
-        <br /><br />
+
+        <br/><br/>
+
 
         <input
           type="number"
           placeholder="مساحة الحقل"
           value={area}
-          onChange={(e) =>
+          onChange={(e)=>
             setArea(e.target.value)
           }
         />
 
-        <br /><br />
+
+        <br/><br/>
+
 
         <input
           type="text"
           placeholder="المحصول"
           value={crop}
-          onChange={(e) =>
+          onChange={(e)=>
             setCrop(e.target.value)
           }
         />
 
-        <br /><br />
+
+        <br/><br/>
+
 
         <input
           type="date"
           value={plantingDate}
-          onChange={(e) =>
+          onChange={(e)=>
             setPlantingDate(e.target.value)
           }
         />
 
-        <br /><br />
+
+        <br/><br/>
+
 
         <textarea
           placeholder="ملاحظات"
           value={notes}
-          onChange={(e) =>
+          onChange={(e)=>
             setNotes(e.target.value)
           }
         />
 
-        <br /><br />
 
-        <Button onClick={addField}>
-          حفظ الحقل
+        <br/><br/>
+
+
+        <Button onClick={saveField}>
+
+          {
+            editId
+            ? "حفظ التعديل"
+            : "حفظ الحقل"
+          }
+
         </Button>
+
 
       </Card>
 
+
+
+
       <h2>قائمة الحقول</h2>
 
-      {fields.map((field) => (
-        <Card
-          key={field.id}
-          title={field.name}
-        >
-          <p>🏡 المزرعة: {field.farm}</p>
 
-          <p>🟤 التربة: {field.soil}</p>
 
-          <p>📏 المساحة: {field.area}</p>
 
-          <p>🌾 المحصول: {field.crop}</p>
+      {
+        fields.map((field)=>(
 
-          <p>
-            📅 تاريخ الزراعة:
-            {" "}
-            {field.plantingDate}
-          </p>
 
-          <p>📝 الملاحظات: {field.notes}</p>
-
-          <Button
-            onClick={() =>
-              deleteField(field.id)
-            }
+          <Card
+            key={field.id}
+            title={field.name}
           >
-            حذف الحقل
-          </Button>
-        </Card>
-      ))}
+
+
+            <p>
+              🏡 المزرعة: {field.farm}
+            </p>
+
+
+            <p>
+              🟤 التربة: {field.soil}
+            </p>
+
+
+            <p>
+              📏 المساحة: {field.area}
+            </p>
+
+
+            <p>
+              🌾 المحصول: {field.crop}
+            </p>
+
+
+            <p>
+              📅 تاريخ الزراعة:
+              {" "}
+              {field.plantingDate}
+            </p>
+
+
+            <p>
+              📝 الملاحظات:
+              {" "}
+              {field.notes}
+            </p>
+
+
+
+            <Button
+              onClick={() =>
+                editField(field)
+              }
+            >
+              تعديل الحقل
+            </Button>
+
+
+
+            <br/><br/>
+
+
+
+            <Button
+              onClick={() =>
+                deleteField(field.id)
+              }
+            >
+              حذف الحقل
+            </Button>
+
+
+
+          </Card>
+
+
+        ))
+      }
+
+
+
     </div>
+
   );
+
 }
