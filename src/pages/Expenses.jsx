@@ -1,6 +1,9 @@
 import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
+import Card from "../components/Card";
+import Button from "../components/Button";
+
 export default function Expenses() {
 
   const {
@@ -8,46 +11,74 @@ export default function Expenses() {
     setExpenses,
   } = useContext(FarmContext);
 
+  const [type, setType] =
+    useState("");
 
-  const [type, setType] = useState("");
-  const [amount, setAmount] = useState("");
-  const [date, setDate] = useState("");
-  const [notes, setNotes] = useState("");
+  const [amount, setAmount] =
+    useState("");
 
+  const [currency, setCurrency] =
+    useState("ل.س");
+
+  const [paymentMethod, setPaymentMethod] =
+    useState("نقدي");
+
+  const [supplier, setSupplier] =
+    useState("");
+
+  const [invoice, setInvoice] =
+    useState("");
+
+  const [date, setDate] =
+    useState("");
+
+  const [notes, setNotes] =
+    useState("");
 
   const addExpense = () => {
 
-    if (!type || !amount) return;
-
+    if (!type || !amount) {
+      return;
+    }
 
     const newExpense = {
 
       id: Date.now(),
 
-      type: type,
+      type,
 
       amount: Number(amount),
 
-      date: date,
+      currency,
 
-      notes: notes,
+      paymentMethod,
+
+      supplier,
+
+      invoice,
+
+      date,
+
+      notes,
+
+      createdAt:
+        new Date().toLocaleString("ar"),
 
     };
-
 
     setExpenses([
       ...expenses,
       newExpense,
     ]);
 
-
     setType("");
     setAmount("");
+    setSupplier("");
+    setInvoice("");
     setDate("");
     setNotes("");
 
   };
-
 
   const deleteExpense = (id) => {
 
@@ -59,140 +90,266 @@ export default function Expenses() {
 
   };
 
-
-  const total = expenses.reduce(
-    (sum, item) => sum + item.amount,
-    0
-  );
-
+  const total =
+    expenses.reduce(
+      (sum, item) =>
+        sum + item.amount,
+      0
+    );
 
   return (
+
     <div>
 
-      <h1>💰 إدارة المصاريف</h1>
+      <h1>
+        💰 إدارة المصاريف
+      </h1>
 
+      <Card title="إضافة مصروف">
+
+        <select
+          value={type}
+          onChange={(e) =>
+            setType(
+              e.target.value
+            )
+          }
+        >
+
+          <option value="">
+            اختر نوع المصروف
+          </option>
+
+          <option>
+            سماد
+          </option>
+
+          <option>
+            مبيدات
+          </option>
+
+          <option>
+            ري
+          </option>
+
+          <option>
+            وقود
+          </option>
+
+          <option>
+            أجور عمال
+          </option>
+
+          <option>
+            صيانة
+          </option>
+
+          <option>
+            أخرى
+          </option>
+
+        </select>
+
+        <br /><br />
+
+        <input
+          type="number"
+          placeholder="قيمة المصروف"
+          value={amount}
+          onChange={(e) =>
+            setAmount(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <select
+          value={currency}
+          onChange={(e) =>
+            setCurrency(
+              e.target.value
+            )
+          }
+        >
+
+          <option>
+            ل.س
+          </option>
+
+          <option>
+            $
+          </option>
+
+          <option>
+            ₺
+          </option>
+
+        </select>
+
+        <br /><br />
+
+        <select
+          value={paymentMethod}
+          onChange={(e) =>
+            setPaymentMethod(
+              e.target.value
+            )
+          }
+        >
+
+          <option>
+            نقدي
+          </option>
+
+          <option>
+            تحويل بنكي
+          </option>
+
+          <option>
+            بطاقة مصرفية
+          </option>
+
+        </select>
+
+        <br /><br />
+
+        <input
+          type="text"
+          placeholder="اسم المورد"
+          value={supplier}
+          onChange={(e) =>
+            setSupplier(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <input
+          type="text"
+          placeholder="رقم الفاتورة"
+          value={invoice}
+          onChange={(e) =>
+            setInvoice(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <input
+          type="date"
+          value={date}
+          onChange={(e) =>
+            setDate(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <textarea
+          placeholder="ملاحظات"
+          value={notes}
+          onChange={(e) =>
+            setNotes(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <Button
+          onClick={addExpense}
+        >
+          حفظ المصروف
+        </Button>
+
+      </Card>
+
+      <Card title="📊 ملخص مالي">
+
+        <h2>
+          {total}
+        </h2>
+
+        <p>
+          إجمالي المصاريف
+        </p>
+
+      </Card>
 
       <h2>
-        إضافة مصروف جديد
+        📑 سجل المصاريف
       </h2>
 
+      {expenses.map((item) => (
 
-      <input
-        type="text"
-        placeholder="نوع المصروف"
-        value={type}
-        onChange={(e) =>
-          setType(e.target.value)
-        }
-      />
+        <Card
+          key={item.id}
+          title={item.type}
+        >
 
+          <p>
+            💵 القيمة:
+            {" "}
+            {item.amount}
+            {" "}
+            {item.currency}
+          </p>
 
-      <br /><br />
+          <p>
+            🏦 طريقة الدفع:
+            {" "}
+            {item.paymentMethod}
+          </p>
 
+          <p>
+            🏢 المورد:
+            {" "}
+            {item.supplier}
+          </p>
 
-      <input
-        type="number"
-        placeholder="القيمة"
-        value={amount}
-        onChange={(e) =>
-          setAmount(e.target.value)
-        }
-      />
+          <p>
+            🧾 الفاتورة:
+            {" "}
+            {item.invoice}
+          </p>
 
+          <p>
+            📅 التاريخ:
+            {" "}
+            {item.date}
+          </p>
 
-      <br /><br />
+          <p>
+            📝 الملاحظات:
+            {" "}
+            {item.notes}
+          </p>
 
+          <Button
+            onClick={() =>
+              deleteExpense(
+                item.id
+              )
+            }
+          >
+            حذف
+          </Button>
 
-      <label>
-        التاريخ
-      </label>
+        </Card>
 
-
-      <br />
-
-
-      <input
-        type="date"
-        value={date}
-        onChange={(e) =>
-          setDate(e.target.value)
-        }
-      />
-
-
-      <br /><br />
-
-
-      <textarea
-        placeholder="ملاحظات"
-        value={notes}
-        onChange={(e) =>
-          setNotes(e.target.value)
-        }
-      />
-
-
-      <br /><br />
-
-
-      <button onClick={addExpense}>
-        حفظ المصروف
-      </button>
-
-
-      <hr />
-
-
-      <h2>
-        سجل المصاريف
-      </h2>
-
-
-      <h3>
-        💵 المجموع: {total}
-      </h3>
-
-
-      <ul>
-
-        {expenses.map((item) => (
-
-          <li key={item.id}>
-
-            💰 النوع: {item.type}
-
-            <br />
-
-            💵 القيمة: {item.amount}
-
-            <br />
-
-            📅 التاريخ: {item.date}
-
-            <br />
-
-            📝 الملاحظات: {item.notes}
-
-
-            <br />
-
-
-            <button
-              onClick={() =>
-                deleteExpense(item.id)
-              }
-            >
-              حذف
-            </button>
-
-
-          </li>
-
-        ))}
-
-      </ul>
-
+      ))}
 
     </div>
+
   );
+
 }
