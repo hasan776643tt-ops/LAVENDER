@@ -5,7 +5,6 @@ import Card from "../components/Card";
 import Button from "../components/Button";
 
 export default function Map() {
-
   const {
     farms,
     locations,
@@ -18,23 +17,23 @@ export default function Map() {
   const [longitude, setLongitude] = useState("");
 
   const [accuracy, setAccuracy] = useState("");
+
   const [locationTime, setLocationTime] =
     useState("");
 
+  const [loading, setLoading] =
+    useState(false);
+
   const getCurrentLocation = () => {
-
     if (!navigator.geolocation) {
-
-      alert("جهازك لا يدعم GPS");
-
+      alert("GPS غير مدعوم في هذا الجهاز");
       return;
-
     }
 
+    setLoading(true);
+
     navigator.geolocation.getCurrentPosition(
-
       (position) => {
-
         const lat =
           position.coords.latitude.toFixed(6);
 
@@ -46,67 +45,55 @@ export default function Map() {
             position.coords.accuracy
           );
 
-        const date =
+        const time =
           new Date().toLocaleString("ar");
 
         setLatitude(lat);
-
         setLongitude(lng);
-
         setAccuracy(acc);
+        setLocationTime(time);
 
-        setLocationTime(date);
-
+        setLoading(false);
       },
 
       (error) => {
-
         console.error(error);
 
         alert(
-          "يرجى السماح بالوصول إلى الموقع"
+          "يرجى السماح للتطبيق باستخدام الموقع"
         );
 
+        setLoading(false);
       },
 
       {
-
         enableHighAccuracy: true,
-
         timeout: 15000,
-
         maximumAge: 0,
-
       }
-
     );
-
   };
 
   const addLocation = () => {
-
     if (
       !farmName ||
       !latitude ||
       !longitude
     ) {
+      alert(
+        "اختر المزرعة وحدد الموقع أولاً"
+      );
       return;
     }
 
     const newLocation = {
-
       id: Date.now(),
-
-      name: farmName,
-
+      farm: farmName,
       lat: latitude,
-
       lng: longitude,
-
       accuracy,
-
       createdAt: locationTime,
-
+      status: "نشط",
     };
 
     setLocations([
@@ -115,31 +102,24 @@ export default function Map() {
     ]);
 
     setFarmName("");
-
     setLatitude("");
-
     setLongitude("");
-
     setAccuracy("");
-
     setLocationTime("");
 
+    alert("تم حفظ الموقع بنجاح");
   };
 
   const deleteLocation = (id) => {
-
     setLocations(
       locations.filter(
         (item) => item.id !== id
       )
     );
-
   };
 
   return (
-
     <div>
-
       <h1>
         📍 إدارة مواقع المزارع
       </h1>
@@ -149,47 +129,39 @@ export default function Map() {
         <select
           value={farmName}
           onChange={(e) =>
-            setFarmName(
-              e.target.value
-            )
+            setFarmName(e.target.value)
           }
         >
-
           <option value="">
             اختر المزرعة
           </option>
 
           {farms.map((farm) => (
-
             <option
               key={farm.id}
               value={farm.name}
             >
-
               {farm.name}
-
             </option>
-
           ))}
-
         </select>
 
         <br /><br />
 
         <Button
-          onClick={
-            getCurrentLocation
-          }
+          onClick={getCurrentLocation}
         >
-          📍 تحديد موقعي الحالي
+          {loading
+            ? "⏳ جاري تحديد الموقع..."
+            : "📡 تحديد الموقع تلقائياً"}
         </Button>
 
         <br /><br />
 
         <input
           type="text"
-          placeholder="Latitude"
           value={latitude}
+          placeholder="Latitude"
           readOnly
         />
 
@@ -197,8 +169,8 @@ export default function Map() {
 
         <input
           type="text"
-          placeholder="Longitude"
           value={longitude}
+          placeholder="Longitude"
           readOnly
         />
 
@@ -206,12 +178,12 @@ export default function Map() {
 
         <input
           type="text"
-          placeholder="دقة الموقع"
           value={
             accuracy
               ? `${accuracy} متر`
               : ""
           }
+          placeholder="دقة الموقع"
           readOnly
         />
 
@@ -219,8 +191,8 @@ export default function Map() {
 
         <input
           type="text"
-          placeholder="وقت التسجيل"
           value={locationTime}
+          placeholder="وقت التسجيل"
           readOnly
         />
 
@@ -229,22 +201,20 @@ export default function Map() {
         <Button
           onClick={addLocation}
         >
-          حفظ الموقع
+          💾 حفظ الموقع
         </Button>
 
       </Card>
 
       <h2>
-        🗺️ مواقع المزارع
+        🗺️ مواقع المزارع المسجلة
       </h2>
 
       {locations.map((item) => (
-
         <Card
           key={item.id}
-          title={item.name}
+          title={item.farm}
         >
-
           <p>
             🌍 Latitude:
             {" "}
@@ -271,32 +241,31 @@ export default function Map() {
             {item.createdAt}
           </p>
 
+          <p>
+            ✅ الحالة:
+            {" "}
+            {item.status}
+          </p>
+
           <a
             href={`https://maps.google.com/?q=${item.lat},${item.lng}`}
             target="_blank"
             rel="noreferrer"
           >
-            🗺️ فتح الموقع على الخريطة
+            🗺️ فتح الموقع على Google Maps
           </a>
 
           <br /><br />
 
           <Button
             onClick={() =>
-              deleteLocation(
-                item.id
-              )
+              deleteLocation(item.id)
             }
           >
             حذف الموقع
           </Button>
-
         </Card>
-
       ))}
-
     </div>
-
   );
-
 }
