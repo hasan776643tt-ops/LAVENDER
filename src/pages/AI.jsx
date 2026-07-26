@@ -1,119 +1,197 @@
 import { useState } from "react";
 
+import Card from "../components/Card";
+import Button from "../components/Button";
+
 export default function AI() {
 
+  const [crop, setCrop] = useState("");
+  const [category, setCategory] = useState("");
   const [question, setQuestion] = useState("");
-  const [answers, setAnswers] = useState([]);
 
+  const [answers, setAnswers] = useState([]);
 
   const askAI = () => {
 
     if (!question) return;
 
-
     const newConsultation = {
 
       id: Date.now(),
 
-      question: question,
+      crop,
+
+      category,
+
+      question,
 
       answer:
-        "سيتم تحليل السؤال وتقديم توصية زراعية ذكية بعد ربط النظام بالذكاء الاصطناعي الحقيقي.",
+        "توصية أولية: راقب الحقل خلال الأيام القادمة وقارن الأعراض مع برنامج الري والتسميد. سيتم مستقبلاً ربط هذه الصفحة بذكاء اصطناعي حقيقي لإعطاء تشخيصات أكثر دقة.",
+
+      date:
+        new Date().toLocaleDateString(),
 
     };
 
-
     setAnswers([
+      newConsultation,
       ...answers,
-      newConsultation
     ]);
 
-
+    setCrop("");
+    setCategory("");
     setQuestion("");
 
   };
 
-
   const deleteConsultation = (id) => {
 
-    const updatedAnswers =
+    setAnswers(
       answers.filter(
-        (item) => item.id !== id
-      );
-
-    setAnswers(updatedAnswers);
+        (item) =>
+          item.id !== id
+      )
+    );
 
   };
 
-
   return (
+
     <div>
 
-      <h1>🤖 المساعد الذكي الزراعي</h1>
+      <h1>
+        🤖 المستشار الزراعي الذكي
+      </h1>
 
+      <Card
+        title="إرسال استشارة"
+      >
 
-      <p>
-        اسأل المساعد الذكي عن مشاكل المحاصيل
-        والأمراض وطرق العناية بالنبات.
-      </p>
+        <input
+          type="text"
+          placeholder="اسم المحصول"
+          value={crop}
+          onChange={(e) =>
+            setCrop(
+              e.target.value
+            )
+          }
+        />
 
+        <br /><br />
 
-      <textarea
+        <select
+          value={category}
+          onChange={(e) =>
+            setCategory(
+              e.target.value
+            )
+          }
+        >
 
-        placeholder="اكتب سؤالك الزراعي هنا..."
+          <option value="">
+            نوع الاستشارة
+          </option>
 
-        value={question}
+          <option>
+            مرض نباتي
+          </option>
 
-        onChange={(e)=>setQuestion(e.target.value)}
+          <option>
+            آفة حشرية
+          </option>
 
-      />
+          <option>
+            ري
+          </option>
 
+          <option>
+            تسميد
+          </option>
 
-      <br /><br />
+          <option>
+            إنتاجية
+          </option>
 
+          <option>
+            أخرى
+          </option>
 
-      <button onClick={askAI}>
-        إرسال السؤال
-      </button>
+        </select>
 
+        <br /><br />
 
-      <hr />
+        <textarea
+          placeholder="اكتب سؤالك أو وصف المشكلة"
+          value={question}
+          onChange={(e) =>
+            setQuestion(
+              e.target.value
+            )
+          }
+        />
 
+        <br /><br />
+
+        <Button
+          onClick={askAI}
+        >
+          تحليل المشكلة
+        </Button>
+
+      </Card>
 
       <h2>
         سجل الاستشارات
       </h2>
 
+      {answers.map((item) => (
 
-      <ul>
+        <Card
+          key={item.id}
+          title={item.crop || "استشارة"}
+        >
 
-        {answers.map((item)=>(
+          <p>
+            📂 التصنيف:
+            {" "}
+            {item.category}
+          </p>
 
-          <li key={item.id}>
+          <p>
+            ❓ السؤال:
+            {" "}
+            {item.question}
+          </p>
 
-            <p>
-              ❓ {item.question}
-            </p>
+          <p>
+            💡 التوصية:
+            {" "}
+            {item.answer}
+          </p>
 
-            <p>
-              💡 {item.answer}
-            </p>
+          <p>
+            📅 التاريخ:
+            {" "}
+            {item.date}
+          </p>
 
+          <Button
+            onClick={() =>
+              deleteConsultation(
+                item.id
+              )
+            }
+          >
+            حذف
+          </Button>
 
-            <button
-              onClick={()=>deleteConsultation(item.id)}
-            >
-              حذف
-            </button>
+        </Card>
 
-
-          </li>
-
-        ))}
-
-      </ul>
-
+      ))}
 
     </div>
+
   );
+
 }
