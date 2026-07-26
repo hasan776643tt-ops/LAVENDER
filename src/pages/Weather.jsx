@@ -1,19 +1,20 @@
 import { useState } from "react";
 
+import Card from "../components/Card";
+import Button from "../components/Button";
+
 export default function Weather() {
 
   const [location, setLocation] = useState("");
   const [weather, setWeather] = useState(null);
 
-
   const checkWeather = () => {
 
     if (!location) return;
 
-
     const newWeather = {
 
-      location: location,
+      location,
 
       temperature: "28°C",
 
@@ -25,88 +26,101 @@ export default function Weather() {
 
       condition: "مشمس",
 
-      alert: "لا توجد تحذيرات حاليا",
+      uv: "مرتفع",
+
+      recommendation:
+        "ينصح بالري في ساعات المساء",
+
+      alert:
+        "لا توجد تحذيرات حالياً",
 
     };
-
 
     setWeather(newWeather);
 
   };
 
-
   return (
     <div>
 
-      <h1>☁️ حالة الطقس</h1>
+      <h1>☀️ الطقس الزراعي</h1>
 
+      <Card title="البحث عن حالة الطقس">
 
-      <h2>
-        البحث عن طقس المزرعة
-      </h2>
+        <input
+          type="text"
+          placeholder="اسم القرية أو المنطقة"
+          value={location}
+          onChange={(e) =>
+            setLocation(e.target.value)
+          }
+        />
 
+        <br /><br />
 
-      <input
-        type="text"
-        placeholder="اكتب موقع المزرعة"
-        value={location}
-        onChange={(e)=>setLocation(e.target.value)}
-      />
+        <Button onClick={checkWeather}>
+          عرض الطقس
+        </Button>
 
-
-      <br /><br />
-
-
-      <button onClick={checkWeather}>
-        عرض الطقس
-      </button>
-
-
-      <hr />
-
+      </Card>
 
       {weather && (
 
-        <div>
+        <Card
+          title={`📍 ${weather.location}`}
+        >
 
-          <h2>
-            📍 {weather.location}
-          </h2>
+          <p>
+            🌡️ درجة الحرارة:
+            {" "}
+            {weather.temperature}
+          </p>
 
+          <p>
+            💧 الرطوبة:
+            {" "}
+            {weather.humidity}
+          </p>
 
-          <ul>
+          <p>
+            💨 سرعة الرياح:
+            {" "}
+            {weather.wind}
+          </p>
 
-            <li>
-              🌡️ الحرارة: {weather.temperature}
-            </li>
+          <p>
+            🌧️ احتمال المطر:
+            {" "}
+            {weather.rain}
+          </p>
 
-            <li>
-              💧 الرطوبة: {weather.humidity}
-            </li>
+          <p>
+            ☀️ الحالة الجوية:
+            {" "}
+            {weather.condition}
+          </p>
 
-            <li>
-              💨 الرياح: {weather.wind}
-            </li>
+          <p>
+            🔆 مؤشر الأشعة:
+            {" "}
+            {weather.uv}
+          </p>
 
-            <li>
-              🌧️ الأمطار: {weather.rain}
-            </li>
+          <p>
+            🌱 التوصية الزراعية:
+            {" "}
+            {weather.recommendation}
+          </p>
 
-            <li>
-              ☀️ الحالة: {weather.condition}
-            </li>
+          <p>
+            🔔 التنبيه:
+            {" "}
+            {weather.alert}
+          </p>
 
-            <li>
-              🔔 التنبيه: {weather.alert}
-            </li>
-
-          </ul>
-
-
-        </div>
+        </Card>
 
       )}
-
 
     </div>
   );
