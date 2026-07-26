@@ -1,6 +1,11 @@
-import { useContext, useMemo } from "react";
+import {
+  useContext,
+  useMemo,
+} from "react";
 
-import { FarmContext } from "../context/FarmContext";
+import {
+  FarmContext,
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
@@ -8,7 +13,9 @@ import Button from "../components/Button";
 
 export default function Reports() {
 
+
   const {
+
     farms = [],
     fields = [],
     crops = [],
@@ -17,73 +24,183 @@ export default function Reports() {
     pesticides = [],
     diseases = [],
     expenses = [],
+    consultations = [],
+    aiQuestions = [],
+
   } = useContext(FarmContext);
 
 
 
-  // حساب إجمالي المصاريف
+  // 💰 إجمالي المصاريف
+
   const totalExpenses = useMemo(() => {
 
     return expenses.reduce(
-      (total, item) =>
-        total + Number(item.amount || 0),
+
+      (sum,item)=>
+
+        sum + Number(item.amount || 0),
+
       0
+
     );
 
-  }, [expenses]);
+  },[expenses]);
 
 
 
-  // توصيات ذكية
-  const recommendations = useMemo(() => {
-
-    const result = [];
 
 
-    if (diseases.length > 5) {
+  // 🌿 أكثر محصول
 
-      result.push(
-        "⚠️ يوجد ارتفاع في تسجيل الأمراض، يفضل مراجعة برنامج المكافحة."
+  const topCrop = useMemo(()=>{
+
+
+    const counter = {};
+
+
+    crops.forEach(crop=>{
+
+      const name =
+        crop.name || "غير محدد";
+
+
+      counter[name] =
+        (counter[name] || 0) + 1;
+
+
+    });
+
+
+    return Object.keys(counter)
+      .sort(
+        (a,b)=>
+          counter[b]-counter[a]
+      )[0]
+      ||
+      "لا يوجد";
+
+
+  },[crops]);
+
+
+
+
+
+
+
+  // 💰 أكثر نوع مصروف
+
+  const topExpense = useMemo(()=>{
+
+
+    const counter = {};
+
+
+    expenses.forEach(item=>{
+
+      const type =
+        item.type || "أخرى";
+
+
+      counter[type] =
+        (counter[type] || 0)+1;
+
+
+    });
+
+
+    return Object.keys(counter)
+      .sort(
+        (a,b)=>
+        counter[b]-counter[a]
+      )[0]
+      ||
+      "لا يوجد";
+
+
+  },[expenses]);
+
+
+
+
+
+
+
+
+  // 🤖 توصيات ذكية
+
+  const recommendations = useMemo(()=>{
+
+
+    const list=[];
+
+
+
+    if(diseases.length >= 5){
+
+      list.push(
+        "🦠 ارتفاع تسجيل الأمراض، يفضل مراجعة خطة المكافحة."
       );
 
     }
 
 
-    if (irrigations.length < fields.length) {
 
-      result.push(
-        "💧 بعض الحقول قد تحتاج إلى مراجعة خطة الري."
+    if(fields.length > irrigations.length){
+
+      list.push(
+        "💧 عدد عمليات الري أقل من عدد الحقول، راجع الجدول."
       );
 
     }
 
 
-    if (fertilizers.length === 0) {
 
-      result.push(
-        "🌾 لم يتم تسجيل عمليات تسميد، راجع برنامج التغذية."
+    if(fertilizers.length === 0){
+
+      list.push(
+        "🌾 لم يتم تسجيل تسميد، أضف خطة تغذية للمحاصيل."
       );
 
     }
 
 
-    if (result.length === 0) {
 
-      result.push(
-        "✅ حالة النظام جيدة ولا توجد تنبيهات حالياً."
+    if(expenses.length > 20){
+
+      list.push(
+        "💰 عدد المصاريف مرتفع، راجع التكاليف."
       );
 
     }
 
 
-    return result;
 
-  }, [
+    if(list.length===0){
+
+      list.push(
+        "✅ حالة المزرعة مستقرة حالياً."
+      );
+
+    }
+
+
+    return list;
+
+
+  },[
+
     diseases,
-    irrigations,
     fields,
-    fertilizers
+    irrigations,
+    fertilizers,
+    expenses
+
   ]);
+
+
+
 
 
 
@@ -93,81 +210,58 @@ export default function Reports() {
 
 
       <h1>
-        📊 التقارير والإحصائيات الزراعية
+        📊 لوحة التقارير الذكية
       </h1>
 
 
 
-      <Card title="📈 مؤشرات النظام">
+      <Card title="🚜 مؤشرات النظام">
 
-        <div>
 
-          <p>
-            🌾 المزارع:
+        <p>
+          🌾 المزارع:
+          <strong>
             {" "}
-            <strong>{farms.length}</strong>
-          </p>
+            {farms.length}
+          </strong>
+        </p>
 
 
-          <p>
-            📍 الحقول:
+        <p>
+          📍 الحقول:
+          <strong>
             {" "}
-            <strong>{fields.length}</strong>
-          </p>
+            {fields.length}
+          </strong>
+        </p>
 
 
-          <p>
-            🌱 المحاصيل:
+        <p>
+          🌱 المحاصيل:
+          <strong>
             {" "}
-            <strong>{crops.length}</strong>
-          </p>
+            {crops.length}
+          </strong>
+        </p>
 
 
-          <p>
-            💧 عمليات الري:
+        <p>
+          💧 عمليات الري:
+          <strong>
             {" "}
-            <strong>{irrigations.length}</strong>
-          </p>
+            {irrigations.length}
+          </strong>
+        </p>
 
 
-          <p>
-            🌾 عمليات التسميد:
+        <p>
+          🦠 الأمراض:
+          <strong>
             {" "}
-            <strong>{fertilizers.length}</strong>
-          </p>
+            {diseases.length}
+          </strong>
+        </p>
 
-
-          <p>
-            🧪 عمليات المبيدات:
-            {" "}
-            <strong>{pesticides.length}</strong>
-          </p>
-
-
-          <p>
-            🦠 الأمراض:
-            {" "}
-            <strong>{diseases.length}</strong>
-          </p>
-
-
-          <p>
-            💰 عدد المصاريف:
-            {" "}
-            <strong>{expenses.length}</strong>
-          </p>
-
-
-          <p>
-            💵 إجمالي المصاريف:
-            {" "}
-            <strong>
-              {totalExpenses}
-            </strong>
-          </p>
-
-
-        </div>
 
       </Card>
 
@@ -175,32 +269,68 @@ export default function Reports() {
 
 
 
-      <Card title="📋 التقارير المتوفرة">
+      <Card title="💰 التحليل المالي">
 
 
-        <ul>
-
-          <li>🌾 تقرير المزارع</li>
-
-          <li>🌱 تقرير الحقول</li>
-
-          <li>🌿 تقرير المحاصيل</li>
-
-          <li>💧 تقرير الري</li>
-
-          <li>🌾 تقرير الأسمدة</li>
-
-          <li>🧪 تقرير المبيدات</li>
-
-          <li>🦠 تقرير الأمراض</li>
-
-          <li>💰 تقرير المصاريف</li>
+        <p>
+          إجمالي المصاريف:
+          <strong>
+            {" "}
+            {totalExpenses}
+          </strong>
+        </p>
 
 
-        </ul>
+        <p>
+          عدد العمليات:
+          <strong>
+            {" "}
+            {expenses.length}
+          </strong>
+        </p>
+
+
+        <p>
+          أكثر نوع مصروف:
+          <strong>
+            {" "}
+            {topExpense}
+          </strong>
+        </p>
 
 
       </Card>
+
+
+
+
+
+
+
+      <Card title="🌿 تحليل المحاصيل">
+
+
+        <p>
+          أكثر محصول:
+          <strong>
+            {" "}
+            {topCrop}
+          </strong>
+        </p>
+
+
+        <p>
+          عدد المحاصيل المسجلة:
+          <strong>
+            {" "}
+            {crops.length}
+          </strong>
+        </p>
+
+
+      </Card>
+
+
 
 
 
@@ -210,15 +340,19 @@ export default function Reports() {
 
 
         {
+
           recommendations.map(
-            (item, index) => (
+
+            (item,index)=>(
 
               <p key={index}>
                 {item}
               </p>
 
             )
+
           )
+
         }
 
 
@@ -228,11 +362,38 @@ export default function Reports() {
 
 
 
-      <Card title="🚀 تطويرات مستقبلية">
+
+
+      <Card title="👨‍🌾 النشاط الذكي">
 
 
         <p>
-          📊 رسوم بيانية للإنتاج والمصاريف.
+          الاستشارات:
+          {" "}
+          {consultations.length}
+        </p>
+
+
+        <p>
+          أسئلة الذكاء الاصطناعي:
+          {" "}
+          {aiQuestions.length}
+        </p>
+
+
+      </Card>
+
+
+
+
+
+
+
+      <Card title="🚀 التطوير القادم">
+
+
+        <p>
+          📈 رسوم بيانية زراعية.
         </p>
 
 
@@ -242,16 +403,18 @@ export default function Reports() {
 
 
         <p>
-          ☁️ ربط قاعدة بيانات حقيقية.
+          ☀️ ربط الطقس الحقيقي.
         </p>
 
 
         <p>
-          🤖 تحليل ذكي للمزرعة.
+          🤖 تحليل ذكي متقدم.
         </p>
 
 
       </Card>
+
+
 
 
 
@@ -268,5 +431,6 @@ export default function Reports() {
     </div>
 
   );
+
 
 }
