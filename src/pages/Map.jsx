@@ -1,196 +1,35 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+const getCurrentLocation = () => {
 
-export default function Map() {
+  if (!navigator.geolocation) {
 
-  const {
-    farms,
-    locations,
-    setLocations,
-  } = useContext(FarmContext);
+    alert("المتصفح لا يدعم GPS");
 
+    return;
 
-  const [farmName, setFarmName] = useState("");
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  }
 
+  navigator.geolocation.getCurrentPosition(
 
-  const addLocation = () => {
+    (position) => {
 
-    if (!farmName) return;
+      setLatitude(
+        position.coords.latitude.toString()
+      );
 
+      setLongitude(
+        position.coords.longitude.toString()
+      );
 
-    const newLocation = {
+    },
 
-      id: Date.now(),
+    () => {
 
-      name: farmName,
+      alert(
+        "تعذر الحصول على الموقع"
+      );
 
-      lat: latitude,
-
-      lng: longitude,
-
-    };
-
-
-    setLocations([
-      ...locations,
-      newLocation,
-    ]);
-
-
-    setFarmName("");
-    setLatitude("");
-    setLongitude("");
-
-  };
-
-
-  const deleteLocation = (id) => {
-
-    setLocations(
-      locations.filter(
-        (item) => item.id !== id
-      )
-    );
-
-  };
-
-
-  return (
-
-    <div>
-
-      <h1>📍 خريطة المزارع و GPS</h1>
-
-
-      <h2>
-        إضافة موقع مزرعة
-      </h2>
-
-
-      <select
-        value={farmName}
-        onChange={(e) =>
-          setFarmName(e.target.value)
-        }
-      >
-
-        <option value="">
-          اختر المزرعة
-        </option>
-
-
-        {farms.map((farm) => (
-
-          <option
-            key={farm.id}
-            value={farm.name}
-          >
-
-            {farm.name}
-
-          </option>
-
-        ))}
-
-
-      </select>
-
-
-      <br /><br />
-
-
-      <input
-        type="number"
-        placeholder="خط العرض Latitude"
-        value={latitude}
-        onChange={(e) =>
-          setLatitude(e.target.value)
-        }
-      />
-
-
-      <br /><br />
-
-
-      <input
-        type="number"
-        placeholder="خط الطول Longitude"
-        value={longitude}
-        onChange={(e) =>
-          setLongitude(e.target.value)
-        }
-      />
-
-
-      <br /><br />
-
-
-      <button onClick={addLocation}>
-        حفظ موقع المزرعة
-      </button>
-
-
-      <hr />
-
-
-      <div
-        style={{
-          width: "100%",
-          height: "300px",
-          border: "2px solid gray",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-
-        🗺️ الخريطة ستظهر هنا لاحقًا
-
-      </div>
-
-
-      <h2>
-        مواقع المزارع
-      </h2>
-
-
-      <ul>
-
-        {locations.map((item) => (
-
-          <li key={item.id}>
-
-            📍 {item.name}
-
-            <br />
-
-            Latitude: {item.lat}
-
-            <br />
-
-            Longitude: {item.lng}
-
-
-            <button
-              onClick={() =>
-                deleteLocation(item.id)
-              }
-            >
-              حذف
-            </button>
-
-
-          </li>
-
-        ))}
-
-      </ul>
-
-
-    </div>
+    }
 
   );
 
-}
+};
