@@ -1,309 +1,696 @@
-import { useState, useContext } from "react";
+import {
+  useState,
+  useContext,
+  useMemo,
+} from "react";
+
 import { FarmContext } from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+
 export default function Diseases() {
+
+
   const {
-    farms,
-    fields,
-    diseases,
+    farms = [],
+    fields = [],
+    diseases = [],
     setDiseases,
   } = useContext(FarmContext);
 
-  const [farmName, setFarmName] = useState("");
-  const [fieldName, setFieldName] = useState("");
-  const [problemType, setProblemType] = useState("");
-  const [diseaseName, setDiseaseName] = useState("");
-  const [severity, setSeverity] = useState("متوسطة");
-  const [infectionRate, setInfectionRate] = useState("");
-  const [discoveryDate, setDiscoveryDate] = useState("");
-  const [symptoms, setSymptoms] = useState("");
-  const [diagnosis, setDiagnosis] = useState("");
-  const [treatment, setTreatment] = useState("");
 
-  const addDisease = () => {
-    if (!fieldName || !problemType) return;
 
-    const newDisease = {
-      id: Date.now(),
-      farm: farmName,
-      field: fieldName,
-      type: problemType,
-      name: diseaseName,
-      severity,
-      infectionRate,
-      discoveryDate,
-      symptoms,
-      diagnosis,
-      treatment,
+  const [form, setForm] = useState({
+
+    farm: "",
+    field: "",
+    crop: "",
+
+    type: "",
+
+    name: "",
+
+    severity: "متوسطة",
+
+    status: "جديدة",
+
+    source: "يدوي",
+
+    infectionRate: "",
+
+    discoveryDate: "",
+
+    followDate: "",
+
+    symptoms: "",
+
+    diagnosis: "",
+
+    treatment: "",
+
+    image: "",
+
+    notes: "",
+
+  });
+
+
+
+  const updateForm = (key,value)=>{
+
+    setForm({
+
+      ...form,
+
+      [key]:value
+
+    });
+
+  };
+
+
+
+
+
+  // الحقول التابعة للمزرعة
+
+  const filteredFields = useMemo(()=>{
+
+
+    if(!form.farm)
+      return fields;
+
+
+    return fields.filter(
+
+      field =>
+        field.farm === form.farm ||
+        field.farmName === form.farm
+
+    );
+
+
+  },[fields,form.farm]);
+
+
+
+
+
+  const smartAdvice = useMemo(()=>{
+
+
+    if(form.severity==="عالية")
+
+      return "⚠️ يوصى بالتدخل السريع ومراجعة مهندس زراعي.";
+
+
+    if(form.severity==="متوسطة")
+
+      return "🌱 يجب متابعة الحالة خلال الأيام القادمة.";
+
+
+    return "✅ الحالة تحت السيطرة مع المتابعة.";
+
+  },[form.severity]);
+
+
+
+
+
+  const addDisease = ()=>{
+
+
+    if(
+      !form.field ||
+      !form.type
+    )
+    return;
+
+
+
+    const newDisease={
+
+
+      id:Date.now(),
+
+
+      ...form,
+
+
+      createdAt:
+      new Date().toISOString(),
+
+
+      updatedAt:
+      new Date().toISOString(),
+
     };
 
-    setDiseases([...diseases, newDisease]);
 
-    setFarmName("");
-    setFieldName("");
-    setProblemType("");
-    setDiseaseName("");
-    setSeverity("متوسطة");
-    setInfectionRate("");
-    setDiscoveryDate("");
-    setSymptoms("");
-    setDiagnosis("");
-    setTreatment("");
+
+    setDiseases([
+
+      ...diseases,
+
+      newDisease
+
+    ]);
+
+
+
+    setForm({
+
+      farm:"",
+      field:"",
+      crop:"",
+      type:"",
+      name:"",
+      severity:"متوسطة",
+      status:"جديدة",
+      source:"يدوي",
+      infectionRate:"",
+      discoveryDate:"",
+      followDate:"",
+      symptoms:"",
+      diagnosis:"",
+      treatment:"",
+      image:"",
+      notes:"",
+
+    });
+
+
   };
 
-  const deleteDisease = (id) => {
+
+
+
+
+  const deleteDisease=(id)=>{
+
+
     setDiseases(
+
       diseases.filter(
-        (item) => item.id !== id
+
+        item=>item.id!==id
+
       )
+
     );
+
   };
+
+
+
 
   return (
-    <div>
 
-      <h1>🦠 إدارة الأمراض والآفات</h1>
+<div>
 
-      <Card title="إضافة إصابة جديدة">
 
-        <select
-          value={farmName}
-          onChange={(e) =>
-            setFarmName(e.target.value)
-          }
-        >
-          <option value="">
-            اختر المزرعة
-          </option>
+<h1>
+🦠 نظام الأمراض والآفات الذكي
+</h1>
 
-          {farms.map((farm) => (
-            <option
-              key={farm.id}
-              value={farm.name}
-            >
-              {farm.name}
-            </option>
-          ))}
-        </select>
 
-        <br /><br />
 
-        <select
-          value={fieldName}
-          onChange={(e) =>
-            setFieldName(e.target.value)
-          }
-        >
-          <option value="">
-            اختر الحقل
-          </option>
+<Card title="إضافة حالة مرضية">
 
-          {fields.map((field) => (
-            <option
-              key={field.id}
-              value={field.name}
-            >
-              {field.name}
-            </option>
-          ))}
-        </select>
 
-        <br /><br />
+<select
+value={form.farm}
+onChange={
+e=>updateForm(
+"farm",
+e.target.value
+)
+}
+>
 
-        <select
-          value={problemType}
-          onChange={(e) =>
-            setProblemType(e.target.value)
-          }
-        >
-          <option value="">
-            نوع المشكلة
-          </option>
+<option>
+اختر المزرعة
+</option>
 
-          <option>
-            مرض فطري
-          </option>
 
-          <option>
-            حشرة
-          </option>
+{
+farms.map(farm=>(
 
-          <option>
-            نقص عناصر
-          </option>
+<option
+key={farm.id}
+value={farm.name}
+>
 
-          <option>
-            مشكلة ري
-          </option>
+{farm.name}
 
-          <option>
-            غير معروف
-          </option>
+</option>
 
-        </select>
+))
+}
 
-        <br /><br />
+</select>
 
-        <input
-          type="text"
-          placeholder="اسم المرض أو الآفة"
-          value={diseaseName}
-          onChange={(e) =>
-            setDiseaseName(e.target.value)
-          }
-        />
 
-        <br /><br />
 
-        <select
-          value={severity}
-          onChange={(e) =>
-            setSeverity(e.target.value)
-          }
-        >
-          <option>
-            منخفضة
-          </option>
+<br/><br/>
 
-          <option>
-            متوسطة
-          </option>
 
-          <option>
-            عالية
-          </option>
 
-        </select>
+<select
+value={form.field}
+onChange={
+e=>updateForm(
+"field",
+e.target.value
+)
+}
+>
 
-        <br /><br />
+<option>
+اختر الحقل
+</option>
 
-        <input
-          type="number"
-          placeholder="نسبة الإصابة %"
-          value={infectionRate}
-          onChange={(e) =>
-            setInfectionRate(e.target.value)
-          }
-        />
 
-        <br /><br />
+{
+filteredFields.map(field=>(
 
-        <input
-          type="date"
-          value={discoveryDate}
-          onChange={(e) =>
-            setDiscoveryDate(e.target.value)
-          }
-        />
+<option
+key={field.id}
+value={field.name}
+>
 
-        <br /><br />
+{field.name}
 
-        <textarea
-          placeholder="الأعراض"
-          value={symptoms}
-          onChange={(e) =>
-            setSymptoms(e.target.value)
-          }
-        />
+</option>
 
-        <br /><br />
+))
+}
 
-        <textarea
-          placeholder="التشخيص"
-          value={diagnosis}
-          onChange={(e) =>
-            setDiagnosis(e.target.value)
-          }
-        />
 
-        <br /><br />
+</select>
 
-        <textarea
-          placeholder="العلاج"
-          value={treatment}
-          onChange={(e) =>
-            setTreatment(e.target.value)
-          }
-        />
 
-        <br /><br />
 
-        <Button onClick={addDisease}>
-          حفظ الإصابة
-        </Button>
+<br/><br/>
 
-      </Card>
 
-      <h2>سجل الأمراض</h2>
 
-      {diseases.map((item) => (
+<select
+value={form.type}
+onChange={
+e=>updateForm(
+"type",
+e.target.value
+)
+}
+>
 
-        <Card
-          key={item.id}
-          title={item.name || item.type}
-        >
+<option>
+نوع المشكلة
+</option>
 
-          <p>
-            🏡 المزرعة: {item.farm}
-          </p>
+<option>
+مرض فطري
+</option>
 
-          <p>
-            🌾 الحقل: {item.field}
-          </p>
+<option>
+مرض بكتيري
+</option>
 
-          <p>
-            🦠 النوع: {item.type}
-          </p>
+<option>
+حشرة
+</option>
 
-          <p>
-            ⚠️ الخطورة: {item.severity}
-          </p>
+<option>
+فيروس
+</option>
 
-          <p>
-            📊 نسبة الإصابة:
-            {" "}
-            {item.infectionRate}%
-          </p>
+<option>
+نقص عناصر
+</option>
 
-          <p>
-            📅 تاريخ الاكتشاف:
-            {" "}
-            {item.discoveryDate}
-          </p>
+<option>
+مشكلة ري
+</option>
 
-          <p>
-            🔍 الأعراض:
-            {" "}
-            {item.symptoms}
-          </p>
+</select>
 
-          <p>
-            🧪 التشخيص:
-            {" "}
-            {item.diagnosis}
-          </p>
 
-          <p>
-            💊 العلاج:
-            {" "}
-            {item.treatment}
-          </p>
 
-          <Button
-            onClick={() =>
-              deleteDisease(item.id)
-            }
-          >
-            حذف الإصابة
-          </Button>
+<br/><br/>
 
-        </Card>
 
-      ))}
 
-    </div>
-  );
+<input
+
+placeholder="اسم المرض"
+
+value={form.name}
+
+onChange={
+e=>updateForm(
+"name",
+e.target.value
+)
+}
+
+/>
+
+
+
+<br/><br/>
+
+
+
+<select
+value={form.severity}
+onChange={
+e=>updateForm(
+"severity",
+e.target.value
+)
+}
+>
+
+<option>
+منخفضة
+</option>
+
+<option>
+متوسطة
+</option>
+
+<option>
+عالية
+</option>
+
+</select>
+
+
+
+<br/><br/>
+
+
+
+<select
+value={form.status}
+onChange={
+e=>updateForm(
+"status",
+e.target.value
+)
+}
+>
+
+<option>
+جديدة
+</option>
+
+<option>
+قيد العلاج
+</option>
+
+<option>
+تم الشفاء
+</option>
+
+<option>
+تحتاج متابعة
+</option>
+
+</select>
+
+
+
+<br/><br/>
+
+
+
+<select
+value={form.source}
+onChange={
+e=>updateForm(
+"source",
+e.target.value
+)
+}
+>
+
+<option>
+يدوي
+</option>
+
+<option>
+مهندس زراعي
+</option>
+
+<option>
+ذكاء اصطناعي
+</option>
+
+</select>
+
+
+
+<br/><br/>
+
+
+
+<input
+
+type="number"
+
+placeholder="نسبة الإصابة %"
+
+value={form.infectionRate}
+
+onChange={
+e=>updateForm(
+"infectionRate",
+e.target.value
+)
+}
+
+/>
+
+
+
+<br/><br/>
+
+
+
+<input
+
+type="date"
+
+value={form.discoveryDate}
+
+onChange={
+e=>updateForm(
+"discoveryDate",
+e.target.value
+)
+}
+
+/>
+
+
+
+<br/><br/>
+
+
+
+<textarea
+
+placeholder="الأعراض"
+
+value={form.symptoms}
+
+onChange={
+e=>updateForm(
+"symptoms",
+e.target.value
+)
+}
+
+/>
+
+
+
+<br/><br/>
+
+
+
+<textarea
+
+placeholder="التشخيص"
+
+value={form.diagnosis}
+
+onChange={
+e=>updateForm(
+"diagnosis",
+e.target.value
+)
+}
+
+/>
+
+
+
+<br/><br/>
+
+
+
+<textarea
+
+placeholder="العلاج"
+
+value={form.treatment}
+
+onChange={
+e=>updateForm(
+"treatment",
+e.target.value
+)
+}
+
+/>
+
+
+
+<br/><br/>
+
+
+
+<textarea
+
+placeholder="ملاحظات"
+
+value={form.notes}
+
+onChange={
+e=>updateForm(
+"notes",
+e.target.value
+)
+}
+
+/>
+
+
+
+<br/><br/>
+
+
+<p>
+🤖 التوصية:
+{smartAdvice}
+</p>
+
+
+
+<Button onClick={addDisease}>
+
+حفظ الحالة
+
+</Button>
+
+
+</Card>
+
+
+
+
+
+<Card title="📋 سجل الأمراض">
+
+
+{
+
+diseases.map(item=>(
+
+
+<Card
+
+key={item.id}
+
+title={
+item.name ||
+item.type
+}
+
+>
+
+
+<p>
+🏡 {item.farm}
+</p>
+
+
+<p>
+🌾 {item.field}
+</p>
+
+
+<p>
+⚠️ الخطورة:
+{item.severity}
+</p>
+
+
+<p>
+📌 الحالة:
+{item.status}
+</p>
+
+
+<p>
+🤖 المصدر:
+{item.source}
+</p>
+
+
+<p>
+🦠 النوع:
+{item.type}
+</p>
+
+
+<p>
+💊 العلاج:
+{item.treatment}
+</p>
+
+
+
+<Button
+
+onClick={()=>deleteDisease(item.id)}
+
+>
+
+حذف
+
+</Button>
+
+
+
+</Card>
+
+
+))
+
+}
+
+
+</Card>
+
+
+</div>
+
+);
+
 }
