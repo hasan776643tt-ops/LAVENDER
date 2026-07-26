@@ -1,6 +1,9 @@
 import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
+import Card from "../components/Card";
+import Button from "../components/Button";
+
 export default function Users() {
 
   const {
@@ -8,184 +11,212 @@ export default function Users() {
     setUsers,
   } = useContext(FarmContext);
 
-
   const [name, setName] = useState("");
-
   const [email, setEmail] = useState("");
-
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState("مزارع");
-
-
+  const [status, setStatus] = useState("نشط");
 
   const addUser = () => {
 
     if (!name || !email) return;
 
-
     const newUser = {
 
       id: Date.now(),
 
-      name: name,
+      name,
+      email,
+      phone,
+      role,
+      status,
 
-      email: email,
-
-      role: role,
+      createdAt:
+        new Date().toLocaleDateString(),
 
     };
-
 
     setUsers([
       ...users,
       newUser,
     ]);
 
-
     setName("");
-
     setEmail("");
-
+    setPhone("");
     setRole("مزارع");
+    setStatus("نشط");
 
   };
-
-
 
   const deleteUser = (id) => {
 
     setUsers(
       users.filter(
-        (user) => user.id !== id
+        (user) =>
+          user.id !== id
       )
     );
 
   };
-
-
 
   return (
 
     <div>
 
       <h1>
-        👤 إدارة المستخدمين
+        👥 إدارة المستخدمين
       </h1>
 
+      <Card title="إضافة مستخدم جديد">
 
-      <h2>
-        إضافة مستخدم جديد
-      </h2>
+        <input
+          type="text"
+          placeholder="الاسم الكامل"
+          value={name}
+          onChange={(e) =>
+            setName(e.target.value)
+          }
+        />
 
+        <br /><br />
 
+        <input
+          type="email"
+          placeholder="البريد الإلكتروني"
+          value={email}
+          onChange={(e) =>
+            setEmail(e.target.value)
+          }
+        />
 
-      <input
-        type="text"
-        placeholder="اسم المستخدم"
-        value={name}
-        onChange={(e) =>
-          setName(e.target.value)
-        }
-      />
+        <br /><br />
 
+        <input
+          type="tel"
+          placeholder="رقم الهاتف"
+          value={phone}
+          onChange={(e) =>
+            setPhone(e.target.value)
+          }
+        />
 
-      <br /><br />
+        <br /><br />
 
+        <select
+          value={role}
+          onChange={(e) =>
+            setRole(e.target.value)
+          }
+        >
 
+          <option>
+            مزارع
+          </option>
 
-      <input
-        type="email"
-        placeholder="البريد الإلكتروني"
-        value={email}
-        onChange={(e) =>
-          setEmail(e.target.value)
-        }
-      />
+          <option>
+            مهندس زراعي
+          </option>
 
+          <option>
+            مراقب
+          </option>
 
-      <br /><br />
+          <option>
+            مشرف
+          </option>
 
+          <option>
+            مدير النظام
+          </option>
 
+        </select>
 
-      <select
-        value={role}
-        onChange={(e) =>
-          setRole(e.target.value)
-        }
-      >
+        <br /><br />
 
-        <option>
-          مزارع
-        </option>
+        <select
+          value={status}
+          onChange={(e) =>
+            setStatus(e.target.value)
+          }
+        >
 
-        <option>
-          مهندس زراعي
-        </option>
+          <option>
+            نشط
+          </option>
 
-        <option>
-          مشرف
-        </option>
+          <option>
+            موقوف
+          </option>
 
-        <option>
-          مدير النظام
-        </option>
+          <option>
+            بانتظار التفعيل
+          </option>
 
+        </select>
 
-      </select>
+        <br /><br />
 
+        <Button
+          onClick={addUser}
+        >
+          إضافة مستخدم
+        </Button>
 
-      <br /><br />
-
-
-
-      <button onClick={addUser}>
-        إضافة مستخدم
-      </button>
-
-
-      <hr />
-
+      </Card>
 
       <h2>
         قائمة المستخدمين
       </h2>
 
+      {users.map((user) => (
 
+        <Card
+          key={user.id}
+          title={user.name}
+        >
 
-      <ul>
+          <p>
+            📧 البريد:
+            {" "}
+            {user.email}
+          </p>
 
-        {users.map((user) => (
+          <p>
+            📱 الهاتف:
+            {" "}
+            {user.phone}
+          </p>
 
-          <li key={user.id}>
+          <p>
+            🔑 الصلاحية:
+            {" "}
+            {user.role}
+          </p>
 
-            👤 {user.name}
+          <p>
+            🟢 الحالة:
+            {" "}
+            {user.status}
+          </p>
 
-            <br />
+          <p>
+            📅 تاريخ الإنشاء:
+            {" "}
+            {user.createdAt}
+          </p>
 
-            📧 {user.email}
+          <Button
+            onClick={() =>
+              deleteUser(user.id)
+            }
+          >
+            حذف المستخدم
+          </Button>
 
-            <br />
+        </Card>
 
-            🔑 الصلاحية: {user.role}
-
-
-            <br />
-
-
-            <button
-              onClick={() =>
-                deleteUser(user.id)
-              }
-            >
-              حذف
-            </button>
-
-
-          </li>
-
-        ))}
-
-      </ul>
-
+      ))}
 
     </div>
 
