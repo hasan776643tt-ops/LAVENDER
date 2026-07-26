@@ -1,177 +1,354 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
+import { FarmContext } from "../context/FarmContext";
+
+import Card from "../components/Card";
+import Button from "../components/Button";
 
 export default function Engineer() {
 
-  const [farmerName, setFarmerName] = useState("");
-  const [crop, setCrop] = useState("");
-  const [problem, setProblem] = useState("");
-  const [date, setDate] = useState("");
+  const { farms, fields } =
+    useContext(FarmContext);
 
-  const [consultations, setConsultations] = useState([]);
+  const [farmName, setFarmName] =
+    useState("");
 
+  const [fieldName, setFieldName] =
+    useState("");
+
+  const [specialization, setSpecialization] =
+    useState("");
+
+  const [crop, setCrop] =
+    useState("");
+
+  const [priority, setPriority] =
+    useState("متوسطة");
+
+  const [problem, setProblem] =
+    useState("");
+
+  const [date, setDate] =
+    useState("");
+
+  const [consultations,
+    setConsultations] = useState([]);
 
   const sendConsultation = () => {
 
-    if (!farmerName || !problem) return;
-
+    if (
+      !farmName ||
+      !fieldName ||
+      !problem
+    ) return;
 
     const newConsultation = {
 
       id: Date.now(),
 
-      farmer: farmerName,
+      farm: farmName,
 
-      crop: crop,
+      field: fieldName,
 
-      problem: problem,
+      specialization,
 
-      date: date,
+      crop,
 
-      status: "بانتظار رد المهندس",
+      priority,
+
+      problem,
+
+      date,
+
+      status:
+        "بانتظار رد المهندس",
 
     };
 
-
     setConsultations([
       ...consultations,
-      newConsultation
+      newConsultation,
     ]);
 
-
-    setFarmerName("");
+    setFarmName("");
+    setFieldName("");
+    setSpecialization("");
     setCrop("");
+    setPriority("متوسطة");
     setProblem("");
     setDate("");
 
   };
 
-
   const deleteConsultation = (id) => {
 
-    const updatedConsultations =
+    setConsultations(
       consultations.filter(
-        (item) => item.id !== id
-      );
-
-
-    setConsultations(updatedConsultations);
+        (item) =>
+          item.id !== id
+      )
+    );
 
   };
 
-
   return (
+
     <div>
 
-      <h1>👨‍🌾 استشارة المهندس الزراعي</h1>
+      <h1>
+        👨‍🌾 الاستشارات الزراعية
+      </h1>
 
+      <Card
+        title="إرسال طلب استشارة"
+      >
 
-      <h2>
-        إرسال طلب استشارة
-      </h2>
+        <select
+          value={farmName}
+          onChange={(e) =>
+            setFarmName(
+              e.target.value
+            )
+          }
+        >
 
+          <option value="">
+            اختر المزرعة
+          </option>
 
-      <input
-        type="text"
-        placeholder="اسم المزارع"
-        value={farmerName}
-        onChange={(e)=>setFarmerName(e.target.value)}
-      />
+          {farms.map((farm) => (
 
+            <option
+              key={farm.id}
+              value={farm.name}
+            >
 
-      <br /><br />
+              {farm.name}
 
+            </option>
 
-      <input
-        type="text"
-        placeholder="نوع المحصول"
-        value={crop}
-        onChange={(e)=>setCrop(e.target.value)}
-      />
+          ))}
 
+        </select>
 
-      <br /><br />
+        <br /><br />
 
+        <select
+          value={fieldName}
+          onChange={(e) =>
+            setFieldName(
+              e.target.value
+            )
+          }
+        >
 
-      <textarea
-        placeholder="اكتب المشكلة الزراعية"
-        value={problem}
-        onChange={(e)=>setProblem(e.target.value)}
-      />
+          <option value="">
+            اختر الحقل
+          </option>
 
+          {fields.map((field) => (
 
-      <br /><br />
+            <option
+              key={field.id}
+              value={field.name}
+            >
 
+              {field.name}
 
-      <label>
-        تاريخ الطلب
-      </label>
+            </option>
 
-      <br />
+          ))}
 
-      <input
-        type="date"
-        value={date}
-        onChange={(e)=>setDate(e.target.value)}
-      />
+        </select>
 
+        <br /><br />
 
-      <br /><br />
+        <select
+          value={specialization}
+          onChange={(e) =>
+            setSpecialization(
+              e.target.value
+            )
+          }
+        >
 
+          <option value="">
+            تخصص المهندس
+          </option>
 
-      <button onClick={sendConsultation}>
-        إرسال الاستشارة
-      </button>
+          <option>
+            مهندس محاصيل
+          </option>
 
+          <option>
+            مهندس ري
+          </option>
 
-      <hr />
+          <option>
+            مهندس تسميد
+          </option>
 
+          <option>
+            مهندس أمراض نبات
+          </option>
+
+          <option>
+            مهندس آفات
+          </option>
+
+        </select>
+
+        <br /><br />
+
+        <input
+          type="text"
+          placeholder="نوع المحصول"
+          value={crop}
+          onChange={(e) =>
+            setCrop(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <select
+          value={priority}
+          onChange={(e) =>
+            setPriority(
+              e.target.value
+            )
+          }
+        >
+
+          <option>
+            منخفضة
+          </option>
+
+          <option>
+            متوسطة
+          </option>
+
+          <option>
+            عالية
+          </option>
+
+          <option>
+            عاجلة
+          </option>
+
+        </select>
+
+        <br /><br />
+
+        <textarea
+          placeholder="وصف المشكلة الزراعية"
+          value={problem}
+          onChange={(e) =>
+            setProblem(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <input
+          type="date"
+          value={date}
+          onChange={(e) =>
+            setDate(
+              e.target.value
+            )
+          }
+        />
+
+        <br /><br />
+
+        <Button
+          onClick={
+            sendConsultation
+          }
+        >
+
+          إرسال الاستشارة
+
+        </Button>
+
+      </Card>
 
       <h2>
         سجل الاستشارات
       </h2>
 
+      {consultations.map(
+        (item) => (
 
-      <ul>
+        <Card
+          key={item.id}
+          title={item.specialization}
+        >
 
-        {consultations.map((item)=>(
+          <p>
+            🏡 المزرعة:
+            {" "}
+            {item.farm}
+          </p>
 
-          <li key={item.id}>
+          <p>
+            🌾 الحقل:
+            {" "}
+            {item.field}
+          </p>
 
-            👨‍🌾 المزارع: {item.farmer}
+          <p>
+            🌱 المحصول:
+            {" "}
+            {item.crop}
+          </p>
 
-            <br />
+          <p>
+            🚨 الأولوية:
+            {" "}
+            {item.priority}
+          </p>
 
-            🌿 المحصول: {item.crop}
+          <p>
+            ⚠️ المشكلة:
+            {" "}
+            {item.problem}
+          </p>
 
-            <br />
+          <p>
+            📅 التاريخ:
+            {" "}
+            {item.date}
+          </p>
 
-            ⚠️ المشكلة: {item.problem}
+          <p>
+            🔔 الحالة:
+            {" "}
+            {item.status}
+          </p>
 
-            <br />
+          <Button
+            onClick={() =>
+              deleteConsultation(
+                item.id
+              )
+            }
+          >
 
-            📅 التاريخ: {item.date}
+            حذف الطلب
 
-            <br />
+          </Button>
 
-            🔔 الحالة: {item.status}
+        </Card>
 
-
-            <br /><br />
-
-            <button
-              onClick={()=>deleteConsultation(item.id)}
-            >
-              حذف
-            </button>
-
-
-          </li>
-
-        ))}
-
-      </ul>
-
+      ))}
 
     </div>
+
   );
+
 }
