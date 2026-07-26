@@ -1,8 +1,10 @@
-
 import { useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
+import Card from "../components/Card";
+
 export default function Dashboard() {
+
   const {
     farms,
     fields,
@@ -12,83 +14,169 @@ export default function Dashboard() {
     pesticides,
     diseases,
     expenses,
+    locations,
+    users,
   } = useContext(FarmContext);
 
   return (
-    <div>
-      <h1>📊 لوحة التحكم</h1>
 
-      <h2>نظام إدارة المزارع الذكية</h2>
+    <div>
+
+      <h1>
+        📊 لوحة التحكم الذكية
+      </h1>
 
       <p>
-        ملخص سريع لجميع بيانات المزرعة.
+        نظرة سريعة على جميع بيانات النظام.
       </p>
 
-      <hr />
+      <Card title="🌾 المزارع">
 
-      <h2>📈 إحصائيات النظام</h2>
+        <h2>
+          {farms.length}
+        </h2>
 
-      <div>
         <p>
-          🌾 عدد المزارع: {farms.length}
+          إجمالي المزارع المسجلة
+        </p>
+
+      </Card>
+
+      <Card title="🌱 الحقول">
+
+        <h2>
+          {fields.length}
+        </h2>
+
+        <p>
+          إجمالي الحقول
+        </p>
+
+      </Card>
+
+      <Card title="🌿 المحاصيل">
+
+        <h2>
+          {crops.length}
+        </h2>
+
+        <p>
+          إجمالي المحاصيل
+        </p>
+
+      </Card>
+
+      <Card title="💧 الري">
+
+        <h2>
+          {irrigations.length}
+        </h2>
+
+        <p>
+          عمليات الري المسجلة
+        </p>
+
+      </Card>
+
+      <Card title="🌾 الأسمدة">
+
+        <h2>
+          {fertilizers.length}
+        </h2>
+
+        <p>
+          عمليات التسميد
+        </p>
+
+      </Card>
+
+      <Card title="🧪 المبيدات">
+
+        <h2>
+          {pesticides.length}
+        </h2>
+
+        <p>
+          عمليات الرش
+        </p>
+
+      </Card>
+
+      <Card title="🦠 الأمراض">
+
+        <h2>
+          {diseases.length}
+        </h2>
+
+        <p>
+          الإصابات المسجلة
+        </p>
+
+      </Card>
+
+      <Card title="📍 المواقع">
+
+        <h2>
+          {locations.length}
+        </h2>
+
+        <p>
+          مواقع GPS المحفوظة
+        </p>
+
+      </Card>
+
+      <Card title="👤 المستخدمون">
+
+        <h2>
+          {users.length}
+        </h2>
+
+        <p>
+          المستخدمون المسجلون
+        </p>
+
+      </Card>
+
+      <Card title="💰 المصاريف">
+
+        <h2>
+          {expenses.length}
+        </h2>
+
+        <p>
+          السجلات المالية
+        </p>
+
+      </Card>
+
+      <Card title="🔔 التنبيهات">
+
+        <p>
+          متابعة حالة الطقس للمزارع.
         </p>
 
         <p>
-          🌱 عدد الحقول: {fields.length}
+          مراجعة مواعيد الري القادمة.
         </p>
 
         <p>
-          🌿 عدد المحاصيل: {crops.length}
+          مراجعة الأمراض المسجلة.
         </p>
+
+      </Card>
+
+      <Card title="🕒 آخر نشاط">
 
         <p>
-          💧 عمليات الري: {irrigations.length}
+          يتم عرض آخر العمليات هنا
+          مستقبلاً.
         </p>
 
-        <p>
-          🌾 عمليات التسميد: {fertilizers.length}
-        </p>
+      </Card>
 
-        <p>
-          🧪 المبيدات: {pesticides.length}
-        </p>
-
-        <p>
-          🦠 الأمراض والآفات: {diseases.length}
-        </p>
-
-        <p>
-          💰 المصروفات: {expenses.length}
-        </p>
-      </div>
-
-      <hr />
-
-      <h2>🕒 آخر النشاطات</h2>
-
-      <ul>
-        <li>
-          لا توجد عمليات جديدة حاليًا
-        </li>
-      </ul>
-
-      <hr />
-
-      <h2>🔔 التنبيهات</h2>
-
-      <ul>
-        <li>
-          ⚠️ مواعيد الري القادمة
-        </li>
-
-        <li>
-          ⚠️ متابعة حالة الطقس
-        </li>
-
-        <li>
-          ⚠️ مراجعة استشارات المهندس
-        </li>
-      </ul>
     </div>
+
   );
+
 }
