@@ -1,211 +1,459 @@
 import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
+import Card from "../components/Card";
+import Button from "../components/Button";
+
+
 export default function Fertilizers() {
 
+
   const {
+    farms,
     fields,
     fertilizers,
     setFertilizers,
   } = useContext(FarmContext);
 
 
+
+  const [farmName, setFarmName] = useState("");
+
   const [fieldName, setFieldName] = useState("");
+
   const [type, setType] = useState("");
+
   const [quantity, setQuantity] = useState("");
+
+  const [unit, setUnit] = useState("كغ");
+
+  const [method, setMethod] = useState("");
+
   const [date, setDate] = useState("");
+
   const [notes, setNotes] = useState("");
+
 
 
   const addFertilizer = () => {
 
-    if (!fieldName || !type) return;
+
+    if(
+      !farmName ||
+      !fieldName ||
+      !type
+    ) return;
+
 
 
     const newFertilizer = {
 
+
       id: Date.now(),
+
+      farm: farmName,
 
       field: fieldName,
 
-      type: type,
+      type,
 
-      quantity: quantity,
+      quantity,
 
-      date: date,
+      unit,
 
-      notes: notes,
+      method,
+
+      date,
+
+      notes,
 
     };
 
 
+
     setFertilizers([
       ...fertilizers,
-      newFertilizer,
+      newFertilizer
     ]);
 
 
+
+    setFarmName("");
+
     setFieldName("");
+
     setType("");
+
     setQuantity("");
+
+    setUnit("كغ");
+
+    setMethod("");
+
     setDate("");
+
     setNotes("");
 
   };
 
 
-  const deleteFertilizer = (id) => {
+
+
+  const deleteFertilizer = (id)=>{
+
 
     setFertilizers(
+
       fertilizers.filter(
-        (item) => item.id !== id
+        item => item.id !== id
       )
+
     );
+
 
   };
 
 
+
+  const farmFields = fields.filter(
+    field =>
+    field.farm === farmName
+  );
+
+
+
+
   return (
+
     <div>
 
-      <h1>🌾 إدارة الأسمدة</h1>
+
+      <h1>
+        🌾 إدارة الأسمدة الذكية
+      </h1>
 
 
-      <h2>إضافة سماد جديد</h2>
+
+      <Card title="إضافة عملية تسميد جديدة">
 
 
-      <select
-        value={fieldName}
-        onChange={(e) =>
-          setFieldName(e.target.value)
-        }
-      >
+        <select
 
-        <option value="">
-          اختر الحقل
-        </option>
+          value={farmName}
 
+          onChange={(e)=>{
 
-        {fields.map((field) => (
+            setFarmName(e.target.value);
 
-          <option
-            key={field.id}
-            value={field.name}
-          >
-            {field.name}
+            setFieldName("");
+
+          }}
+
+        >
+
+          <option value="">
+            اختر المزرعة
           </option>
 
-        ))}
 
-      </select>
+          {
+            farms.map(farm=>(
 
+              <option
+                key={farm.id}
+                value={farm.name}
+              >
 
-      <br /><br />
+                {farm.name}
 
+              </option>
 
-      <input
-        type="text"
-        placeholder="نوع السماد"
-        value={type}
-        onChange={(e) =>
-          setType(e.target.value)
-        }
-      />
-
-
-      <br /><br />
+            ))
+          }
 
 
-      <input
-        type="number"
-        placeholder="الكمية"
-        value={quantity}
-        onChange={(e) =>
-          setQuantity(e.target.value)
-        }
-      />
+        </select>
 
 
-      <br /><br />
+
+        <br/><br/>
 
 
-      <input
-        type="date"
-        value={date}
-        onChange={(e) =>
-          setDate(e.target.value)
-        }
-      />
 
 
-      <br /><br />
+        <select
+
+          value={fieldName}
+
+          onChange={(e)=>
+            setFieldName(e.target.value)
+          }
+
+        >
+
+          <option value="">
+            اختر الحقل
+          </option>
 
 
-      <textarea
-        placeholder="ملاحظات"
-        value={notes}
-        onChange={(e) =>
-          setNotes(e.target.value)
-        }
-      />
+          {
+            farmFields.map(field=>(
+
+              <option
+
+                key={field.id}
+
+                value={field.name}
+
+              >
+
+                {field.name}
+
+              </option>
+
+            ))
+          }
 
 
-      <br /><br />
+        </select>
 
 
-      <button onClick={addFertilizer}>
-        حفظ السماد
-      </button>
 
 
-      <hr />
+        <br/><br/>
 
 
-      <h2>سجل الأسمدة</h2>
 
 
-      <ul>
+        <input
 
-        {fertilizers.map((item) => (
+          type="text"
 
-          <li key={item.id}>
+          placeholder="نوع السماد"
 
-            🌱 الحقل: {item.field}
+          value={type}
 
-            <br />
+          onChange={(e)=>
+            setType(e.target.value)
+          }
 
-            🌾 النوع: {item.type}
-
-            <br />
-
-            الكمية: {item.quantity}
-
-            <br />
-
-            التاريخ: {item.date}
-
-            <br />
-
-            الملاحظات: {item.notes}
+        />
 
 
-            <br />
 
-            <button
-              onClick={() =>
+        <br/><br/>
+
+
+
+
+        <input
+
+          type="number"
+
+          placeholder="كمية السماد"
+
+          value={quantity}
+
+          onChange={(e)=>
+            setQuantity(e.target.value)
+          }
+
+        />
+
+
+
+
+        <select
+
+          value={unit}
+
+          onChange={(e)=>
+            setUnit(e.target.value)
+          }
+
+        >
+
+          <option>
+            كغ
+          </option>
+
+
+          <option>
+            طن
+          </option>
+
+
+          <option>
+            لتر
+          </option>
+
+
+        </select>
+
+
+
+        <br/><br/>
+
+
+
+
+        <input
+
+          type="text"
+
+          placeholder="طريقة التسميد (تربة، رش، ري)"
+
+          value={method}
+
+          onChange={(e)=>
+            setMethod(e.target.value)
+          }
+
+        />
+
+
+
+        <br/><br/>
+
+
+
+
+        <label>
+          تاريخ التسميد
+        </label>
+
+
+        <input
+
+          type="date"
+
+          value={date}
+
+          onChange={(e)=>
+            setDate(e.target.value)
+          }
+
+        />
+
+
+
+        <br/><br/>
+
+
+
+
+        <textarea
+
+          placeholder="ملاحظات"
+
+          value={notes}
+
+          onChange={(e)=>
+            setNotes(e.target.value)
+          }
+
+        />
+
+
+
+        <br/><br/>
+
+
+
+
+        <Button onClick={addFertilizer}>
+
+          حفظ عملية التسميد
+
+        </Button>
+
+
+
+      </Card>
+
+
+
+
+
+      <h2>
+        سجل عمليات التسميد
+      </h2>
+
+
+
+
+      {
+        fertilizers.map(item=>(
+
+
+          <Card
+
+            key={item.id}
+
+            title={item.type}
+
+          >
+
+
+            <p>
+              🏡 المزرعة: {item.farm}
+            </p>
+
+
+            <p>
+              🌱 الحقل: {item.field}
+            </p>
+
+
+            <p>
+              ⚖️ الكمية:
+              {item.quantity} {item.unit}
+            </p>
+
+
+            <p>
+              🚜 الطريقة:
+              {item.method}
+            </p>
+
+
+            <p>
+              📅 التاريخ:
+              {item.date}
+            </p>
+
+
+            <p>
+              📝 الملاحظات:
+              {item.notes}
+            </p>
+
+
+
+            <Button
+
+              onClick={()=>
                 deleteFertilizer(item.id)
               }
+
             >
+
               حذف
-            </button>
 
-          </li>
+            </Button>
 
-        ))}
 
-      </ul>
+
+          </Card>
+
+
+        ))
+      }
+
 
 
     </div>
+
   );
+
 }
