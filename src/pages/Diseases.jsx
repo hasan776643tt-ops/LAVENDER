@@ -1,212 +1,308 @@
 import { useState, useContext } from "react";
 import { FarmContext } from "../context/FarmContext";
 
-export default function Diseases() {
+import Card from "../components/Card";
+import Button from "../components/Button";
 
+export default function Diseases() {
   const {
+    farms,
     fields,
     diseases,
     setDiseases,
   } = useContext(FarmContext);
 
-
-  const [diseaseName, setDiseaseName] = useState("");
+  const [farmName, setFarmName] = useState("");
   const [fieldName, setFieldName] = useState("");
+  const [problemType, setProblemType] = useState("");
+  const [diseaseName, setDiseaseName] = useState("");
+  const [severity, setSeverity] = useState("متوسطة");
+  const [infectionRate, setInfectionRate] = useState("");
+  const [discoveryDate, setDiscoveryDate] = useState("");
   const [symptoms, setSymptoms] = useState("");
   const [diagnosis, setDiagnosis] = useState("");
   const [treatment, setTreatment] = useState("");
-  const [followUp, setFollowUp] = useState("");
-
 
   const addDisease = () => {
-
-    if (!diseaseName || !fieldName) return;
-
+    if (!fieldName || !problemType) return;
 
     const newDisease = {
-
       id: Date.now(),
-
-      name: diseaseName,
-
+      farm: farmName,
       field: fieldName,
-
-      symptoms: symptoms,
-
-      diagnosis: diagnosis,
-
-      treatment: treatment,
-
-      followUp: followUp,
-
+      type: problemType,
+      name: diseaseName,
+      severity,
+      infectionRate,
+      discoveryDate,
+      symptoms,
+      diagnosis,
+      treatment,
     };
 
+    setDiseases([...diseases, newDisease]);
 
-    setDiseases([
-      ...diseases,
-      newDisease,
-    ]);
-
-
-    setDiseaseName("");
+    setFarmName("");
     setFieldName("");
+    setProblemType("");
+    setDiseaseName("");
+    setSeverity("متوسطة");
+    setInfectionRate("");
+    setDiscoveryDate("");
     setSymptoms("");
     setDiagnosis("");
     setTreatment("");
-    setFollowUp("");
-
   };
 
-
   const deleteDisease = (id) => {
-
     setDiseases(
       diseases.filter(
         (item) => item.id !== id
       )
     );
-
   };
-
 
   return (
     <div>
 
       <h1>🦠 إدارة الأمراض والآفات</h1>
 
+      <Card title="إضافة إصابة جديدة">
 
-      <h2>إضافة إصابة جديدة</h2>
-
-
-      <input
-        type="text"
-        placeholder="اسم المرض أو الآفة"
-        value={diseaseName}
-        onChange={(e) =>
-          setDiseaseName(e.target.value)
-        }
-      />
-
-
-      <br /><br />
-
-
-      <select
-        value={fieldName}
-        onChange={(e) =>
-          setFieldName(e.target.value)
-        }
-      >
-
-        <option value="">
-          اختر الحقل المصاب
-        </option>
-
-
-        {fields.map((field) => (
-
-          <option
-            key={field.id}
-            value={field.name}
-          >
-            {field.name}
+        <select
+          value={farmName}
+          onChange={(e) =>
+            setFarmName(e.target.value)
+          }
+        >
+          <option value="">
+            اختر المزرعة
           </option>
 
-        ))}
+          {farms.map((farm) => (
+            <option
+              key={farm.id}
+              value={farm.name}
+            >
+              {farm.name}
+            </option>
+          ))}
+        </select>
 
+        <br /><br />
 
-      </select>
+        <select
+          value={fieldName}
+          onChange={(e) =>
+            setFieldName(e.target.value)
+          }
+        >
+          <option value="">
+            اختر الحقل
+          </option>
 
+          {fields.map((field) => (
+            <option
+              key={field.id}
+              value={field.name}
+            >
+              {field.name}
+            </option>
+          ))}
+        </select>
 
-      <br /><br />
+        <br /><br />
 
+        <select
+          value={problemType}
+          onChange={(e) =>
+            setProblemType(e.target.value)
+          }
+        >
+          <option value="">
+            نوع المشكلة
+          </option>
 
-      <textarea
-        placeholder="وصف الأعراض"
-        value={symptoms}
-        onChange={(e) =>
-          setSymptoms(e.target.value)
-        }
-      />
+          <option>
+            مرض فطري
+          </option>
 
+          <option>
+            حشرة
+          </option>
 
-      <br /><br />
+          <option>
+            نقص عناصر
+          </option>
 
+          <option>
+            مشكلة ري
+          </option>
 
-      <textarea
-        placeholder="التشخيص"
-        value={diagnosis}
-        onChange={(e) =>
-          setDiagnosis(e.target.value)
-        }
-      />
+          <option>
+            غير معروف
+          </option>
 
+        </select>
 
-      <br /><br />
+        <br /><br />
 
+        <input
+          type="text"
+          placeholder="اسم المرض أو الآفة"
+          value={diseaseName}
+          onChange={(e) =>
+            setDiseaseName(e.target.value)
+          }
+        />
 
-      <textarea
-        placeholder="العلاج"
-        value={treatment}
-        onChange={(e) =>
-          setTreatment(e.target.value)
-        }
-      />
+        <br /><br />
 
+        <select
+          value={severity}
+          onChange={(e) =>
+            setSeverity(e.target.value)
+          }
+        >
+          <option>
+            منخفضة
+          </option>
 
-      <br /><br />
+          <option>
+            متوسطة
+          </option>
 
+          <option>
+            عالية
+          </option>
 
-      <input
-        type="date"
-        value={followUp}
-        onChange={(e) =>
-          setFollowUp(e.target.value)
-        }
-      />
+        </select>
 
+        <br /><br />
 
-      <br /><br />
+        <input
+          type="number"
+          placeholder="نسبة الإصابة %"
+          value={infectionRate}
+          onChange={(e) =>
+            setInfectionRate(e.target.value)
+          }
+        />
 
+        <br /><br />
 
-      <button onClick={addDisease}>
-        حفظ الإصابة
-      </button>
+        <input
+          type="date"
+          value={discoveryDate}
+          onChange={(e) =>
+            setDiscoveryDate(e.target.value)
+          }
+        />
 
+        <br /><br />
 
-      <hr />
+        <textarea
+          placeholder="الأعراض"
+          value={symptoms}
+          onChange={(e) =>
+            setSymptoms(e.target.value)
+          }
+        />
 
+        <br /><br />
+
+        <textarea
+          placeholder="التشخيص"
+          value={diagnosis}
+          onChange={(e) =>
+            setDiagnosis(e.target.value)
+          }
+        />
+
+        <br /><br />
+
+        <textarea
+          placeholder="العلاج"
+          value={treatment}
+          onChange={(e) =>
+            setTreatment(e.target.value)
+          }
+        />
+
+        <br /><br />
+
+        <Button onClick={addDisease}>
+          حفظ الإصابة
+        </Button>
+
+      </Card>
 
       <h2>سجل الأمراض</h2>
 
+      {diseases.map((item) => (
 
-      <ul>
+        <Card
+          key={item.id}
+          title={item.name || item.type}
+        >
 
-        {diseases.map((item) => (
+          <p>
+            🏡 المزرعة: {item.farm}
+          </p>
 
-          <li key={item.id}>
+          <p>
+            🌾 الحقل: {item.field}
+          </p>
 
-            🦠 {item.name}
+          <p>
+            🦠 النوع: {item.type}
+          </p>
 
-            <br />
+          <p>
+            ⚠️ الخطورة: {item.severity}
+          </p>
 
-            🌱 الحقل: {item.field}
+          <p>
+            📊 نسبة الإصابة:
+            {" "}
+            {item.infectionRate}%
+          </p>
 
+          <p>
+            📅 تاريخ الاكتشاف:
+            {" "}
+            {item.discoveryDate}
+          </p>
 
-            <button
-              onClick={() =>
-                deleteDisease(item.id)
-              }
-            >
-              حذف
-            </button>
+          <p>
+            🔍 الأعراض:
+            {" "}
+            {item.symptoms}
+          </p>
 
-          </li>
+          <p>
+            🧪 التشخيص:
+            {" "}
+            {item.diagnosis}
+          </p>
 
-        ))}
+          <p>
+            💊 العلاج:
+            {" "}
+            {item.treatment}
+          </p>
 
-      </ul>
+          <Button
+            onClick={() =>
+              deleteDisease(item.id)
+            }
+          >
+            حذف الإصابة
+          </Button>
 
+        </Card>
+
+      ))}
 
     </div>
   );
