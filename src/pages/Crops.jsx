@@ -1,346 +1,705 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+import {
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  FarmContext
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+
 export default function Crops() {
 
+
   const {
+
     farms,
     fields,
     crops,
-    setCrops,
+
+    addCrop,
+    updateCrop,
+    deleteCrop
+
   } = useContext(FarmContext);
 
 
-  const [cropName, setCropName] = useState("");
-  const [variety, setVariety] = useState("");
-  const [farmName, setFarmName] = useState("");
-  const [fieldName, setFieldName] = useState("");
-  const [plantingDate, setPlantingDate] = useState("");
-  const [harvestDate, setHarvestDate] = useState("");
-  const [seedQuantity, setSeedQuantity] = useState("");
-  const [production, setProduction] = useState("");
-  const [notes, setNotes] = useState("");
 
+  const initialForm = {
 
-  const addCrop = () => {
-
-    if (!cropName || !fieldName) return;
-
-
-    const newCrop = {
-
-      id: Date.now(),
-
-      name: cropName,
-
-      variety,
-
-      farm: farmName,
-
-      field: fieldName,
-
-      planting: plantingDate,
-
-      harvest: harvestDate,
-
-      seeds: seedQuantity,
-
-      production,
-
-      notes,
-
-    };
-
-
-    setCrops([
-      ...crops,
-      newCrop
-    ]);
-
-
-    setCropName("");
-    setVariety("");
-    setFarmName("");
-    setFieldName("");
-    setPlantingDate("");
-    setHarvestDate("");
-    setSeedQuantity("");
-    setProduction("");
-    setNotes("");
+    farmId:"",
+    fieldId:"",
+    name:"",
+    variety:"",
+    plantingDate:"",
+    harvestDate:"",
+    seedQuantity:"",
+    expectedProduction:"",
+    notes:""
 
   };
 
 
 
-  const deleteCrop = (id) => {
+  const [form,setForm] =
+    useState(initialForm);
 
-    setCrops(
-      crops.filter(
-        (crop) => crop.id !== id
-      )
+
+
+  const [editId,setEditId] =
+    useState(null);
+
+
+
+  const [search,setSearch] =
+    useState("");
+
+
+
+
+
+  const handleChange = (e)=>{
+
+
+    setForm({
+
+      ...form,
+
+      [e.target.name]:
+      e.target.value
+
+    });
+
+
+  };
+
+
+
+
+
+  const clearForm = ()=>{
+
+
+    setForm(initialForm);
+
+    setEditId(null);
+
+
+  };
+
+
+
+
+
+
+  const saveCrop = ()=>{
+
+
+    if(
+      !form.name ||
+      !form.fieldId
+    )
+    return;
+
+
+
+    if(editId){
+
+
+      updateCrop(
+        editId,
+        form
+      );
+
+
+    }else{
+
+
+      addCrop(form);
+
+
+    }
+
+
+
+    clearForm();
+
+
+  };
+
+
+
+
+
+
+  const editCrop = (crop)=>{
+
+
+    setForm({
+
+      farmId:
+      crop.farmId || "",
+
+      fieldId:
+      crop.fieldId || "",
+
+      name:
+      crop.name || "",
+
+      variety:
+      crop.variety || "",
+
+      plantingDate:
+      crop.plantingDate || "",
+
+      harvestDate:
+      crop.harvestDate || "",
+
+      seedQuantity:
+      crop.seedQuantity || "",
+
+      expectedProduction:
+      crop.expectedProduction || "",
+
+      notes:
+      crop.notes || ""
+
+    });
+
+
+    setEditId(crop.id);
+
+
+  };
+
+
+
+
+
+
+  const farmFields = useMemo(()=>{
+
+
+    return fields.filter(
+
+      field =>
+
+      field.farmId === form.farmId
+
     );
 
+
+  },[
+    fields,
+    form.farmId
+  ]);
+
+
+
+
+
+
+  const filteredCrops =
+  useMemo(()=>{
+
+
+    return crops.filter(
+
+      crop =>
+
+      crop.name
+      ?.toLowerCase()
+      .includes(
+        search.toLowerCase()
+      )
+
+    );
+
+
+  },[
+    crops,
+    search
+  ]);
+
+
+
+
+
+
+
+  const getFarmName =
+  (farmId)=>{
+
+
+    const farm =
+    farms.find(
+      farm =>
+      farm.id === farmId
+    );
+
+
+    return farm
+    ? farm.name
+    : "غير محددة";
+
+
   };
 
 
 
-  return (
 
-    <div>
 
-      <h1>
-        🌿 إدارة المحاصيل
-      </h1>
+  const getFieldName =
+  (fieldId)=>{
 
 
+    const field =
+    fields.find(
+      field =>
+      field.id === fieldId
+    );
 
-      <Card title="إضافة محصول جديد">
 
+    return field
+    ? field.name
+    : "غير محدد";
 
-        <input
-          type="text"
-          placeholder="اسم المحصول"
-          value={cropName}
-          onChange={(e)=>
-            setCropName(e.target.value)
-          }
-        />
 
+  };
 
-        <br /><br />
 
 
-        <input
-          type="text"
-          placeholder="صنف المحصول"
-          value={variety}
-          onChange={(e)=>
-            setVariety(e.target.value)
-          }
-        />
 
 
-        <br /><br />
 
 
-        <select
-          value={farmName}
-          onChange={(e)=>
-            setFarmName(e.target.value)
-          }
-        >
+return (
 
-          <option value="">
-            اختر المزرعة
-          </option>
+<div>
 
 
-          {farms.map((farm)=>(
+<h1>
+🌱 إدارة المحاصيل الذكية
+</h1>
 
-            <option
-              key={farm.id}
-              value={farm.name}
-            >
-              {farm.name}
-            </option>
 
-          ))}
 
+<Card
 
-        </select>
+title={
+editId
+?
+"✏️ تعديل محصول"
+:
+"➕ إضافة محصول جديد"
+}
 
+>
 
-        <br /><br />
 
 
-        <select
-          value={fieldName}
-          onChange={(e)=>
-            setFieldName(e.target.value)
-          }
-        >
 
-          <option value="">
-            اختر الحقل
-          </option>
+<select
 
+name="farmId"
 
-          {fields.map((field)=>(
+value={form.farmId}
 
-            <option
-              key={field.id}
-              value={field.name}
-            >
+onChange={handleChange}
 
-              {field.name}
+>
 
-            </option>
+<option value="">
+اختر المزرعة
+</option>
 
-          ))}
 
+{
 
-        </select>
+farms.map(
 
+farm=>(
 
-        <br /><br />
+<option
 
+key={farm.id}
 
-        <label>
-          تاريخ الزراعة
-        </label>
+value={farm.id}
 
-        <input
-          type="date"
-          value={plantingDate}
-          onChange={(e)=>
-            setPlantingDate(e.target.value)
-          }
-        />
+>
 
+{farm.name}
 
-        <br /><br />
+</option>
 
+)
 
-        <label>
-          تاريخ الحصاد
-        </label>
+)
 
-        <input
-          type="date"
-          value={harvestDate}
-          onChange={(e)=>
-            setHarvestDate(e.target.value)
-          }
-        />
+}
 
 
-        <br /><br />
+</select>
 
 
-        <input
-          type="number"
-          placeholder="كمية البذور"
-          value={seedQuantity}
-          onChange={(e)=>
-            setSeedQuantity(e.target.value)
-          }
-        />
 
 
-        <br /><br />
 
+<select
 
-        <input
-          type="number"
-          placeholder="الإنتاج المتوقع"
-          value={production}
-          onChange={(e)=>
-            setProduction(e.target.value)
-          }
-        />
+name="fieldId"
 
+value={form.fieldId}
 
-        <br /><br />
+onChange={handleChange}
 
+>
 
-        <textarea
-          placeholder="ملاحظات"
-          value={notes}
-          onChange={(e)=>
-            setNotes(e.target.value)
-          }
-        />
+<option value="">
+اختر الحقل
+</option>
 
 
-        <br /><br />
+{
 
+farmFields.map(
 
-        <Button onClick={addCrop}>
-          حفظ المحصول
-        </Button>
+field=>(
 
+<option
 
-      </Card>
+key={field.id}
 
+value={field.id}
 
+>
 
-      <h2>
-        قائمة المحاصيل
-      </h2>
+{field.name}
 
+</option>
 
+)
 
-      {crops.map((crop)=>(
+)
 
+}
 
-        <Card
-          key={crop.id}
-          title={crop.name}
-        >
 
-          <p>
-            🌱 الصنف: {crop.variety}
-          </p>
+</select>
 
 
-          <p>
-            🏡 المزرعة: {crop.farm}
-          </p>
 
 
-          <p>
-            🌾 الحقل: {crop.field}
-          </p>
 
 
-          <p>
-            📅 الزراعة: {crop.planting}
-          </p>
+<input
 
+name="name"
 
-          <p>
-            📅 الحصاد: {crop.harvest}
-          </p>
+placeholder="اسم المحصول"
 
+value={form.name}
 
-          <p>
-            🌰 البذور: {crop.seeds}
-          </p>
+onChange={handleChange}
 
+/>
 
-          <p>
-            📦 الإنتاج المتوقع: {crop.production}
-          </p>
 
 
-          <p>
-            📝 الملاحظات: {crop.notes}
-          </p>
 
 
 
-          <Button
-            onClick={()=>
-              deleteCrop(crop.id)
-            }
-          >
+<input
 
-            حذف المحصول
+name="variety"
 
-          </Button>
+placeholder="الصنف"
 
+value={form.variety}
 
-        </Card>
+onChange={handleChange}
 
+/>
 
-      ))}
 
 
-    </div>
 
-  );
+
+
+<label>
+تاريخ الزراعة
+</label>
+
+
+<input
+
+type="date"
+
+name="plantingDate"
+
+value={form.plantingDate}
+
+onChange={handleChange}
+
+/>
+
+
+
+
+
+
+<label>
+تاريخ الحصاد المتوقع
+</label>
+
+
+<input
+
+type="date"
+
+name="harvestDate"
+
+value={form.harvestDate}
+
+onChange={handleChange}
+
+/>
+
+
+
+
+
+
+<input
+
+type="number"
+
+name="seedQuantity"
+
+placeholder="كمية البذور"
+
+value={form.seedQuantity}
+
+onChange={handleChange}
+
+/>
+
+
+
+
+
+
+<input
+
+type="number"
+
+name="expectedProduction"
+
+placeholder="الإنتاج المتوقع"
+
+value={form.expectedProduction}
+
+onChange={handleChange}
+
+/>
+
+
+
+
+
+
+<textarea
+
+name="notes"
+
+placeholder="ملاحظات"
+
+value={form.notes}
+
+onChange={handleChange}
+
+/>
+
+
+
+
+
+
+<Button onClick={saveCrop}>
+
+{
+
+editId
+
+?
+
+"حفظ التعديل"
+
+:
+
+"إضافة المحصول"
+
+}
+
+</Button>
+
+
+
+</Card>
+
+
+
+
+
+
+
+<Card title="🔎 البحث">
+
+
+<input
+
+placeholder="بحث عن محصول..."
+
+value={search}
+
+onChange={
+e=>setSearch(e.target.value)
+}
+
+/>
+
+
+</Card>
+
+
+
+
+
+
+
+
+<h2>
+قائمة المحاصيل
+</h2>
+
+
+
+
+
+{
+
+filteredCrops.map(
+
+crop=>(
+
+
+<Card
+
+key={crop.id}
+
+title={
+`🌿 ${crop.name}`
+}
+
+>
+
+
+<p>
+🚜 المزرعة:
+{" "}
+{getFarmName(crop.farmId)}
+</p>
+
+
+<p>
+📍 الحقل:
+{" "}
+{getFieldName(crop.fieldId)}
+</p>
+
+
+<p>
+🌱 الصنف:
+{" "}
+{crop.variety}
+</p>
+
+
+<p>
+📅 الزراعة:
+{" "}
+{crop.plantingDate}
+</p>
+
+
+<p>
+📦 الإنتاج المتوقع:
+{" "}
+{crop.expectedProduction}
+</p>
+
+
+<p>
+📝 ملاحظات:
+{" "}
+{crop.notes}
+</p>
+
+
+
+
+
+<Button
+
+onClick={()=>
+editCrop(crop)
+}
+
+>
+
+تعديل
+
+</Button>
+
+
+
+
+
+<Button
+
+onClick={()=>
+deleteCrop(crop.id)
+}
+
+>
+
+حذف
+
+</Button>
+
+
+
+</Card>
+
+
+)
+
+)
+
+
+}
+
+
+
+
+
+</div>
+
+);
+
 
 }
