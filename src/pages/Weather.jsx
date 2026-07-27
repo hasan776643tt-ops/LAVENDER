@@ -24,33 +24,29 @@ export default function Weather() {
 
 
 
-  const [selectedFarm,setSelectedFarm] =
+  const [selectedFarm, setSelectedFarm] =
     useState("");
 
-  const [weather,setWeather] =
+  const [weather, setWeather] =
     useState(null);
 
-  const [loading,setLoading] =
+  const [loading, setLoading] =
     useState(false);
 
 
 
+  // البحث عن موقع المزرعة بالمعرف
 
-
-  // البحث عن موقع المزرعة
-
-  const farmLocation = useMemo(()=>{
-
+  const farmLocation = useMemo(() => {
 
     return locations.find(
 
-      item =>
-        item.farm === selectedFarm
+      location =>
+        location.farmId === selectedFarm
 
     );
 
-
-  },[
+  }, [
     locations,
     selectedFarm
   ]);
@@ -58,83 +54,146 @@ export default function Weather() {
 
 
 
+  // تحليل زراعي ذكي
+
+  const analyzeAgriculture = (
+    temperature,
+    humidity,
+    rain
+  ) => {
+
+
+    let advice = [];
 
 
 
-  // محاكاة الطقس الذكي مؤقتاً
-  // جاهز للربط مع API
+    if (temperature >= 35) {
 
-  const getWeather = ()=>{
+      advice.push(
+        "⚠️ حرارة مرتفعة: يفضل زيادة مراقبة الري."
+      );
+
+    }
 
 
-    if(!selectedFarm)
+
+    if (humidity < 40) {
+
+      advice.push(
+        "💧 رطوبة منخفضة: احتمال جفاف التربة."
+      );
+
+    }
+
+
+
+    if (rain < 20) {
+
+      advice.push(
+        "🌱 الأمطار قليلة: راجع خطة الري."
+      );
+
+    }
+
+
+
+    if (temperature >= 20 &&
+        temperature <= 30 &&
+        humidity >= 40) {
+
+      advice.push(
+        "✅ الظروف مناسبة لنمو معظم المحاصيل."
+      );
+
+    }
+
+
+
+    return advice;
+
+  };
+
+
+
+
+
+
+  const getWeather = () => {
+
+
+    if (!selectedFarm) {
+
+      alert(
+        "اختر المزرعة أولاً"
+      );
+
       return;
+
+    }
+
 
 
     setLoading(true);
 
 
 
-    setTimeout(()=>{
+    // جاهز للاستبدال بـ API حقيقي
+
+    setTimeout(() => {
 
 
-      const temperature =
-        28;
+      const data = {
 
 
-      const humidity =
-        55;
+        temperature: 28,
+
+        minTemperature: 21,
+
+        maxTemperature: 32,
 
 
-
-      let recommendation =
-        "✅ الظروف مناسبة للزراعة";
+        humidity: 55,
 
 
-
-      if(
-        temperature > 35
-      ){
-
-        recommendation =
-        "⚠️ حرارة مرتفعة، يفضل زيادة مراقبة الري";
-
-      }
+        windSpeed: 12,
 
 
+        rainChance: 10,
 
-      if(
-        humidity < 30
-      ){
 
-        recommendation =
-        "💧 رطوبة منخفضة، راقب جفاف التربة";
+        condition:
+          "مشمس",
 
-      }
 
+        updated:
+          new Date()
+          .toLocaleString("ar"),
+
+
+      };
 
 
 
 
       setWeather({
 
-        temperature,
+        ...data,
 
-        humidity,
-
-        wind:
-        "12 كم/ساعة",
-
-        rain:
-        "10%",
-
-        condition:
-        "مشمس",
-
-        recommendation,
 
         location:
-        farmLocation
+          farmLocation,
+
+
+        recommendations:
+          analyzeAgriculture(
+
+            data.temperature,
+
+            data.humidity,
+
+            data.rainChance
+
+          )
 
       });
 
@@ -144,11 +203,11 @@ export default function Weather() {
 
 
 
-    },800);
+    },700);
+
 
 
   };
-
 
 
 
@@ -162,8 +221,13 @@ export default function Weather() {
 
 
       <h1>
-        ☀️ الطقس الزراعي الذكي
+        ☀️ نظام الطقس الزراعي الذكي
       </h1>
+
+
+      <p>
+        تحليل الظروف الجوية وتأثيرها على المحاصيل.
+      </p>
 
 
 
@@ -191,16 +255,15 @@ export default function Weather() {
           </option>
 
 
-
           {
             farms.map(
-              farm=>(
+              farm => (
 
                 <option
 
                   key={farm.id}
 
-                  value={farm.name}
+                  value={farm.id}
 
                 >
 
@@ -217,26 +280,33 @@ export default function Weather() {
 
 
 
-        <br/><br/>
-
+        <br />
+        <br />
 
 
 
         <Button
+
           onClick={getWeather}
+
         >
 
           {
+
             loading
+
             ?
+
             "⏳ جاري التحليل..."
+
             :
-            "🌦️ عرض الطقس"
+
+            "🌦️ تحليل الطقس"
+
           }
 
 
         </Button>
-
 
 
       </Card>
@@ -251,8 +321,7 @@ export default function Weather() {
       {
         weather &&
 
-
-        <Card title="🌤️ حالة الطقس">
+        <Card title="🌤️ البيانات الجوية">
 
 
           {
@@ -260,22 +329,21 @@ export default function Weather() {
 
             <>
 
-            <p>
-              📍 الموقع:
-              {" "}
-              {weather.location.lat}
-              ,
-              {weather.location.lng}
-            </p>
+              <p>
+                📍 الإحداثيات:
+                {" "}
+                {weather.location.lat}
+                ,
+                {weather.location.lng}
+              </p>
 
 
-            <p>
-              🎯 دقة GPS:
-              {" "}
-              {weather.location.accuracy}
-              متر
-            </p>
-
+              <p>
+                🎯 دقة GPS:
+                {" "}
+                {weather.location.accuracy}
+                متر
+              </p>
 
             </>
 
@@ -284,31 +352,57 @@ export default function Weather() {
 
 
           <p>
-            🌡️ الحرارة:
+            🌡️ الحرارة الحالية:
             {" "}
-            {weather.temperature}°C
+            {weather.temperature}
+            °C
           </p>
+
+
+
+          <p>
+            🔽 الصغرى:
+            {" "}
+            {weather.minTemperature}
+            °C
+          </p>
+
+
+
+          <p>
+            🔼 العظمى:
+            {" "}
+            {weather.maxTemperature}
+            °C
+          </p>
+
 
 
           <p>
             💧 الرطوبة:
             {" "}
-            {weather.humidity}%
+            {weather.humidity}
+            %
           </p>
+
 
 
           <p>
-            🌬️ الرياح:
+            💨 سرعة الرياح:
             {" "}
-            {weather.wind}
+            {weather.windSpeed}
+            كم/ساعة
           </p>
+
 
 
           <p>
             🌧️ احتمال المطر:
             {" "}
-            {weather.rain}
+            {weather.rainChance}
+            %
           </p>
+
 
 
           <p>
@@ -318,19 +412,15 @@ export default function Weather() {
           </p>
 
 
-          <h3>
-            🌱 التوصية الزراعية
-          </h3>
-
 
           <p>
-            {weather.recommendation}
+            🕒 آخر تحديث:
+            {" "}
+            {weather.updated}
           </p>
 
 
-
         </Card>
-
 
       }
 
@@ -338,26 +428,65 @@ export default function Weather() {
 
 
 
-      <Card title="🚀 التطوير القادم">
+
+
+      {
+        weather &&
+
+
+        <Card title="🌱 التوصيات الزراعية الذكية">
+
+
+          {
+            weather.recommendations.map(
+
+              (item,index)=>(
+
+                <p key={index}>
+                  {item}
+                </p>
+
+              )
+
+            )
+          }
+
+
+        </Card>
+
+      }
+
+
+
+
+
+
+
+      <Card title="🚀 جاهزية التطوير المستقبلي">
 
 
         <p>
-          🌍 ربط API طقس حقيقي.
+          🌍 ربط API طقس عالمي.
         </p>
 
 
         <p>
-          📡 تحديث تلقائي حسب GPS.
+          📡 تحديث تلقائي عبر GPS.
         </p>
 
 
         <p>
-          🤖 تنبؤ ذكي بالري.
+          🤖 توقع احتياجات الري بالذكاء الاصطناعي.
         </p>
 
 
         <p>
-          🔔 تنبيهات للمزارع.
+          🌡️ ربط حساسات التربة والبيوت الزراعية.
+        </p>
+
+
+        <p>
+          🔔 إرسال تنبيهات للمزارع.
         </p>
 
 
