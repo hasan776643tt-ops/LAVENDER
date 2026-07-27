@@ -1,3 +1,5 @@
+// src/pages/Irrigation.jsx
+
 import {
   useState,
   useContext,
@@ -16,51 +18,74 @@ export default function Irrigation() {
 
 
   const {
+
     farms = [],
     fields = [],
+    crops = [],
+
     irrigations = [],
-    setIrrigations,
+
+    addIrrigation,
+    updateIrrigation,
+    deleteIrrigation,
+
   } = useContext(FarmContext);
 
 
 
-  const [form, setForm] = useState({
 
-    farm: "",
+  const initialForm = {
 
-    field: "",
+    farmId: "",
+
+    fieldId: "",
+
+    cropId: "",
 
     method: "تنقيط",
 
-    water: "",
+    waterAmount: "",
 
-    waterUnit: "لتر",
+    waterUnit: "liter",
 
     duration: "",
 
-    durationUnit: "دقيقة",
-
-    priority: "متوسطة",
-
-    status: "مجدولة",
-
     date: "",
+
+    status: "scheduled",
+
+    priority: "medium",
 
     notes: "",
 
-  });
+  };
 
 
 
-  const updateForm = (key,value)=>{
+  const [form,setForm] =
+    useState(initialForm);
 
-    setForm({
 
-      ...form,
 
-      [key]: value
+  const [editId,setEditId] =
+    useState(null);
 
-    });
+
+
+
+
+  const updateForm = (
+    key,
+    value
+  )=>{
+
+    setForm(prev=>({
+
+      ...prev,
+
+      [key]:value
+
+    }));
 
   };
 
@@ -68,31 +93,46 @@ export default function Irrigation() {
 
 
 
-  // الحقول حسب المزرعة
+
+
+  // الحقول المرتبطة بالمزرعة
 
   const farmFields = useMemo(()=>{
-
-
-    if(!form.farm)
-
-      return fields;
-
 
     return fields.filter(
 
       field =>
 
-      field.farm === form.farm ||
-
-      field.farmName === form.farm
+      field.farmId === form.farmId
 
     );
 
-
   },[
     fields,
-    form.farm
+    form.farmId
   ]);
+
+
+
+
+
+  // المحاصيل المرتبطة بالحقل
+
+  const fieldCrops = useMemo(()=>{
+
+    return crops.filter(
+
+      crop =>
+
+      crop.fieldId === form.fieldId
+
+    );
+
+  },[
+    crops,
+    form.fieldId
+  ]);
+
 
 
 
@@ -104,33 +144,43 @@ export default function Irrigation() {
 
 
     const water =
-      Number(form.water);
+      Number(form.waterAmount);
 
 
 
-    if(water > 10000)
+    if(
+      water > 10000
+    )
 
-      return "💧 كمية مياه كبيرة، يفضل مراجعة الاحتياج المائي للمحصول.";
-
-
-
-    if(form.method==="تنقيط")
-
-      return "🌱 نظام التنقيط فعال لتوفير المياه.";
+      return "⚠️ كمية المياه مرتفعة، راجع احتياج المحصول.";
 
 
 
-    if(form.priority==="عاجلة")
 
-      return "⚠️ يجب تنفيذ عملية الري بأسرع وقت.";
+    if(
+      form.method === "تنقيط"
+    )
+
+      return "🌱 التنقيط مناسب لتوفير المياه.";
 
 
 
-    return "✅ خطة الري مناسبة حالياً.";
+
+    if(
+      form.priority === "high"
+    )
+
+      return "🚨 أولوية عالية، يفضل تنفيذ الري قريباً.";
+
+
+
+
+    return "✅ خطة الري مناسبة.";
+
 
 
   },[
-    form.water,
+    form.waterAmount,
     form.method,
     form.priority
   ]);
@@ -139,85 +189,96 @@ export default function Irrigation() {
 
 
 
-  const addIrrigation = ()=>{
+
+
+  const save = ()=>{
 
 
     if(
-      !form.farm ||
-      !form.field ||
-      !form.water
+      !form.farmId ||
+      !form.fieldId ||
+      !form.waterAmount
     )
-    return;
+
+      return;
 
 
 
-    const newItem = {
+    if(editId){
 
 
-      id:
-      Date.now(),
+      updateIrrigation(
+
+        editId,
+
+        form
+
+      );
 
 
-      ...form,
+    }
+
+    else{
 
 
-      createdAt:
-      new Date().toISOString(),
+      addIrrigation(
+
+        form
+
+      );
 
 
-      updatedAt:
-      new Date().toISOString(),
-
-    };
+    }
 
 
 
-    setIrrigations([
+    setForm(
+      initialForm
+    );
 
-      ...irrigations,
 
-      newItem
+    setEditId(null);
 
-    ]);
 
+  };
+
+
+
+
+
+
+
+  const edit = (item)=>{
 
 
     setForm({
 
-      farm:"",
-      field:"",
-      method:"تنقيط",
-      water:"",
-      waterUnit:"لتر",
-      duration:"",
-      durationUnit:"دقيقة",
-      priority:"متوسطة",
-      status:"مجدولة",
-      date:"",
-      notes:"",
+      farmId:item.farmId,
+
+      fieldId:item.fieldId,
+
+      cropId:item.cropId,
+
+      method:item.method,
+
+      waterAmount:item.waterAmount,
+
+      waterUnit:item.waterUnit,
+
+      duration:item.duration,
+
+      date:item.date,
+
+      status:item.status,
+
+      priority:item.priority,
+
+      notes:item.notes,
 
     });
 
 
-  };
-
-
-
-
-
-  const deleteIrrigation=(id)=>{
-
-
-    setIrrigations(
-
-      irrigations.filter(
-
-        item =>
-        item.id !== id
-
-      )
-
-    );
+    setEditId(item.id);
 
 
   };
@@ -226,34 +287,50 @@ export default function Irrigation() {
 
 
 
-  return (
+
+
+
+
+return (
 
 <div>
 
 
 <h1>
-💧 نظام إدارة الري الذكي
+💧 نظام الري الذكي
 </h1>
 
 
 
 
-<Card title="➕ إضافة عملية ري">
+
+<Card
+
+title={
+editId
+?
+"✏️ تعديل عملية ري"
+:
+"➕ إضافة عملية ري"
+}
+
+>
+
 
 
 <select
 
-value={form.farm}
+value={form.farmId}
 
 onChange={(e)=>{
 
 updateForm(
-"farm",
+"farmId",
 e.target.value
 );
 
 updateForm(
-"field",
+"fieldId",
 ""
 );
 
@@ -274,7 +351,7 @@ farms.map(farm=>(
 
 key={farm.id}
 
-value={farm.name}
+value={farm.id}
 
 >
 
@@ -286,8 +363,8 @@ value={farm.name}
 
 }
 
-
 </select>
+
 
 
 
@@ -295,14 +372,16 @@ value={farm.name}
 
 
 
+
+
 <select
 
-value={form.field}
+value={form.fieldId}
 
 onChange={(e)=>
 
 updateForm(
-"field",
+"fieldId",
 e.target.value
 )
 
@@ -324,11 +403,66 @@ farmFields.map(field=>(
 
 key={field.id}
 
-value={field.name}
+value={field.id}
 
 >
 
 {field.name}
+
+</option>
+
+))
+
+}
+
+</select>
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+
+<select
+
+value={form.cropId}
+
+onChange={(e)=>
+
+updateForm(
+"cropId",
+e.target.value
+)
+
+}
+
+>
+
+
+<option value="">
+اختر المحصول
+</option>
+
+
+
+{
+
+fieldCrops.map(crop=>(
+
+<option
+
+key={crop.id}
+
+value={crop.id}
+
+>
+
+{crop.name}
 
 </option>
 
@@ -342,7 +476,9 @@ value={field.name}
 
 
 
+
 <br/><br/>
+
 
 
 
@@ -378,16 +514,15 @@ e.target.value
 محوري
 </option>
 
-<option>
-يدوي
-</option>
 
 </select>
 
 
 
 
+
 <br/><br/>
+
 
 
 
@@ -398,12 +533,12 @@ type="number"
 
 placeholder="كمية المياه"
 
-value={form.water}
+value={form.waterAmount}
 
 onChange={(e)=>
 
 updateForm(
-"water",
+"waterAmount",
 e.target.value
 )
 
@@ -414,35 +549,9 @@ e.target.value
 
 
 
-<select
-
-value={form.waterUnit}
-
-onChange={(e)=>
-
-updateForm(
-"waterUnit",
-e.target.value
-)
-
-}
-
->
-
-<option>
-لتر
-</option>
-
-<option>
-متر مكعب
-</option>
-
-</select>
-
-
-
 
 <br/><br/>
+
 
 
 
@@ -451,7 +560,7 @@ e.target.value
 
 type="number"
 
-placeholder="مدة الري"
+placeholder="مدة الري بالدقائق"
 
 value={form.duration}
 
@@ -468,113 +577,10 @@ e.target.value
 
 
 
-<select
-
-value={form.durationUnit}
-
-onChange={(e)=>
-
-updateForm(
-"durationUnit",
-e.target.value
-)
-
-}
-
->
-
-<option>
-دقيقة
-</option>
-
-<option>
-ساعة
-</option>
-
-</select>
-
-
 
 
 <br/><br/>
 
-
-
-
-<select
-
-value={form.priority}
-
-onChange={(e)=>
-
-updateForm(
-"priority",
-e.target.value
-)
-
-}
-
->
-
-<option>
-منخفضة
-</option>
-
-<option>
-متوسطة
-</option>
-
-<option>
-عالية
-</option>
-
-<option>
-عاجلة
-</option>
-
-</select>
-
-
-
-
-<br/><br/>
-
-
-
-
-<select
-
-value={form.status}
-
-onChange={(e)=>
-
-updateForm(
-"status",
-e.target.value
-)
-
-}
-
->
-
-<option>
-مجدولة
-</option>
-
-<option>
-تم التنفيذ
-</option>
-
-<option>
-ملغاة
-</option>
-
-</select>
-
-
-
-
-<br/><br/>
 
 
 
@@ -599,7 +605,49 @@ e.target.value
 
 
 
+
 <br/><br/>
+
+
+
+
+
+<select
+
+value={form.priority}
+
+onChange={(e)=>
+
+updateForm(
+"priority",
+e.target.value
+)
+
+}
+
+>
+
+<option value="low">
+منخفضة
+</option>
+
+<option value="medium">
+متوسطة
+</option>
+
+<option value="high">
+عالية
+</option>
+
+
+</select>
+
+
+
+
+
+<br/><br/>
+
 
 
 
@@ -624,30 +672,37 @@ e.target.value
 
 
 
-<br/><br/>
-
-
 
 <p>
-🤖 التوصية:
-{" "}
+🤖 التحليل:
 {smartAdvice}
 </p>
 
 
 
 
-<Button
-onClick={addIrrigation}
->
 
-💾 حفظ عملية الري
+<Button onClick={save}>
+
+{
+
+editId
+
+?
+"حفظ التعديل"
+
+:
+
+"إضافة الري"
+
+}
 
 </Button>
 
 
 
 </Card>
+
 
 
 
@@ -668,70 +723,53 @@ irrigations.map(item=>(
 key={item.id}
 
 title={
-item.field
+"عملية ري"
 }
 
 >
 
 
 <p>
-🏡 المزرعة:
-{" "}
-{item.farm}
-</p>
-
-
-<p>
 💧 الطريقة:
-{" "}
 {item.method}
 </p>
 
 
 <p>
 🚰 المياه:
-{" "}
-{item.water}
-{" "}
-{item.waterUnit}
-</p>
-
-
-<p>
-⏱ المدة:
-{" "}
-{item.duration}
-{" "}
-{item.durationUnit}
-</p>
-
-
-<p>
-🚦 الحالة:
-{" "}
-{item.status}
-</p>
-
-
-<p>
-⚡ الأولوية:
-{" "}
-{item.priority}
+{item.waterAmount}
 </p>
 
 
 <p>
 📅 التاريخ:
-{" "}
 {item.date}
 </p>
 
 
 <p>
-📝 ملاحظات:
-{" "}
-{item.notes}
+🚦 الحالة:
+{item.status}
 </p>
+
+
+<p>
+📝 {item.notes}
+</p>
+
+
+
+
+<Button
+
+onClick={()=>edit(item)}
+
+>
+
+تعديل
+
+</Button>
+
 
 
 
@@ -741,7 +779,7 @@ onClick={()=>deleteIrrigation(item.id)}
 
 >
 
-🗑 حذف
+حذف
 
 </Button>
 
@@ -753,6 +791,7 @@ onClick={()=>deleteIrrigation(item.id)}
 ))
 
 }
+
 
 
 </Card>
