@@ -1,48 +1,155 @@
-import { Link } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 export default function Sidebar() {
 
   const menuItems = [
-    { name: "الرئيسية", path: "/" },
-    { name: "لوحة التحكم", path: "/dashboard" },
-    { name: "المزارع", path: "/farms" },
-    { name: "الحقول", path: "/fields" },
-    { name: "المحاصيل", path: "/crops" },
-    { name: "الري", path: "/irrigation" },
-    { name: "الأسمدة", path: "/fertilizers" },
-    { name: "المبيدات", path: "/pesticides" },
-    { name: "الأمراض", path: "/diseases" },
-    { name: "الطقس", path: "/weather" },
-    { name: "الخريطة", path: "/map" },
-    { name: "المصاريف", path: "/expenses" },
-    { name: "التقارير", path: "/reports" },
-    { name: "الذكاء الاصطناعي", path: "/ai" },
-    { name: "المهندس الزراعي", path: "/engineer" },
-    { name: "المستخدمون", path: "/users" },
-    { name: "الإعدادات", path: "/settings" },
+
+    {
+      title: "الرئيسية",
+      path: "/",
+      icon: "🏠"
+    },
+
+    {
+      title: "لوحة التحكم",
+      path: "/dashboard",
+      icon: "📊"
+    },
+
+    {
+      title: "إدارة المزرعة",
+      path: "/farms",
+      icon: "🚜"
+    },
+
+    {
+      title: "الحقول",
+      path: "/fields",
+      icon: "📍"
+    },
+
+    {
+      title: "المحاصيل",
+      path: "/crops",
+      icon: "🌱"
+    },
+
+    {
+      title: "الري",
+      path: "/irrigation",
+      icon: "💧"
+    },
+
+    {
+      title: "الأسمدة",
+      path: "/fertilizers",
+      icon: "🧪"
+    },
+
+    {
+      title: "المبيدات",
+      path: "/pesticides",
+      icon: "🛡️"
+    },
+
+    {
+      title: "الأمراض",
+      path: "/diseases",
+      icon: "🦠"
+    },
+
+    {
+      title: "الطقس",
+      path: "/weather",
+      icon: "☀️"
+    },
+
+    {
+      title: "الخريطة",
+      path: "/map",
+      icon: "🗺️"
+    },
+
+    {
+      title: "المصاريف",
+      path: "/expenses",
+      icon: "💰"
+    },
+
+    {
+      title: "التقارير",
+      path: "/reports",
+      icon: "📈"
+    },
+
+    {
+      title: "الذكاء الاصطناعي",
+      path: "/ai",
+      icon: "🤖"
+    },
+
+    {
+      title: "المهندس الزراعي",
+      path: "/engineer",
+      icon: "👨‍🌾"
+    },
+
+    {
+      title: "المستخدمون",
+      path: "/users",
+      icon: "👥"
+    },
+
+    {
+      title: "الإعدادات",
+      path: "/settings",
+      icon: "⚙️"
+    }
+
   ];
 
+
   return (
-    <aside>
+
+    <aside className="sidebar">
 
       <h2>
-        🌱 Smart Farm
+        🌱 LAVENDER
       </h2>
 
-      <ul>
 
-        {menuItems.map((item) => (
+      <nav>
 
-          <li key={item.path}>
-            <Link to={item.path}>
-              {item.name}
-            </Link>
-          </li>
+        <ul>
 
-        ))}
+          {menuItems.map((item) => (
 
-      </ul>
+            <li key={item.path}>
+
+              <NavLink
+                to={item.path}
+                className={({ isActive }) =>
+                  isActive ? "active" : ""
+                }
+              >
+
+                <span>
+                  {item.icon}
+                </span>
+
+                {item.title}
+
+              </NavLink>
+
+            </li>
+
+          ))}
+
+        </ul>
+
+      </nav>
 
     </aside>
+
   );
 }
