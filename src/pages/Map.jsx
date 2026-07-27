@@ -1,271 +1,590 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+import {
+  useState,
+  useContext,
+} from "react";
+
+import {
+  FarmContext,
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+
 export default function Map() {
+
+
   const {
+
     farms,
     locations,
     setLocations,
+
   } = useContext(FarmContext);
 
-  const [farmName, setFarmName] = useState("");
 
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
 
-  const [accuracy, setAccuracy] = useState("");
+  const [farmId, setFarmId] =
+    useState("");
+
+  const [locationType, setLocationType] =
+    useState("مزرعة");
+
+
+  const [latitude, setLatitude] =
+    useState("");
+
+  const [longitude, setLongitude] =
+    useState("");
+
+
+  const [accuracy, setAccuracy] =
+    useState("");
+
 
   const [locationTime, setLocationTime] =
     useState("");
 
+
+  const [notes, setNotes] =
+    useState("");
+
+
   const [loading, setLoading] =
     useState(false);
 
+
+
+
+
   const getCurrentLocation = () => {
+
+
     if (!navigator.geolocation) {
-      alert("GPS غير مدعوم في هذا الجهاز");
+
+      alert(
+        "GPS غير مدعوم في هذا الجهاز"
+      );
+
       return;
+
     }
+
+
 
     setLoading(true);
 
+
+
     navigator.geolocation.getCurrentPosition(
-      (position) => {
-        const lat =
-          position.coords.latitude.toFixed(6);
 
-        const lng =
-          position.coords.longitude.toFixed(6);
+      (position)=>{
 
-        const acc =
-          Math.round(
-            position.coords.accuracy
-          );
 
-        const time =
-          new Date().toLocaleString("ar");
-
-        setLatitude(lat);
-        setLongitude(lng);
-        setAccuracy(acc);
-        setLocationTime(time);
-
-        setLoading(false);
-      },
-
-      (error) => {
-        console.error(error);
-
-        alert(
-          "يرجى السماح للتطبيق باستخدام الموقع"
+        setLatitude(
+          position.coords.latitude.toFixed(6)
         );
 
+
+        setLongitude(
+          position.coords.longitude.toFixed(6)
+        );
+
+
+        setAccuracy(
+          Math.round(
+            position.coords.accuracy
+          )
+        );
+
+
+        setLocationTime(
+          new Date().toLocaleString("ar-SY")
+        );
+
+
         setLoading(false);
+
+
       },
 
+
+      ()=>{
+
+
+        alert(
+          "يرجى السماح باستخدام الموقع"
+        );
+
+
+        setLoading(false);
+
+
+      },
+
+
       {
-        enableHighAccuracy: true,
-        timeout: 15000,
-        maximumAge: 0,
+
+        enableHighAccuracy:true,
+
+        timeout:15000,
+
+        maximumAge:0,
+
       }
+
     );
+
+
   };
 
+
+
+
+
   const addLocation = () => {
-    if (
-      !farmName ||
+
+
+    if(
+      !farmId ||
       !latitude ||
       !longitude
-    ) {
+    ){
+
       alert(
         "اختر المزرعة وحدد الموقع أولاً"
       );
+
       return;
+
     }
 
+
+
+    const farm = farms.find(
+      item =>
+      item.id === farmId
+    );
+
+
+
     const newLocation = {
-      id: Date.now(),
-      farm: farmName,
-      lat: latitude,
-      lng: longitude,
+
+
+      id:
+        Date.now(),
+
+
+      farmId,
+
+
+      farmName:
+        farm?.name || "غير محدد",
+
+
+      type:
+        locationType,
+
+
+      latitude,
+
+
+      longitude,
+
+
       accuracy,
-      createdAt: locationTime,
-      status: "نشط",
+
+
+      notes,
+
+
+      createdAt:
+        locationTime,
+
+
+      status:
+        "نشط"
+
     };
 
+
+
     setLocations([
+
       ...locations,
-      newLocation,
+
+      newLocation
+
     ]);
 
-    setFarmName("");
+
+
+    setFarmId("");
+
     setLatitude("");
+
     setLongitude("");
+
     setAccuracy("");
+
     setLocationTime("");
 
-    alert("تم حفظ الموقع بنجاح");
+    setNotes("");
+
+
+
+    alert(
+      "تم حفظ الموقع بنجاح"
+    );
+
+
   };
 
-  const deleteLocation = (id) => {
+
+
+
+
+  const deleteLocation = (id)=>{
+
+
     setLocations(
+
       locations.filter(
-        (item) => item.id !== id
+
+        item =>
+        item.id !== id
+
       )
+
     );
+
+
   };
+
+
+
+
 
   return (
+
     <div>
+
+
       <h1>
-        📍 إدارة مواقع المزارع
+        📍 نظام المواقع الذكي
       </h1>
 
-      <Card title="تسجيل موقع مزرعة">
+
+
+      <Card title="تسجيل موقع جديد">
+
 
         <select
-          value={farmName}
-          onChange={(e) =>
-            setFarmName(e.target.value)
+
+          value={farmId}
+
+          onChange={
+            (e)=>
+            setFarmId(e.target.value)
           }
+
         >
+
           <option value="">
             اختر المزرعة
           </option>
 
-          {farms.map((farm) => (
-            <option
-              key={farm.id}
-              value={farm.name}
-            >
-              {farm.name}
-            </option>
-          ))}
+
+          {
+            farms.map(
+              farm=>(
+
+                <option
+
+                  key={farm.id}
+
+                  value={farm.id}
+
+                >
+
+                  {farm.name}
+
+                </option>
+
+              )
+
+            )
+          }
+
+
         </select>
 
-        <br /><br />
+
+
+        <br/><br/>
+
+
+
+        <select
+
+          value={locationType}
+
+          onChange={
+            (e)=>
+            setLocationType(e.target.value)
+          }
+
+        >
+
+          <option>
+            مزرعة
+          </option>
+
+          <option>
+            حقل
+          </option>
+
+          <option>
+            مصدر مياه
+          </option>
+
+
+        </select>
+
+
+
+        <br/><br/>
+
+
 
         <Button
+
           onClick={getCurrentLocation}
+
         >
-          {loading
-            ? "⏳ جاري تحديد الموقع..."
-            : "📡 تحديد الموقع تلقائياً"}
+
+          {
+            loading
+            ?
+            "⏳ جاري تحديد الموقع..."
+            :
+            "📡 تحديد GPS"
+          }
+
+
         </Button>
 
-        <br /><br />
+
+
+        <br/><br/>
+
+
 
         <input
-          type="text"
+
           value={latitude}
+
+          readOnly
+
           placeholder="Latitude"
-          readOnly
+
         />
 
-        <br /><br />
+
+        <br/><br/>
+
+
 
         <input
-          type="text"
+
           value={longitude}
-          placeholder="Longitude"
+
           readOnly
+
+          placeholder="Longitude"
+
         />
 
-        <br /><br />
+
+        <br/><br/>
+
+
 
         <input
-          type="text"
+
           value={
             accuracy
-              ? `${accuracy} متر`
-              : ""
+            ?
+            `${accuracy} متر`
+            :
+            ""
           }
-          placeholder="دقة الموقع"
+
           readOnly
+
+          placeholder="Accuracy"
+
         />
 
-        <br /><br />
+
+        <br/><br/>
+
+
 
         <input
-          type="text"
+
           value={locationTime}
-          placeholder="وقت التسجيل"
+
           readOnly
+
+          placeholder="وقت التسجيل"
+
         />
 
-        <br /><br />
+
+        <br/><br/>
+
+
+
+        <textarea
+
+          value={notes}
+
+          onChange={
+            (e)=>
+            setNotes(e.target.value)
+          }
+
+          placeholder="ملاحظات الموقع"
+
+        />
+
+
+
+        <br/><br/>
+
+
 
         <Button
+
           onClick={addLocation}
+
         >
+
           💾 حفظ الموقع
+
         </Button>
+
 
       </Card>
 
+
+
+
+
       <h2>
-        🗺️ مواقع المزارع المسجلة
+        🗺️ المواقع المحفوظة
       </h2>
 
-      {locations.map((item) => (
-        <Card
-          key={item.id}
-          title={item.farm}
-        >
-          <p>
-            🌍 Latitude:
-            {" "}
-            {item.lat}
-          </p>
 
-          <p>
-            🌍 Longitude:
-            {" "}
-            {item.lng}
-          </p>
 
-          <p>
-            🎯 الدقة:
-            {" "}
-            {item.accuracy}
-            {" "}
-            متر
-          </p>
+      {
 
-          <p>
-            🕒 وقت التسجيل:
-            {" "}
-            {item.createdAt}
-          </p>
+        locations.map(
 
-          <p>
-            ✅ الحالة:
-            {" "}
-            {item.status}
-          </p>
+          item=>(
 
-          <a
-            href={`https://maps.google.com/?q=${item.lat},${item.lng}`}
-            target="_blank"
-            rel="noreferrer"
-          >
-            🗺️ فتح الموقع على Google Maps
-          </a>
 
-          <br /><br />
+            <Card
 
-          <Button
-            onClick={() =>
-              deleteLocation(item.id)
-            }
-          >
-            حذف الموقع
-          </Button>
-        </Card>
-      ))}
+              key={item.id}
+
+              title={item.farmName}
+
+            >
+
+
+              <p>
+                📌 النوع:
+                {" "}
+                {item.type}
+              </p>
+
+
+              <p>
+                🌍 Latitude:
+                {" "}
+                {item.latitude}
+              </p>
+
+
+              <p>
+                🌍 Longitude:
+                {" "}
+                {item.longitude}
+              </p>
+
+
+              <p>
+                🎯 الدقة:
+                {" "}
+                {item.accuracy}
+                متر
+              </p>
+
+
+              <p>
+                📝 الملاحظات:
+                {" "}
+                {item.notes}
+              </p>
+
+
+              <a
+
+                href={
+`https://maps.google.com/?q=${item.latitude},${item.longitude}`
+                }
+
+                target="_blank"
+
+                rel="noreferrer"
+
+              >
+
+                🗺️ فتح في Google Maps
+
+              </a>
+
+
+              <br/><br/>
+
+
+              <Button
+
+                onClick={()=>
+                  deleteLocation(item.id)
+                }
+
+              >
+
+                حذف
+
+              </Button>
+
+
+            </Card>
+
+
+          )
+
+        )
+
+      }
+
+
     </div>
+
   );
+
 }
