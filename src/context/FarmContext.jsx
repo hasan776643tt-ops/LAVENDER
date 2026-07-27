@@ -2,12 +2,15 @@
 
 import {
   createContext,
-  useState,
   useEffect,
+  useMemo,
+  useState,
 } from "react";
 
 
-export const FarmContext = createContext();
+
+export const FarmContext =
+  createContext();
 
 
 
@@ -15,20 +18,31 @@ export const FarmContext = createContext();
    Storage Engine
 ========================= */
 
-const loadData = (key, fallback = []) => {
+
+const loadStorage = (
+  key,
+  defaultValue = []
+)=>{
 
   try {
 
     const data =
       localStorage.getItem(key);
 
+
     return data
       ? JSON.parse(data)
-      : fallback;
+      : defaultValue;
 
-  } catch {
 
-    return fallback;
+  } catch(error){
+
+    console.error(
+      "Storage Error:",
+      error
+    );
+
+    return defaultValue;
 
   }
 
@@ -36,7 +50,10 @@ const loadData = (key, fallback = []) => {
 
 
 
-const saveData = (key, value) => {
+const saveStorage = (
+  key,
+  value
+)=>{
 
   localStorage.setItem(
     key,
@@ -47,157 +64,226 @@ const saveData = (key, value) => {
 
 
 
+
 /* =========================
-   Helpers
+   ID Generator
 ========================= */
 
-const createId = () =>
-  crypto.randomUUID
-    ? crypto.randomUUID()
-    :
-    Date.now().toString();
+
+const createId = ()=>{
+
+  if(
+    window.crypto &&
+    crypto.randomUUID
+  ){
+
+    return crypto.randomUUID();
+
+  }
 
 
-
-const addItem = (
-  setter,
-  data
-) => {
-
-  setter(prev => [
-
-    ...prev,
-
-    {
-      id:createId(),
-
-      createdAt:
-        new Date()
-        .toISOString(),
-
-      updatedAt:
-        new Date()
-        .toISOString(),
-
-      ...data
-    }
-
-  ]);
+  return Date.now()
+  .toString();
 
 };
 
 
 
-const updateItem = (
-  setter,
-  id,
-  data
+
+/* =========================
+   CRUD Engine
+========================= */
+
+
+const createRecord = (
+ data
 )=>{
 
-  setter(prev =>
+ return {
 
-    prev.map(item =>
+  id:createId(),
 
-      item.id === id
+  createdAt:
+  new Date()
+  .toISOString(),
 
-      ?
+  updatedAt:
+  new Date()
+  .toISOString(),
 
-      {
-        ...item,
-        ...data,
-        updatedAt:
-          new Date()
-          .toISOString()
-      }
+  ...data
 
-      :
-
-      item
-
-    )
-
-  );
+ };
 
 };
 
 
 
-const deleteItem = (
-  setter,
-  id
+const addRecord = (
+ setter,
+ data
 )=>{
 
-  setter(prev =>
-    prev.filter(
-      item =>
-      item.id !== id
-    )
-  );
+ setter(prev=>[
+  ...prev,
+  createRecord(data)
+ ]);
 
 };
 
 
+
+const updateRecord = (
+ setter,
+ id,
+ data
+)=>{
+
+ setter(prev=>
+
+  prev.map(item=>
+
+   item.id === id
+
+   ?
+
+   {
+
+    ...item,
+    ...data,
+
+    updatedAt:
+    new Date()
+    .toISOString()
+
+   }
+
+   :
+
+   item
+
+  )
+
+ );
+
+};
+
+
+
+const deleteRecord = (
+ setter,
+ id
+)=>{
+
+ setter(prev=>
+
+  prev.filter(
+   item =>
+   item.id !== id
+  )
+
+ );
+
+};
+
+
+
+
+
+
+/* =========================
+   Provider
+========================= */
 
 
 export default function FarmProvider({
-
  children
-
-}) {
+}){
 
 
 
 /* =========================
-   Main Data Stores
+   Main Data
 ========================= */
 
 
 const [farms,setFarms] =
-useState(()=>loadData("farms"));
+useState(()=>loadStorage("farms"));
+
 
 
 const [fields,setFields] =
-useState(()=>loadData("fields"));
+useState(()=>loadStorage("fields"));
+
 
 
 const [crops,setCrops] =
-useState(()=>loadData("crops"));
+useState(()=>loadStorage("crops"));
+
 
 
 const [irrigations,setIrrigations] =
-useState(()=>loadData("irrigations"));
+useState(()=>loadStorage("irrigations"));
+
 
 
 const [fertilizers,setFertilizers] =
-useState(()=>loadData("fertilizers"));
+useState(()=>loadStorage("fertilizers"));
+
 
 
 const [pesticides,setPesticides] =
-useState(()=>loadData("pesticides"));
+useState(()=>loadStorage("pesticides"));
+
 
 
 const [diseases,setDiseases] =
-useState(()=>loadData("diseases"));
+useState(()=>loadStorage("diseases"));
+
 
 
 const [expenses,setExpenses] =
-useState(()=>loadData("expenses"));
+useState(()=>loadStorage("expenses"));
+
 
 
 const [locations,setLocations] =
-useState(()=>loadData("locations"));
+useState(()=>loadStorage("locations"));
+
 
 
 const [users,setUsers] =
-useState(()=>loadData("users"));
+useState(()=>loadStorage("users"));
+
 
 
 const [consultations,setConsultations] =
-useState(()=>loadData("consultations"));
+useState(()=>loadStorage("consultations"));
+
 
 
 const [aiQuestions,setAiQuestions] =
-useState(()=>loadData("aiQuestions"));
+useState(()=>loadStorage("aiQuestions"));
+
+
+
+const [settings,setSettings] =
+useState(()=>
+
+loadStorage(
+"settings",
+{
+ theme:"light",
+ language:"ar",
+ currency:"SYP",
+ notifications:true
+}
+
+)
+
+);
+
+
 
 
 
@@ -209,7 +295,8 @@ useState(()=>loadData("aiQuestions"));
 
 useEffect(()=>{
 
-const data = {
+
+const database={
 
 farms,
 fields,
@@ -222,20 +309,26 @@ expenses,
 locations,
 users,
 consultations,
-aiQuestions
+aiQuestions,
+settings
 
 };
 
 
-Object.entries(data)
+
+Object.entries(database)
 .forEach(([key,value])=>{
 
-saveData(key,value);
+saveStorage(
+key,
+value
+);
 
 });
 
 
 },[
+
 farms,
 fields,
 crops,
@@ -247,8 +340,13 @@ expenses,
 locations,
 users,
 consultations,
-aiQuestions
+aiQuestions,
+settings
+
 ]);
+
+
+
 
 
 
@@ -278,12 +376,12 @@ crop.fieldId === fieldId
 
 
 
-const getIrrigationByField =
-(fieldId)=>
+const getIrrigationByCrop =
+(cropId)=>
 
 irrigations.filter(
 item =>
-item.fieldId === fieldId
+item.cropId === cropId
 );
 
 
@@ -329,13 +427,70 @@ item.farmId === farmId
 
 
 
+
+
+/* =========================
+   Dashboard Analytics
+========================= */
+
+
+const statistics = useMemo(()=>({
+
+farms:
+farms.length,
+
+fields:
+fields.length,
+
+crops:
+crops.length,
+
+irrigations:
+irrigations.length,
+
+fertilizers:
+fertilizers.length,
+
+pesticides:
+pesticides.length,
+
+diseases:
+diseases.length,
+
+expenses:
+expenses.length,
+
+users:
+users.length
+
+
+}),[
+
+farms,
+fields,
+crops,
+irrigations,
+fertilizers,
+pesticides,
+diseases,
+expenses,
+users
+
+]);
+
+
+
+
+
+
+
 return (
 
 <FarmContext.Provider
 
 value={{
 
-/* Data */
+/* DATA */
 
 farms,
 fields,
@@ -349,75 +504,178 @@ locations,
 users,
 consultations,
 aiQuestions,
+settings,
 
 
-/* CRUD */
+
+/* SETTERS */
+
+setFarms,
+setFields,
+setCrops,
+setIrrigations,
+setFertilizers,
+setPesticides,
+setDiseases,
+setExpenses,
+setLocations,
+setUsers,
+setConsultations,
+setAiQuestions,
+setSettings,
+
+
+
+/* FARM CRUD */
 
 addFarm:
 (data)=>
-addItem(setFarms,data),
+addRecord(
+setFarms,
+data
+),
+
 
 updateFarm:
 (id,data)=>
-updateItem(setFarms,id,data),
+updateRecord(
+setFarms,
+id,
+data
+),
+
 
 deleteFarm:
 (id)=>
-deleteItem(setFarms,id),
+deleteRecord(
+setFarms,
+id
+),
 
 
+
+
+/* FIELD CRUD */
 
 addField:
 (data)=>
-addItem(setFields,data),
+addRecord(
+setFields,
+data
+),
+
 
 updateField:
 (id,data)=>
-updateItem(setFields,id,data),
+updateRecord(
+setFields,
+id,
+data
+),
+
 
 deleteField:
 (id)=>
-deleteItem(setFields,id),
+deleteRecord(
+setFields,
+id
+),
 
+
+
+
+/* CROP CRUD */
 
 
 addCrop:
 (data)=>
-addItem(setCrops,data),
+addRecord(
+setCrops,
+data
+),
+
 
 updateCrop:
 (id,data)=>
-updateItem(setCrops,id,data),
+updateRecord(
+setCrops,
+id,
+data
+),
+
 
 deleteCrop:
 (id)=>
-deleteItem(setCrops,id),
+deleteRecord(
+setCrops,
+id
+),
 
+
+
+
+/* OTHER CRUD */
+
+
+addIrrigation:
+(data)=>
+addRecord(
+setIrrigations,
+data
+),
+
+
+addFertilizer:
+(data)=>
+addRecord(
+setFertilizers,
+data
+),
+
+
+addPesticide:
+(data)=>
+addRecord(
+setPesticides,
+data
+),
+
+
+addDisease:
+(data)=>
+addRecord(
+setDiseases,
+data
+),
 
 
 addExpense:
 (data)=>
-addItem(setExpenses,data),
+addRecord(
+setExpenses,
+data
+),
 
-
-updateExpense:
-(id,data)=>
-updateItem(setExpenses,id,data),
 
 
 deleteExpense:
 (id)=>
-deleteItem(setExpenses,id),
+deleteRecord(
+setExpenses,
+id
+),
 
 
 
-/* Relations */
+
+/* RELATIONS */
+
 
 getFieldsByFarm,
 
 getCropsByField,
 
-getIrrigationByField,
+getIrrigationByCrop,
 
 getFertilizersByCrop,
 
@@ -425,7 +683,16 @@ getPesticidesByCrop,
 
 getDiseasesByCrop,
 
-getExpensesByFarm
+getExpensesByFarm,
+
+
+
+
+/* DASHBOARD */
+
+
+statistics
+
 
 
 }}
@@ -435,6 +702,7 @@ getExpensesByFarm
 {children}
 
 </FarmContext.Provider>
+
 
 );
 
