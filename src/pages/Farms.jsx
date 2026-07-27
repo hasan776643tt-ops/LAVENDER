@@ -1,253 +1,500 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+// src/pages/Farms.jsx
+
+import {
+  useContext,
+  useState,
+  useMemo,
+} from "react";
+
+import {
+  FarmContext
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+
 export default function Farms() {
 
-  const { farms, setFarms } = useContext(FarmContext);
 
-  const [farmName, setFarmName] = useState("");
-  const [ownerName, setOwnerName] = useState("");
-  const [farmArea, setFarmArea] = useState("");
-  const [location, setLocation] = useState("");
-  const [cropType, setCropType] = useState("");
-  const [irrigationType, setIrrigationType] = useState("");
-  const [plantingDate, setPlantingDate] = useState("");
-  const [notes, setNotes] = useState("");
+  const {
 
-  const [editId, setEditId] = useState(null);
+    farms,
+
+    addFarm,
+
+    updateFarm,
+
+    deleteFarm
+
+  } = useContext(FarmContext);
 
 
-  const clearForm = () => {
-    setFarmName("");
-    setOwnerName("");
-    setFarmArea("");
-    setLocation("");
-    setCropType("");
-    setIrrigationType("");
-    setPlantingDate("");
-    setNotes("");
-    setEditId(null);
+
+  const [form,setForm] = useState({
+
+    name:"",
+    owner:"",
+    area:"",
+    location:"",
+    cropType:"",
+    irrigationType:"",
+    plantingDate:"",
+    notes:""
+
+  });
+
+
+
+  const [editId,setEditId] =
+    useState(null);
+
+
+
+  const [search,setSearch] =
+    useState("");
+
+
+
+
+  const handleChange = (e)=>{
+
+    setForm({
+
+      ...form,
+
+      [e.target.name]:
+      e.target.value
+
+    });
+
   };
 
 
-  const saveFarm = () => {
-
-    if (!farmName || !ownerName) return;
 
 
-    const farmData = {
-      name: farmName,
-      owner: ownerName,
-      area: farmArea,
-      location,
-      cropType,
-      irrigationType,
-      plantingDate,
-      notes,
-    };
+  const clearForm = ()=>{
+
+    setForm({
+
+      name:"",
+      owner:"",
+      area:"",
+      location:"",
+      cropType:"",
+      irrigationType:"",
+      plantingDate:"",
+      notes:""
+
+    });
 
 
-    if (editId) {
+    setEditId(null);
 
-      setFarms(
-        farms.map((farm) =>
-          farm.id === editId
-            ? { ...farm, ...farmData }
-            : farm
-        )
+  };
+
+
+
+
+
+  const saveFarm = ()=>{
+
+
+    if(
+      !form.name ||
+      !form.owner
+    )
+    return;
+
+
+
+    if(editId){
+
+
+      updateFarm(
+        editId,
+        form
       );
 
-    } else {
 
-      const newFarm = {
-        id: Date.now(),
-        ...farmData,
-      };
+    }else{
 
-      setFarms([...farms, newFarm]);
+
+      addFarm(form);
+
+
     }
+
 
 
     clearForm();
 
-  };
-
-
-  const editFarm = (farm) => {
-
-    setFarmName(farm.name);
-    setOwnerName(farm.owner);
-    setFarmArea(farm.area);
-    setLocation(farm.location);
-    setCropType(farm.cropType);
-    setIrrigationType(farm.irrigationType);
-    setPlantingDate(farm.plantingDate);
-    setNotes(farm.notes);
-
-    setEditId(farm.id);
 
   };
 
 
-  const deleteFarm = (id) => {
 
-    setFarms(
-      farms.filter((farm) => farm.id !== id)
+
+
+  const editFarm = (farm)=>{
+
+
+    setForm({
+
+      name:farm.name || "",
+
+      owner:farm.owner || "",
+
+      area:farm.area || "",
+
+      location:farm.location || "",
+
+      cropType:farm.cropType || "",
+
+      irrigationType:
+      farm.irrigationType || "",
+
+      plantingDate:
+      farm.plantingDate || "",
+
+      notes:farm.notes || ""
+
+    });
+
+
+
+    setEditId(
+      farm.id
     );
 
+
   };
+
+
+
+
+
+  const filteredFarms =
+  useMemo(()=>{
+
+
+    return farms.filter(
+      farm =>
+
+      farm.name
+      ?.toLowerCase()
+      .includes(
+        search.toLowerCase()
+      )
+
+    );
+
+
+  },[
+    farms,
+    search
+  ]);
+
+
+
+
 
 
   return (
 
-    <div>
-
-      <h1>🌾 إدارة المزارع</h1>
+<div>
 
 
-      <Card title={editId ? "تعديل المزرعة" : "إضافة مزرعة جديدة"}>
-
-
-        <input
-          type="text"
-          placeholder="اسم المزرعة"
-          value={farmName}
-          onChange={(e)=>setFarmName(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <input
-          type="text"
-          placeholder="اسم المالك"
-          value={ownerName}
-          onChange={(e)=>setOwnerName(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <input
-          type="number"
-          placeholder="المساحة بالدونم"
-          value={farmArea}
-          onChange={(e)=>setFarmArea(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <input
-          type="text"
-          placeholder="الموقع"
-          value={location}
-          onChange={(e)=>setLocation(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <input
-          type="text"
-          placeholder="نوع المحصول"
-          value={cropType}
-          onChange={(e)=>setCropType(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <input
-          type="text"
-          placeholder="نوع الري"
-          value={irrigationType}
-          onChange={(e)=>setIrrigationType(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <input
-          type="date"
-          value={plantingDate}
-          onChange={(e)=>setPlantingDate(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <textarea
-          placeholder="ملاحظات"
-          value={notes}
-          onChange={(e)=>setNotes(e.target.value)}
-        />
-
-        <br/><br/>
-
-
-        <Button onClick={saveFarm}>
-          {editId ? "حفظ التعديل" : "إضافة المزرعة"}
-        </Button>
-
-
-      </Card>
+<h1>
+🌱 إدارة المزارع الذكية
+</h1>
 
 
 
-      <h2>قائمة المزارع</h2>
+<Card
+title={
+editId
+?
+"✏️ تعديل المزرعة"
+:
+"➕ إضافة مزرعة جديدة"
+}
+>
 
 
-      {
-        farms.map((farm)=>(
 
-          <Card
-            key={farm.id}
-            title={farm.name}
-          >
+<input
 
-            <p>👤 المالك: {farm.owner}</p>
+name="name"
 
-            <p>📏 المساحة: {farm.area} دونم</p>
+placeholder="اسم المزرعة"
 
-            <p>📍 الموقع: {farm.location}</p>
+value={form.name}
 
-            <p>🌱 المحصول: {farm.cropType}</p>
+onChange={handleChange}
 
-            <p>💧 الري: {farm.irrigationType}</p>
-
-            <p>📅 تاريخ الزراعة: {farm.plantingDate}</p>
-
-            <p>📝 الملاحظات: {farm.notes}</p>
+/>
 
 
-            <Button
-              onClick={() => editFarm(farm)}
-            >
-              تعديل المزرعة
-            </Button>
+
+<input
+
+name="owner"
+
+placeholder="اسم المالك"
+
+value={form.owner}
+
+onChange={handleChange}
+
+/>
 
 
-            <br/><br/>
+
+<input
+
+name="area"
+
+type="number"
+
+placeholder="المساحة بالدونم"
+
+value={form.area}
+
+onChange={handleChange}
+
+/>
 
 
-            <Button
-              onClick={() => deleteFarm(farm.id)}
-            >
-              حذف المزرعة
-            </Button>
+
+<input
+
+name="location"
+
+placeholder="📍 موقع المزرعة"
+
+value={form.location}
+
+onChange={handleChange}
+
+/>
 
 
-          </Card>
 
-        ))
-      }
+<input
+
+name="cropType"
+
+placeholder="🌱 نوع المحصول"
+
+value={form.cropType}
+
+onChange={handleChange}
+
+/>
 
 
-    </div>
+
+<input
+
+name="irrigationType"
+
+placeholder="💧 نوع الري"
+
+value={form.irrigationType}
+
+onChange={handleChange}
+
+/>
+
+
+
+<input
+
+name="plantingDate"
+
+type="date"
+
+value={form.plantingDate}
+
+onChange={handleChange}
+
+/>
+
+
+
+<textarea
+
+name="notes"
+
+placeholder="ملاحظات"
+
+value={form.notes}
+
+onChange={handleChange}
+
+/>
+
+
+
+<Button onClick={saveFarm}>
+
+{
+
+editId
+
+?
+
+"حفظ التعديل"
+
+:
+
+"إضافة المزرعة"
+
+}
+
+</Button>
+
+
+
+</Card>
+
+
+
+
+
+
+<Card title="🔎 البحث">
+
+
+<input
+
+placeholder="ابحث عن مزرعة..."
+
+value={search}
+
+onChange={
+e=>setSearch(e.target.value)
+}
+
+/>
+
+
+</Card>
+
+
+
+
+
+
+<h2>
+قائمة المزارع
+</h2>
+
+
+
+
+{
+
+filteredFarms.map(
+farm=>(
+
+
+<Card
+
+key={farm.id}
+
+title={
+`🚜 ${farm.name}`
+}
+
+>
+
+
+<p>
+👤 المالك:
+{farm.owner}
+</p>
+
+
+<p>
+📏 المساحة:
+{farm.area} دونم
+</p>
+
+
+<p>
+📍 الموقع:
+{farm.location}
+</p>
+
+
+<p>
+🌱 المحصول:
+{farm.cropType}
+</p>
+
+
+<p>
+💧 الري:
+{farm.irrigationType}
+</p>
+
+
+<p>
+📅 الزراعة:
+{farm.plantingDate}
+</p>
+
+
+<p>
+📝
+{farm.notes}
+</p>
+
+
+
+<Button
+
+onClick={()=>
+editFarm(farm)
+}
+
+>
+
+تعديل
+
+</Button>
+
+
+
+<Button
+
+onClick={()=>
+deleteFarm(farm.id)
+}
+
+>
+
+حذف
+
+</Button>
+
+
+
+</Card>
+
+
+)
+
+)
+
+}
+
+
+
+
+</div>
 
   );
 
