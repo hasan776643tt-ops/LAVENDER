@@ -1,20 +1,30 @@
 export default function Footer() {
   return (
-    <footer>
+    <footer className="app-footer">
 
-      <hr />
+      <div className="footer-brand">
 
-      <p>
-        🌱 Smart Farm Management
-      </p>
+        🌱 LAVENDER Smart Farm
 
-      <p>
+      </div>
+
+
+      <div className="footer-description">
+
         نظام إدارة المزارع الذكية
-      </p>
 
-      <p>
-        جميع الحقوق محفوظة © 2026
-      </p>
+        <br />
+
+        إدارة المحاصيل والري والتقارير الزراعية
+
+      </div>
+
+
+      <div className="footer-copy">
+
+        © 2026 جميع الحقوق محفوظة
+
+      </div>
 
     </footer>
   );
