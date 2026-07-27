@@ -1,42 +1,102 @@
 // DataModel.js
-// نموذج بيانات مشروع LAVENDER Smart Farm
+// LAVENDER Smart Farm - Unified Data Models
+
 
 export const FarmModel = {
   id: "",
   name: "",
-  owner: "",
-  location: "",
+  ownerId: "",
+  location: {
+    latitude: "",
+    longitude: "",
+    address: "",
+  },
   area: 0,
-  crop: "",
-  plantingDate: "",
   notes: "",
+  createdAt: "",
 };
 
 
 export const FieldModel = {
   id: "",
   farmId: "",
-  fieldName: "",
+  name: "",
   area: 0,
   soilType: "",
-  crop: "",
+  cropId: "",
+  createdAt: "",
 };
 
 
 export const CropModel = {
   id: "",
+  farmId: "",
+  fieldId: "",
   name: "",
   variety: "",
   quantity: 0,
+  unit: "kg",
   plantingDate: "",
   harvestDate: "",
+  status: "growing",
+};
+
+
+export const IrrigationModel = {
+  id: "",
+  farmId: "",
+  fieldId: "",
+  method: "",
+  waterAmount: 0,
+  unit: "liter",
+  date: "",
+  notes: "",
+};
+
+
+export const FertilizerModel = {
+  id: "",
+  farmId: "",
+  fieldId: "",
+  cropId: "",
+  type: "",
+  quantity: 0,
+  unit: "kg",
+  date: "",
+  notes: "",
+};
+
+
+export const PesticideModel = {
+  id: "",
+  farmId: "",
+  fieldId: "",
+  cropId: "",
+  name: "",
+  activeIngredient: "",
+  quantity: 0,
+  safetyPeriod: "",
+  sprayDate: "",
+};
+
+
+export const DiseaseModel = {
+  id: "",
+  farmId: "",
+  fieldId: "",
+  cropId: "",
+  name: "",
+  severity: "low",
+  symptoms: "",
+  treatment: "",
+  date: "",
 };
 
 
 export const ExpenseModel = {
   id: "",
   farmId: "",
-  type: "",
+  category: "",
   amount: 0,
   currency: "SYP",
   date: "",
@@ -44,29 +104,23 @@ export const ExpenseModel = {
 };
 
 
-export const IrrigationModel = {
+export const LocationModel = {
   id: "",
   farmId: "",
-  method: "",
-  date: "",
-  waterAmount: 0,
+  latitude: "",
+  longitude: "",
+  accuracy: "",
 };
 
 
-export const FertilizerModel = {
+export const ConsultationModel = {
   id: "",
   farmId: "",
-  type: "",
-  quantity: 0,
-  date: "",
-};
-
-
-export const DiseaseModel = {
-  id: "",
-  farmId: "",
-  name: "",
-  treatment: "",
+  userId: "",
+  subject: "",
+  question: "",
+  answer: "",
+  status: "pending",
   date: "",
 };
 
@@ -83,6 +137,7 @@ export const ReportModel = {
   id: "",
   farmId: "",
   title: "",
+  type: "",
   content: "",
-  date: "",
+  createdAt: "",
 };
