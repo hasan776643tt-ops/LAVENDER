@@ -1,32 +1,22 @@
-import { useState } from "react";
-
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+import { useSettings } from "../context/SettingsContext";
+
+import { languages } from "../config/languages";
+import { currencies } from "../config/currencies";
+import { units } from "../config/units";
+import { countries } from "../config/countries";
+
+
 export default function Settings() {
 
-  const [farmName, setFarmName] = useState("");
+  const {
+    settings,
+    updateSetting,
+    resetSettings
+  } = useSettings();
 
-  const [language, setLanguage] =
-    useState("العربية");
-
-  const [theme, setTheme] =
-    useState("فاتح");
-
-  const [notifications, setNotifications] =
-    useState(true);
-
-  const [gps, setGps] =
-    useState(true);
-
-  const [areaUnit, setAreaUnit] =
-    useState("دونم");
-
-  const saveSettings = () => {
-
-    alert("تم حفظ الإعدادات بنجاح");
-
-  };
 
   return (
 
@@ -36,101 +26,188 @@ export default function Settings() {
         ⚙️ إعدادات النظام
       </h1>
 
-      <Card title="إعدادات المزرعة">
 
-        <input
-          type="text"
-          placeholder="اسم المزرعة"
-          value={farmName}
-          onChange={(e) =>
-            setFarmName(
-              e.target.value
-            )
-          }
-        />
+      <Card title="🌍 الإعدادات العالمية">
 
-        <br /><br />
 
         <select
-          value={language}
+          value={settings.language}
           onChange={(e) =>
-            setLanguage(
+            updateSetting(
+              "language",
               e.target.value
             )
           }
         >
 
-          <option>
-            العربية
-          </option>
+          {languages.map((lang) => (
 
-          <option>
-            English
-          </option>
+            <option
+              key={lang.code}
+              value={lang.code}
+            >
+              {lang.name}
+            </option>
 
-          <option>
-            Türkçe
-          </option>
+          ))}
 
         </select>
 
+
         <br /><br />
 
+
         <select
-          value={theme}
+          value={settings.country}
           onChange={(e) =>
-            setTheme(
+            updateSetting(
+              "country",
               e.target.value
             )
           }
         >
 
-          <option>
-            فاتح
-          </option>
+          {countries.map((country) => (
 
-          <option>
-            داكن
-          </option>
+            <option
+              key={country.code}
+              value={country.code}
+            >
+              {country.name}
+            </option>
+
+          ))}
 
         </select>
 
+
         <br /><br />
 
+
         <select
-          value={areaUnit}
+          value={settings.currency}
           onChange={(e) =>
-            setAreaUnit(
+            updateSetting(
+              "currency",
               e.target.value
             )
           }
         >
 
-          <option>
-            دونم
-          </option>
+          {currencies.map((currency) => (
 
-          <option>
-            هكتار
-          </option>
+            <option
+              key={currency.code}
+              value={currency.code}
+            >
+              {currency.name}
+            </option>
 
-          <option>
-            متر مربع
-          </option>
+          ))}
 
         </select>
+
 
       </Card>
 
-      <Card title="الإشعارات والموقع">
+
+
+      <Card title="📏 وحدات القياس">
+
+
+        <select
+          value={settings.areaUnit}
+          onChange={(e) =>
+            updateSetting(
+              "areaUnit",
+              e.target.value
+            )
+          }
+        >
+
+          {units.area.map((unit) => (
+
+            <option
+              key={unit.code}
+              value={unit.code}
+            >
+              {unit.name}
+            </option>
+
+          ))}
+
+        </select>
+
+
+        <br /><br />
+
+
+        <select
+          value={settings.weightUnit}
+          onChange={(e) =>
+            updateSetting(
+              "weightUnit",
+              e.target.value
+            )
+          }
+        >
+
+          {units.weight.map((unit) => (
+
+            <option
+              key={unit.code}
+              value={unit.code}
+            >
+              {unit.name}
+            </option>
+
+          ))}
+
+        </select>
+
+
+        <br /><br />
+
+
+        <select
+          value={settings.waterUnit}
+          onChange={(e) =>
+            updateSetting(
+              "waterUnit",
+              e.target.value
+            )
+          }
+        >
+
+          {units.water.map((unit) => (
+
+            <option
+              key={unit.code}
+              value={unit.code}
+            >
+              {unit.name}
+            </option>
+
+          ))}
+
+        </select>
+
+
+      </Card>
+
+
+
+      <Card title="🔔 النظام والموقع">
+
 
         <label>
 
           <input
             type="checkbox"
-            checked={notifications}
+            checked={settings.notifications}
             onChange={(e) =>
-              setNotifications(
+              updateSetting(
+                "notifications",
                 e.target.checked
               )
             }
@@ -140,48 +217,52 @@ export default function Settings() {
 
         </label>
 
+
         <br /><br />
+
 
         <label>
 
           <input
             type="checkbox"
-            checked={gps}
+            checked={settings.gps}
             onChange={(e) =>
-              setGps(
+              updateSetting(
+                "gps",
                 e.target.checked
               )
             }
           />
 
-          تفعيل الموقع التلقائي GPS
+          تفعيل GPS
 
         </label>
 
-      </Card>
-
-      <Card title="معلومات النظام">
-
-        <p>
-          🌱 LAVENDER Smart Farm
-        </p>
-
-        <p>
-          إصدار تجريبي
-        </p>
-
-        <p>
-          إدارة المزارع والمحاصيل والري
-          والتسميد والأمراض.
-        </p>
 
       </Card>
+
+
+
+      <Card title="🌱 معلومات LAVENDER">
+
+        <p>
+          LAVENDER Smart Farm
+        </p>
+
+        <p>
+          نظام إدارة زراعي ذكي عالمي
+        </p>
+
+      </Card>
+
+
 
       <Button
-        onClick={saveSettings}
+        onClick={resetSettings}
       >
-        حفظ الإعدادات
+        إعادة الإعدادات الافتراضية
       </Button>
+
 
     </div>
 
