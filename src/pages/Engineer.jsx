@@ -1,10 +1,12 @@
 import {
-  useState,
   useContext,
   useMemo,
+  useState,
 } from "react";
 
-import { FarmContext } from "../context/FarmContext";
+import {
+  FarmContext,
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
@@ -16,11 +18,8 @@ export default function Engineer() {
   const {
 
     farms = [],
-
     fields = [],
-
     consultations = [],
-
     setConsultations,
 
   } = useContext(FarmContext);
@@ -28,41 +27,46 @@ export default function Engineer() {
 
 
 
-  const [form,setForm] = useState({
+  const initialForm = {
 
     farm:"",
-
     field:"",
-
     crop:"",
-
     specialization:"",
-
     priority:"متوسطة",
-
     problem:"",
-
-    date:"",
-
     status:"جديدة",
+    source:"👨‍🌾 مهندس زراعي",
+    createdAt:"",
 
-    reply:"",
-
-  });
-
-
+  };
 
 
 
-  const updateForm=(key,value)=>{
+  const [form,setForm] =
+    useState(initialForm);
 
-    setForm({
 
-      ...form,
 
-      [key]:value
+  const [filter,setFilter] =
+    useState("الكل");
 
-    });
+
+
+
+  const updateForm = (
+    key,
+    value
+  ) => {
+
+
+    setForm(prev => ({
+
+      ...prev,
+
+      [key]:value,
+
+    }));
 
   };
 
@@ -70,56 +74,71 @@ export default function Engineer() {
 
 
 
-  const filteredFields = useMemo(()=>{
+
+  const filteredFields =
+    useMemo(()=>{
 
 
-    if(!form.farm)
+      if(!form.farm)
 
-      return fields;
-
-
-
-    return fields.filter(
-
-      field =>
-
-      field.farm === form.farm ||
-
-      field.farmName === form.farm
-
-    );
-
-
-  },[fields,form.farm]);
+        return fields;
 
 
 
+      return fields.filter(
+
+        field =>
+
+        field.farm === form.farm ||
+
+        field.farmName === form.farm
+
+      );
+
+
+    },[
+
+      fields,
+
+      form.farm
+
+    ]);
 
 
 
 
-  const sendConsultation=()=>{
+
+
+
+
+  const sendConsultation = () => {
 
 
     if(
 
       !form.farm ||
 
-      !form.field ||
-
       !form.problem
 
-    )
+    ){
 
-    return;
+      alert(
+        "اختر المزرعة واكتب المشكلة"
+      );
+
+      return;
+
+    }
 
 
 
 
-    const newConsultation={
+    const newConsultation = {
 
 
-      id:Date.now(),
+      id:
+
+      Date.now(),
 
 
       ...form,
@@ -127,50 +146,35 @@ export default function Engineer() {
 
       createdAt:
 
-      new Date().toISOString(),
+      new Date()
+
+      .toLocaleString("ar"),
 
 
       updatedAt:
 
-      new Date().toISOString(),
+      new Date()
+
+      .toLocaleString("ar"),
 
 
     };
 
 
 
+
     setConsultations([
 
-      ...consultations,
+      newConsultation,
 
-      newConsultation
+      ...consultations,
 
     ]);
 
 
 
 
-    setForm({
-
-      farm:"",
-
-      field:"",
-
-      crop:"",
-
-      specialization:"",
-
-      priority:"متوسطة",
-
-      problem:"",
-
-      date:"",
-
-      status:"جديدة",
-
-      reply:"",
-
-    });
+    setForm(initialForm);
 
 
   };
@@ -180,7 +184,9 @@ export default function Engineer() {
 
 
 
-  const deleteConsultation=(id)=>{
+
+
+  const deleteConsultation = (id)=>{
 
 
     setConsultations(
@@ -202,499 +208,466 @@ export default function Engineer() {
 
 
 
+
+
+
+  const displayedConsultations =
+
+  filter === "الكل"
+
+  ?
+
+  consultations
+
+  :
+
+  consultations.filter(
+
+    item =>
+
+    item.status === filter
+
+  );
+
+
+
+
+
+
+
+
+
   return (
 
-<div>
+    <div>
 
 
-<h1>
-👨‍🌾 نظام الاستشارات الزراعية الذكي
-</h1>
+      <h1>
+        👨‍🌾 نظام المهندس الزراعي الذكي
+      </h1>
 
 
+      <p>
+        إرسال ومتابعة الاستشارات الزراعية
+        بطريقة منظمة.
+      </p>
 
 
 
-<Card title="📨 طلب استشارة مهندس">
 
 
-<select
+      <Card title="📨 طلب استشارة جديدة">
 
-value={form.farm}
 
-onChange={e=>
+        <select
 
-updateForm(
+          value={form.farm}
 
-"farm",
+          onChange={(e)=>
 
-e.target.value
+            updateForm(
+              "farm",
+              e.target.value
+            )
 
-)
+          }
 
-}
+        >
 
->
+          <option value="">
+            اختر المزرعة
+          </option>
 
-<option value="">
 
-اختر المزرعة
+          {
 
-</option>
+          farms.map(farm=>(
 
+            <option
 
-{
+              key={farm.id}
 
-farms.map(farm=>(
+              value={farm.name}
 
-<option
+            >
 
-key={farm.id}
+              {farm.name}
 
-value={farm.name}
+            </option>
 
->
+          ))
 
-{farm.name}
+          }
 
-</option>
 
+        </select>
 
-))
 
-}
 
 
-</select>
+        <br/><br/>
 
 
 
-<br/><br/>
 
+        <select
 
+          value={form.field}
 
+          onChange={(e)=>
 
+            updateForm(
+              "field",
+              e.target.value
+            )
 
-<select
+          }
 
-value={form.field}
+        >
 
-onChange={e=>
+          <option value="">
+            اختر الحقل
+          </option>
 
-updateForm(
 
-"field",
+          {
 
-e.target.value
+          filteredFields.map(field=>(
 
-)
+            <option
 
-}
+              key={field.id}
 
->
+              value={field.name}
 
-<option value="">
+            >
 
-اختر الحقل
+              {field.name}
 
-</option>
+            </option>
 
+          ))
 
+          }
 
-{
 
-filteredFields.map(field=>(
+        </select>
 
 
-<option
 
-key={field.id}
 
-value={field.name}
+        <br/><br/>
 
->
 
-{field.name}
 
-</option>
 
+        <input
 
-))
+          placeholder="اسم المحصول"
 
-}
+          value={form.crop}
 
+          onChange={(e)=>
 
+            updateForm(
+              "crop",
+              e.target.value
+            )
 
-</select>
+          }
 
+        />
 
 
 
 
-<br/><br/>
 
+        <br/><br/>
 
 
 
 
-<select
+        <select
 
-value={form.specialization}
+          value={form.specialization}
 
-onChange={e=>
+          onChange={(e)=>
 
-updateForm(
+            updateForm(
+              "specialization",
+              e.target.value
+            )
 
-"specialization",
+          }
 
-e.target.value
+        >
 
-)
+          <option value="">
+            تخصص المهندس
+          </option>
 
-}
+          <option>
+            أمراض نبات
+          </option>
 
->
+          <option>
+            ري
+          </option>
 
+          <option>
+            تسميد
+          </option>
 
-<option>
+          <option>
+            محاصيل
+          </option>
 
-اختر تخصص المهندس
+          <option>
+            آفات زراعية
+          </option>
 
-</option>
 
+        </select>
 
-<option>
 
-أمراض نبات
 
-</option>
 
 
-<option>
+        <br/><br/>
 
-محاصيل
 
-</option>
 
 
-<option>
+        <select
 
-ري
+          value={form.priority}
 
-</option>
+          onChange={(e)=>
 
+            updateForm(
+              "priority",
+              e.target.value
+            )
 
-<option>
+          }
 
-تسميد
+        >
 
-</option>
+          <option>
+            منخفضة
+          </option>
 
+          <option>
+            متوسطة
+          </option>
 
-<option>
+          <option>
+            عالية
+          </option>
 
-آفات زراعية
+          <option>
+            عاجلة
+          </option>
 
-</option>
 
+        </select>
 
-</select>
 
 
 
 
+        <br/><br/>
 
-<br/><br/>
 
 
 
+        <textarea
 
+          placeholder="اكتب وصف المشكلة الزراعية"
 
-<input
+          value={form.problem}
 
-placeholder="نوع المحصول"
+          onChange={(e)=>
 
-value={form.crop}
+            updateForm(
+              "problem",
+              e.target.value
+            )
 
-onChange={e=>
+          }
 
-updateForm(
+        />
 
-"crop",
 
-e.target.value
 
-)
 
-}
 
-/>
+        <br/><br/>
 
 
 
 
+        <Button
 
-<br/><br/>
+          onClick={sendConsultation}
 
+        >
 
+          📤 إرسال الطلب
 
+        </Button>
 
 
-<select
 
-value={form.priority}
+      </Card>
 
-onChange={e=>
 
-updateForm(
 
-"priority",
 
-e.target.value
 
-)
 
-}
 
->
 
+      <Card title="📋 سجل الاستشارات">
 
-<option>
 
-منخفضة
+        <select
 
-</option>
+          value={filter}
 
+          onChange={(e)=>
 
-<option>
+            setFilter(
+              e.target.value
+            )
 
-متوسطة
+          }
 
-</option>
+        >
 
+          <option>
+            الكل
+          </option>
 
-<option>
+          <option>
+            جديدة
+          </option>
 
-عالية
+          <option>
+            قيد المراجعة
+          </option>
 
-</option>
+          <option>
+            تم الحل
+          </option>
 
 
-<option>
+        </select>
 
-عاجلة
 
-</option>
 
 
-</select>
 
 
+        {
 
+        displayedConsultations.map(item=>(
 
 
-<br/><br/>
+          <Card
 
+            key={item.id}
 
+            title={
+              item.specialization ||
+              "استشارة زراعية"
+            }
 
+          >
 
 
-<textarea
+            <p>
+              🔢 رقم الطلب:
+              {" "}
+              {item.id}
+            </p>
 
-placeholder="وصف المشكلة الزراعية"
 
-value={form.problem}
+            <p>
+              🏡 المزرعة:
+              {" "}
+              {item.farm}
+            </p>
 
-onChange={e=>
 
-updateForm(
+            <p>
+              🌱 المحصول:
+              {" "}
+              {item.crop}
+            </p>
 
-"problem",
 
-e.target.value
+            <p>
+              📂 التخصص:
+              {" "}
+              {item.specialization}
+            </p>
 
-)
 
-}
+            <p>
+              🚨 الأولوية:
+              {" "}
+              {item.priority}
+            </p>
 
-/>
 
+            <p>
+              ⚠️ المشكلة:
+              {" "}
+              {item.problem}
+            </p>
 
 
+            <p>
+              📌 الحالة:
+              {" "}
+              {item.status}
+            </p>
 
 
-<br/><br/>
+            <p>
+              🕒 الإنشاء:
+              {" "}
+              {item.createdAt}
+            </p>
 
 
+            <Button
 
+              onClick={()=> 
+                deleteConsultation(item.id)
+              }
 
+            >
 
-<input
+              حذف الطلب
 
-type="date"
+            </Button>
 
-value={form.date}
 
-onChange={e=>
+          </Card>
 
-updateForm(
 
-"date",
+        ))
 
-e.target.value
+        }
 
-)
 
-}
+      </Card>
 
-/>
 
 
-
-
-
-<br/><br/>
-
-
-
-
-
-<Button
-
-onClick={sendConsultation}
-
->
-
-إرسال الاستشارة
-
-</Button>
-
-
-
-</Card>
-
-
-
-
-
-
-
-<Card title="📋 سجل الاستشارات">
-
-
-{
-
-consultations.map(item=>(
-
-
-<Card
-
-key={item.id}
-
-title={
-
-item.specialization ||
-
-"استشارة"
-
-}
-
->
-
-
-<p>
-
-🏡 المزرعة:
-
-{item.farm}
-
-</p>
-
-
-<p>
-
-🌾 الحقل:
-
-{item.field}
-
-</p>
-
-
-<p>
-
-🌱 المحصول:
-
-{item.crop}
-
-</p>
-
-
-<p>
-
-🚨 الأولوية:
-
-{item.priority}
-
-</p>
-
-
-<p>
-
-⚠️ المشكلة:
-
-{item.problem}
-
-</p>
-
-
-<p>
-
-📌 الحالة:
-
-{item.status}
-
-</p>
-
-
-<p>
-
-📅 التاريخ:
-
-{item.date}
-
-</p>
-
-
-
-<Button
-
-onClick={()=>deleteConsultation(item.id)}
-
->
-
-حذف
-
-</Button>
-
-
-
-</Card>
-
-
-
-))
-
-
-}
-
-
-</Card>
-
-
-
-
-
-</div>
+    </div>
 
   );
 
