@@ -1,3 +1,5 @@
+// src/context/FarmContext.jsx
+
 import {
   createContext,
   useState,
@@ -5,34 +7,28 @@ import {
 } from "react";
 
 
-// إنشاء Context
-
-export const FarmContext =
-  createContext();
+export const FarmContext = createContext();
 
 
 
-// قراءة البيانات
+/* =========================
+   Storage Engine
+========================= */
 
-const loadData = (key, defaultValue = []) => {
+const loadData = (key, fallback = []) => {
 
   try {
 
-    const saved =
+    const data =
       localStorage.getItem(key);
 
-    return saved
-      ? JSON.parse(saved)
-      : defaultValue;
+    return data
+      ? JSON.parse(data)
+      : fallback;
 
-  } catch (error) {
+  } catch {
 
-    console.error(
-      "Storage Error:",
-      error
-    );
-
-    return defaultValue;
+    return fallback;
 
   }
 
@@ -40,34 +36,40 @@ const loadData = (key, defaultValue = []) => {
 
 
 
-// إنشاء رقم معرف
+const saveData = (key, value) => {
 
-const createId = () => {
-
-  return (
-    Date.now() +
-    Math.random()
-      .toString(16)
-      .slice(2)
+  localStorage.setItem(
+    key,
+    JSON.stringify(value)
   );
 
 };
 
 
 
-// إضافة بيانات
+/* =========================
+   Helpers
+========================= */
+
+const createId = () =>
+  crypto.randomUUID
+    ? crypto.randomUUID()
+    :
+    Date.now().toString();
+
+
 
 const addItem = (
   setter,
-  item
+  data
 ) => {
 
-  setter((prev) => [
+  setter(prev => [
 
     ...prev,
 
     {
-      id: createId(),
+      id:createId(),
 
       createdAt:
         new Date()
@@ -77,7 +79,7 @@ const addItem = (
         new Date()
         .toISOString(),
 
-      ...item,
+      ...data
     }
 
   ]);
@@ -86,33 +88,13 @@ const addItem = (
 
 
 
-// حذف بيانات
-
-const removeItem = (
-  setter,
-  id
-) => {
-
-  setter((prev) =>
-    prev.filter(
-      item =>
-        item.id !== id
-    )
-  );
-
-};
-
-
-
-// تحديث بيانات
-
 const updateItem = (
   setter,
   id,
   data
-) => {
+)=>{
 
-  setter((prev) =>
+  setter(prev =>
 
     prev.map(item =>
 
@@ -121,15 +103,11 @@ const updateItem = (
       ?
 
       {
-
         ...item,
-
         ...data,
-
         updatedAt:
           new Date()
           .toISOString()
-
       }
 
       :
@@ -144,295 +122,320 @@ const updateItem = (
 
 
 
+const deleteItem = (
+  setter,
+  id
+)=>{
+
+  setter(prev =>
+    prev.filter(
+      item =>
+      item.id !== id
+    )
+  );
+
+};
+
+
 
 
 export default function FarmProvider({
 
-  children
+ children
 
 }) {
 
 
 
-  const [farms,setFarms] =
-    useState(() =>
-      loadData("farms")
-    );
+/* =========================
+   Main Data Stores
+========================= */
 
 
-  const [fields,setFields] =
-    useState(() =>
-      loadData("fields")
-    );
+const [farms,setFarms] =
+useState(()=>loadData("farms"));
 
 
-  const [crops,setCrops] =
-    useState(() =>
-      loadData("crops")
-    );
+const [fields,setFields] =
+useState(()=>loadData("fields"));
 
 
-  const [irrigations,setIrrigations] =
-    useState(() =>
-      loadData("irrigations")
-    );
+const [crops,setCrops] =
+useState(()=>loadData("crops"));
 
 
-  const [fertilizers,setFertilizers] =
-    useState(() =>
-      loadData("fertilizers")
-    );
+const [irrigations,setIrrigations] =
+useState(()=>loadData("irrigations"));
 
 
-  const [pesticides,setPesticides] =
-    useState(() =>
-      loadData("pesticides")
-    );
+const [fertilizers,setFertilizers] =
+useState(()=>loadData("fertilizers"));
 
 
-  const [diseases,setDiseases] =
-    useState(() =>
-      loadData("diseases")
-    );
+const [pesticides,setPesticides] =
+useState(()=>loadData("pesticides"));
 
 
-  const [expenses,setExpenses] =
-    useState(() =>
-      loadData("expenses")
-    );
+const [diseases,setDiseases] =
+useState(()=>loadData("diseases"));
 
 
-  const [locations,setLocations] =
-    useState(() =>
-      loadData("locations")
-    );
+const [expenses,setExpenses] =
+useState(()=>loadData("expenses"));
 
 
-  const [users,setUsers] =
-    useState(() =>
-      loadData("users")
-    );
+const [locations,setLocations] =
+useState(()=>loadData("locations"));
 
 
-  const [consultations,setConsultations] =
-    useState(() =>
-      loadData("consultations")
-    );
+const [users,setUsers] =
+useState(()=>loadData("users"));
 
 
-  const [aiQuestions,setAiQuestions] =
-    useState(() =>
-      loadData("aiQuestions")
-    );
+const [consultations,setConsultations] =
+useState(()=>loadData("consultations"));
 
 
-  const [settings,setSettings] =
-    useState(() =>
-      loadData(
-        "settings",
-        {
-          theme:"light",
-          language:"ar",
-          notifications:true
-        }
-      )
-    );
+const [aiQuestions,setAiQuestions] =
+useState(()=>loadData("aiQuestions"));
 
 
 
 
+/* =========================
+   Auto Save
+========================= */
 
-  // حفظ تلقائي
 
-  useEffect(() => {
+useEffect(()=>{
 
+const data = {
 
-    const data = {
+farms,
+fields,
+crops,
+irrigations,
+fertilizers,
+pesticides,
+diseases,
+expenses,
+locations,
+users,
+consultations,
+aiQuestions
 
-      farms,
+};
 
-      fields,
 
-      crops,
+Object.entries(data)
+.forEach(([key,value])=>{
 
-      irrigations,
+saveData(key,value);
 
-      fertilizers,
+});
 
-      pesticides,
 
-      diseases,
+},[
+farms,
+fields,
+crops,
+irrigations,
+fertilizers,
+pesticides,
+diseases,
+expenses,
+locations,
+users,
+consultations,
+aiQuestions
+]);
 
-      expenses,
 
-      locations,
 
-      users,
 
-      consultations,
+/* =========================
+   Smart Relations
+========================= */
 
-      aiQuestions,
 
-      settings,
+const getFieldsByFarm =
+(farmId)=>
 
-    };
+fields.filter(
+field =>
+field.farmId === farmId
+);
 
 
-    Object.entries(data)
-      .forEach(([key,value]) => {
 
+const getCropsByField =
+(fieldId)=>
 
-        localStorage.setItem(
+crops.filter(
+crop =>
+crop.fieldId === fieldId
+);
 
-          key,
 
-          JSON.stringify(value)
 
-        );
+const getIrrigationByField =
+(fieldId)=>
 
+irrigations.filter(
+item =>
+item.fieldId === fieldId
+);
 
-      });
 
 
-  },[
+const getFertilizersByCrop =
+(cropId)=>
 
-    farms,
+fertilizers.filter(
+item =>
+item.cropId === cropId
+);
 
-    fields,
 
-    crops,
 
-    irrigations,
+const getPesticidesByCrop =
+(cropId)=>
 
-    fertilizers,
+pesticides.filter(
+item =>
+item.cropId === cropId
+);
 
-    pesticides,
 
-    diseases,
 
-    expenses,
+const getDiseasesByCrop =
+(cropId)=>
 
-    locations,
+diseases.filter(
+item =>
+item.cropId === cropId
+);
 
-    users,
 
-    consultations,
 
-    aiQuestions,
+const getExpensesByFarm =
+(farmId)=>
 
-    settings
+expenses.filter(
+item =>
+item.farmId === farmId
+);
 
-  ]);
 
 
 
+return (
 
+<FarmContext.Provider
 
-  return (
+value={{
 
-    <FarmContext.Provider
+/* Data */
 
-      value={{
+farms,
+fields,
+crops,
+irrigations,
+fertilizers,
+pesticides,
+diseases,
+expenses,
+locations,
+users,
+consultations,
+aiQuestions,
 
-        // البيانات
 
-        farms,
-        fields,
-        crops,
-        irrigations,
-        fertilizers,
-        pesticides,
-        diseases,
-        expenses,
-        locations,
-        users,
-        consultations,
-        aiQuestions,
-        settings,
+/* CRUD */
 
+addFarm:
+(data)=>
+addItem(setFarms,data),
 
+updateFarm:
+(id,data)=>
+updateItem(setFarms,id,data),
 
-        // التحكم
+deleteFarm:
+(id)=>
+deleteItem(setFarms,id),
 
-        setFarms,
-        setFields,
-        setCrops,
-        setIrrigations,
-        setFertilizers,
-        setPesticides,
-        setDiseases,
-        setExpenses,
-        setLocations,
-        setUsers,
-        setConsultations,
-        setAiQuestions,
-        setSettings,
 
 
+addField:
+(data)=>
+addItem(setFields,data),
 
-        // أدوات جاهزة
+updateField:
+(id,data)=>
+updateItem(setFields,id,data),
 
-        addFarm:
-          (data)=>
-          addItem(
-            setFarms,
-            data
-          ),
+deleteField:
+(id)=>
+deleteItem(setFields,id),
 
 
-        deleteFarm:
-          (id)=>
-          removeItem(
-            setFarms,
-            id
-          ),
 
+addCrop:
+(data)=>
+addItem(setCrops,data),
 
-        updateFarm:
-          (id,data)=>
-          updateItem(
-            setFarms,
-            id,
-            data
-          ),
+updateCrop:
+(id,data)=>
+updateItem(setCrops,id,data),
 
+deleteCrop:
+(id)=>
+deleteItem(setCrops,id),
 
 
-        addExpense:
-          (data)=>
-          addItem(
-            setExpenses,
-            data
-          ),
 
+addExpense:
+(data)=>
+addItem(setExpenses,data),
 
-        deleteExpense:
-          (id)=>
-          removeItem(
-            setExpenses,
-            id
-          ),
 
+updateExpense:
+(id,data)=>
+updateItem(setExpenses,id,data),
 
-        updateExpense:
-          (id,data)=>
-          updateItem(
-            setExpenses,
-            id,
-            data
-          ),
 
+deleteExpense:
+(id)=>
+deleteItem(setExpenses,id),
 
 
-      }}
 
-    >
+/* Relations */
 
-      {children}
+getFieldsByFarm,
 
-    </FarmContext.Provider>
+getCropsByField,
 
-  );
+getIrrigationByField,
 
+getFertilizersByCrop,
+
+getPesticidesByCrop,
+
+getDiseasesByCrop,
+
+getExpensesByFarm
+
+
+}}
+
+>
+
+{children}
+
+</FarmContext.Provider>
+
+);
 
 }
