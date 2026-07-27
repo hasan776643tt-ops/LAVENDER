@@ -1,11 +1,15 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
+
 import { FarmContext } from "../context/FarmContext";
 
 import Card from "../components/Card";
 
+
 export default function Dashboard() {
 
+
   const {
+
     farms,
     fields,
     crops,
@@ -16,164 +20,184 @@ export default function Dashboard() {
     expenses,
     locations,
     users,
+
   } = useContext(FarmContext);
+
+
+
+  const statistics = useMemo(() => [
+
+    {
+      title: "🌾 المزارع",
+      value: farms.length,
+      description: "إجمالي المزارع المسجلة",
+    },
+
+    {
+      title: "🌱 الحقول",
+      value: fields.length,
+      description: "إجمالي الحقول",
+    },
+
+    {
+      title: "🌿 المحاصيل",
+      value: crops.length,
+      description: "إجمالي المحاصيل",
+    },
+
+    {
+      title: "💧 الري",
+      value: irrigations.length,
+      description: "عمليات الري",
+    },
+
+    {
+      title: "🌾 الأسمدة",
+      value: fertilizers.length,
+      description: "عمليات التسميد",
+    },
+
+    {
+      title: "🧪 المبيدات",
+      value: pesticides.length,
+      description: "عمليات الرش",
+    },
+
+    {
+      title: "🦠 الأمراض",
+      value: diseases.length,
+      description: "الأمراض المسجلة",
+    },
+
+    {
+      title: "📍 المواقع",
+      value: locations.length,
+      description: "مواقع GPS",
+    },
+
+    {
+      title: "👤 المستخدمون",
+      value: users.length,
+      description: "المستخدمون",
+    },
+
+    {
+      title: "💰 المصاريف",
+      value: expenses.length,
+      description: "السجلات المالية",
+    },
+
+  ], [
+
+    farms,
+    fields,
+    crops,
+    irrigations,
+    fertilizers,
+    pesticides,
+    diseases,
+    locations,
+    users,
+    expenses,
+
+  ]);
+
+
+
+  const totalActivities =
+    farms.length +
+    fields.length +
+    crops.length +
+    irrigations.length +
+    fertilizers.length +
+    pesticides.length +
+    diseases.length;
+
+
 
   return (
 
     <div>
 
+
       <h1>
         📊 لوحة التحكم الذكية
       </h1>
 
+
       <p>
-        نظرة سريعة على جميع بيانات النظام.
+        متابعة جميع أنظمة LAVENDER Smart Farm
       </p>
 
-      <Card title="🌾 المزارع">
+
+
+      <Card title="🚀 مؤشرات الأداء">
 
         <h2>
-          {farms.length}
+          {totalActivities}
         </h2>
 
         <p>
-          إجمالي المزارع المسجلة
+          إجمالي العمليات الزراعية
         </p>
 
       </Card>
 
-      <Card title="🌱 الحقول">
 
-        <h2>
-          {fields.length}
-        </h2>
+
+      {
+        statistics.map((item) => (
+
+          <Card
+            key={item.title}
+            title={item.title}
+          >
+
+            <h2>
+              {item.value}
+            </h2>
+
+            <p>
+              {item.description}
+            </p>
+
+          </Card>
+
+        ))
+      }
+
+
+
+      <Card title="🔔 المتابعة الذكية">
 
         <p>
-          إجمالي الحقول
+          متابعة مواعيد الري القادمة.
+        </p>
+
+        <p>
+          مراقبة الأمراض والآفات.
+        </p>
+
+        <p>
+          تحليل أداء المزرعة مستقبلاً بالذكاء الاصطناعي.
         </p>
 
       </Card>
 
-      <Card title="🌿 المحاصيل">
 
-        <h2>
-          {crops.length}
-        </h2>
+
+      <Card title="🌱 حالة النظام">
 
         <p>
-          إجمالي المحاصيل
+          البيانات محفوظة محليًا عبر LocalStorage.
+        </p>
+
+        <p>
+          النظام جاهز للانتقال لاحقًا إلى قاعدة بيانات حقيقية.
         </p>
 
       </Card>
 
-      <Card title="💧 الري">
-
-        <h2>
-          {irrigations.length}
-        </h2>
-
-        <p>
-          عمليات الري المسجلة
-        </p>
-
-      </Card>
-
-      <Card title="🌾 الأسمدة">
-
-        <h2>
-          {fertilizers.length}
-        </h2>
-
-        <p>
-          عمليات التسميد
-        </p>
-
-      </Card>
-
-      <Card title="🧪 المبيدات">
-
-        <h2>
-          {pesticides.length}
-        </h2>
-
-        <p>
-          عمليات الرش
-        </p>
-
-      </Card>
-
-      <Card title="🦠 الأمراض">
-
-        <h2>
-          {diseases.length}
-        </h2>
-
-        <p>
-          الإصابات المسجلة
-        </p>
-
-      </Card>
-
-      <Card title="📍 المواقع">
-
-        <h2>
-          {locations.length}
-        </h2>
-
-        <p>
-          مواقع GPS المحفوظة
-        </p>
-
-      </Card>
-
-      <Card title="👤 المستخدمون">
-
-        <h2>
-          {users.length}
-        </h2>
-
-        <p>
-          المستخدمون المسجلون
-        </p>
-
-      </Card>
-
-      <Card title="💰 المصاريف">
-
-        <h2>
-          {expenses.length}
-        </h2>
-
-        <p>
-          السجلات المالية
-        </p>
-
-      </Card>
-
-      <Card title="🔔 التنبيهات">
-
-        <p>
-          متابعة حالة الطقس للمزارع.
-        </p>
-
-        <p>
-          مراجعة مواعيد الري القادمة.
-        </p>
-
-        <p>
-          مراجعة الأمراض المسجلة.
-        </p>
-
-      </Card>
-
-      <Card title="🕒 آخر نشاط">
-
-        <p>
-          يتم عرض آخر العمليات هنا
-          مستقبلاً.
-        </p>
-
-      </Card>
 
     </div>
 
