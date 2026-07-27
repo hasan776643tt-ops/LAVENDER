@@ -7,6 +7,10 @@ import {
   FarmContext,
 } from "../context/FarmContext";
 
+import {
+  useSettings,
+} from "../context/SettingsContext";
+
 import Card from "../components/Card";
 import Button from "../components/Button";
 
@@ -31,13 +35,21 @@ export default function Reports() {
 
 
 
+  const {
+    settings,
+  } = useSettings();
+
+
+
+
+
   // 💰 إجمالي المصاريف
 
   const totalExpenses = useMemo(() => {
 
     return expenses.reduce(
 
-      (sum,item)=>
+      (sum, item) =>
 
         sum + Number(item.amount || 0),
 
@@ -45,7 +57,63 @@ export default function Reports() {
 
     );
 
-  },[expenses]);
+  }, [expenses]);
+
+
+
+
+
+  // 📊 إجمالي الأنشطة
+
+  const totalActivities = useMemo(() => {
+
+    return (
+
+      farms.length +
+      fields.length +
+      crops.length +
+      irrigations.length +
+      fertilizers.length +
+      pesticides.length +
+      diseases.length
+
+    );
+
+  }, [
+
+    farms,
+    fields,
+    crops,
+    irrigations,
+    fertilizers,
+    pesticides,
+    diseases,
+
+  ]);
+
+
+
+
+
+  // 💰 متوسط المصاريف
+
+  const averageExpense = useMemo(() => {
+
+    if (!expenses.length)
+      return 0;
+
+
+    return Math.round(
+      totalExpenses / expenses.length
+    );
+
+
+  }, [
+
+    totalExpenses,
+    expenses,
+
+  ]);
 
 
 
@@ -53,13 +121,14 @@ export default function Reports() {
 
   // 🌿 أكثر محصول
 
-  const topCrop = useMemo(()=>{
+  const topCrop = useMemo(() => {
 
 
     const counter = {};
 
 
-    crops.forEach(crop=>{
+    crops.forEach((crop)=>{
+
 
       const name =
         crop.name || "غير محدد";
@@ -72,18 +141,23 @@ export default function Reports() {
     });
 
 
-    return Object.keys(counter)
+
+    return (
+
+      Object.keys(counter)
       .sort(
         (a,b)=>
-          counter[b]-counter[a]
+        counter[b]-counter[a]
       )[0]
+
       ||
-      "لا يوجد";
+
+      "لا يوجد"
+
+    );
 
 
-  },[crops]);
-
-
+  }, [crops]);
 
 
 
@@ -91,13 +165,15 @@ export default function Reports() {
 
   // 💰 أكثر نوع مصروف
 
-  const topExpense = useMemo(()=>{
+  const topExpense = useMemo(() => {
 
 
     const counter = {};
 
 
-    expenses.forEach(item=>{
+
+    expenses.forEach((item)=>{
+
 
       const type =
         item.type || "أخرى";
@@ -110,37 +186,42 @@ export default function Reports() {
     });
 
 
-    return Object.keys(counter)
+
+    return (
+
+      Object.keys(counter)
       .sort(
         (a,b)=>
         counter[b]-counter[a]
       )[0]
+
       ||
-      "لا يوجد";
+
+      "لا يوجد"
+
+    );
 
 
-  },[expenses]);
+  }, [expenses]);
 
 
 
 
 
 
-
-
-  // 🤖 توصيات ذكية
+  // 🤖 التوصيات الذكية
 
   const recommendations = useMemo(()=>{
 
 
-    const list=[];
+    const list = [];
 
 
 
-    if(diseases.length >= 5){
+    if(diseases.length > 0){
 
       list.push(
-        "🦠 ارتفاع تسجيل الأمراض، يفضل مراجعة خطة المكافحة."
+        "🦠 يوجد سجل أمراض، راجع حالة المحاصيل باستمرار."
       );
 
     }
@@ -150,7 +231,7 @@ export default function Reports() {
     if(fields.length > irrigations.length){
 
       list.push(
-        "💧 عدد عمليات الري أقل من عدد الحقول، راجع الجدول."
+        "💧 بعض الحقول قد تحتاج إلى جدولة ري جديدة."
       );
 
     }
@@ -160,30 +241,31 @@ export default function Reports() {
     if(fertilizers.length === 0){
 
       list.push(
-        "🌾 لم يتم تسجيل تسميد، أضف خطة تغذية للمحاصيل."
+        "🌾 لم يتم تسجيل عمليات تسميد بعد."
       );
 
     }
 
 
 
-    if(expenses.length > 20){
+    if(expenses.length > 10){
 
       list.push(
-        "💰 عدد المصاريف مرتفع، راجع التكاليف."
+        "💰 راجع المصاريف لتحسين إدارة التكاليف."
       );
 
     }
 
 
 
-    if(list.length===0){
+    if(list.length === 0){
 
       list.push(
-        "✅ حالة المزرعة مستقرة حالياً."
+        "✅ حالة النظام مستقرة."
       );
 
     }
+
 
 
     return list;
@@ -195,10 +277,9 @@ export default function Reports() {
     fields,
     irrigations,
     fertilizers,
-    expenses
+    expenses,
 
   ]);
-
 
 
 
@@ -210,16 +291,32 @@ export default function Reports() {
 
 
       <h1>
-        📊 لوحة التقارير الذكية
+        📊 التقارير الذكية
       </h1>
 
 
+      <p>
+        تحليل شامل لنظام LAVENDER Smart Farm
+      </p>
 
-      <Card title="🚜 مؤشرات النظام">
+
+
+
+
+      <Card title="🚀 مؤشرات الأداء KPI">
 
 
         <p>
-          🌾 المزارع:
+          إجمالي الأنشطة:
+          <strong>
+            {" "}
+            {totalActivities}
+          </strong>
+        </p>
+
+
+        <p>
+          عدد المزارع:
           <strong>
             {" "}
             {farms.length}
@@ -228,7 +325,7 @@ export default function Reports() {
 
 
         <p>
-          📍 الحقول:
+          عدد الحقول:
           <strong>
             {" "}
             {fields.length}
@@ -237,28 +334,10 @@ export default function Reports() {
 
 
         <p>
-          🌱 المحاصيل:
+          عدد المحاصيل:
           <strong>
             {" "}
             {crops.length}
-          </strong>
-        </p>
-
-
-        <p>
-          💧 عمليات الري:
-          <strong>
-            {" "}
-            {irrigations.length}
-          </strong>
-        </p>
-
-
-        <p>
-          🦠 الأمراض:
-          <strong>
-            {" "}
-            {diseases.length}
           </strong>
         </p>
 
@@ -269,7 +348,7 @@ export default function Reports() {
 
 
 
-      <Card title="💰 التحليل المالي">
+      <Card title="💰 التقرير المالي">
 
 
         <p>
@@ -277,15 +356,19 @@ export default function Reports() {
           <strong>
             {" "}
             {totalExpenses}
+            {" "}
+            {settings.currency}
           </strong>
         </p>
 
 
         <p>
-          عدد العمليات:
+          متوسط المصروف:
           <strong>
             {" "}
-            {expenses.length}
+            {averageExpense}
+            {" "}
+            {settings.currency}
           </strong>
         </p>
 
@@ -305,9 +388,7 @@ export default function Reports() {
 
 
 
-
-
-      <Card title="🌿 تحليل المحاصيل">
+      <Card title="🌱 تحليل المحاصيل">
 
 
         <p>
@@ -320,7 +401,7 @@ export default function Reports() {
 
 
         <p>
-          عدد المحاصيل المسجلة:
+          عدد المحاصيل:
           <strong>
             {" "}
             {crops.length}
@@ -334,15 +415,11 @@ export default function Reports() {
 
 
 
-
-
       <Card title="🤖 التوصيات الذكية">
 
 
         {
-
           recommendations.map(
-
             (item,index)=>(
 
               <p key={index}>
@@ -350,15 +427,11 @@ export default function Reports() {
               </p>
 
             )
-
           )
-
         }
 
 
       </Card>
-
-
 
 
 
@@ -387,34 +460,25 @@ export default function Reports() {
 
 
 
-
-
-      <Card title="🚀 التطوير القادم">
+      <Card title="📈 التطوير المستقبلي">
 
 
         <p>
-          📈 رسوم بيانية زراعية.
+          📄 تصدير PDF و Excel
         </p>
 
 
         <p>
-          📄 تصدير PDF و Excel.
+          📊 رسوم بيانية وتحليلات متقدمة
         </p>
 
 
         <p>
-          ☀️ ربط الطقس الحقيقي.
-        </p>
-
-
-        <p>
-          🤖 تحليل ذكي متقدم.
+          🤖 تنبؤات زراعية بالذكاء الاصطناعي
         </p>
 
 
       </Card>
-
-
 
 
 
@@ -431,6 +495,5 @@ export default function Reports() {
     </div>
 
   );
-
 
 }
