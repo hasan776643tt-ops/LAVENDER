@@ -1,10 +1,12 @@
 import {
-  useState,
   useContext,
   useMemo,
+  useState,
 } from "react";
 
-import { FarmContext } from "../context/FarmContext";
+import {
+  FarmContext,
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
@@ -14,59 +16,48 @@ export default function Diseases() {
 
 
   const {
+
     farms = [],
     fields = [],
+    crops = [],
     diseases = [],
     setDiseases,
+
   } = useContext(FarmContext);
 
 
 
-  const [form, setForm] = useState({
-
-    farm: "",
-    field: "",
-    crop: "",
-
-    type: "",
-
-    name: "",
-
-    severity: "متوسطة",
-
-    status: "جديدة",
-
-    source: "يدوي",
-
-    infectionRate: "",
-
-    discoveryDate: "",
-
-    followDate: "",
-
-    symptoms: "",
-
-    diagnosis: "",
-
-    treatment: "",
-
-    image: "",
-
-    notes: "",
-
-  });
 
 
+  const initialForm = {
 
-  const updateForm = (key,value)=>{
+    farm:"",
+    field:"",
+    crop:"",
 
-    setForm({
+    type:"",
 
-      ...form,
+    name:"",
 
-      [key]:value
+    severity:"متوسطة",
 
-    });
+    status:"جديدة",
+
+    source:"يدوي",
+
+    infectionRate:"",
+
+    discoveryDate:"",
+
+    followDate:"",
+
+    symptoms:"",
+
+    diagnosis:"",
+
+    treatment:"",
+
+    notes:"",
 
   };
 
@@ -74,20 +65,44 @@ export default function Diseases() {
 
 
 
-  // الحقول التابعة للمزرعة
+  const [form,setForm] =
+    useState(initialForm);
+
+
+
+
+
+  const updateForm = (key,value)=>{
+
+    setForm(prev=>({
+
+      ...prev,
+
+      [key]:value
+
+    }));
+
+  };
+
+
+
+
 
   const filteredFields = useMemo(()=>{
 
 
     if(!form.farm)
+
       return fields;
 
 
     return fields.filter(
 
       field =>
-        field.farm === form.farm ||
-        field.farmName === form.farm
+
+      field.farm === form.farm ||
+
+      field.farmName === form.farm
 
     );
 
@@ -98,22 +113,79 @@ export default function Diseases() {
 
 
 
-  const smartAdvice = useMemo(()=>{
 
 
-    if(form.severity==="عالية")
-
-      return "⚠️ يوصى بالتدخل السريع ومراجعة مهندس زراعي.";
+  const riskAnalysis = useMemo(()=>{
 
 
-    if(form.severity==="متوسطة")
+    const rate =
+      Number(form.infectionRate || 0);
 
-      return "🌱 يجب متابعة الحالة خلال الأيام القادمة.";
 
 
-    return "✅ الحالة تحت السيطرة مع المتابعة.";
+    if(
 
-  },[form.severity]);
+      form.severity === "عالية" ||
+
+      rate >= 50
+
+    ){
+
+      return {
+
+        level:"🔴 خطر مرتفع",
+
+        advice:
+        "يجب التدخل السريع ومراجعة مهندس زراعي."
+
+      };
+
+    }
+
+
+
+
+    if(
+
+      form.severity === "متوسطة" ||
+
+      rate >= 20
+
+    ){
+
+      return {
+
+        level:"🟡 خطر متوسط",
+
+        advice:
+        "ينصح بالمراقبة والمتابعة المستمرة."
+
+      };
+
+    }
+
+
+
+
+    return {
+
+      level:"🟢 خطر منخفض",
+
+      advice:
+      "الحالة مستقرة مع المتابعة."
+
+    };
+
+
+  },[
+
+    form.severity,
+
+    form.infectionRate
+
+  ]);
+
+
 
 
 
@@ -123,66 +195,78 @@ export default function Diseases() {
 
 
     if(
+
       !form.field ||
+
       !form.type
-    )
-    return;
+
+    ){
+
+      alert(
+        "اختر الحقل ونوع المشكلة"
+      );
+
+      return;
+
+    }
 
 
 
-    const newDisease={
+
+    const newDisease = {
 
 
-      id:Date.now(),
+      id:
+
+      Date.now(),
 
 
       ...form,
 
 
+      risk:
+
+      riskAnalysis.level,
+
+
+      recommendation:
+
+      riskAnalysis.advice,
+
+
       createdAt:
+
       new Date().toISOString(),
 
 
       updatedAt:
+
       new Date().toISOString(),
 
     };
 
 
 
+
+
     setDiseases([
 
-      ...diseases,
+      newDisease,
 
-      newDisease
+      ...diseases
 
     ]);
 
 
 
-    setForm({
 
-      farm:"",
-      field:"",
-      crop:"",
-      type:"",
-      name:"",
-      severity:"متوسطة",
-      status:"جديدة",
-      source:"يدوي",
-      infectionRate:"",
-      discoveryDate:"",
-      followDate:"",
-      symptoms:"",
-      diagnosis:"",
-      treatment:"",
-      image:"",
-      notes:"",
 
-    });
+    setForm(initialForm);
 
 
   };
+
+
 
 
 
@@ -195,13 +279,19 @@ export default function Diseases() {
 
       diseases.filter(
 
-        item=>item.id!==id
+        item =>
+
+        item.id !== id
 
       )
 
     );
 
+
   };
+
+
+
 
 
 
@@ -212,45 +302,68 @@ export default function Diseases() {
 
 
 <h1>
-🦠 نظام الأمراض والآفات الذكي
+🦠 نظام الأمراض الزراعي الذكي
 </h1>
 
 
+<p>
+تشخيص ومتابعة الأمراض والآفات مع تحليل مستوى الخطورة.
+</p>
 
-<Card title="إضافة حالة مرضية">
+
+
+
+
+
+<Card title="➕ تسجيل حالة جديدة">
+
 
 
 <select
+
 value={form.farm}
-onChange={
-e=>updateForm(
+
+onChange={(e)=>
+
+updateForm(
 "farm",
 e.target.value
 )
+
 }
+
 >
 
-<option>
+<option value="">
 اختر المزرعة
 </option>
 
 
 {
-farms.map(farm=>(
+
+farms.map(item=>(
 
 <option
-key={farm.id}
-value={farm.name}
+
+key={item.id}
+
+value={item.name}
+
 >
 
-{farm.name}
+{item.name}
 
 </option>
 
+
 ))
+
 }
 
+
 </select>
+
+
 
 
 
@@ -258,34 +371,47 @@ value={farm.name}
 
 
 
+
+
 <select
+
 value={form.field}
-onChange={
-e=>updateForm(
+
+onChange={(e)=>
+
+updateForm(
 "field",
 e.target.value
 )
+
 }
+
 >
 
-<option>
+<option value="">
 اختر الحقل
 </option>
 
 
 {
-filteredFields.map(field=>(
+
+filteredFields.map(item=>(
 
 <option
-key={field.id}
-value={field.name}
+
+key={item.id}
+
+value={item.name}
+
 >
 
-{field.name}
+{item.name}
 
 </option>
 
+
 ))
+
 }
 
 
@@ -293,18 +419,108 @@ value={field.name}
 
 
 
+
+
 <br/><br/>
 
 
 
+
+
 <select
+
+value={form.crop}
+
+onChange={(e)=>
+
+updateForm(
+"crop",
+e.target.value
+)
+
+}
+
+>
+
+<option value="">
+اختر المحصول
+</option>
+
+
+{
+
+crops.map(item=>(
+
+<option
+
+key={item.id}
+
+value={item.name}
+
+>
+
+{item.name}
+
+</option>
+
+
+))
+
+}
+
+
+</select>
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+<input
+
+placeholder="اسم المرض أو الآفة"
+
+value={form.name}
+
+onChange={(e)=>
+
+updateForm(
+"name",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+<select
+
 value={form.type}
-onChange={
-e=>updateForm(
+
+onChange={(e)=>
+
+updateForm(
 "type",
 e.target.value
 )
+
 }
+
 >
 
 <option>
@@ -320,11 +536,11 @@ e.target.value
 </option>
 
 <option>
-حشرة
+فيروس
 </option>
 
 <option>
-فيروس
+حشرة
 </option>
 
 <option>
@@ -335,43 +551,32 @@ e.target.value
 مشكلة ري
 </option>
 
+
 </select>
 
 
 
-<br/><br/>
-
-
-
-<input
-
-placeholder="اسم المرض"
-
-value={form.name}
-
-onChange={
-e=>updateForm(
-"name",
-e.target.value
-)
-}
-
-/>
-
 
 
 <br/><br/>
+
+
 
 
 
 <select
+
 value={form.severity}
-onChange={
-e=>updateForm(
+
+onChange={(e)=>
+
+updateForm(
 "severity",
 e.target.value
 )
+
 }
+
 >
 
 <option>
@@ -386,75 +591,16 @@ e.target.value
 عالية
 </option>
 
+
 </select>
+
+
 
 
 
 <br/><br/>
 
 
-
-<select
-value={form.status}
-onChange={
-e=>updateForm(
-"status",
-e.target.value
-)
-}
->
-
-<option>
-جديدة
-</option>
-
-<option>
-قيد العلاج
-</option>
-
-<option>
-تم الشفاء
-</option>
-
-<option>
-تحتاج متابعة
-</option>
-
-</select>
-
-
-
-<br/><br/>
-
-
-
-<select
-value={form.source}
-onChange={
-e=>updateForm(
-"source",
-e.target.value
-)
-}
->
-
-<option>
-يدوي
-</option>
-
-<option>
-مهندس زراعي
-</option>
-
-<option>
-ذكاء اصطناعي
-</option>
-
-</select>
-
-
-
-<br/><br/>
 
 
 
@@ -466,39 +612,24 @@ placeholder="نسبة الإصابة %"
 
 value={form.infectionRate}
 
-onChange={
-e=>updateForm(
+onChange={(e)=>
+
+updateForm(
 "infectionRate",
 e.target.value
 )
+
 }
 
 />
 
 
 
-<br/><br/>
-
-
-
-<input
-
-type="date"
-
-value={form.discoveryDate}
-
-onChange={
-e=>updateForm(
-"discoveryDate",
-e.target.value
-)
-}
-
-/>
-
 
 
 <br/><br/>
+
+
 
 
 
@@ -508,18 +639,24 @@ placeholder="الأعراض"
 
 value={form.symptoms}
 
-onChange={
-e=>updateForm(
+onChange={(e)=>
+
+updateForm(
 "symptoms",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <br/><br/>
+
+
 
 
 
@@ -529,18 +666,24 @@ placeholder="التشخيص"
 
 value={form.diagnosis}
 
-onChange={
-e=>updateForm(
+onChange={(e)=>
+
+updateForm(
 "diagnosis",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <br/><br/>
+
+
 
 
 
@@ -550,14 +693,18 @@ placeholder="العلاج"
 
 value={form.treatment}
 
-onChange={
-e=>updateForm(
+onChange={(e)=>
+
+updateForm(
 "treatment",
 e.target.value
 )
+
 }
 
 />
+
+
 
 
 
@@ -565,38 +712,32 @@ e.target.value
 
 
 
-<textarea
-
-placeholder="ملاحظات"
-
-value={form.notes}
-
-onChange={
-e=>updateForm(
-"notes",
-e.target.value
-)
-}
-
-/>
-
-
-
-<br/><br/>
 
 
 <p>
-🤖 التوصية:
-{smartAdvice}
+
+🤖 التحليل:
+
+<br/>
+
+{riskAnalysis.level}
+
+<br/>
+
+{riskAnalysis.advice}
+
 </p>
+
+
 
 
 
 <Button onClick={addDisease}>
 
-حفظ الحالة
+💾 حفظ الحالة
 
 </Button>
+
 
 
 </Card>
@@ -605,7 +746,11 @@ e.target.value
 
 
 
+
+
+
 <Card title="📋 سجل الأمراض">
+
 
 
 {
@@ -626,30 +771,14 @@ item.type
 
 
 <p>
-🏡 {item.farm}
+🏡 المزرعة:
+{item.farm}
 </p>
 
 
 <p>
-🌾 {item.field}
-</p>
-
-
-<p>
-⚠️ الخطورة:
-{item.severity}
-</p>
-
-
-<p>
-📌 الحالة:
-{item.status}
-</p>
-
-
-<p>
-🤖 المصدر:
-{item.source}
+🌱 المحصول:
+{item.crop}
 </p>
 
 
@@ -660,10 +789,21 @@ item.type
 
 
 <p>
+⚠️ الخطورة:
+{item.risk}
+</p>
+
+
+<p>
 💊 العلاج:
 {item.treatment}
 </p>
 
+
+<p>
+🤖 التوصية:
+{item.recommendation}
+</p>
 
 
 <Button
@@ -672,7 +812,7 @@ onClick={()=>deleteDisease(item.id)}
 
 >
 
-حذف
+🗑️ حذف
 
 </Button>
 
@@ -683,14 +823,18 @@ onClick={()=>deleteDisease(item.id)}
 
 ))
 
+
 }
+
 
 
 </Card>
 
 
+
+
 </div>
 
-);
+  );
 
 }
