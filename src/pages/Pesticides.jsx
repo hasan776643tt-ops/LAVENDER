@@ -1,5 +1,12 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+import {
+  useContext,
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  FarmContext,
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
@@ -9,120 +16,185 @@ export default function Pesticides() {
 
 
   const {
-    farms,
-    fields,
-    pesticides,
+
+    farms = [],
+    fields = [],
+    crops = [],
+    pesticides = [],
     setPesticides,
+
   } = useContext(FarmContext);
 
 
 
-  const [farmName, setFarmName] = useState("");
 
-  const [fieldName, setFieldName] = useState("");
+  const [form,setForm] = useState({
 
-  const [name, setName] = useState("");
+    farm:"",
+    field:"",
+    crop:"",
+    name:"",
+    active:"",
+    target:"",
+    quantity:"",
+    unit:"مل",
+    method:"",
+    date:"",
+    safetyDays:"",
+    notes:"",
 
-  const [target, setTarget] = useState("");
-
-  const [quantity, setQuantity] = useState("");
-
-  const [unit, setUnit] = useState("مل");
-
-  const [method, setMethod] = useState("");
-
-  const [date, setDate] = useState("");
-
-  const [safetyDays, setSafetyDays] = useState("");
-
-  const [notes, setNotes] = useState("");
+  });
 
 
 
-  const addPesticide = () => {
 
 
-    if(
-      !farmName ||
-      !fieldName ||
-      !name
-    ) return;
+  const updateForm = (key,value)=>{
 
+    setForm({
 
+      ...form,
 
-    const newPesticide = {
+      [key]:value
 
-
-      id: Date.now(),
-
-      farm: farmName,
-
-      field: fieldName,
-
-      name,
-
-      target,
-
-      quantity,
-
-      unit,
-
-      method,
-
-      date,
-
-      safetyDays,
-
-      notes,
-
-
-    };
-
-
-
-    setPesticides([
-
-      ...pesticides,
-
-      newPesticide
-
-    ]);
-
-
-
-    setFarmName("");
-
-    setFieldName("");
-
-    setName("");
-
-    setTarget("");
-
-    setQuantity("");
-
-    setUnit("مل");
-
-    setMethod("");
-
-    setDate("");
-
-    setSafetyDays("");
-
-    setNotes("");
+    });
 
   };
 
 
 
 
-  const deletePesticide = (id)=>{
+
+  const farmFields = useMemo(()=>{
+
+
+    if(!form.farm)
+
+      return fields;
+
+
+    return fields.filter(
+
+      field =>
+
+      field.farm === form.farm ||
+
+      field.farmName === form.farm
+
+    );
+
+
+  },[
+
+    fields,
+    form.farm
+
+  ]);
+
+
+
+
+
+
+
+  const addPesticide = ()=>{
+
+
+    if(
+
+      !form.farm ||
+
+      !form.field ||
+
+      !form.name
+
+    ){
+
+      alert(
+        "اختر المزرعة والحقل وأدخل اسم المبيد"
+      );
+
+      return;
+
+    }
+
+
+
+
+
+    const newPesticide = {
+
+
+      id:
+
+      Date.now(),
+
+
+      ...form,
+
+
+      status:"نشط",
+
+
+      createdAt:
+
+      new Date().toISOString(),
+
+
+    };
+
+
+
+
+
+    setPesticides([
+
+      newPesticide,
+
+      ...pesticides
+
+    ]);
+
+
+
+
+
+    setForm({
+
+      farm:"",
+      field:"",
+      crop:"",
+      name:"",
+      active:"",
+      target:"",
+      quantity:"",
+      unit:"مل",
+      method:"",
+      date:"",
+      safetyDays:"",
+      notes:"",
+
+    });
+
+
+  };
+
+
+
+
+
+
+
+  const deletePesticide=(id)=>{
 
 
     setPesticides(
 
       pesticides.filter(
 
-        item => item.id !== id
+        item=>
+
+        item.id !== id
 
       )
 
@@ -134,415 +206,601 @@ export default function Pesticides() {
 
 
 
-  const farmFields = fields.filter(
 
-    field =>
 
-    field.farm === farmName
 
-  );
+  const getSafetyStatus=(days)=>{
 
 
+    const value =
+      Number(days);
 
 
-  return (
 
-    <div>
+    if(!value)
 
+      return "غير محدد";
 
-      <h1>
-        🧪 إدارة المبيدات الذكية
-      </h1>
 
 
+    if(value <= 3)
 
-      <Card title="إضافة عملية رش جديدة">
+      return "🔴 يحتاج متابعة";
 
 
-        <select
 
-          value={farmName}
+    if(value <= 7)
 
-          onChange={(e)=>{
+      return "🟡 قريب من الحصاد";
 
-            setFarmName(e.target.value);
 
-            setFieldName("");
 
-          }}
+    return "🟢 آمن";
 
-        >
+  };
 
-          <option value="">
-            اختر المزرعة
-          </option>
 
 
-          {
-            farms.map(farm=>(
 
-              <option
-                key={farm.id}
-                value={farm.name}
-              >
 
-                {farm.name}
 
-              </option>
 
-            ))
-          }
 
+return (
 
-        </select>
+<div>
 
 
+<h1>
+🧪 إدارة المبيدات الذكية
+</h1>
 
-        <br/><br/>
 
 
+<p>
+نظام متابعة عمليات الرش وفترات الأمان الزراعية.
+</p>
 
 
-        <select
 
-          value={fieldName}
 
-          onChange={(e)=>
 
-            setFieldName(e.target.value)
+<Card title="➕ إضافة عملية رش">
 
-          }
 
-        >
+<select
 
-          <option value="">
-            اختر الحقل
-          </option>
+value={form.farm}
 
+onChange={(e)=>
 
-          {
-            farmFields.map(field=>(
+updateForm(
+"farm",
+e.target.value
+)
 
-              <option
+}
 
-                key={field.id}
+>
 
-                value={field.name}
+<option value="">
+اختر المزرعة
+</option>
 
-              >
 
-                {field.name}
+{
 
-              </option>
+farms.map(item=>(
 
-            ))
-          }
+<option
 
+key={item.id}
 
-        </select>
+value={item.name}
 
+>
 
+{item.name}
 
-        <br/><br/>
+</option>
 
 
+))
 
+}
 
-        <input
 
-          type="text"
+</select>
 
-          placeholder="اسم المبيد"
 
-          value={name}
 
-          onChange={(e)=>
 
-            setName(e.target.value)
+<br/><br/>
 
-          }
 
-        />
 
 
 
-        <br/><br/>
+<select
 
+value={form.field}
 
+onChange={(e)=>
 
+updateForm(
+"field",
+e.target.value
+)
 
-        <input
+}
 
-          type="text"
+>
 
-          placeholder="الآفة أو المرض المستهدف"
+<option value="">
+اختر الحقل
+</option>
 
-          value={target}
 
-          onChange={(e)=>
+{
 
-            setTarget(e.target.value)
+farmFields.map(item=>(
 
-          }
+<option
 
-        />
+key={item.id}
 
+value={item.name}
 
+>
 
-        <br/><br/>
+{item.name}
 
+</option>
 
 
+))
 
-        <input
+}
 
-          type="number"
 
-          placeholder="الكمية"
+</select>
 
-          value={quantity}
 
-          onChange={(e)=>
 
-            setQuantity(e.target.value)
 
-          }
+<br/><br/>
 
-        />
 
 
 
-        <select
 
-          value={unit}
+<select
 
-          onChange={(e)=>
+value={form.crop}
 
-            setUnit(e.target.value)
+onChange={(e)=>
 
-          }
+updateForm(
+"crop",
+e.target.value
+)
 
-        >
+}
 
-          <option>
-            مل
-          </option>
+>
 
+<option value="">
+اختر المحصول
+</option>
 
-          <option>
-            لتر
-          </option>
 
+{
 
-          <option>
-            كغ
-          </option>
+crops.map(item=>(
 
+<option
 
-        </select>
+key={item.id}
 
+value={item.name}
 
+>
 
-        <br/><br/>
+{item.name}
 
+</option>
 
 
+))
 
-        <input
+}
 
-          type="text"
 
-          placeholder="طريقة الاستخدام"
+</select>
 
-          value={method}
 
-          onChange={(e)=>
 
-            setMethod(e.target.value)
 
-          }
 
-        />
+<br/><br/>
 
 
 
-        <br/><br/>
 
 
+<input
 
+placeholder="اسم المبيد"
 
-        <label>
-          تاريخ الرش
-        </label>
+value={form.name}
 
+onChange={(e)=>
 
-        <input
+updateForm(
+"name",
+e.target.value
+)
 
-          type="date"
+}
 
-          value={date}
+/>
 
-          onChange={(e)=>
 
-            setDate(e.target.value)
 
-          }
 
-        />
 
+<br/><br/>
 
 
-        <br/><br/>
 
 
 
+<input
 
-        <input
+placeholder="المادة الفعالة"
 
-          type="number"
+value={form.active}
 
-          placeholder="فترة الأمان قبل الحصاد بالأيام"
+onChange={(e)=>
 
-          value={safetyDays}
+updateForm(
+"active",
+e.target.value
+)
 
-          onChange={(e)=>
+}
 
-            setSafetyDays(e.target.value)
+/>
 
-          }
 
-        />
 
 
 
-        <br/><br/>
+<br/><br/>
 
 
 
 
-        <textarea
 
-          placeholder="ملاحظات"
+<input
 
-          value={notes}
+placeholder="الآفة أو المرض المستهدف"
 
-          onChange={(e)=>
+value={form.target}
 
-            setNotes(e.target.value)
+onChange={(e)=>
 
-          }
+updateForm(
+"target",
+e.target.value
+)
 
-        />
+}
 
+/>
 
 
-        <br/><br/>
 
 
 
+<br/><br/>
 
-        <Button onClick={addPesticide}>
 
-          حفظ عملية الرش
 
-        </Button>
 
 
+<input
 
-      </Card>
+type="number"
 
+placeholder="الكمية"
 
+value={form.quantity}
 
+onChange={(e)=>
 
+updateForm(
+"quantity",
+e.target.value
+)
 
-      <h2>
-        سجل المبيدات
-      </h2>
+}
 
+/>
 
 
 
-      {
-        pesticides.map(item=>(
 
 
-          <Card
+<select
 
-            key={item.id}
+value={form.unit}
 
-            title={item.name}
+onChange={(e)=>
 
-          >
+updateForm(
+"unit",
+e.target.value
+)
 
+}
 
-            <p>
-              🏡 المزرعة: {item.farm}
-            </p>
+>
 
+<option>
+مل
+</option>
 
-            <p>
-              🌱 الحقل: {item.field}
-            </p>
+<option>
+لتر
+</option>
 
+<option>
+كغ
+</option>
 
-            <p>
-              🐛 الهدف: {item.target}
-            </p>
 
+</select>
 
-            <p>
-              ⚖️ الكمية:
-              {item.quantity} {item.unit}
-            </p>
 
 
-            <p>
-              🚜 الطريقة:
-              {item.method}
-            </p>
 
 
-            <p>
-              📅 التاريخ:
-              {item.date}
-            </p>
+<br/><br/>
 
 
-            <p>
-              ⏳ فترة الأمان:
-              {item.safetyDays} يوم
-            </p>
 
 
-            <p>
-              📝 الملاحظات:
-              {item.notes}
-            </p>
 
+<input
 
+placeholder="طريقة الاستخدام"
 
-            <Button
+value={form.method}
 
-              onClick={()=>deletePesticide(item.id)}
+onChange={(e)=>
 
-            >
+updateForm(
+"method",
+e.target.value
+)
 
-              حذف
+}
 
-            </Button>
+/>
 
 
 
-          </Card>
 
 
-        ))
-      }
+<br/><br/>
 
 
 
-    </div>
 
-  );
+
+<input
+
+type="date"
+
+value={form.date}
+
+onChange={(e)=>
+
+updateForm(
+"date",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+<input
+
+type="number"
+
+placeholder="فترة الأمان بالأيام"
+
+value={form.safetyDays}
+
+onChange={(e)=>
+
+updateForm(
+"safetyDays",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+<textarea
+
+placeholder="ملاحظات"
+
+value={form.notes}
+
+onChange={(e)=>
+
+updateForm(
+"notes",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+<Button onClick={addPesticide}>
+
+💾 حفظ عملية الرش
+
+</Button>
+
+
+
+</Card>
+
+
+
+
+
+
+
+<Card title="📋 سجل عمليات الرش">
+
+
+{
+
+pesticides.map(item=>(
+
+
+<Card
+
+key={item.id}
+
+title={item.name}
+
+>
+
+
+<p>
+🏡 المزرعة:
+{item.farm}
+</p>
+
+
+<p>
+🌱 المحصول:
+{item.crop}
+</p>
+
+
+<p>
+🐛 الهدف:
+{item.target}
+</p>
+
+
+<p>
+⚗️ المادة الفعالة:
+{item.active}
+</p>
+
+
+<p>
+⚖️ الكمية:
+{item.quantity} {item.unit}
+</p>
+
+
+<p>
+⏳ فترة الأمان:
+{item.safetyDays} يوم
+</p>
+
+
+<p>
+📌 الحالة:
+{getSafetyStatus(item.safetyDays)}
+</p>
+
+
+<p>
+📅 التاريخ:
+{item.date}
+</p>
+
+
+<p>
+📝 ملاحظات:
+{item.notes}
+</p>
+
+
+
+<Button
+
+onClick={()=>deletePesticide(item.id)}
+
+>
+
+🗑️ حذف
+
+</Button>
+
+
+
+</Card>
+
+
+))
+
+
+}
+
+
+
+</Card>
+
+
+
+
+
+</div>
+
+);
+
 
 }
