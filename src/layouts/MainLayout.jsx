@@ -4,15 +4,15 @@ import Footer from "../components/Footer";
 
 export default function MainLayout({ children }) {
   return (
-    <div>
+    <div className="app-layout">
 
       <Header />
 
-      <div>
+      <div className="app-body">
 
         <Sidebar />
 
-        <main>
+        <main className="app-content">
           {children}
         </main>
 
