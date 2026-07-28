@@ -3,7 +3,7 @@
 import {
   useContext,
   useState,
-  useMemo,
+  useMemo
 } from "react";
 
 import {
@@ -13,205 +13,325 @@ import {
 import Card from "../components/Card";
 import Button from "../components/Button";
 
-export default function Farms() {
 
-  const {
+export default function Farms(){
 
-    farms,
+const {
 
-    addFarm,
+farms,
 
-    updateFarm,
+addFarm,
 
-    deleteFarm
+updateFarm,
 
-  } = useContext(FarmContext);
+deleteFarm
 
-  const [form,setForm] = useState({
+}=useContext(FarmContext);
 
-    name:"",
-    owner:"",
-    area:"",
-    location:"",
-    cropType:"",
-    irrigationType:"",
-    plantingDate:"",
-    notes:""
 
-  });
 
-  const [editId,setEditId] =
-    useState(null);
+const emptyForm = {
 
-  const [search,setSearch] =
-    useState("");
+name:"",
+owner:"",
+area:"",
+location:"",
+latitude:"",
+longitude:"",
+cropType:"",
+irrigationType:"",
+plantingDate:"",
+notes:""
 
-  const handleChange = (e)=>{
+};
 
-    setForm({
 
-      ...form,
 
-      [e.target.name]:
-      e.target.value
+const [form,setForm]=
+useState(emptyForm);
 
-    });
 
-  };
 
-  const getCurrentLocation = ()=>{
+const [editId,setEditId]=
+useState(null);
 
-    if(!navigator.geolocation){
 
-      alert(
-        "المتصفح لا يدعم GPS"
-      );
 
-      return;
+const [search,setSearch]=
+useState("");
 
-    }
 
-    navigator.geolocation.getCurrentPosition(
 
-      (position)=>{
 
-        const lat =
-          position.coords.latitude;
 
-        const lng =
-          position.coords.longitude;
+// =====================
+// Change Handler
+// =====================
 
-        setForm(prev => ({
+const handleChange=(e)=>{
 
-          ...prev,
+setForm({
 
-          location:
-          `${lat}, ${lng}`
+...form,
 
-        }));
+[e.target.name]:
+e.target.value
 
-      },
+});
 
-      ()=>{
+};
 
-        alert(
-          "تعذر الحصول على الموقع"
-        );
 
-      }
 
-    );
 
-  };
 
-  const clearForm = ()=>{
+// =====================
+// GPS
+// =====================
 
-    setForm({
+const getCurrentLocation=()=>{
 
-      name:"",
-      owner:"",
-      area:"",
-      location:"",
-      cropType:"",
-      irrigationType:"",
-      plantingDate:"",
-      notes:""
 
-    });
+if(!navigator.geolocation){
 
-    setEditId(null);
+alert(
+"GPS غير مدعوم"
+);
 
-  };
+return;
 
-  const saveFarm = ()=>{
+}
 
-    if(
-      !form.name ||
-      !form.owner
-    )
-    return;
 
-    if(editId){
 
-      updateFarm(
-        editId,
-        form
-      );
+navigator.geolocation.getCurrentPosition(
 
-    }else{
+(position)=>{
 
-      addFarm(form);
 
-    }
+const {
 
-    clearForm();
+latitude,
 
-  };
+longitude
 
-  const editFarm = (farm)=>{
+}=position.coords;
 
-    setForm({
 
-      name:farm.name || "",
 
-      owner:farm.owner || "",
+setForm(prev=>({
 
-      area:farm.area || "",
+...prev,
 
-      location:farm.location || "",
+latitude,
 
-      cropType:farm.cropType || "",
+longitude,
 
-      irrigationType:
-      farm.irrigationType || "",
+location:
+`${latitude}, ${longitude}`
 
-      plantingDate:
-      farm.plantingDate || "",
+}));
 
-      notes:farm.notes || ""
 
-    });
 
-    setEditId(
-      farm.id
-    );
+},
 
-  };
 
-  const filteredFarms =
-  useMemo(()=>{
+()=>{
 
-    return farms.filter(
-      farm =>
+alert(
+"تعذر تحديد الموقع"
+);
 
-      farm.name
-      ?.toLowerCase()
-      .includes(
-        search.toLowerCase()
-      )
+}
 
-    );
+);
 
-  },[
-    farms,
-    search
-  ]);    return (
+
+};
+
+
+
+
+
+// =====================
+// Reset
+// =====================
+
+const clearForm=()=>{
+
+setForm(emptyForm);
+
+setEditId(null);
+
+};
+
+
+
+
+
+// =====================
+// Save
+// =====================
+
+const saveFarm=()=>{
+
+
+if(
+!form.name ||
+!form.owner
+)
+return;
+
+
+
+if(editId){
+
+
+updateFarm(
+
+editId,
+
+form
+
+);
+
+
+}else{
+
+
+addFarm({
+
+...form,
+
+created:
+new Date()
+.toISOString()
+
+});
+
+
+}
+
+
+
+clearForm();
+
+
+};  // =====================
+// Edit Farm
+// =====================
+
+const editFarm = (farm)=>{
+
+
+setForm({
+
+name:farm.name || "",
+
+owner:farm.owner || "",
+
+area:farm.area || "",
+
+location:farm.location || "",
+
+latitude:farm.latitude || "",
+
+longitude:farm.longitude || "",
+
+cropType:farm.cropType || "",
+
+irrigationType:
+farm.irrigationType || "",
+
+plantingDate:
+farm.plantingDate || "",
+
+notes:farm.notes || ""
+
+});
+
+
+setEditId(
+farm.id
+);
+
+
+};
+
+
+
+
+
+// =====================
+// Search
+// =====================
+
+const filteredFarms =
+
+useMemo(()=>{
+
+
+return farms.filter(farm=>
+
+
+farm.name
+
+?.toLowerCase()
+
+.includes(
+
+search.toLowerCase()
+
+)
+
+
+);
+
+
+},[
+farms,
+search
+]);
+
+
+
+
+
+// =====================
+// UI
+// =====================
+
+
+return (
 
 <div>
+
 
 <h1>
 🌱 إدارة المزارع الذكية
 </h1>
 
+
+
 <Card
+
 title={
+
 editId
+
 ?
+
 "✏️ تعديل المزرعة"
+
 :
-"➕ إضافة مزرعة جديدة"
+
+"➕ إضافة مزرعة"
+
 }
+
 >
+
 
 <input
 
@@ -225,6 +345,8 @@ onChange={handleChange}
 
 />
 
+
+
 <input
 
 name="owner"
@@ -236,6 +358,8 @@ value={form.owner}
 onChange={handleChange}
 
 />
+
+
 
 <input
 
@@ -251,6 +375,8 @@ onChange={handleChange}
 
 />
 
+
+
 <input
 
 name="location"
@@ -259,15 +385,24 @@ placeholder="📍 موقع المزرعة"
 
 value={form.location}
 
-onChange={handleChange}
+readOnly
 
 />
 
+
+
 <Button
+
 onClick={getCurrentLocation}
+
 >
-📍 تحديد موقعي الحالي
+
+📍 تحديد الموقع
+
 </Button>
+
+
+
 
 <input
 
@@ -281,6 +416,9 @@ onChange={handleChange}
 
 />
 
+
+
+
 <input
 
 name="irrigationType"
@@ -292,6 +430,8 @@ value={form.irrigationType}
 onChange={handleChange}
 
 />
+
+
 
 <input
 
@@ -305,6 +445,9 @@ onChange={handleChange}
 
 />
 
+
+
+
 <textarea
 
 name="notes"
@@ -317,44 +460,79 @@ onChange={handleChange}
 
 />
 
-<Button onClick={saveFarm}>
+
+
+
+<Button
+
+onClick={saveFarm}
+
+>
 
 {
+
 editId
+
 ?
+
 "حفظ التعديل"
+
 :
+
 "إضافة المزرعة"
+
 }
 
 </Button>
 
+
 </Card>
 
-<Card title="🔎 البحث">
+
+
+
+
+<Card
+
+title="🔎 البحث"
+
+>
+
 
 <input
 
-placeholder="ابحث عن مزرعة..."
+placeholder="ابحث عن مزرعة"
 
 value={search}
 
-onChange={
-e=>setSearch(e.target.value)
+onChange={e=>
+
+setSearch(
+e.target.value
+)
+
 }
 
 />
 
+
 </Card>
 
+
+
+
+
 <h2>
-قائمة المزارع
+🚜 قائمة المزارع
 </h2>
+
+
+
 
 {
 
-filteredFarms.map(
-farm=>(
+filteredFarms.map(farm=>(
+
 
 <Card
 
@@ -366,46 +544,58 @@ title={
 
 >
 
+
 <p>
 👤 المالك:
 {farm.owner}
 </p>
+
 
 <p>
 📏 المساحة:
 {farm.area} دونم
 </p>
 
+
+
 <p>
 📍 الموقع:
 {farm.location}
 </p>
+
+
 
 <p>
 🌱 المحصول:
 {farm.cropType}
 </p>
 
+
+
 <p>
 💧 الري:
 {farm.irrigationType}
 </p>
 
+
+
 <p>
-📅 الزراعة:
+📅 تاريخ الزراعة:
 {farm.plantingDate}
 </p>
 
+
+
 <p>
-📝
-{farm.notes}
+📝 {farm.notes}
 </p>
+
+
+
 
 <Button
 
-onClick={()=>
-editFarm(farm)
-}
+onClick={()=>editFarm(farm)}
 
 >
 
@@ -413,11 +603,12 @@ editFarm(farm)
 
 </Button>
 
+
+
+
 <Button
 
-onClick={()=>
-deleteFarm(farm.id)
-}
+onClick={()=>deleteFarm(farm.id)}
 
 >
 
@@ -425,16 +616,21 @@ deleteFarm(farm.id)
 
 </Button>
 
+
+
 </Card>
 
-)
 
-)
+))
+
 
 }
 
+
+
 </div>
 
-  );
+);
+
 
 }
