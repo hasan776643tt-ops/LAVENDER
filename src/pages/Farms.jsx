@@ -13,9 +13,7 @@ import {
 import Card from "../components/Card";
 import Button from "../components/Button";
 
-
 export default function Farms() {
-
 
   const {
 
@@ -28,8 +26,6 @@ export default function Farms() {
     deleteFarm
 
   } = useContext(FarmContext);
-
-
 
   const [form,setForm] = useState({
 
@@ -44,18 +40,11 @@ export default function Farms() {
 
   });
 
-
-
   const [editId,setEditId] =
     useState(null);
 
-
-
   const [search,setSearch] =
     useState("");
-
-
-
 
   const handleChange = (e)=>{
 
@@ -70,8 +59,50 @@ export default function Farms() {
 
   };
 
+  const getCurrentLocation = ()=>{
 
+    if(!navigator.geolocation){
 
+      alert(
+        "المتصفح لا يدعم GPS"
+      );
+
+      return;
+
+    }
+
+    navigator.geolocation.getCurrentPosition(
+
+      (position)=>{
+
+        const lat =
+          position.coords.latitude;
+
+        const lng =
+          position.coords.longitude;
+
+        setForm(prev => ({
+
+          ...prev,
+
+          location:
+          `${lat}, ${lng}`
+
+        }));
+
+      },
+
+      ()=>{
+
+        alert(
+          "تعذر الحصول على الموقع"
+        );
+
+      }
+
+    );
+
+  };
 
   const clearForm = ()=>{
 
@@ -88,17 +119,11 @@ export default function Farms() {
 
     });
 
-
     setEditId(null);
 
   };
 
-
-
-
-
   const saveFarm = ()=>{
-
 
     if(
       !form.name ||
@@ -106,38 +131,24 @@ export default function Farms() {
     )
     return;
 
-
-
     if(editId){
-
 
       updateFarm(
         editId,
         form
       );
 
-
     }else{
-
 
       addFarm(form);
 
-
     }
-
-
 
     clearForm();
 
-
   };
 
-
-
-
-
   const editFarm = (farm)=>{
-
 
     setForm({
 
@@ -161,22 +172,14 @@ export default function Farms() {
 
     });
 
-
-
     setEditId(
       farm.id
     );
 
-
   };
-
-
-
-
 
   const filteredFarms =
   useMemo(()=>{
-
 
     return farms.filter(
       farm =>
@@ -189,27 +192,16 @@ export default function Farms() {
 
     );
 
-
   },[
     farms,
     search
-  ]);
-
-
-
-
-
-
-  return (
+  ]);    return (
 
 <div>
-
 
 <h1>
 🌱 إدارة المزارع الذكية
 </h1>
-
-
 
 <Card
 title={
@@ -220,8 +212,6 @@ editId
 "➕ إضافة مزرعة جديدة"
 }
 >
-
-
 
 <input
 
@@ -235,8 +225,6 @@ onChange={handleChange}
 
 />
 
-
-
 <input
 
 name="owner"
@@ -248,8 +236,6 @@ value={form.owner}
 onChange={handleChange}
 
 />
-
-
 
 <input
 
@@ -265,8 +251,6 @@ onChange={handleChange}
 
 />
 
-
-
 <input
 
 name="location"
@@ -279,7 +263,11 @@ onChange={handleChange}
 
 />
 
-
+<Button
+onClick={getCurrentLocation}
+>
+📍 تحديد موقعي الحالي
+</Button>
 
 <input
 
@@ -293,8 +281,6 @@ onChange={handleChange}
 
 />
 
-
-
 <input
 
 name="irrigationType"
@@ -306,8 +292,6 @@ value={form.irrigationType}
 onChange={handleChange}
 
 />
-
-
 
 <input
 
@@ -321,8 +305,6 @@ onChange={handleChange}
 
 />
 
-
-
 <textarea
 
 name="notes"
@@ -335,37 +317,21 @@ onChange={handleChange}
 
 />
 
-
-
 <Button onClick={saveFarm}>
 
 {
-
 editId
-
 ?
-
 "حفظ التعديل"
-
 :
-
 "إضافة المزرعة"
-
 }
 
 </Button>
 
-
-
 </Card>
 
-
-
-
-
-
 <Card title="🔎 البحث">
-
 
 <input
 
@@ -379,26 +345,16 @@ e=>setSearch(e.target.value)
 
 />
 
-
 </Card>
-
-
-
-
-
 
 <h2>
 قائمة المزارع
 </h2>
 
-
-
-
 {
 
 filteredFarms.map(
 farm=>(
-
 
 <Card
 
@@ -410,49 +366,40 @@ title={
 
 >
 
-
 <p>
 👤 المالك:
 {farm.owner}
 </p>
-
 
 <p>
 📏 المساحة:
 {farm.area} دونم
 </p>
 
-
 <p>
 📍 الموقع:
 {farm.location}
 </p>
-
 
 <p>
 🌱 المحصول:
 {farm.cropType}
 </p>
 
-
 <p>
 💧 الري:
 {farm.irrigationType}
 </p>
-
 
 <p>
 📅 الزراعة:
 {farm.plantingDate}
 </p>
 
-
 <p>
 📝
 {farm.notes}
 </p>
-
-
 
 <Button
 
@@ -466,8 +413,6 @@ editFarm(farm)
 
 </Button>
 
-
-
 <Button
 
 onClick={()=>
@@ -480,19 +425,13 @@ deleteFarm(farm.id)
 
 </Button>
 
-
-
 </Card>
-
 
 )
 
 )
 
 }
-
-
-
 
 </div>
 
