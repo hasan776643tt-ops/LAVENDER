@@ -375,8 +375,7 @@ export default function Diseases() {
   };
 
 
-return
-  (<div>
+return (  <div>
 
 
 <h1>
