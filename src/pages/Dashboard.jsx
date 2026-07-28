@@ -1,5 +1,3 @@
-// src/pages/Dashboard.jsx
-
 import {
   useContext,
   useMemo,
@@ -15,28 +13,27 @@ import Card from "../components/Card";
 
 
 
-
 export default function Dashboard(){
 
 
 
 const {
 
-  farms = [],
-  fields = [],
-  crops = [],
+ farms = [],
+ fields = [],
+ crops = [],
 
-  irrigations = [],
-  fertilizers = [],
-  pesticides = [],
+ irrigations = [],
+ fertilizers = [],
+ pesticides = [],
 
-  diseases = [],
+ diseases = [],
 
-  expenses = [],
+ expenses = [],
 
-  harvests = [],
+ harvests = [],
 
-  inventory = [],
+ inventory = [],
 
 
 } = useContext(FarmContext);
@@ -45,16 +42,12 @@ const {
 
 
 
-
-
-
 // =========================
-// Statistics
+// KPI Statistics
 // =========================
 
 
 const statistics = useMemo(()=>[
-
 
 
 {
@@ -64,21 +57,18 @@ info:"إجمالي المزارع"
 },
 
 
-
 {
 title:"🌱 الحقول",
 value:fields.length,
-info:"إجمالي الحقول"
+info:"الحقول المسجلة"
 },
-
 
 
 {
 title:"🌿 المحاصيل",
 value:crops.length,
-info:"المحاصيل المسجلة"
+info:"المحاصيل الحالية"
 },
-
 
 
 {
@@ -88,21 +78,18 @@ info:"عمليات الري"
 },
 
 
+{
+title:"🌾 التسميد",
+value:fertilizers.length,
+info:"عمليات التسميد"
+},
+
 
 {
 title:"🧪 المبيدات",
 value:pesticides.length,
 info:"عمليات المكافحة"
 },
-
-
-
-{
-title:"🌾 الأسمدة",
-value:fertilizers.length,
-info:"عمليات التسميد"
-},
-
 
 
 {
@@ -112,21 +99,18 @@ info:"الحالات المرضية"
 },
 
 
-
-{
-title:"📦 المخزون",
-value:inventory.length,
-info:"مواد المخزون"
-},
-
-
-
 {
 title:"🚜 الحصاد",
 value:harvests.length,
 info:"عمليات الحصاد"
 },
 
+
+{
+title:"📦 المخزون",
+value:inventory.length,
+info:"مواد المخزون"
+},
 
 
 ],[
@@ -137,8 +121,8 @@ irrigations,
 fertilizers,
 pesticides,
 diseases,
-inventory,
-harvests
+harvests,
+inventory
 ]);
 
 
@@ -146,29 +130,19 @@ harvests
 
 
 
-
-
-
-
 // =========================
-// Financial Summary
+// Financial
 // =========================
 
 
 const financial = useMemo(()=>{
 
 
-const total =
-
-expenses.reduce(
+const total = expenses.reduce(
 
 (sum,item)=>
 
-sum +
-
-Number(
-item.amount || 0
-),
+sum + Number(item.amount || 0),
 
 0
 
@@ -180,11 +154,10 @@ return {
 
 total,
 
-count:
+records:
 expenses.length
 
 };
-
 
 
 },[expenses]);
@@ -194,52 +167,56 @@ expenses.length
 
 
 
-
-
-
-
 // =========================
-// Farm Activity Score
+// Smart Health
 // =========================
 
 
-const activityScore = useMemo(()=>{
+const farmHealth = useMemo(()=>{
 
 
-const total =
-
-farms.length +
-
-fields.length +
-
-crops.length +
-
-irrigations.length +
-
-fertilizers.length +
-
-pesticides.length +
-
-diseases.length;
+let score = 100;
 
 
 
-return total;
+if(diseases.length)
+
+score -= 20;
+
+
+
+if(irrigations.length < fields.length)
+
+score -= 15;
+
+
+
+if(fertilizers.length === 0)
+
+score -= 10;
+
+
+
+if(score < 0)
+
+score = 0;
+
+
+
+return score;
 
 
 },[
 
-farms,
-fields,
-crops,
+diseases,
+
 irrigations,
-fertilizers,
-pesticides,
-diseases
+
+fields,
+
+fertilizers
 
 ]);
-
-
 
 
 
@@ -256,64 +233,63 @@ diseases
 const alerts = useMemo(()=>{
 
 
-const list=[];
+const result=[];
 
 
 
-if(
-diseases.length > 0
-)
+if(diseases.length > 0)
 
-list.push(
-"🦠 توجد حالات مرضية تحتاج متابعة."
+result.push(
+"🦠 توجد أمراض تحتاج متابعة."
 );
 
 
 
+if(inventory.length === 0)
 
-if(
-fields.length > irrigations.length
-)
-
-list.push(
-"💧 بعض الحقول تحتاج جدولة ري."
+result.push(
+"📦 المخزون فارغ، أضف المواد الزراعية."
 );
 
 
 
+if(fields.length > irrigations.length)
 
-if(
-expenses.length > 5
-)
-
-list.push(
-"💰 راجع المصاريف لتحسين الإدارة."
+result.push(
+"💧 بعض الحقول تحتاج خطة ري."
 );
 
 
 
+if(result.length===0)
 
-if(
-list.length === 0
-)
-
-list.push(
-"✅ النظام الزراعي يعمل بشكل مستقر."
+result.push(
+"✅ جميع الأنظمة تعمل بشكل جيد."
 );
 
 
 
-return list;
+return result;
 
 
 },[
 
 diseases,
-fields,
-irrigations,
-expenses
 
-]);  return (
+inventory,
+
+fields,
+
+irrigations
+
+]);
+
+
+
+
+
+
+return (
 
 <div>
 
@@ -324,11 +300,10 @@ expenses
 </h1>
 
 
-
 <p>
 🌱 LAVENDER Smart Farm
 <br/>
-إدارة ومراقبة الأنظمة الزراعية
+نظام إدارة ومراقبة المزرعة
 </p>
 
 
@@ -336,21 +311,17 @@ expenses
 
 
 
-
-<Card title="🚀 الأداء العام">
-
+<Card title="🚀 صحة المزرعة">
 
 
 <h2>
-{activityScore}
+{farmHealth}%
 </h2>
 
 
-
 <p>
-إجمالي النشاطات الزراعية
+مؤشر الحالة الزراعية
 </p>
-
 
 
 </Card>
@@ -361,49 +332,27 @@ expenses
 
 
 
-
-<Card title="💰 الملخص المالي">
+<Card title="💰 التحليل المالي">
 
 
 <p>
-
 إجمالي المصاريف:
-
-<strong>
-
-{" "}
-
-{financial.total}
-
-{" "}
-
-ل.س
-
-</strong>
-
 </p>
 
 
+<h2>
+{financial.total}
+</h2>
 
 
 <p>
-
-عدد السجلات المالية:
-
-<strong>
-
+عدد السجلات:
 {" "}
-
-{financial.count}
-
-</strong>
-
+{financial.records}
 </p>
 
 
-
 </Card>
-
 
 
 
@@ -414,27 +363,21 @@ expenses
 <Card title="🤖 التنبيهات الذكية">
 
 
-
 {
 
 alerts.map(
 
-(item,index)=>(
-
+(alert,index)=>(
 
 <p key={index}>
-
-{item}
-
+{alert}
 </p>
-
 
 )
 
 )
 
 }
-
 
 
 </Card>
@@ -445,9 +388,7 @@ alerts.map(
 
 
 
-
 <Card title="📈 مؤشرات النظام">
-
 
 
 {
@@ -465,27 +406,21 @@ title={item.title}
 
 
 <h2>
-
 {item.value}
-
 </h2>
 
 
 <p>
-
 {item.info}
-
 </p>
 
 
 </Card>
 
 
-
 ))
 
 }
-
 
 
 </Card>
@@ -501,33 +436,31 @@ title={item.title}
 
 
 <p>
-✅ نظام إدارة البيانات فعال
+✅ نظام CRUD الزراعي فعال
 </p>
 
 
 <p>
-✅ LocalStorage يعمل
+✅ البيانات محفوظة محلياً
 </p>
 
 
 <p>
-✅ CRUD الزراعي جاهز
+✅ Harvest جاهز
 </p>
 
 
 <p>
-✅ جاهز للتطوير إلى قاعدة بيانات سحابية
+✅ Inventory جاهز
 </p>
 
 
 <p>
-✅ جاهز لإضافة الذكاء الاصطناعي
+✅ جاهز للمرحلة السحابية
 </p>
-
 
 
 </Card>
-
 
 
 
