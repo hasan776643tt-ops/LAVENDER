@@ -5,217 +5,192 @@ import {
   useMemo,
 } from "react";
 
+
 import {
   FarmContext
 } from "../context/FarmContext";
 
+
 import Card from "../components/Card";
 
 
-export default function Dashboard() {
 
 
-  const {
+export default function Dashboard(){
 
-    farms = [],
-    fields = [],
-    crops = [],
-    irrigations = [],
-    fertilizers = [],
-    pesticides = [],
-    diseases = [],
-    expenses = [],
-    harvests = [],
-    inventory = [],
 
-  } = useContext(FarmContext);
 
+const {
 
+  farms = [],
+  fields = [],
+  crops = [],
 
+  irrigations = [],
+  fertilizers = [],
+  pesticides = [],
 
+  diseases = [],
 
+  expenses = [],
 
-  const statistics = useMemo(()=>[
+  harvests = [],
 
+  inventory = [],
 
-    {
-      title:"🌾 المزارع",
-      value:farms.length,
-      info:"عدد المزارع"
-    },
 
+} = useContext(FarmContext);
 
-    {
-      title:"🌱 الحقول",
-      value:fields.length,
-      info:"عدد الحقول"
-    },
 
 
-    {
-      title:"🌿 المحاصيل",
-      value:crops.length,
-      info:"المحاصيل المزروعة"
-    },
 
 
-    {
-      title:"💧 الري",
-      value:irrigations.length,
-      info:"عمليات الري"
-    },
 
 
-    {
-      title:"🧪 المبيدات",
-      value:pesticides.length,
-      info:"عمليات الرش"
-    },
 
+// =========================
+// Statistics
+// =========================
 
-    {
-      title:"🌾 الأسمدة",
-      value:fertilizers.length,
-      info:"عمليات التسميد"
-    },
 
+const statistics = useMemo(()=>[
 
-    {
-      title:"🦠 الأمراض",
-      value:diseases.length,
-      info:"الحالات المرضية"
-    },
 
 
-    {
-      title:"💰 المصاريف",
-      value:expenses.length,
-      info:"السجلات المالية"
-    },
+{
+title:"🌾 المزارع",
+value:farms.length,
+info:"إجمالي المزارع"
+},
 
 
-    {
-      title:"📦 المخزون",
-      value:inventory.length,
-      info:"مواد المخزون"
-    },
 
+{
+title:"🌱 الحقول",
+value:fields.length,
+info:"إجمالي الحقول"
+},
 
-    {
-      title:"🚜 الحصاد",
-      value:harvests.length,
-      info:"عمليات الحصاد"
-    },
 
 
-  ],[
+{
+title:"🌿 المحاصيل",
+value:crops.length,
+info:"المحاصيل المسجلة"
+},
 
-    farms,
-    fields,
-    crops,
-    irrigations,
-    fertilizers,
-    pesticides,
-    diseases,
-    expenses,
-    harvests,
-    inventory,
 
-  ]);
 
+{
+title:"💧 الري",
+value:irrigations.length,
+info:"عمليات الري"
+},
 
 
 
+{
+title:"🧪 المبيدات",
+value:pesticides.length,
+info:"عمليات المكافحة"
+},
 
 
 
+{
+title:"🌾 الأسمدة",
+value:fertilizers.length,
+info:"عمليات التسميد"
+},
 
-  const totalOperations = useMemo(()=>{
 
 
-    return (
+{
+title:"🦠 الأمراض",
+value:diseases.length,
+info:"الحالات المرضية"
+},
 
-      farms.length +
-      fields.length +
-      crops.length +
-      irrigations.length +
-      fertilizers.length +
-      pesticides.length +
-      diseases.length +
-      expenses.length
 
-    );
 
+{
+title:"📦 المخزون",
+value:inventory.length,
+info:"مواد المخزون"
+},
 
-  },[
 
-    farms,
-    fields,
-    crops,
-    irrigations,
-    fertilizers,
-    pesticides,
-    diseases,
-    expenses,
 
-  ]);
+{
+title:"🚜 الحصاد",
+value:harvests.length,
+info:"عمليات الحصاد"
+},
 
 
 
+],[
+farms,
+fields,
+crops,
+irrigations,
+fertilizers,
+pesticides,
+diseases,
+inventory,
+harvests
+]);
 
 
 
 
-  const smartStatus = useMemo(()=>{
 
 
-    if(diseases.length > 0)
 
-      return "⚠️ يوجد حالات مرضية تحتاج متابعة";
 
 
-    if(pesticides.length > 0)
 
-      return "🧪 يوجد عمليات رش مسجلة";
+// =========================
+// Financial Summary
+// =========================
 
 
-    if(irrigations.length > 0)
+const financial = useMemo(()=>{
 
-      return "💧 نظام الري يعمل بشكل جيد";
 
+const total =
 
-    return "🌱 النظام يحتاج إدخال بيانات جديدة";
+expenses.reduce(
 
+(sum,item)=>
 
-  },[
+sum +
 
-    diseases,
-    pesticides,
-    irrigations,
+Number(
+item.amount || 0
+),
 
-  ]);
+0
 
+);
 
 
 
+return {
 
+total,
 
+count:
+expenses.length
 
-  return (
+};
 
-    <div>
 
 
-      <h1>
-        📊 لوحة التحكم الذكية
-      </h1>
+},[expenses]);
 
 
 
-      <p>
-        LAVENDER Smart Farm
-        - إدارة ومراقبة المزرعة
-      </p>
 
 
 
@@ -223,38 +198,47 @@ export default function Dashboard() {
 
 
 
-      <Card title="🚀 الأداء العام">
+// =========================
+// Farm Activity Score
+// =========================
 
 
-        <h2>
-          {totalOperations}
-        </h2>
+const activityScore = useMemo(()=>{
 
 
-        <p>
-          إجمالي العمليات الزراعية
-        </p>
+const total =
 
+farms.length +
 
-      </Card>
+fields.length +
 
+crops.length +
 
+irrigations.length +
 
+fertilizers.length +
 
+pesticides.length +
 
+diseases.length;
 
 
 
+return total;
 
-      <Card title="🤖 الحالة الذكية">
 
+},[
 
-        <p>
-          {smartStatus}
-        </p>
+farms,
+fields,
+crops,
+irrigations,
+fertilizers,
+pesticides,
+diseases
 
+]);
 
-      </Card>
 
 
 
@@ -264,77 +248,294 @@ export default function Dashboard() {
 
 
 
-      {
+// =========================
+// Smart Alerts
+// =========================
 
-        statistics.map(item=>(
 
+const alerts = useMemo(()=>{
 
-          <Card
 
-            key={item.title}
+const list=[];
 
-            title={item.title}
 
-          >
 
+if(
+diseases.length > 0
+)
 
-            <h2>
-              {item.value}
-            </h2>
+list.push(
+"🦠 توجد حالات مرضية تحتاج متابعة."
+);
 
 
-            <p>
-              {item.info}
-            </p>
 
 
-          </Card>
+if(
+fields.length > irrigations.length
+)
 
+list.push(
+"💧 بعض الحقول تحتاج جدولة ري."
+);
 
-        ))
 
-      }
 
 
+if(
+expenses.length > 5
+)
 
+list.push(
+"💰 راجع المصاريف لتحسين الإدارة."
+);
 
 
 
 
+if(
+list.length === 0
+)
 
+list.push(
+"✅ النظام الزراعي يعمل بشكل مستقر."
+);
 
-      <Card title="🌱 جاهزية النظام">
 
 
-        <p>
-          ✅ إدارة البيانات تعمل
-        </p>
+return list;
 
 
-        <p>
-          ✅ LocalStorage فعال
-        </p>
+},[
 
+diseases,
+fields,
+irrigations,
+expenses
 
-        <p>
-          ✅ جاهز للربط مع قاعدة بيانات سحابية
-        </p>
+]);  return (
 
+<div>
 
-        <p>
-          ✅ جاهز لإضافة الذكاء الاصطناعي
-        </p>
 
 
-      </Card>
+<h1>
+📊 لوحة التحكم الذكية
+</h1>
 
 
 
+<p>
+🌱 LAVENDER Smart Farm
+<br/>
+إدارة ومراقبة الأنظمة الزراعية
+</p>
 
 
-    </div>
 
-  );
+
+
+
+
+<Card title="🚀 الأداء العام">
+
+
+
+<h2>
+{activityScore}
+</h2>
+
+
+
+<p>
+إجمالي النشاطات الزراعية
+</p>
+
+
+
+</Card>
+
+
+
+
+
+
+
+
+<Card title="💰 الملخص المالي">
+
+
+<p>
+
+إجمالي المصاريف:
+
+<strong>
+
+{" "}
+
+{financial.total}
+
+{" "}
+
+ل.س
+
+</strong>
+
+</p>
+
+
+
+
+<p>
+
+عدد السجلات المالية:
+
+<strong>
+
+{" "}
+
+{financial.count}
+
+</strong>
+
+</p>
+
+
+
+</Card>
+
+
+
+
+
+
+
+
+<Card title="🤖 التنبيهات الذكية">
+
+
+
+{
+
+alerts.map(
+
+(item,index)=>(
+
+
+<p key={index}>
+
+{item}
+
+</p>
+
+
+)
+
+)
+
+}
+
+
+
+</Card>
+
+
+
+
+
+
+
+
+<Card title="📈 مؤشرات النظام">
+
+
+
+{
+
+statistics.map(item=>(
+
+
+<Card
+
+key={item.title}
+
+title={item.title}
+
+>
+
+
+<h2>
+
+{item.value}
+
+</h2>
+
+
+<p>
+
+{item.info}
+
+</p>
+
+
+</Card>
+
+
+
+))
+
+}
+
+
+
+</Card>
+
+
+
+
+
+
+
+
+<Card title="🌱 حالة LAVENDER">
+
+
+<p>
+✅ نظام إدارة البيانات فعال
+</p>
+
+
+<p>
+✅ LocalStorage يعمل
+</p>
+
+
+<p>
+✅ CRUD الزراعي جاهز
+</p>
+
+
+<p>
+✅ جاهز للتطوير إلى قاعدة بيانات سحابية
+</p>
+
+
+<p>
+✅ جاهز لإضافة الذكاء الاصطناعي
+</p>
+
+
+
+</Card>
+
+
+
+
+
+
+</div>
+
+);
 
 
 }
