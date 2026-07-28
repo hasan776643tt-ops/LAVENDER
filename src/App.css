@@ -527,3 +527,112 @@ width:100%;
 
 
 }
+  /* =========================
+   MAIN LAYOUT SYSTEM
+========================= */
+
+
+.app-layout {
+
+  min-height:100vh;
+
+  display:flex;
+
+  flex-direction:column;
+
+}
+
+
+
+.app-body {
+
+  display:flex;
+
+  flex:1;
+
+}
+
+
+
+.app-content {
+
+  flex:1;
+
+  padding:20px;
+
+  overflow-x:hidden;
+
+}
+
+
+
+.app-footer {
+
+  background:
+
+  #3f6f3f;
+
+  color:white;
+
+  padding:15px;
+
+  text-align:center;
+
+}
+
+
+
+.footer-brand {
+
+  font-size:20px;
+
+  font-weight:bold;
+
+  margin-bottom:8px;
+
+}
+
+
+
+.footer-description {
+
+  opacity:.9;
+
+  line-height:1.8;
+
+}
+
+
+
+.footer-copy {
+
+  margin-top:10px;
+
+  font-size:14px;
+
+}
+
+
+
+
+/* Mobile */
+
+@media(max-width:700px){
+
+
+.app-body {
+
+  flex-direction:column;
+
+}
+
+
+
+.app-content {
+
+  padding:10px;
+
+}
+
+
+}
