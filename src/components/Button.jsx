@@ -1,6 +1,3 @@
-// src/components/Button.jsx
-
-
 export default function Button({
 
   children,
@@ -11,14 +8,9 @@ export default function Button({
 
   variant = "primary",
 
-  icon,
-
   disabled = false,
 
-  size = "medium",
-
 }) {
-
 
   return (
 
@@ -30,37 +22,11 @@ export default function Button({
 
       disabled={disabled}
 
-      className={`
-        button
-        button-${variant}
-        button-${size}
-      `}
+      className={`button button-${variant}`}
 
     >
 
-
-      {
-
-        icon && (
-
-          <span className="button-icon">
-
-            {icon}
-
-          </span>
-
-        )
-
-      }
-
-
-
-      <span>
-
-        {children}
-
-      </span>
-
+      {children}
 
     </button>
 
