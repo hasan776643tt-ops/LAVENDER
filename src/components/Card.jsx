@@ -1,15 +1,76 @@
-export default function Card({ title, children }) {
+// src/components/Card.jsx
+
+
+export default function Card({
+
+  title,
+
+  children,
+
+  icon,
+
+  variant = "default",
+
+}) {
+
+
   return (
-    <div>
 
-      <h2>
-        {title}
-      </h2>
+    <section
 
-      <div>
-        {children}
+      className={`card card-${variant}`}
+
+    >
+
+
+      <div className="card-header">
+
+
+        {
+
+          icon && (
+
+            <span className="card-icon">
+
+              {icon}
+
+            </span>
+
+          )
+
+        }
+
+
+
+        {
+
+          title && (
+
+            <h2>
+
+              {title}
+
+            </h2>
+
+          )
+
+        }
+
+
       </div>
 
-    </div>
+
+
+      <div className="card-body">
+
+        {children}
+
+      </div>
+
+
+
+    </section>
+
   );
+
 }
