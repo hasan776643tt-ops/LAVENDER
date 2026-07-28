@@ -1,16 +1,12 @@
 /* =========================
    LAVENDER Smart Farm
-   Global Design System
+   Professional Design System
 ========================= */
 
 
-
 * {
-
   box-sizing: border-box;
-
 }
-
 
 
 body {
@@ -18,17 +14,14 @@ body {
   margin: 0;
 
   font-family:
-
   "Tajawal",
-  "Arial",
+  Arial,
   sans-serif;
 
   background:
-
-  #f5f7f2;
+  #f4f7f1;
 
   color:
-
   #243124;
 
 }
@@ -36,48 +29,217 @@ body {
 
 
 /* =========================
-   Main Container
+   APP LAYOUT
 ========================= */
 
 
 #root {
 
-  width: 100%;
+  width:100%;
+
+}
+
+
+
+.app-container {
+
+  min-height:100vh;
+
+  display:flex;
 
 }
 
 
 
 /* =========================
-   Headings
+   HEADER
 ========================= */
 
 
-h1 {
+.app-header {
 
-  font-size: 28px;
+  background:
 
-  margin-bottom: 10px;
+  linear-gradient(
+    135deg,
+    #4f7c35,
+    #7cae45
+  );
 
-  color:
+  color:white;
 
-  #3f6f3f;
+  padding:
+
+  15px 20px;
+
+  display:flex;
+
+  justify-content:space-between;
+
+  align-items:center;
+
+  box-shadow:
+
+  0 4px 15px rgba(0,0,0,.15);
 
 }
 
 
-h2 {
 
-  color:
+.brand a {
 
-  #4b704b;
+  color:white;
+
+  text-decoration:none;
+
+  font-size:22px;
+
+  font-weight:bold;
 
 }
 
 
-p {
 
-  line-height: 1.7;
+.brand-icon {
+
+  margin-left:8px;
+
+}
+
+
+
+.header-nav {
+
+  display:flex;
+
+  gap:15px;
+
+}
+
+
+
+.header-nav a {
+
+  color:white;
+
+  text-decoration:none;
+
+  font-size:15px;
+
+}
+
+
+
+/* =========================
+   SIDEBAR
+========================= */
+
+
+.sidebar {
+
+  width:270px;
+
+  background:white;
+
+  min-height:100vh;
+
+  padding:20px;
+
+  box-shadow:
+
+  4px 0 20px rgba(0,0,0,.08);
+
+}
+
+
+
+.sidebar-brand {
+
+  text-align:center;
+
+  margin-bottom:25px;
+
+}
+
+
+
+.sidebar-brand h2 {
+
+  color:#4f7c35;
+
+}
+
+
+
+.sidebar-brand p {
+
+  color:#777;
+
+}
+
+
+
+.sidebar ul {
+
+  list-style:none;
+
+  padding:0;
+
+}
+
+
+
+.sidebar li {
+
+  margin-bottom:8px;
+
+}
+
+
+
+.sidebar-link {
+
+  display:flex;
+
+  align-items:center;
+
+  gap:12px;
+
+  padding:12px;
+
+  border-radius:12px;
+
+  color:#344;
+
+  text-decoration:none;
+
+  transition:.3s;
+
+}
+
+
+
+.sidebar-link:hover {
+
+  background:#edf5e7;
+
+}
+
+
+
+.sidebar-link.active {
+
+  background:#6b8e23;
+
+  color:white;
+
+}
+
+
+
+.sidebar-icon {
+
+  font-size:22px;
 
 }
 
@@ -92,33 +254,23 @@ p {
 
 .card {
 
-  background:
+  background:white;
 
-  white;
+  border-radius:18px;
 
-  border-radius:
+  padding:20px;
 
-  18px;
-
-  padding:
-
-  20px;
-
-  margin:
-
-  15px 0;
+  margin:15px;
 
   box-shadow:
 
-  0 8px 25px rgba(0,0,0,0.08);
+  0 8px 25px rgba(0,0,0,.08);
 
   border:
 
-  1px solid #e5eadf;
+  1px solid #e4eadb;
 
-  transition:
-
-  0.3s ease;
+  transition:.3s;
 
 }
 
@@ -126,13 +278,7 @@ p {
 
 .card:hover {
 
-  transform:
-
-  translateY(-3px);
-
-  box-shadow:
-
-  0 12px 30px rgba(0,0,0,0.12);
+  transform:translateY(-3px);
 
 }
 
@@ -140,21 +286,11 @@ p {
 
 .card-header {
 
-  display:
+  display:flex;
 
-  flex;
+  align-items:center;
 
-  align-items:
-
-  center;
-
-  gap:
-
-  10px;
-
-  margin-bottom:
-
-  15px;
+  gap:10px;
 
 }
 
@@ -162,13 +298,9 @@ p {
 
 .card-header h2 {
 
-  margin:
+  margin:0;
 
-  0;
-
-  font-size:
-
-  20px;
+  color:#4f7c35;
 
 }
 
@@ -176,9 +308,7 @@ p {
 
 .card-icon {
 
-  font-size:
-
-  26px;
+  font-size:25px;
 
 }
 
@@ -186,9 +316,7 @@ p {
 
 .card-body {
 
-  font-size:
-
-  16px;
+  margin-top:15px;
 
 }
 
@@ -203,49 +331,27 @@ p {
 
 .button {
 
-  border:
+  border:none;
 
-  none;
-
-  border-radius:
-
-  12px;
+  border-radius:12px;
 
   padding:
 
   12px 22px;
 
-  font-size:
+  cursor:pointer;
 
-  16px;
+  display:inline-flex;
 
-  cursor:
+  align-items:center;
 
-  pointer;
+  justify-content:center;
 
-  display:
+  gap:8px;
 
-  inline-flex;
+  font-size:16px;
 
-  align-items:
-
-  center;
-
-  justify-content:
-
-  center;
-
-  gap:
-
-  8px;
-
-  transition:
-
-  0.3s ease;
-
-  margin:
-
-  5px;
+  transition:.3s;
 
 }
 
@@ -253,106 +359,55 @@ p {
 
 .button:hover {
 
-  transform:
-
-  translateY(-2px);
+  transform:translateY(-2px);
 
 }
 
-
-
-/* Primary */
 
 
 .button-primary {
 
-  background:
+  background:#6b8e23;
 
-  #6b8e23;
-
-  color:
-
-  white;
+  color:white;
 
 }
 
-
-
-/* Success */
 
 
 .button-success {
 
-  background:
+  background:#2e8b57;
 
-  #2e8b57;
-
-  color:
-
-  white;
+  color:white;
 
 }
 
-
-
-/* Danger */
 
 
 .button-danger {
 
-  background:
+  background:#c0392b;
 
-  #c0392b;
-
-  color:
-
-  white;
+  color:white;
 
 }
 
-
-
-/* Warning */
 
 
 .button-warning {
 
-  background:
+  background:#d4a017;
 
-  #d4a017;
-
-  color:
-
-  white;
+  color:white;
 
 }
 
-
-
-
-
-/* Sizes */
 
 
 .button-small {
 
-  padding:
-
-  8px 14px;
-
-  font-size:
-
-  14px;
-
-}
-
-
-
-.button-medium {
-
-  padding:
-
-  12px 22px;
+ padding:8px 14px;
 
 }
 
@@ -360,29 +415,7 @@ p {
 
 .button-large {
 
-  padding:
-
-  15px 30px;
-
-  font-size:
-
-  18px;
-
-}
-
-
-
-
-
-.button:disabled {
-
-  opacity:
-
-  0.5;
-
-  cursor:
-
-  not-allowed;
+ padding:15px 30px;
 
 }
 
@@ -391,7 +424,7 @@ p {
 
 
 /* =========================
-   Inputs
+   FORMS
 ========================= */
 
 
@@ -400,29 +433,19 @@ select,
 textarea {
 
 
-  width:
+width:100%;
 
-  100%;
+padding:12px;
 
-  padding:
+border-radius:10px;
 
-  12px;
+border:
 
-  margin:
+1px solid #ccd8c2;
 
-  8px 0;
+margin:8px 0;
 
-  border-radius:
-
-  10px;
-
-  border:
-
-  1px solid #ccd8c2;
-
-  font-size:
-
-  16px;
+font-size:16px;
 
 }
 
@@ -432,13 +455,9 @@ input:focus,
 select:focus,
 textarea:focus {
 
-  outline:
+outline:none;
 
-  none;
-
-  border-color:
-
-  #6b8e23;
+border-color:#6b8e23;
 
 }
 
@@ -447,42 +466,64 @@ textarea:focus {
 
 
 /* =========================
-   Mobile First
+   MOBILE DESIGN
 ========================= */
 
 
-@media (max-width:600px){
+@media(max-width:700px){
 
 
-  h1 {
+.app-header {
 
-    font-size:
+flex-direction:column;
 
-    24px;
+gap:15px;
 
-  }
-
-
-  .card {
-
-    padding:
-
-    15px;
-
-    border-radius:
-
-    15px;
-
-  }
+}
 
 
-  .button {
 
-    width:
+.header-nav {
 
-    100%;
+flex-wrap:wrap;
 
-  }
+justify-content:center;
+
+}
+
+
+
+.sidebar {
+
+width:100%;
+
+min-height:auto;
+
+}
+
+
+
+.app-container {
+
+flex-direction:column;
+
+}
+
+
+
+.card {
+
+margin:10px;
+
+}
+
+
+
+.button {
+
+width:100%;
+
+}
 
 
 }
