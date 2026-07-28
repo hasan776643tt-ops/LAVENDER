@@ -1,10 +1,14 @@
+// src/pages/Fertilizers.jsx
+
 import {
   useState,
   useContext,
   useMemo,
 } from "react";
 
-import { FarmContext } from "../context/FarmContext";
+import {
+  FarmContext
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
@@ -14,76 +18,157 @@ export default function Fertilizers() {
 
 
   const {
+
     farms = [],
     fields = [],
+    crops = [],
+
     fertilizers = [],
-    setFertilizers,
+
+    addFertilizer,
+    updateFertilizer,
+    deleteFertilizer,
+
   } = useContext(FarmContext);
 
 
 
-  const [form, setForm] = useState({
-
-    farm: "",
-    field: "",
-
-    crop: "",
-
-    type: "",
-
-    category: "كيميائي",
-
-    quantity: "",
-
-    unit: "كغ",
-
-    method: "تربة",
-
-    stage: "",
-
-    supplier: "",
-
-    cost: "",
-
-    currency: "ل.س",
-
-    date: "",
-
-    notes: "",
-
-  });
 
 
+  const initialForm = {
 
-  const updateForm = (key,value)=>{
+    farmId:"",
 
-    setForm({
+    fieldId:"",
 
-      ...form,
+    cropId:"",
 
-      [key]: value,
 
-    });
+    type:"",
+
+    category:"كيميائي",
+
+
+    quantity:"",
+
+    unit:"كغ",
+
+
+    method:"تربة",
+
+
+    stage:"",
+
+
+    supplier:"",
+
+
+    cost:"",
+
+    currency:"ل.س",
+
+
+    date:"",
+
+
+    status:"scheduled",
+
+
+    priority:"medium",
+
+
+    notes:"",
 
   };
 
 
 
-  const filteredFields = useMemo(()=>{
 
-    if(!form.farm)
-      return fields;
+
+  const [form,setForm] =
+    useState(initialForm);
+
+
+
+  const [editId,setEditId] =
+    useState(null);
+
+
+
+
+
+  const updateForm = (
+    key,
+    value
+  )=>{
+
+
+    setForm(prev=>({
+
+      ...prev,
+
+      [key]:value
+
+    }));
+
+
+  };
+
+
+
+
+
+
+
+  const farmFields = useMemo(()=>{
 
 
     return fields.filter(
 
-      field =>
-      field.farm === form.farm ||
-      field.farmName === form.farm
+      field=>
+
+      field.farmId === form.farmId
 
     );
 
-  },[fields,form.farm]);
+
+  },[
+
+    fields,
+
+    form.farmId
+
+  ]);
+
+
+
+
+
+
+
+  const fieldCrops = useMemo(()=>{
+
+
+    return crops.filter(
+
+      crop=>
+
+      crop.fieldId === form.fieldId
+
+    );
+
+
+  },[
+
+    crops,
+
+    form.fieldId
+
+  ]);
+
+
+
+
 
 
 
@@ -96,7 +181,11 @@ export default function Fertilizers() {
 
       (sum,item)=>
 
-      sum + Number(item.quantity || 0),
+      sum +
+
+      Number(
+        item.quantity || 0
+      ),
 
       0
 
@@ -109,109 +198,209 @@ export default function Fertilizers() {
 
 
 
+
+
+
+  const totalCost = useMemo(()=>{
+
+
+    return fertilizers.reduce(
+
+      (sum,item)=>
+
+      sum +
+
+      Number(
+        item.cost || 0
+      ),
+
+      0
+
+    );
+
+
+  },[fertilizers]);
+
+
+
+
+
+
+
+
+
   const smartAdvice = useMemo(()=>{
 
 
-    if(form.category==="كيميائي")
+    if(
+      form.category === "عضوي"
+    )
 
-      return "⚠️ يفضل الالتزام بالجرعة وعدم الإفراط.";
-
-
-    if(form.category==="عضوي")
-
-      return "🌱 السماد العضوي يحسن خصوبة التربة.";
+      return "🌱 السماد العضوي يحسن بنية التربة.";
 
 
-    return "✅ تابع حالة المحصول بعد التسميد.";
-
-  },[form.category]);
-
-
-
-
-
-  const addFertilizer = ()=>{
 
 
     if(
-      !form.farm ||
-      !form.field ||
-      !form.type
+      form.category === "كيميائي"
     )
-    return;
+
+      return "⚠️ يجب الالتزام بالجرعة المناسبة للمحصول.";
 
 
 
-    const newItem = {
-
-      id: Date.now(),
-
-      ...form,
 
 
-      createdAt:
-      new Date().toISOString(),
+    if(
+      form.priority === "high"
+    )
 
-    };
+      return "🚨 أولوية عالية، يفضل تنفيذ التسميد قريباً.";
 
 
 
-    setFertilizers([
 
-      ...fertilizers,
 
-      newItem
+    return "✅ خطة التسميد مناسبة.";
 
-    ]);
 
+
+
+  },[
+
+    form.category,
+
+    form.priority
+
+  ]);
+
+
+
+
+
+
+
+  const save = ()=>{
+
+
+    if(
+
+      !form.farmId ||
+
+      !form.fieldId ||
+
+      !form.type
+
+    )
+
+      return;
+
+
+
+
+
+    if(editId){
+
+
+      updateFertilizer(
+
+        editId,
+
+        form
+
+      );
+
+
+    }
+
+    else{
+
+
+      addFertilizer(
+
+        form
+
+      );
+
+
+    }
+
+
+
+
+
+
+    setForm(
+      initialForm
+    );
+
+
+    setEditId(null);
+
+
+  };
+
+
+
+
+
+
+
+  const edit = (item)=>{
 
 
     setForm({
 
-      farm:"",
-      field:"",
-      crop:"",
-      type:"",
-      category:"كيميائي",
-      quantity:"",
-      unit:"كغ",
-      method:"تربة",
-      stage:"",
-      supplier:"",
-      cost:"",
-      currency:"ل.س",
-      date:"",
-      notes:"",
+      farmId:item.farmId,
+
+      fieldId:item.fieldId,
+
+      cropId:item.cropId,
+
+
+      type:item.type,
+
+      category:item.category,
+
+
+      quantity:item.quantity,
+
+      unit:item.unit,
+
+
+      method:item.method,
+
+
+      stage:item.stage,
+
+
+      supplier:item.supplier,
+
+
+      cost:item.cost,
+
+      currency:item.currency,
+
+
+      date:item.date,
+
+
+      status:item.status,
+
+
+      priority:item.priority,
+
+
+      notes:item.notes,
+
 
     });
 
 
-  };
+    setEditId(item.id);
 
 
-
-
-
-  const deleteFertilizer=(id)=>{
-
-
-    setFertilizers(
-
-      fertilizers.filter(
-
-        item=>item.id!==id
-
-      )
-
-    );
-
-  };
-
-
-
-
-
-return (
+  };return (
 
 <div>
 
@@ -222,19 +411,53 @@ return (
 
 
 
-<Card title="إضافة عملية تسميد">
+
+
+<Card
+
+title={
+editId
+?
+"✏️ تعديل عملية تسميد"
+:
+"➕ إضافة عملية تسميد"
+}
+
+>
+
+
 
 
 
 <select
-value={form.farm}
-onChange={e=>
+
+value={form.farmId}
+
+onChange={(e)=>{
+
+
 updateForm(
-"farm",
+"farmId",
 e.target.value
-)
-}
+);
+
+
+updateForm(
+"fieldId",
+""
+);
+
+
+updateForm(
+"cropId",
+""
+);
+
+
+}}
+
 >
+
 
 <option value="">
 اختر المزرعة
@@ -242,11 +465,15 @@ e.target.value
 
 
 {
+
 farms.map(farm=>(
 
 <option
+
 key={farm.id}
-value={farm.name}
+
+value={farm.id}
+
 >
 
 {farm.name}
@@ -254,9 +481,13 @@ value={farm.name}
 </option>
 
 ))
+
 }
 
+
 </select>
+
+
 
 
 
@@ -264,15 +495,23 @@ value={farm.name}
 
 
 
+
+
 <select
-value={form.field}
-onChange={e=>
+
+value={form.fieldId}
+
+onChange={(e)=>
+
 updateForm(
-"field",
+"fieldId",
 e.target.value
 )
+
 }
+
 >
+
 
 <option value="">
 اختر الحقل
@@ -280,11 +519,15 @@ e.target.value
 
 
 {
-filteredFields.map(field=>(
+
+farmFields.map(field=>(
 
 <option
+
 key={field.id}
-value={field.name}
+
+value={field.id}
+
 >
 
 {field.name}
@@ -292,68 +535,73 @@ value={field.name}
 </option>
 
 ))
+
 }
+
 
 </select>
 
 
 
-<br/><br/>
-
-
-
-<input
-
-placeholder="اسم المحصول"
-
-value={form.crop}
-
-onChange={e=>
-updateForm(
-"crop",
-e.target.value
-)
-}
-
-/>
-
 
 
 <br/><br/>
+
+
 
 
 
 <select
-value={form.category}
-onChange={e=>
+
+value={form.cropId}
+
+onChange={(e)=>
+
 updateForm(
-"category",
+"cropId",
 e.target.value
 )
+
 }
+
 >
 
-<option>
-عضوي
+
+<option value="">
+اختر المحصول
 </option>
 
-<option>
-كيميائي
+
+{
+
+fieldCrops.map(crop=>(
+
+<option
+
+key={crop.id}
+
+value={crop.id}
+
+>
+
+{crop.name}
+
 </option>
 
-<option>
-ورقي
-</option>
+))
 
-<option>
-مركب
-</option>
+}
+
 
 </select>
 
 
 
+
+
 <br/><br/>
+
+
 
 
 
@@ -363,18 +611,72 @@ placeholder="نوع السماد"
 
 value={form.type}
 
-onChange={e=>
+onChange={(e)=>
+
 updateForm(
 "type",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <br/><br/>
+
+
+
+
+
+<select
+
+value={form.category}
+
+onChange={(e)=>
+
+updateForm(
+"category",
+e.target.value
+)
+
+}
+
+>
+
+
+<option value="عضوي">
+عضوي
+</option>
+
+
+<option value="كيميائي">
+كيميائي
+</option>
+
+
+<option value="ورقي">
+ورقي
+</option>
+
+
+<option value="مركب">
+مركب
+</option>
+
+
+</select>
+
+
+
+
+
+<br/><br/>
+
+
 
 
 
@@ -386,40 +688,55 @@ placeholder="الكمية"
 
 value={form.quantity}
 
-onChange={e=>
+onChange={(e)=>
+
 updateForm(
 "quantity",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <select
+
 value={form.unit}
-onChange={e=>
+
+onChange={(e)=>
+
 updateForm(
 "unit",
 e.target.value
 )
+
 }
+
 >
+
 
 <option>
 كغ
 </option>
 
+
 <option>
 طن
 </option>
+
 
 <option>
 لتر
 </option>
 
+
 </select>
+
+
 
 
 
@@ -427,33 +744,48 @@ e.target.value
 
 
 
+
+
 <select
+
 value={form.method}
-onChange={e=>
+
+onChange={(e)=>
+
 updateForm(
 "method",
 e.target.value
 )
+
 }
+
 >
+
 
 <option>
 تربة
 </option>
 
+
 <option>
-رش
+رش ورقي
 </option>
+
 
 <option>
 مع الري
 </option>
 
+
 </select>
 
 
 
+
+
 <br/><br/>
+
+
 
 
 
@@ -463,18 +795,24 @@ placeholder="مرحلة المحصول"
 
 value={form.stage}
 
-onChange={e=>
+onChange={(e)=>
+
 updateForm(
 "stage",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <br/><br/>
+
+
 
 
 
@@ -484,18 +822,24 @@ placeholder="المورد"
 
 value={form.supplier}
 
-onChange={e=>
+onChange={(e)=>
+
 updateForm(
 "supplier",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <br/><br/>
+
+
 
 
 
@@ -507,18 +851,24 @@ placeholder="التكلفة"
 
 value={form.cost}
 
-onChange={e=>
+onChange={(e)=>
+
 updateForm(
 "cost",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <br/><br/>
+
+
 
 
 
@@ -528,18 +878,110 @@ type="date"
 
 value={form.date}
 
-onChange={e=>
+onChange={(e)=>
+
 updateForm(
 "date",
 e.target.value
 )
+
 }
 
 />
 
 
 
+
+
 <br/><br/>
+
+
+
+
+
+<select
+
+value={form.priority}
+
+onChange={(e)=>
+
+updateForm(
+"priority",
+e.target.value
+)
+
+}
+
+>
+
+
+<option value="low">
+منخفضة
+</option>
+
+
+<option value="medium">
+متوسطة
+</option>
+
+
+<option value="high">
+عالية
+</option>
+
+
+</select>
+
+
+
+
+
+<br/><br/>
+
+
+
+
+
+<select
+
+value={form.status}
+
+onChange={(e)=>
+
+updateForm(
+"status",
+e.target.value
+)
+
+}
+
+>
+
+
+<option value="scheduled">
+مجدول
+</option>
+
+
+<option value="done">
+منفذ
+</option>
+
+
+<option value="pending">
+مؤجل
+</option>
+
+
+</select>
+
+
+
+
+
+<br/><br/>
+
+
 
 
 
@@ -549,14 +991,18 @@ placeholder="ملاحظات"
 
 value={form.notes}
 
-onChange={e=>
+onChange={(e)=>
+
 updateForm(
 "notes",
 e.target.value
 )
+
 }
 
 />
+
+
 
 
 
@@ -567,9 +1013,26 @@ e.target.value
 
 
 
-<Button onClick={addFertilizer}>
-حفظ عملية التسميد
+
+
+<Button onClick={save}>
+
+{
+
+editId
+
+?
+
+"حفظ التعديل"
+
+:
+
+"إضافة التسميد"
+
+}
+
 </Button>
+
 
 
 </Card>
@@ -578,7 +1041,12 @@ e.target.value
 
 
 
+
+
+
+
 <Card title="📊 إحصائيات الأسمدة">
+
 
 <p>
 عدد العمليات:
@@ -592,64 +1060,130 @@ e.target.value
 </p>
 
 
+<p>
+إجمالي التكلفة:
+{totalCost} {form.currency}
+</p>
+
+
 </Card>
 
 
 
 
 
-<Card title="📋 سجل التسميد">
+
+
+
+
+<Card title="📋 سجل عمليات التسميد">
 
 
 {
 
 fertilizers.map(item=>(
 
+
 <Card
+
 key={item.id}
+
 title={item.type}
+
 >
 
 
 <p>
-🏡 {item.farm}
+🌱 التصنيف:
+{item.category}
 </p>
 
-<p>
-🌱 {item.field}
-</p>
 
 <p>
-📦 {item.quantity} {item.unit}
+📦 الكمية:
+{item.quantity} {item.unit}
 </p>
 
-<p>
-🧪 {item.category}
-</p>
 
 <p>
-🚜 {item.method}
+🚜 الطريقة:
+{item.method}
 </p>
 
+
 <p>
-💰 {item.cost} {item.currency}
+📅 التاريخ:
+{item.date}
 </p>
+
+
+<p>
+🚦 الحالة:
+{item.status}
+</p>
+
+
+<p>
+⭐ الأولوية:
+{item.priority}
+</p>
+
+
+<p>
+💰 التكلفة:
+{item.cost} {item.currency}
+</p>
+
+
+<p>
+📝 {item.notes}
+</p>
+
+
+
 
 
 <Button
-onClick={()=>
-deleteFertilizer(item.id)
-}
+
+onClick={()=>edit(item)}
+
 >
-حذف
+
+تعديل
+
 </Button>
+
+
+
+
+
+<Button
+
+onClick={()=>
+
+deleteFertilizer(
+item.id
+)
+
+}
+
+>
+
+حذف
+
+</Button>
+
+
 
 
 </Card>
 
+
 ))
 
+
 }
+
 
 
 </Card>
