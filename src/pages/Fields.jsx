@@ -2,576 +2,330 @@
 
 import {
   useContext,
-  useMemo,
   useState,
+  useMemo
 } from "react";
+
 
 import {
   FarmContext
 } from "../context/FarmContext";
+
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
 
 
-export default function Fields() {
+export default function Fields(){
 
 
-  const {
+const {
 
-    farms,
+farms,
 
-    fields,
+fields,
 
-    addField,
+addField,
 
-    updateField,
+updateField,
 
-    deleteField
+deleteField
 
-  } = useContext(FarmContext);
+}=useContext(FarmContext);
 
 
 
 
-  const initialForm = {
+// =====================
+// Form
+// =====================
 
-    farmId:"",
-    name:"",
-    soilType:"",
-    area:"",
-    crop:"",
-    plantingDate:"",
-    notes:""
 
-  };
+const emptyForm={
 
+farmId:"",
 
+name:"",
 
-  const [form,setForm] =
-    useState(initialForm);
+soilType:"",
 
+area:"",
 
+crop:"",
 
-  const [editId,setEditId] =
-    useState(null);
+plantingDate:"",
 
+notes:""
 
+};
 
-  const [search,setSearch] =
-    useState("");
 
 
+const [form,setForm]=
+useState(emptyForm);
 
 
 
-  const handleChange = (e)=>{
+const [editId,setEditId]=
+useState(null);
 
 
-    setForm({
 
-      ...form,
+const [search,setSearch]=
+useState("");
 
-      [e.target.name]:
-      e.target.value
 
-    });
 
+const [farmFilter,setFarmFilter]=
+useState("");
 
-  };
 
 
 
 
+// =====================
+// Change
+// =====================
 
-  const clearForm = ()=>{
 
+const handleChange=(e)=>{
 
-    setForm(initialForm);
 
-    setEditId(null);
+setForm({
 
+...form,
 
-  };
+[e.target.name]:
+e.target.value
 
+});
 
 
+};
 
 
-  const saveField = ()=>{
 
 
-    if(
-      !form.name ||
-      !form.farmId
-    )
-    return;
 
+// =====================
+// Clear
+// =====================
 
 
-    if(editId){
+const clearForm=()=>{
 
 
-      updateField(
-        editId,
-        form
-      );
+setForm({
 
+...emptyForm
 
-    }else{
+});
 
 
-      addField(form);
+setEditId(null);
 
 
-    }
+};  // =====================
+// Save Field
+// =====================
 
 
+const saveField=()=>{
 
-    clearForm();
 
-
-  };
-
-
-
-
-
-
-
-  const editField = (field)=>{
-
-
-    setForm({
-
-      farmId:
-      field.farmId || "",
-
-      name:
-      field.name || "",
-
-      soilType:
-      field.soilType || "",
-
-      area:
-      field.area || "",
-
-      crop:
-      field.crop || "",
-
-      plantingDate:
-      field.plantingDate || "",
-
-      notes:
-      field.notes || ""
-
-    });
-
-
-
-    setEditId(
-      field.id
-    );
-
-
-  };
-
-
-
-
-
-  const filteredFields =
-  useMemo(()=>{
-
-
-    return fields.filter(
-      field =>
-
-      field.name
-      ?.toLowerCase()
-      .includes(
-        search.toLowerCase()
-      )
-
-    );
-
-
-  },[
-    fields,
-    search
-  ]);
-
-
-
-
-
-
-
-  const getFarmName =
-  (farmId)=>{
-
-
-    const farm =
-    farms.find(
-      farm =>
-      farm.id === farmId
-    );
-
-
-    return farm
-    ? farm.name
-    : "غير محددة";
-
-
-  };
-
-
-
-
-
-
-
-return (
-
-<div>
-
-
-<h1>
-📍 إدارة الحقول الذكية
-</h1>
-
-
-
-<Card
-
-title={
-editId
-?
-"✏️ تعديل الحقل"
-:
-"➕ إضافة حقل جديد"
-}
-
->
-
-
-
-
-<select
-
-name="farmId"
-
-value={form.farmId}
-
-onChange={handleChange}
-
->
-
-
-<option value="">
-اختر المزرعة
-</option>
-
-
-{
-
-farms.map(
-farm=>(
-
-<option
-
-key={farm.id}
-
-value={farm.id}
-
->
-
-{farm.name}
-
-</option>
-
+if(
+!form.name ||
+!form.farmId
 )
+return;
 
-)
 
-}
 
+if(editId){
 
-</select>
 
+updateField(
 
+editId,
 
-
-
-<input
-
-name="name"
-
-placeholder="اسم الحقل"
-
-value={form.name}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-name="soilType"
-
-placeholder="نوع التربة"
-
-value={form.soilType}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-name="area"
-
-type="number"
-
-placeholder="مساحة الحقل بالدونم"
-
-value={form.area}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-name="crop"
-
-placeholder="المحصول"
-
-value={form.crop}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-name="plantingDate"
-
-type="date"
-
-value={form.plantingDate}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<textarea
-
-name="notes"
-
-placeholder="ملاحظات"
-
-value={form.notes}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<Button onClick={saveField}>
-
-{
-
-editId
-
-?
-
-"حفظ التعديل"
-
-:
-
-"إضافة الحقل"
-
-}
-
-</Button>
-
-
-
-</Card>
-
-
-
-
-
-
-
-<Card title="🔎 البحث">
-
-
-<input
-
-placeholder="ابحث عن حقل..."
-
-value={search}
-
-onChange={
-e=>setSearch(e.target.value)
-}
-
-/>
-
-
-</Card>
-
-
-
-
-
-
-
-<h2>
-قائمة الحقول
-</h2>
-
-
-
-
-
-{
-
-filteredFields.map(
-
-field=>(
-
-
-<Card
-
-key={field.id}
-
-title={
-`🌱 ${field.name}`
-}
-
->
-
-
-<p>
-🚜 المزرعة:
-{" "}
-{getFarmName(field.farmId)}
-</p>
-
-
-<p>
-🟤 التربة:
-{" "}
-{field.soilType}
-</p>
-
-
-<p>
-📏 المساحة:
-{" "}
-{field.area}
-دونم
-</p>
-
-
-<p>
-🌾 المحصول:
-{" "}
-{field.crop}
-</p>
-
-
-<p>
-📅 تاريخ الزراعة:
-{" "}
-{field.plantingDate}
-</p>
-
-
-<p>
-📝 الملاحظات:
-{" "}
-{field.notes}
-</p>
-
-
-
-
-
-<Button
-
-onClick={()=>
-editField(field)
-}
-
->
-
-تعديل
-
-</Button>
-
-
-
-
-
-<Button
-
-onClick={()=>
-deleteField(field.id)
-}
-
->
-
-حذف
-
-</Button>
-
-
-
-</Card>
-
-
-)
-
-)
-
-
-}
-
-
-
-
-</div>
+form
 
 );
 
 
+
+}else{
+
+
+addField({
+
+...form,
+
+createdAt:
+new Date()
+.toISOString()
+
+});
+
+
 }
+
+
+
+clearForm();
+
+
+};
+
+
+
+
+
+// =====================
+// Edit Field
+// =====================
+
+
+const editField=(field)=>{
+
+
+setForm({
+
+
+farmId:
+field.farmId || "",
+
+
+name:
+field.name || "",
+
+
+soilType:
+field.soilType || "",
+
+
+area:
+field.area || "",
+
+
+crop:
+field.crop || "",
+
+
+plantingDate:
+field.plantingDate || "",
+
+
+notes:
+field.notes || ""
+
+
+});
+
+
+setEditId(
+field.id
+);
+
+
+};
+
+
+
+
+
+// =====================
+// Farm Name
+// =====================
+
+
+const getFarmName=(farmId)=>{
+
+
+const farm =
+
+farms.find(
+
+item =>
+item.id === farmId
+
+);
+
+
+
+return farm
+
+?
+
+farm.name
+
+:
+
+"غير محددة";
+
+
+};
+
+
+
+
+
+// =====================
+// Filter
+// =====================
+
+
+const filteredFields =
+
+useMemo(()=>{
+
+
+return fields.filter(field=>{
+
+
+const searchMatch =
+
+field.name
+
+?.toLowerCase()
+
+.includes(
+
+search.toLowerCase()
+
+);
+
+
+
+const farmMatch =
+
+farmFilter
+
+?
+
+field.farmId ===
+
+Number(farmFilter)
+
+:
+
+true;
+
+
+
+return searchMatch && farmMatch;
+
+
+});
+
+
+},[
+
+fields,
+
+search,
+
+farmFilter
+
+]);
