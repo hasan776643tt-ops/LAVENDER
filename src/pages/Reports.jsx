@@ -1,5 +1,3 @@
-// src/pages/Reports.jsx
-
 import {
   useContext,
   useMemo,
@@ -17,8 +15,6 @@ import {
 
 
 import Card from "../components/Card";
-
-
 import Button from "../components/Button";
 
 
@@ -26,88 +22,70 @@ import Button from "../components/Button";
 export default function Reports(){
 
 
-
 const {
 
-  farms = [],
-  fields = [],
-  crops = [],
+ farms=[],
+ fields=[],
+ crops=[],
 
-  irrigations = [],
-  fertilizers = [],
-  pesticides = [],
-  diseases = [],
+ irrigations=[],
+ fertilizers=[],
+ pesticides=[],
 
-  expenses = [],
+ diseases=[],
 
-  consultations = [],
+ expenses=[],
 
-  aiQuestions = [],
+ consultations=[],
+ aiQuestions=[],
 
+ harvests=[],
+ inventory=[],
 
 } = useContext(FarmContext);
 
 
 
 
-
 const {
-  settings
+ settings
 } = useSettings();
 
 
 
 
 
+// =======================
+// KPI
+// =======================
 
 
-// =========================
-// KPI Statistics
-// =========================
+const kpi = useMemo(()=>({
 
 
-const kpi = useMemo(()=>{
+farms: farms.length,
 
+fields: fields.length,
 
-return {
-
-
-farms:
-farms.length,
-
-
-fields:
-fields.length,
-
-
-crops:
-crops.length,
-
+crops: crops.length,
 
 operations:
 
 irrigations.length +
-
 fertilizers.length +
-
 pesticides.length +
-
 diseases.length,
 
 
-
-diseases:
-diseases.length,
-
-
-expenses:
-expenses.length,
+harvests:
+harvests.length,
 
 
-};
+inventory:
+inventory.length,
 
 
-},[
+}),[
 
 farms,
 fields,
@@ -116,7 +94,8 @@ irrigations,
 fertilizers,
 pesticides,
 diseases,
-expenses
+harvests,
+inventory
 
 ]);
 
@@ -126,27 +105,19 @@ expenses
 
 
 
-
-
-// =========================
-// Financial Analysis
-// =========================
+// =======================
+// Financial Report
+// =======================
 
 
 const financial = useMemo(()=>{
 
 
-const total =
-
-expenses.reduce(
+const total = expenses.reduce(
 
 (sum,item)=>
 
-sum +
-
-Number(
-item.amount || 0
-),
+sum + Number(item.amount || 0),
 
 0
 
@@ -154,9 +125,13 @@ item.amount || 0
 
 
 
+return {
 
+total,
 
-const average =
+count: expenses.length,
+
+average:
 
 expenses.length
 
@@ -168,20 +143,10 @@ total / expenses.length
 
 :
 
-0;
+0
 
-
-
-
-
-return {
-
-total,
-
-average
 
 };
-
 
 
 },[expenses]);
@@ -192,72 +157,103 @@ average
 
 
 
+// =======================
+// Farm Health Score
+// =======================
 
 
-// =========================
-// Crop Analysis
-// =========================
+const healthScore = useMemo(()=>{
 
 
-const cropAnalysis = useMemo(()=>{
-
-
-const map = {};
+let score = 100;
 
 
 
-crops.forEach(item=>{
+if(diseases.length)
+
+score -= 20;
+
+
+
+if(fields.length > irrigations.length)
+
+score -= 15;
+
+
+
+if(fertilizers.length===0)
+
+score -= 10;
+
+
+
+if(score < 0)
+
+score = 0;
+
+
+
+return score;
+
+
+
+},[
+
+diseases,
+fields,
+irrigations,
+fertilizers
+
+]);
+
+
+
+
+
+
+
+// =======================
+// Crop Intelligence
+// =======================
+
+
+const cropReport = useMemo(()=>{
+
+
+const counter={};
+
+
+
+crops.forEach(crop=>{
 
 
 const name =
-
-item.name ||
-
-"غير محدد";
+crop.name || "غير محدد";
 
 
-
-map[name] =
-
-(map[name] || 0)+1;
+counter[name] =
+(counter[name] || 0)+1;
 
 
 });
 
 
 
-
-const sorted =
-
-Object.entries(map)
-
+const result =
+Object.entries(counter)
 .sort(
-
-(a,b)=>
-
-b[1]-a[1]
-
+(a,b)=>b[1]-a[1]
 );
-
 
 
 
 return {
 
-
 top:
-
-sorted[0]?.[0]
-
-||
-
-"لا يوجد",
-
+result[0]?.[0] || "لا يوجد",
 
 count:
-
 crops.length
-
 
 };
 
@@ -270,100 +266,59 @@ crops.length
 
 
 
+// =======================
+// Smart Advice
+// =======================
 
 
-// =========================
-// Smart Recommendations
-// =========================
+const advice = useMemo(()=>{
 
 
-const recommendations = useMemo(()=>{
-
-
-const result=[];
+const list=[];
 
 
 
-if(
-diseases.length > 0
-)
+if(diseases.length)
 
-{
-
-result.push(
-"🦠 يوجد أمراض مسجلة، راقب صحة المحاصيل."
+list.push(
+"🦠 توجد أمراض تحتاج متابعة."
 );
 
-}
 
 
+if(fields.length > irrigations.length)
 
-
-
-if(
-fields.length > irrigations.length
-)
-
-{
-
-result.push(
-"💧 بعض الحقول تحتاج إلى تنظيم جدول ري."
+list.push(
+"💧 راجع خطة الري للحقول."
 );
 
-}
 
 
+if(expenses.length > 10)
 
-
-
-if(
-expenses.length > 5
-)
-
-{
-
-result.push(
-"💰 راجع المصاريف لتحسين الربحية."
+list.push(
+"💰 المصاريف مرتفعة، راجع التكاليف."
 );
 
-}
 
 
+if(inventory.length===0)
 
-
-
-if(
-pesticides.length === 0
-)
-
-{
-
-result.push(
-"🧪 لم يتم تسجيل عمليات مكافحة آفات."
+list.push(
+"📦 أضف بيانات المخزون."
 );
 
-}
 
 
+if(list.length===0)
 
-
-
-if(
-result.length === 0
-)
-
-{
-
-result.push(
-"✅ حالة المزرعة مستقرة."
+list.push(
+"✅ حالة المزرعة ممتازة."
 );
 
-}
 
 
-
-
-return result;
+return list;
 
 
 
@@ -373,9 +328,17 @@ diseases,
 fields,
 irrigations,
 expenses,
-pesticides
+inventory
 
-]);  return (
+]);
+
+
+
+
+
+
+
+return (
 
 <div>
 
@@ -386,62 +349,41 @@ pesticides
 
 
 <p>
-تحليل شامل لمنظومة LAVENDER Smart Farm
+🌱 LAVENDER Smart Farm
+<br/>
+تحليل شامل لأداء المزرعة
 </p>
 
 
 
 
 
-<Card title="🚀 مؤشرات الأداء الرئيسية">
+<Card title="🚀 مؤشرات الأداء">
 
 
-<p>
-🌾 عدد المزارع:
-
-<strong>
-{" "}
-{kpi.farms}
-</strong>
-
-</p>
-
-
-
-<p>
-🌱 عدد الحقول:
-
-<strong>
-{" "}
-{kpi.fields}
-</strong>
-
-</p>
-
-
-
-<p>
-🌿 عدد المحاصيل:
-
-<strong>
-{" "}
-{kpi.crops}
-</strong>
-
-</p>
-
-
-
-<p>
-⚙️ إجمالي العمليات الزراعية:
-
-<strong>
-{" "}
+<h2>
 {kpi.operations}
-</strong>
+</h2>
 
+
+<p>
+إجمالي العمليات الزراعية
 </p>
 
+
+<p>
+🌾 المزارع: {kpi.farms}
+</p>
+
+
+<p>
+🌱 الحقول: {kpi.fields}
+</p>
+
+
+<p>
+🌿 المحاصيل: {kpi.crops}
+</p>
 
 
 </Card>
@@ -452,11 +394,31 @@ pesticides
 
 
 
-<Card title="💰 التحليل المالي">
+<Card title="❤️ صحة المزرعة">
+
+
+<h2>
+{healthScore}%
+</h2>
 
 
 <p>
+مؤشر الحالة الزراعية الذكية
+</p>
 
+
+</Card>
+
+
+
+
+
+
+
+<Card title="💰 التقرير المالي">
+
+
+<p>
 إجمالي المصاريف:
 
 <strong>
@@ -475,9 +437,7 @@ pesticides
 
 
 
-
 <p>
-
 متوسط المصروف:
 
 <strong>
@@ -497,19 +457,10 @@ pesticides
 
 
 <p>
-
-عدد السجلات المالية:
-
-<strong>
-
+عدد العمليات المالية:
 {" "}
-
-{expenses.length}
-
-</strong>
-
+{financial.count}
 </p>
-
 
 
 </Card>
@@ -520,83 +471,25 @@ pesticides
 
 
 
-<Card title="🌱 تحليل المحاصيل">
+<Card title="🌿 تحليل المحاصيل">
 
 
 <p>
-
-أكثر محصول مسجل:
+أكثر محصول:
 
 <strong>
-
 {" "}
-
-{cropAnalysis.top}
-
+{cropReport.top}
 </strong>
 
 </p>
 
 
-
-
 <p>
-
 عدد المحاصيل:
-
-<strong>
-
 {" "}
-
-{cropAnalysis.count}
-
-</strong>
-
+{cropReport.count}
 </p>
-
-
-
-</Card>
-
-
-
-
-
-
-
-<Card title="🦠 حالة صحة المحاصيل">
-
-
-<p>
-
-عدد حالات الأمراض:
-
-<strong>
-
-{" "}
-
-{kpi.diseases}
-
-</strong>
-
-</p>
-
-
-
-<p>
-
-عمليات المكافحة:
-
-<strong>
-
-{" "}
-
-{pesticides.length}
-
-</strong>
-
-</p>
-
 
 
 </Card>
@@ -612,17 +505,13 @@ pesticides
 
 {
 
-recommendations.map(
+advice.map(
 
 (item,index)=>(
 
-
 <p key={index}>
-
 {item}
-
 </p>
-
 
 )
 
@@ -639,38 +528,27 @@ recommendations.map(
 
 
 
-<Card title="👨‍🌾 النشاط والاستشارات">
+<Card title="👨‍🌾 الأنشطة المستقبلية">
 
 
 <p>
-
 📨 الاستشارات:
-
-<strong>
-
 {" "}
-
 {consultations.length}
-
-</strong>
-
 </p>
 
 
-
-
 <p>
-
-🤖 أسئلة الذكاء الاصطناعي:
-
-<strong>
-
+🤖 أسئلة AI:
 {" "}
-
 {aiQuestions.length}
+</p>
 
-</strong>
 
+<p>
+🚜 الحصاد:
+{" "}
+{kpi.harvests}
 </p>
 
 
@@ -682,30 +560,36 @@ recommendations.map(
 
 
 
-<Card title="☁️ جاهزية التطوير">
+<Card title="☁️ جاهزية النظام">
 
 
 <p>
-📄 تصدير التقارير PDF
+✅ البيانات الزراعية مترابطة
 </p>
 
 
 <p>
-📊 رسوم بيانية وتحليلات متقدمة
+✅ جاهز للرسوم البيانية
 </p>
 
 
 <p>
-🧠 دمج الذكاء الاصطناعي الزراعي
+✅ جاهز لتصدير PDF
 </p>
 
 
 <p>
-☁️ ربط قاعدة بيانات سحابية
+✅ جاهز للذكاء الاصطناعي
+</p>
+
+
+<p>
+✅ جاهز للقاعدة السحابية
 </p>
 
 
 </Card>
+
 
 
 
@@ -717,7 +601,6 @@ recommendations.map(
 إنشاء تقرير PDF
 
 </Button>
-
 
 
 
