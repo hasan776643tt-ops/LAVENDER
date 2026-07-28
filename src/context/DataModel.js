@@ -1,6 +1,6 @@
 // LAVENDER Smart Farm
 // Enterprise Data Models
-// Version 2.0
+// Version 3.0
 
 
 /* =========================
@@ -15,6 +15,7 @@ export const FarmModel = {
 
   ownerId: "",
 
+
   location: {
 
     latitude: "",
@@ -25,6 +26,7 @@ export const FarmModel = {
 
   },
 
+
   area: {
 
     value: 0,
@@ -33,9 +35,14 @@ export const FarmModel = {
 
   },
 
+
   cropIds: [],
 
+  fieldIds: [],
+
+
   status: "active",
+
 
   notes: "",
 
@@ -58,7 +65,9 @@ export const FieldModel = {
 
   id: "",
 
+
   farmId: "",
+
 
   name: "",
 
@@ -79,6 +88,9 @@ export const FieldModel = {
 
 
   irrigationType: "",
+
+
+  locationId: "",
 
 
   status: "active",
@@ -105,7 +117,9 @@ export const CropModel = {
 
   id: "",
 
+
   farmId: "",
+
 
   fieldId: "",
 
@@ -116,7 +130,13 @@ export const CropModel = {
   variety: "",
 
 
-  quantity: 0,
+  seedQuantity: {
+
+    value: 0,
+
+    unit: "kg"
+
+  },
 
 
   production: {
@@ -155,7 +175,6 @@ export const CropModel = {
 
 
 
-
 /* =========================
    Irrigation Model
 ========================= */
@@ -169,6 +188,9 @@ export const IrrigationModel = {
 
 
   fieldId: "",
+
+
+  cropId: "",
 
 
   method: "",
@@ -186,6 +208,9 @@ export const IrrigationModel = {
   irrigationDate: "",
 
 
+  duration: "",
+
+
   weatherCondition: "",
 
 
@@ -197,7 +222,6 @@ export const IrrigationModel = {
   updatedAt: ""
 
 };
-
 
 
 
@@ -224,6 +248,9 @@ export const FertilizerModel = {
   type: "",
 
 
+  category: "chemical",
+
+
   quantity: {
 
     value: 0,
@@ -233,7 +260,19 @@ export const FertilizerModel = {
   },
 
 
+  applicationMethod: "",
+
+
   applicationDate: "",
+
+
+  cost: {
+
+    amount: 0,
+
+    currency: "SYP"
+
+  },
 
 
   notes: "",
@@ -244,7 +283,6 @@ export const FertilizerModel = {
   updatedAt: ""
 
 };
-
 
 
 
@@ -274,10 +312,22 @@ export const PesticideModel = {
   activeIngredient: "",
 
 
-  quantity: 0,
+  target: "",
 
 
-  safetyPeriod: "",
+  quantity: {
+
+    value: 0,
+
+    unit: "ml"
+
+  },
+
+
+  applicationMethod: "spray",
+
+
+  safetyPeriod: 0,
 
 
   sprayDate: "",
@@ -293,15 +343,7 @@ export const PesticideModel = {
 
   updatedAt: ""
 
-};
-
-
-
-
-
-
-
-/* =========================
+};/* =========================
    Disease Model
 ========================= */
 
@@ -343,12 +385,14 @@ export const DiseaseModel = {
   status: "active",
 
 
+  notes: "",
+
+
   createdAt: "",
 
   updatedAt: ""
 
 };
-
 
 
 
@@ -367,6 +411,9 @@ export const ExpenseModel = {
 
 
   category: "",
+
+
+  description: "",
 
 
   amount: 0,
@@ -391,10 +438,8 @@ export const ExpenseModel = {
 
 
 
-
-
 /* =========================
-   Location Model
+   Location GPS Model
 ========================= */
 
 export const LocationModel = {
@@ -414,51 +459,12 @@ export const LocationModel = {
   accuracy: "",
 
 
+  address: "",
+
+
   createdAt: ""
 
 };
-
-
-
-
-
-
-
-/* =========================
-   Consultation Model
-========================= */
-
-export const ConsultationModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  userId: "",
-
-
-  subject: "",
-
-
-  question: "",
-
-
-  answer: "",
-
-
-  status: "pending",
-
-
-  createdAt: "",
-
-
-  updatedAt: ""
-
-};
-
-
 
 
 
@@ -498,6 +504,44 @@ export const UserModel = {
 
 
 
+/* =========================
+   Consultation Model
+========================= */
+
+export const ConsultationModel = {
+
+  id: "",
+
+
+  farmId: "",
+
+
+  userId: "",
+
+
+  engineerId: "",
+
+
+  subject: "",
+
+
+  question: "",
+
+
+  answer: "",
+
+
+  status: "pending",
+
+
+  createdAt: "",
+
+  updatedAt: ""
+
+};
+
+
+
 
 
 /* =========================
@@ -519,6 +563,98 @@ export const ReportModel = {
 
 
   content: "",
+
+
+  statistics: {},
+
+
+  createdAt: "",
+
+  updatedAt: ""
+
+};
+
+
+
+
+
+/* =========================
+   Harvest Model
+========================= */
+
+export const HarvestModel = {
+
+  id: "",
+
+
+  farmId: "",
+
+
+  fieldId: "",
+
+
+  cropId: "",
+
+
+  quantity: {
+
+    value: 0,
+
+    unit: "kg"
+
+  },
+
+
+  quality: "",
+
+
+  harvestDate: "",
+
+
+  workerIds: [],
+
+
+  notes: "",
+
+
+  createdAt: "",
+
+  updatedAt: ""
+
+};
+
+
+
+
+
+/* =========================
+   Inventory Model
+========================= */
+
+export const InventoryModel = {
+
+  id: "",
+
+
+  farmId: "",
+
+
+  name: "",
+
+
+  category: "",
+
+
+  quantity: 0,
+
+
+  unit: "",
+
+
+  minimumStock: 0,
+
+
+  supplier: "",
 
 
   createdAt: "",
