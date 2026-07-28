@@ -17,7 +17,7 @@ export const FarmContext =
 
 
 // =========================
-// Helper Functions
+// Helpers
 // =========================
 
 const createId = () =>
@@ -43,7 +43,10 @@ const loadData = (key) => {
 // Provider
 // =========================
 
-export function FarmProvider({ children }) {
+export function FarmProvider({
+  children
+}) {
+
 
 
 const [farms,setFarms] =
@@ -56,7 +59,6 @@ useState(() => loadData("fields"));
 
 const [crops,setCrops] =
 useState(() => loadData("crops"));
-
 
 
 const [irrigations,setIrrigations] =
@@ -75,20 +77,16 @@ const [diseases,setDiseases] =
 useState(() => loadData("diseases"));
 
 
-
 const [expenses,setExpenses] =
 useState(() => loadData("expenses"));
-
 
 
 const [harvests,setHarvests] =
 useState(() => loadData("harvests"));
 
 
-
 const [inventory,setInventory] =
 useState(() => loadData("inventory"));
-
 
 
 const [consultations,setConsultations] =
@@ -101,20 +99,17 @@ useState(() => loadData("aiQuestions"));
 
 
 
-
 // =========================
-// Save LocalStorage
+// Local Storage Sync
 // =========================
 
 
 useEffect(()=>{
 
-
 localStorage.setItem(
 "farms",
 JSON.stringify(farms)
 );
-
 
 },[farms]);
 
@@ -215,144 +210,182 @@ localStorage.setItem(
 JSON.stringify(inventory)
 );
 
-},[inventory]);
-
-
-
-
-// =========================
-// CRUD Engine
+},[inventory]);  // =========================
+// CRUD ENGINE
 // =========================
 
 
-const addRecord =
-(setter,data)=>{
+const addRecord = (
+  setter,
+  data
+)=>{
 
+  setter(prev => [
 
-setter(prev => [
+    ...prev,
 
-...prev,
+    {
+      id:createId(),
+      ...data
+    }
 
-{
-id:createId(),
-...data
-}
-
-]);
-
-
-};
-
-
-
-const updateRecord =
-(setter,id,data)=>{
-
-
-setter(prev =>
-
-prev.map(item =>
-
-item.id === id
-
-?
-{
-...item,
-...data
-}
-
-:
-item
-
-)
-
-);
-
-
-};
-
-
-
-const deleteRecord =
-(setter,id)=>{
-
-
-setter(prev =>
-
-prev.filter(
-item =>
-item.id !== id
-)
-
-);
-
+  ]);
 
 };
 
 
 
 
+const updateRecord = (
+  setter,
+  id,
+  data
+)=>{
+
+  setter(prev =>
+
+    prev.map(item =>
+
+      item.id === id
+
+      ?
+
+      {
+        ...item,
+        ...data
+      }
+
+      :
+
+      item
+
+    )
+
+  );
+
+};
+
+
+
+
+const deleteRecord = (
+  setter,
+  id
+)=>{
+
+  setter(prev =>
+
+    prev.filter(
+      item =>
+      item.id !== id
+    )
+
+  );
+
+};
+
+
+
+
 // =========================
-// CRUD EXPORTS
+// FARMS CRUD
 // =========================
 
 
-const addHarvest =
-(data)=>
+const addFarm = (data)=>
 addRecord(
-setHarvests,
-data
+  setFarms,
+  data
 );
 
 
-
-const updateHarvest =
-(id,data)=>
+const updateFarm = (
+  id,
+  data
+)=>
 updateRecord(
-setHarvests,
-id,
-data
+  setFarms,
+  id,
+  data
 );
 
 
-
-const deleteHarvest =
-(id)=>
+const deleteFarm = (id)=>
 deleteRecord(
-setHarvests,
-id
+  setFarms,
+  id
 );
 
 
 
-const addInventory =
-(data)=>
+
+// =========================
+// HARVEST CRUD
+// =========================
+
+
+const addHarvest = (data)=>
 addRecord(
-setInventory,
-data
+  setHarvests,
+  data
 );
 
 
-
-const updateInventory =
-(id,data)=>
+const updateHarvest = (
+ id,
+ data
+)=>
 updateRecord(
-setInventory,
-id,
-data
+ setHarvests,
+ id,
+ data
 );
 
 
-
-const deleteInventory =
-(id)=>
+const deleteHarvest = (id)=>
 deleteRecord(
-setInventory,
-id
+ setHarvests,
+ id
 );
 
 
 
+
+// =========================
+// INVENTORY CRUD
+// =========================
+
+
+const addInventory = (data)=>
+addRecord(
+ setInventory,
+ data
+);
+
+
+const updateInventory = (
+ id,
+ data
+)=>
+updateRecord(
+ setInventory,
+ id,
+ data
+);
+
+
+const deleteInventory = (id)=>
+deleteRecord(
+ setInventory,
+ id
+);
+
+
+
+
+// =========================
+// PROVIDER
+// =========================
 
 
 return (
@@ -391,6 +424,7 @@ setHarvests,
 inventory,
 setInventory,
 
+
 consultations,
 setConsultations,
 
@@ -398,19 +432,33 @@ aiQuestions,
 setAiQuestions,
 
 
+
+// Farms
+addFarm,
+updateFarm,
+deleteFarm,
+
+
+
+// Harvest
 addHarvest,
 updateHarvest,
 deleteHarvest,
 
 
+
+// Inventory
 addInventory,
 updateInventory,
 deleteInventory,
 
 
+
+// Engine
 addRecord,
 updateRecord,
 deleteRecord,
+
 
 }}
 
