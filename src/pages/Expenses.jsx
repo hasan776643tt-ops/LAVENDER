@@ -1,451 +1,1006 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+import {
+  useContext,
+  useMemo,
+  useState
+} from "react";
+
+
+import {
+  FarmContext
+} from "../context/FarmContext";
+
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
-export default function Expenses() {
 
-  const {
-    expenses,
-    setExpenses,
-  } = useContext(FarmContext);
 
-  const [type, setType] =
-    useState("");
+export default function Expenses(){
 
-  const [amount, setAmount] =
-    useState("");
 
-  const [currency, setCurrency] =
-    useState("ل.س - الليرة السورية");
+const {
 
-  const [paymentMethod, setPaymentMethod] =
-    useState("نقدي");
 
-  const [supplier, setSupplier] =
-    useState("");
+farms = [],
 
-  const [invoice, setInvoice] =
-    useState("");
+expenses = [],
 
-  const [date, setDate] =
-    useState("");
+addExpense,
 
-  const [notes, setNotes] =
-    useState("");
+updateExpense,
 
-  const addExpense = () => {
+deleteExpense
 
-    if (!type || !amount) {
-      return;
-    }
 
-    const newExpense = {
+}=useContext(FarmContext);
 
-      id: Date.now(),
 
-      type,
 
-      amount: Number(amount),
 
-      currency,
+// =====================
+// Form Model
+// =====================
 
-      paymentMethod,
 
-      supplier,
+const emptyForm = {
 
-      invoice,
 
-      date,
+farmId:"",
 
-      notes,
+type:"",
 
-      createdAt:
-        new Date().toLocaleString("ar"),
+amount:"",
 
-    };
+currency:"ل.س",
 
-    setExpenses([
-      ...expenses,
-      newExpense,
-    ]);
+paymentMethod:"نقدي",
 
-    setType("");
-    setAmount("");
-    setSupplier("");
-    setInvoice("");
-    setDate("");
-    setNotes("");
+supplier:"",
 
-  };
+invoice:"",
 
-  const deleteExpense = (id) => {
+date:"",
 
-    setExpenses(
-      expenses.filter(
-        (item) => item.id !== id
-      )
-    );
+category:"",
 
-  };
+status:"paid",
 
-  const total =
-    expenses.reduce(
-      (sum, item) =>
-        sum + item.amount,
-      0
-    );
+notes:""
 
-  return (
 
-    <div>
+};
 
-      <h1>
-        💰 إدارة المصاريف الذكية
-      </h1>
 
-      <Card title="إضافة مصروف جديد">
-
-        <select
-          value={type}
-          onChange={(e) =>
-            setType(
-              e.target.value
-            )
-          }
-        >
-
-          <option value="">
-            اختر نوع المصروف
-          </option>
-
-          <option>
-            سماد
-          </option>
-
-          <option>
-            مبيدات
-          </option>
-
-          <option>
-            ري
-          </option>
-
-          <option>
-            وقود
-          </option>
-
-          <option>
-            أجور عمال
-          </option>
-
-          <option>
-            صيانة
-          </option>
-
-          <option>
-            معدات زراعية
-          </option>
-
-          <option>
-            نقل وشحن
-          </option>
-
-          <option>
-            أخرى
-          </option>
-
-        </select>
-
-        <br /><br />
-
-        <input
-          type="number"
-          placeholder="قيمة المصروف"
-          value={amount}
-          onChange={(e) =>
-            setAmount(
-              e.target.value
-            )
-          }
-        />
-
-        <br /><br />
-
-        <select
-          value={currency}
-          onChange={(e) =>
-            setCurrency(
-              e.target.value
-            )
-          }
-        >
-
-          <option>
-            ل.س - الليرة السورية
-          </option>
-
-          <option>
-            $ - الدولار الأمريكي
-          </option>
-
-          <option>
-            € - اليورو
-          </option>
-
-          <option>
-            ₺ - الليرة التركية
-          </option>
-
-          <option>
-            ر.س - الريال السعودي
-          </option>
-
-          <option>
-            د.إ - الدرهم الإماراتي
-          </option>
-
-          <option>
-            ر.ق - الريال القطري
-          </option>
-
-          <option>
-            د.ك - الدينار الكويتي
-          </option>
-
-          <option>
-            د.ب - الدينار البحريني
-          </option>
-
-          <option>
-            ر.ع - الريال العماني
-          </option>
-
-          <option>
-            د.أ - الدينار الأردني
-          </option>
-
-          <option>
-            ل.ل - الليرة اللبنانية
-          </option>
-
-          <option>
-            د.ع - الدينار العراقي
-          </option>
-
-          <option>
-            ج.م - الجنيه المصري
-          </option>
-
-          <option>
-            د.ل - الدينار الليبي
-          </option>
-
-          <option>
-            د.ت - الدينار التونسي
-          </option>
-
-          <option>
-            د.ج - الدينار الجزائري
-          </option>
-
-          <option>
-            د.م - الدرهم المغربي
-          </option>
-
-          <option>
-            م.أ - الأوقية الموريتانية
-          </option>
-
-          <option>
-            ر.ي - الريال اليمني
-          </option>
-
-        </select>
-
-        <br /><br />
-
-        <select
-          value={paymentMethod}
-          onChange={(e) =>
-            setPaymentMethod(
-              e.target.value
-            )
-          }
-        >
-
-          <option>
-            نقدي
-          </option>
-
-          <option>
-            تحويل بنكي
-          </option>
-
-          <option>
-            بطاقة مصرفية
-          </option>
-
-          <option>
-            محفظة إلكترونية
-          </option>
-
-        </select>
-
-        <br /><br />
-
-        <input
-          type="text"
-          placeholder="اسم المورد"
-          value={supplier}
-          onChange={(e) =>
-            setSupplier(
-              e.target.value
-            )
-          }
-        />
-
-        <br /><br />
-
-        <input
-          type="text"
-          placeholder="رقم الفاتورة"
-          value={invoice}
-          onChange={(e) =>
-            setInvoice(
-              e.target.value
-            )
-          }
-        />
-
-        <br /><br />
-
-        <input
-          type="date"
-          value={date}
-          onChange={(e) =>
-            setDate(
-              e.target.value
-            )
-          }
-        />
-
-        <br /><br />
-
-        <textarea
-          placeholder="ملاحظات إضافية"
-          value={notes}
-          onChange={(e) =>
-            setNotes(
-              e.target.value
-            )
-          }
-        />
-
-        <br /><br />
-
-        <Button
-          onClick={addExpense}
-        >
-          حفظ المصروف
-        </Button>
-
-      </Card>
-
-      <Card title="📊 الملخص المالي">
-
-        <h2>
-          {total}
-        </h2>
-
-        <p>
-          إجمالي المصاريف المسجلة
-        </p>
-
-        <p>
-          عدد العمليات:
-          {" "}
-          {expenses.length}
-        </p>
-
-      </Card>
-
-      <h2>
-        📑 سجل المصاريف
-      </h2>
-
-      {expenses.map((item) => (
-
-        <Card
-          key={item.id}
-          title={item.type}
-        >
-
-          <p>
-            💵 القيمة:
-            {" "}
-            {item.amount}
-          </p>
-
-          <p>
-            💱 العملة:
-            {" "}
-            {item.currency}
-          </p>
-
-          <p>
-            🏦 طريقة الدفع:
-            {" "}
-            {item.paymentMethod}
-          </p>
-
-          <p>
-            🏢 المورد:
-            {" "}
-            {item.supplier}
-          </p>
-
-          <p>
-            🧾 رقم الفاتورة:
-            {" "}
-            {item.invoice}
-          </p>
-
-          <p>
-            📅 التاريخ:
-            {" "}
-            {item.date}
-          </p>
-
-          <p>
-            📝 الملاحظات:
-            {" "}
-            {item.notes}
-          </p>
-
-          <p>
-            🕒 وقت التسجيل:
-            {" "}
-            {item.createdAt}
-          </p>
-
-          <Button
-            onClick={() =>
-              deleteExpense(
-                item.id
-              )
-            }
-          >
-            حذف
-          </Button>
-
-        </Card>
-
-      ))}
-
-    </div>
-
-  );
+
+
+
+const [form,setForm]=
+
+useState(emptyForm);
+
+
+
+const [editId,setEditId]=
+
+useState(null);
+
+
+
+const [search,setSearch]=
+
+useState("");
+
+
+
+
+
+// =====================
+// Update Form
+// =====================
+
+
+const updateForm=(key,value)=>{
+
+
+setForm(prev=>({
+
+...prev,
+
+[key]:value
+
+}));
+
+};
+
+
+
+
+
+// =====================
+// Clear
+// =====================
+
+
+const clearForm=()=>{
+
+
+setForm(emptyForm);
+
+setEditId(null);
+
+
+};
+
+
+
+
+
+// =====================
+// Save
+// =====================
+
+
+const saveExpense=()=>{
+
+
+if(
+
+!form.type ||
+
+!form.amount
+
+)
+
+return;
+
+
+
+if(editId){
+
+
+updateExpense(
+
+editId,
+
+form
+
+);
+
+
+}
+
+else{
+
+
+addExpense({
+
+...form,
+
+amount:Number(form.amount),
+
+createdAt:
+new Date()
+.toISOString()
+
+});
+
+
+}
+
+
+
+clearForm();
+
+
+};
+
+
+
+
+
+// =====================
+// Edit
+// =====================
+
+
+const editExpense=(item)=>{
+
+
+setForm({
+
+farmId:item.farmId || "",
+
+type:item.type || "",
+
+amount:item.amount || "",
+
+currency:item.currency || "ل.س",
+
+paymentMethod:item.paymentMethod || "نقدي",
+
+supplier:item.supplier || "",
+
+invoice:item.invoice || "",
+
+date:item.date || "",
+
+category:item.category || "",
+
+status:item.status || "paid",
+
+notes:item.notes || ""
+
+
+});
+
+
+setEditId(item.id);
+
+
+};
+
+
+
+//   // =====================
+// Smart Statistics
+// =====================
+
+
+const totalExpenses = useMemo(()=>{
+
+
+return expenses.reduce(
+
+(sum,item)=>
+
+sum +
+
+Number(item.amount || 0),
+
+0
+
+);
+
+
+},[
+expenses
+]);
+
+
+
+
+
+const expenseCount = useMemo(()=>{
+
+
+return expenses.length;
+
+
+},[
+expenses
+]);
+
+
+
+
+
+
+// =====================
+// Search
+// =====================
+
+
+const filteredExpenses = useMemo(()=>{
+
+
+return expenses.filter(item=>{
+
+
+return (
+
+item.type
+
+?.toLowerCase()
+
+.includes(
+
+search.toLowerCase()
+
+)
+
+);
+
+
+});
+
+
+},[
+
+expenses,
+
+search
+
+]);
+
+
+
+
+
+
+
+// =====================
+// Smart Analysis
+// =====================
+
+
+const smartAdvice = useMemo(()=>{
+
+
+if(
+totalExpenses > 1000000
+)
+
+return "⚠️ المصاريف مرتفعة، راجع إدارة التكاليف.";
+
+
+
+if(
+expenseCount > 20
+)
+
+return "📊 يوجد نشاط مالي كبير، يفضل إنشاء تقرير مالي.";
+
+
+
+return "✅ الوضع المالي يحتاج متابعة دورية.";
+
+
+
+},[
+
+totalExpenses,
+
+expenseCount
+
+]);
+
+
+
+
+
+
+// =====================
+// UI
+// =====================
+
+
+return (
+
+<div>
+
+
+<h1>
+💰 الإدارة المالية الذكية
+</h1>
+
+
+
+
+<Card
+
+title={
+editId
+?
+"✏️ تعديل مصروف"
+:
+"➕ إضافة مصروف جديد"
+}
+
+>
+
+
+
+
+<select
+
+value={form.farmId}
+
+onChange={(e)=>
+
+updateForm(
+"farmId",
+e.target.value
+)
+
+}
+
+>
+
+<option value="">
+اختر المزرعة
+</option>
+
+
+{
+
+farms.map(farm=>(
+
+<option
+
+key={farm.id}
+
+value={farm.id}
+
+>
+
+{farm.name}
+
+</option>
+
+))
+
+}
+
+
+</select>
+
+
+
+
+
+<input
+
+placeholder="نوع المصروف"
+
+value={form.type}
+
+onChange={(e)=>
+
+updateForm(
+"type",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<input
+
+type="number"
+
+placeholder="قيمة المصروف"
+
+value={form.amount}
+
+onChange={(e)=>
+
+updateForm(
+"amount",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<select
+
+value={form.currency}
+
+onChange={(e)=>
+
+updateForm(
+"currency",
+e.target.value
+)
+
+}
+
+>
+
+
+<option>
+ل.س
+</option>
+
+
+<option>
+$
+</option>
+
+
+<option>
+€
+</option>
+
+
+<option>
+₺
+</option>
+
+
+</select>
+
+
+
+
+
+<select
+
+value={form.paymentMethod}
+
+onChange={(e)=>
+
+updateForm(
+"paymentMethod",
+e.target.value
+)
+
+}
+
+>
+
+
+<option>
+نقدي
+</option>
+
+
+<option>
+تحويل بنكي
+</option>
+
+
+<option>
+بطاقة
+</option>
+
+
+<option>
+محفظة إلكترونية
+</option>
+
+
+</select>
+
+
+
+
+
+<input
+
+placeholder="المورد"
+
+value={form.supplier}
+
+onChange={(e)=>
+
+updateForm(
+"supplier",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<input
+
+placeholder="رقم الفاتورة"
+
+value={form.invoice}
+
+onChange={(e)=>
+
+updateForm(
+"invoice",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+  // =====================
+// Continue UI
+// =====================
+
+
+<input
+
+type="date"
+
+value={form.date}
+
+onChange={(e)=>
+
+updateForm(
+"date",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<select
+
+value={form.category}
+
+onChange={(e)=>
+
+updateForm(
+"category",
+e.target.value
+)
+
+}
+
+>
+
+<option value="">
+تصنيف المصروف
+</option>
+
+
+<option>
+تشغيل
+</option>
+
+
+<option>
+زراعة
+</option>
+
+
+<option>
+معدات
+</option>
+
+
+<option>
+عمال
+</option>
+
+
+<option>
+نقل
+</option>
+
+
+<option>
+صيانة
+</option>
+
+
+</select>
+
+
+
+
+
+<select
+
+value={form.status}
+
+onChange={(e)=>
+
+updateForm(
+"status",
+e.target.value
+)
+
+}
+
+>
+
+
+<option value="paid">
+مدفوع
+</option>
+
+
+<option value="pending">
+معلق
+</option>
+
+
+<option value="scheduled">
+مجدول
+</option>
+
+
+</select>
+
+
+
+
+
+<textarea
+
+placeholder="ملاحظات"
+
+value={form.notes}
+
+onChange={(e)=>
+
+updateForm(
+"notes",
+e.target.value
+)
+
+}
+
+/>
+
+
+
+
+
+<Button
+
+onClick={saveExpense}
+
+>
+
+{
+
+editId
+
+?
+
+"حفظ التعديل"
+
+:
+
+"إضافة المصروف"
+
+}
+
+</Button>
+
+
+
+
+</Card>
+
+
+
+
+
+
+
+
+
+<Card title="🤖 التحليل المالي الذكي">
+
+
+<p>
+{smartAdvice}
+</p>
+
+
+</Card>
+
+
+
+
+
+
+
+
+
+<Card title="🔎 البحث">
+
+
+<input
+
+placeholder="ابحث عن مصروف"
+
+value={search}
+
+onChange={(e)=>
+
+setSearch(
+e.target.value
+)
+
+}
+
+/>
+
+
+</Card>
+
+
+
+
+
+
+
+
+
+<Card title="📊 الملخص المالي">
+
+
+<h2>
+{totalExpenses}
+</h2>
+
+
+<p>
+إجمالي المصاريف
+</p>
+
+
+<p>
+عدد العمليات:
+{" "}
+{expenseCount}
+</p>
+
+
+</Card>
+
+
+
+
+
+
+
+
+
+<h2>
+📑 سجل المصاريف
+</h2>
+
+
+
+
+
+{
+
+filteredExpenses.map(item=>(
+
+
+<Card
+
+key={item.id}
+
+title={
+item.type
+}
+
+>
+
+
+<p>
+💵 القيمة:
+{" "}
+{item.amount}
+{" "}
+{item.currency}
+</p>
+
+
+
+<p>
+🏦 الدفع:
+{" "}
+{item.paymentMethod}
+</p>
+
+
+
+<p>
+🏢 المورد:
+{" "}
+{item.supplier}
+</p>
+
+
+
+<p>
+🧾 الفاتورة:
+{" "}
+{item.invoice}
+</p>
+
+
+
+<p>
+📂 التصنيف:
+{" "}
+{item.category}
+</p>
+
+
+
+<p>
+📅 التاريخ:
+{" "}
+{item.date}
+</p>
+
+
+
+<p>
+🚦 الحالة:
+{" "}
+{item.status}
+</p>
+
+
+
+<p>
+📝 الملاحظات:
+{" "}
+{item.notes}
+</p>
+
+
+
+
+
+<Button
+
+onClick={()=>editExpense(item)}
+
+>
+
+تعديل
+
+</Button>
+
+
+
+
+
+<Button
+
+onClick={()=>deleteExpense(item.id)}
+
+>
+
+حذف
+
+</Button>
+
+
+
+</Card>
+
+
+))
+
+
+}
+
+
+
+</div>
+
+);
+
 
 }
