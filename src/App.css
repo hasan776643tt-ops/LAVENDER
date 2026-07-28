@@ -1,194 +1,488 @@
+/* =========================
+   LAVENDER Smart Farm
+   Global Design System
+========================= */
+
+
+
+* {
+
+  box-sizing: border-box;
+
+}
+
+
+
 body {
+
   margin: 0;
-  font-family: Arial, sans-serif;
-  background-color: #f5f7f5;
-  direction: rtl;
-}
 
+  font-family:
 
-/* Header */
+  "Tajawal",
+  "Arial",
+  sans-serif;
 
-header {
-  background-color: #2e7d32;
-  color: white;
-  text-align: center;
-  padding: 20px;
-}
+  background:
 
-header h1 {
-  margin: 0;
-}
+  #f5f7f2;
 
+  color:
 
-/* Layout */
-
-.layout {
-  display: flex;
-  min-height: 80vh;
-}
-
-
-/* Sidebar */
-
-aside {
-  width: 230px;
-  background-color: white;
-  padding: 20px;
-  box-shadow: 0 0 5px #ccc;
-}
-
-aside h2 {
-  color: #2e7d32;
-}
-
-aside ul {
-  list-style: none;
-  padding: 0;
-}
-
-aside li {
-  margin: 15px 0;
-}
-
-aside a {
-  text-decoration: none;
-  color: #333;
-  font-weight: bold;
-}
-
-
-/* Main Content */
-
-main {
-  flex: 1;
-  padding: 20px;
-}
-
-
-/* Navigation */
-
-nav {
-  background-color: white;
-  padding: 15px;
-  text-align: center;
-  border-bottom: 1px solid #ddd;
-}
-
-nav a {
-  text-decoration: none;
-  color: #2e7d32;
-  font-weight: bold;
-  margin: 5px;
-}
-
-nav a:hover {
-  color: #1b5e20;
-}
-
-
-/* Inputs */
-
-input,
-textarea,
-select {
-
-  width: 90%;
-  padding: 10px;
-  margin-top: 5px;
-
-  border: 1px solid #ccc;
-  border-radius: 5px;
+  #243124;
 
 }
 
 
-/* Buttons */
 
-button {
+/* =========================
+   Main Container
+========================= */
 
-  background-color: #2e7d32;
 
-  color: white;
+#root {
 
-  border: none;
-
-  padding: 10px 20px;
-
-  border-radius: 5px;
-
-  cursor: pointer;
+  width: 100%;
 
 }
 
 
-button:hover {
 
-  background-color: #1b5e20;
+/* =========================
+   Headings
+========================= */
+
+
+h1 {
+
+  font-size: 28px;
+
+  margin-bottom: 10px;
+
+  color:
+
+  #3f6f3f;
 
 }
 
 
-/* Cards */
+h2 {
+
+  color:
+
+  #4b704b;
+
+}
+
+
+p {
+
+  line-height: 1.7;
+
+}
+
+
+
+
+
+/* =========================
+   CARD SYSTEM
+========================= */
+
 
 .card {
 
-  background-color: white;
+  background:
 
-  padding: 20px;
+  white;
 
-  margin: 10px;
+  border-radius:
 
-  border-radius: 10px;
+  18px;
 
-  box-shadow: 0 2px 5px #ccc;
+  padding:
+
+  20px;
+
+  margin:
+
+  15px 0;
+
+  box-shadow:
+
+  0 8px 25px rgba(0,0,0,0.08);
+
+  border:
+
+  1px solid #e5eadf;
+
+  transition:
+
+  0.3s ease;
 
 }
 
 
-/* Footer */
 
-footer {
+.card:hover {
 
-  text-align: center;
+  transform:
 
-  background-color: white;
+  translateY(-3px);
 
-  padding: 15px;
+  box-shadow:
+
+  0 12px 30px rgba(0,0,0,0.12);
 
 }
 
 
-/* Mobile */
 
-@media (max-width: 600px) {
+.card-header {
 
-  .layout {
+  display:
 
-    flex-direction: column;
+  flex;
+
+  align-items:
+
+  center;
+
+  gap:
+
+  10px;
+
+  margin-bottom:
+
+  15px;
+
+}
+
+
+
+.card-header h2 {
+
+  margin:
+
+  0;
+
+  font-size:
+
+  20px;
+
+}
+
+
+
+.card-icon {
+
+  font-size:
+
+  26px;
+
+}
+
+
+
+.card-body {
+
+  font-size:
+
+  16px;
+
+}
+
+
+
+
+
+/* =========================
+   BUTTON SYSTEM
+========================= */
+
+
+.button {
+
+  border:
+
+  none;
+
+  border-radius:
+
+  12px;
+
+  padding:
+
+  12px 22px;
+
+  font-size:
+
+  16px;
+
+  cursor:
+
+  pointer;
+
+  display:
+
+  inline-flex;
+
+  align-items:
+
+  center;
+
+  justify-content:
+
+  center;
+
+  gap:
+
+  8px;
+
+  transition:
+
+  0.3s ease;
+
+  margin:
+
+  5px;
+
+}
+
+
+
+.button:hover {
+
+  transform:
+
+  translateY(-2px);
+
+}
+
+
+
+/* Primary */
+
+
+.button-primary {
+
+  background:
+
+  #6b8e23;
+
+  color:
+
+  white;
+
+}
+
+
+
+/* Success */
+
+
+.button-success {
+
+  background:
+
+  #2e8b57;
+
+  color:
+
+  white;
+
+}
+
+
+
+/* Danger */
+
+
+.button-danger {
+
+  background:
+
+  #c0392b;
+
+  color:
+
+  white;
+
+}
+
+
+
+/* Warning */
+
+
+.button-warning {
+
+  background:
+
+  #d4a017;
+
+  color:
+
+  white;
+
+}
+
+
+
+
+
+/* Sizes */
+
+
+.button-small {
+
+  padding:
+
+  8px 14px;
+
+  font-size:
+
+  14px;
+
+}
+
+
+
+.button-medium {
+
+  padding:
+
+  12px 22px;
+
+}
+
+
+
+.button-large {
+
+  padding:
+
+  15px 30px;
+
+  font-size:
+
+  18px;
+
+}
+
+
+
+
+
+.button:disabled {
+
+  opacity:
+
+  0.5;
+
+  cursor:
+
+  not-allowed;
+
+}
+
+
+
+
+
+/* =========================
+   Inputs
+========================= */
+
+
+input,
+select,
+textarea {
+
+
+  width:
+
+  100%;
+
+  padding:
+
+  12px;
+
+  margin:
+
+  8px 0;
+
+  border-radius:
+
+  10px;
+
+  border:
+
+  1px solid #ccd8c2;
+
+  font-size:
+
+  16px;
+
+}
+
+
+
+input:focus,
+select:focus,
+textarea:focus {
+
+  outline:
+
+  none;
+
+  border-color:
+
+  #6b8e23;
+
+}
+
+
+
+
+
+/* =========================
+   Mobile First
+========================= */
+
+
+@media (max-width:600px){
+
+
+  h1 {
+
+    font-size:
+
+    24px;
 
   }
 
 
-  aside {
+  .card {
 
-    width: auto;
+    padding:
 
-  }
+    15px;
 
+    border-radius:
 
-  nav {
-
-    display: flex;
-
-    flex-direction: column;
+    15px;
 
   }
 
 
-  nav a {
+  .button {
 
-    margin: 8px;
+    width:
+
+    100%;
 
   }
+
 
 }
