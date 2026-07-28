@@ -1,6 +1,13 @@
-import { useContext, useMemo } from "react";
+// src/pages/Dashboard.jsx
 
-import { FarmContext } from "../context/FarmContext";
+import {
+  useContext,
+  useMemo,
+} from "react";
+
+import {
+  FarmContext
+} from "../context/FarmContext";
 
 import Card from "../components/Card";
 
@@ -10,6 +17,99 @@ export default function Dashboard() {
 
   const {
 
+    farms = [],
+    fields = [],
+    crops = [],
+    irrigations = [],
+    fertilizers = [],
+    pesticides = [],
+    diseases = [],
+    expenses = [],
+    harvests = [],
+    inventory = [],
+
+  } = useContext(FarmContext);
+
+
+
+
+
+
+  const statistics = useMemo(()=>[
+
+
+    {
+      title:"🌾 المزارع",
+      value:farms.length,
+      info:"عدد المزارع"
+    },
+
+
+    {
+      title:"🌱 الحقول",
+      value:fields.length,
+      info:"عدد الحقول"
+    },
+
+
+    {
+      title:"🌿 المحاصيل",
+      value:crops.length,
+      info:"المحاصيل المزروعة"
+    },
+
+
+    {
+      title:"💧 الري",
+      value:irrigations.length,
+      info:"عمليات الري"
+    },
+
+
+    {
+      title:"🧪 المبيدات",
+      value:pesticides.length,
+      info:"عمليات الرش"
+    },
+
+
+    {
+      title:"🌾 الأسمدة",
+      value:fertilizers.length,
+      info:"عمليات التسميد"
+    },
+
+
+    {
+      title:"🦠 الأمراض",
+      value:diseases.length,
+      info:"الحالات المرضية"
+    },
+
+
+    {
+      title:"💰 المصاريف",
+      value:expenses.length,
+      info:"السجلات المالية"
+    },
+
+
+    {
+      title:"📦 المخزون",
+      value:inventory.length,
+      info:"مواد المخزون"
+    },
+
+
+    {
+      title:"🚜 الحصاد",
+      value:harvests.length,
+      info:"عمليات الحصاد"
+    },
+
+
+  ],[
+
     farms,
     fields,
     crops,
@@ -18,76 +118,36 @@ export default function Dashboard() {
     pesticides,
     diseases,
     expenses,
-    locations,
-    users,
+    harvests,
+    inventory,
 
-  } = useContext(FarmContext);
+  ]);
 
 
 
-  const statistics = useMemo(() => [
 
-    {
-      title: "🌾 المزارع",
-      value: farms.length,
-      description: "إجمالي المزارع المسجلة",
-    },
 
-    {
-      title: "🌱 الحقول",
-      value: fields.length,
-      description: "إجمالي الحقول",
-    },
 
-    {
-      title: "🌿 المحاصيل",
-      value: crops.length,
-      description: "إجمالي المحاصيل",
-    },
 
-    {
-      title: "💧 الري",
-      value: irrigations.length,
-      description: "عمليات الري",
-    },
 
-    {
-      title: "🌾 الأسمدة",
-      value: fertilizers.length,
-      description: "عمليات التسميد",
-    },
+  const totalOperations = useMemo(()=>{
 
-    {
-      title: "🧪 المبيدات",
-      value: pesticides.length,
-      description: "عمليات الرش",
-    },
 
-    {
-      title: "🦠 الأمراض",
-      value: diseases.length,
-      description: "الأمراض المسجلة",
-    },
+    return (
 
-    {
-      title: "📍 المواقع",
-      value: locations.length,
-      description: "مواقع GPS",
-    },
+      farms.length +
+      fields.length +
+      crops.length +
+      irrigations.length +
+      fertilizers.length +
+      pesticides.length +
+      diseases.length +
+      expenses.length
 
-    {
-      title: "👤 المستخدمون",
-      value: users.length,
-      description: "المستخدمون",
-    },
+    );
 
-    {
-      title: "💰 المصاريف",
-      value: expenses.length,
-      description: "السجلات المالية",
-    },
 
-  ], [
+  },[
 
     farms,
     fields,
@@ -96,22 +156,48 @@ export default function Dashboard() {
     fertilizers,
     pesticides,
     diseases,
-    locations,
-    users,
     expenses,
 
   ]);
 
 
 
-  const totalActivities =
-    farms.length +
-    fields.length +
-    crops.length +
-    irrigations.length +
-    fertilizers.length +
-    pesticides.length +
-    diseases.length;
+
+
+
+
+  const smartStatus = useMemo(()=>{
+
+
+    if(diseases.length > 0)
+
+      return "⚠️ يوجد حالات مرضية تحتاج متابعة";
+
+
+    if(pesticides.length > 0)
+
+      return "🧪 يوجد عمليات رش مسجلة";
+
+
+    if(irrigations.length > 0)
+
+      return "💧 نظام الري يعمل بشكل جيد";
+
+
+    return "🌱 النظام يحتاج إدخال بيانات جديدة";
+
+
+  },[
+
+    diseases,
+    pesticides,
+    irrigations,
+
+  ]);
+
+
+
+
 
 
 
@@ -125,82 +211,130 @@ export default function Dashboard() {
       </h1>
 
 
+
       <p>
-        متابعة جميع أنظمة LAVENDER Smart Farm
+        LAVENDER Smart Farm
+        - إدارة ومراقبة المزرعة
       </p>
 
 
 
-      <Card title="🚀 مؤشرات الأداء">
+
+
+
+
+      <Card title="🚀 الأداء العام">
+
 
         <h2>
-          {totalActivities}
+          {totalOperations}
         </h2>
+
 
         <p>
           إجمالي العمليات الزراعية
         </p>
 
+
       </Card>
 
 
 
+
+
+
+
+
+
+      <Card title="🤖 الحالة الذكية">
+
+
+        <p>
+          {smartStatus}
+        </p>
+
+
+      </Card>
+
+
+
+
+
+
+
+
+
       {
-        statistics.map((item) => (
+
+        statistics.map(item=>(
+
 
           <Card
+
             key={item.title}
+
             title={item.title}
+
           >
+
 
             <h2>
               {item.value}
             </h2>
 
+
             <p>
-              {item.description}
+              {item.info}
             </p>
+
 
           </Card>
 
+
         ))
+
       }
 
 
 
-      <Card title="🔔 المتابعة الذكية">
+
+
+
+
+
+
+      <Card title="🌱 جاهزية النظام">
+
 
         <p>
-          متابعة مواعيد الري القادمة.
+          ✅ إدارة البيانات تعمل
         </p>
 
-        <p>
-          مراقبة الأمراض والآفات.
-        </p>
 
         <p>
-          تحليل أداء المزرعة مستقبلاً بالذكاء الاصطناعي.
+          ✅ LocalStorage فعال
         </p>
+
+
+        <p>
+          ✅ جاهز للربط مع قاعدة بيانات سحابية
+        </p>
+
+
+        <p>
+          ✅ جاهز لإضافة الذكاء الاصطناعي
+        </p>
+
 
       </Card>
 
 
 
-      <Card title="🌱 حالة النظام">
-
-        <p>
-          البيانات محفوظة محليًا عبر LocalStorage.
-        </p>
-
-        <p>
-          النظام جاهز للانتقال لاحقًا إلى قاعدة بيانات حقيقية.
-        </p>
-
-      </Card>
 
 
     </div>
 
   );
+
 
 }
