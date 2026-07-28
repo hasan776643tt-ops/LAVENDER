@@ -1,200 +1,428 @@
-/* =========================
-   AGRICULTURE CRUD SYSTEM
-========================= */
+// src/context/FarmContext.jsx
+
+import {
+  createContext,
+  useState,
+  useEffect,
+} from "react";
 
 
-// Irrigation
+// =========================
+// Context
+// =========================
 
-const addIrrigation = (data) =>
-  addRecord(
-    setIrrigations,
-    data
-  );
-
-
-const updateIrrigation = (
-  id,
-  data
-) =>
-  updateRecord(
-    setIrrigations,
-    id,
-    data
-  );
-
-
-const deleteIrrigation = (id) =>
-  deleteRecord(
-    setIrrigations,
-    id
-  );
+export const FarmContext =
+  createContext();
 
 
 
+// =========================
+// Helper Functions
+// =========================
 
-// Fertilizers
-
-const addFertilizer = (data) =>
-  addRecord(
-    setFertilizers,
-    data
-  );
+const createId = () =>
+  Date.now();
 
 
-const updateFertilizer = (
-  id,
-  data
-) =>
-  updateRecord(
-    setFertilizers,
-    id,
-    data
-  );
 
+const loadData = (key) => {
 
-const deleteFertilizer = (id) =>
-  deleteRecord(
-    setFertilizers,
-    id
-  );
+  const data =
+    localStorage.getItem(key);
+
+  return data
+    ? JSON.parse(data)
+    : [];
+
+};
 
 
 
 
-// Pesticides
+// =========================
+// Provider
+// =========================
 
-const addPesticide = (data) =>
-  addRecord(
-    setPesticides,
-    data
-  );
+export function FarmProvider({ children }) {
 
 
-const updatePesticide = (
-  id,
-  data
-) =>
-  updateRecord(
-    setPesticides,
-    id,
-    data
-  );
+const [farms,setFarms] =
+useState(() => loadData("farms"));
 
 
-const deletePesticide = (id) =>
-  deleteRecord(
-    setPesticides,
-    id
-  );  // Diseases
+const [fields,setFields] =
+useState(() => loadData("fields"));
 
 
-const addDisease = (data) =>
-  addRecord(
-    setDiseases,
-    data
-  );
-
-
-const updateDisease = (
-  id,
-  data
-) =>
-  updateRecord(
-    setDiseases,
-    id,
-    data
-  );
-
-
-const deleteDisease = (id) =>
-  deleteRecord(
-    setDiseases,
-    id
-  );
+const [crops,setCrops] =
+useState(() => loadData("crops"));
 
 
 
-
-// Expenses
-
-
-const addExpense = (data) =>
-  addRecord(
-    setExpenses,
-    data
-  );
+const [irrigations,setIrrigations] =
+useState(() => loadData("irrigations"));
 
 
-const updateExpense = (
-  id,
-  data
-) =>
-  updateRecord(
-    setExpenses,
-    id,
-    data
-  );
+const [fertilizers,setFertilizers] =
+useState(() => loadData("fertilizers"));
 
 
-const deleteExpense = (id) =>
-  deleteRecord(
-    setExpenses,
-    id
-  );
+const [pesticides,setPesticides] =
+useState(() => loadData("pesticides"));
+
+
+const [diseases,setDiseases] =
+useState(() => loadData("diseases"));
+
+
+
+const [expenses,setExpenses] =
+useState(() => loadData("expenses"));
+
+
+
+const [harvests,setHarvests] =
+useState(() => loadData("harvests"));
+
+
+
+const [inventory,setInventory] =
+useState(() => loadData("inventory"));
+
+
+
+const [consultations,setConsultations] =
+useState(() => loadData("consultations"));
+
+
+const [aiQuestions,setAiQuestions] =
+useState(() => loadData("aiQuestions"));
 
 
 
 
-// Future Agriculture Systems Ready
+
+// =========================
+// Save LocalStorage
+// =========================
 
 
-const addHarvest = (data) =>
-  addRecord(
-    setHarvests,
-    data
-  );
+useEffect(()=>{
 
 
-const updateHarvest = (
-  id,
-  data
-) =>
-  updateRecord(
-    setHarvests,
-    id,
-    data
-  );
+localStorage.setItem(
+"farms",
+JSON.stringify(farms)
+);
 
 
-const deleteHarvest = (id) =>
-  deleteRecord(
-    setHarvests,
-    id
-  );
+},[farms]);
 
 
 
+useEffect(()=>{
 
-const addInventory = (data) =>
-  addRecord(
-    setInventory,
-    data
-  );
+localStorage.setItem(
+"fields",
+JSON.stringify(fields)
+);
 
-
-const updateInventory = (
-  id,
-  data
-) =>
-  updateRecord(
-    setInventory,
-    id,
-    data
-  );
+},[fields]);
 
 
-const deleteInventory = (id) =>
-  deleteRecord(
-    setInventory,
-    id
-  );
+
+useEffect(()=>{
+
+localStorage.setItem(
+"crops",
+JSON.stringify(crops)
+);
+
+},[crops]);
+
+
+
+useEffect(()=>{
+
+localStorage.setItem(
+"irrigations",
+JSON.stringify(irrigations)
+);
+
+},[irrigations]);
+
+
+
+useEffect(()=>{
+
+localStorage.setItem(
+"fertilizers",
+JSON.stringify(fertilizers)
+);
+
+},[fertilizers]);
+
+
+
+useEffect(()=>{
+
+localStorage.setItem(
+"pesticides",
+JSON.stringify(pesticides)
+);
+
+},[pesticides]);
+
+
+
+useEffect(()=>{
+
+localStorage.setItem(
+"diseases",
+JSON.stringify(diseases)
+);
+
+},[diseases]);
+
+
+
+useEffect(()=>{
+
+localStorage.setItem(
+"expenses",
+JSON.stringify(expenses)
+);
+
+},[expenses]);
+
+
+
+useEffect(()=>{
+
+localStorage.setItem(
+"harvests",
+JSON.stringify(harvests)
+);
+
+},[harvests]);
+
+
+
+useEffect(()=>{
+
+localStorage.setItem(
+"inventory",
+JSON.stringify(inventory)
+);
+
+},[inventory]);
+
+
+
+
+// =========================
+// CRUD Engine
+// =========================
+
+
+const addRecord =
+(setter,data)=>{
+
+
+setter(prev => [
+
+...prev,
+
+{
+id:createId(),
+...data
+}
+
+]);
+
+
+};
+
+
+
+const updateRecord =
+(setter,id,data)=>{
+
+
+setter(prev =>
+
+prev.map(item =>
+
+item.id === id
+
+?
+{
+...item,
+...data
+}
+
+:
+item
+
+)
+
+);
+
+
+};
+
+
+
+const deleteRecord =
+(setter,id)=>{
+
+
+setter(prev =>
+
+prev.filter(
+item =>
+item.id !== id
+)
+
+);
+
+
+};
+
+
+
+
+// =========================
+// CRUD EXPORTS
+// =========================
+
+
+const addHarvest =
+(data)=>
+addRecord(
+setHarvests,
+data
+);
+
+
+
+const updateHarvest =
+(id,data)=>
+updateRecord(
+setHarvests,
+id,
+data
+);
+
+
+
+const deleteHarvest =
+(id)=>
+deleteRecord(
+setHarvests,
+id
+);
+
+
+
+const addInventory =
+(data)=>
+addRecord(
+setInventory,
+data
+);
+
+
+
+const updateInventory =
+(id,data)=>
+updateRecord(
+setInventory,
+id,
+data
+);
+
+
+
+const deleteInventory =
+(id)=>
+deleteRecord(
+setInventory,
+id
+);
+
+
+
+
+
+return (
+
+<FarmContext.Provider
+
+value={{
+
+farms,
+setFarms,
+
+fields,
+setFields,
+
+crops,
+setCrops,
+
+irrigations,
+setIrrigations,
+
+fertilizers,
+setFertilizers,
+
+pesticides,
+setPesticides,
+
+diseases,
+setDiseases,
+
+expenses,
+setExpenses,
+
+harvests,
+setHarvests,
+
+inventory,
+setInventory,
+
+consultations,
+setConsultations,
+
+aiQuestions,
+setAiQuestions,
+
+
+addHarvest,
+updateHarvest,
+deleteHarvest,
+
+
+addInventory,
+updateInventory,
+deleteInventory,
+
+
+addRecord,
+updateRecord,
+deleteRecord,
+
+}}
+
+>
+
+
+{children}
+
+
+</FarmContext.Provider>
+
+);
+
+
+}
