@@ -1,32 +1,158 @@
+// src/services/backupService.js
+
+
+import storageService
+  from "./storageService.js";
+
+
+
 class BackupService {
-  createBackup(data) {
-    return {
-      createdAt: new Date().toISOString(),
-      version: "1.0.0",
-      data,
-    };
+
+
+  constructor(){
+
+    this.version =
+      "1.0.0";
+
+    this.key =
+      "lavender_backup";
+
   }
 
-  restoreBackup(backup) {
-    if (!backup || !backup.data) {
+
+
+
+
+  createBackup(data){
+
+
+    const backup = {
+
+      id:
+        Date.now(),
+
+      createdAt:
+        new Date().toISOString(),
+
+      version:
+        this.version,
+
+      data
+
+    };
+
+
+
+    storageService.save(
+      this.key,
+      backup
+    );
+
+
+
+    return backup;
+
+  }
+
+
+
+
+
+  restoreBackup(backup = null){
+
+
+    const source =
+      backup ||
+      storageService.load(
+        this.key,
+        null
+      );
+
+
+
+    if(
+      !source ||
+      !source.data
+    ){
+
       return null;
+
     }
 
-    return backup.data;
+
+
+    return source.data;
+
   }
 
-  validateBackup(backup) {
-    return (
+
+
+
+
+  validateBackup(backup){
+
+
+    return Boolean(
+
       backup &&
+
       backup.version &&
+
       backup.createdAt &&
+
       backup.data !== undefined
+
     );
+
   }
 
-  getVersion() {
-    return "1.0.0";
+
+
+
+
+  getLastBackup(){
+
+
+    return storageService.load(
+      this.key,
+      null
+    );
+
   }
+
+
+
+
+
+  deleteBackup(){
+
+
+    storageService.remove(
+      this.key
+    );
+
+  }
+
+
+
+
+
+  getVersion(){
+
+    return this.version;
+
+  }
+
+
 }
 
-export const backupService = new BackupService();
+
+
+
+
+export const backupService =
+  new BackupService();
+
+
+
+export default backupService;
