@@ -3,7 +3,8 @@
 import {
   createContext,
   useState,
-  useEffect
+  useEffect,
+  useMemo
 } from "react";
 
 
@@ -21,22 +22,36 @@ createContext();
 // =========================
 
 
-const createId = () =>
-Date.now();
+const createId = () => {
+
+  if (
+    typeof crypto !== "undefined" &&
+    crypto.randomUUID
+  ) {
+
+    return crypto.randomUUID();
+
+  }
+
+
+  return Date.now().toString();
+
+};
+
 
 
 
 const loadData = (key)=>{
 
-const saved =
-localStorage.getItem(key);
+  const saved =
+  localStorage.getItem(key);
 
 
-return saved
-?
-JSON.parse(saved)
-:
-[];
+  return saved
+  ?
+  JSON.parse(saved)
+  :
+  [];
 
 };
 
@@ -48,663 +63,384 @@ JSON.parse(saved)
 // Provider
 // =========================
 
-
 export function FarmProvider({
-children
-}){
+  children
+}) {
 
 
 
-// =========================
-// Main Data
-// =========================
+  // =========================
+  // Main Data
+  // =========================
 
 
-const [farms,setFarms] =
-useState(()=>loadData("farms"));
+  const [farms,setFarms] =
+  useState(()=>loadData("farms"));
 
 
-const [fields,setFields] =
-useState(()=>loadData("fields"));
+  const [fields,setFields] =
+  useState(()=>loadData("fields"));
 
 
-const [crops,setCrops] =
-useState(()=>loadData("crops"));
+  const [crops,setCrops] =
+  useState(()=>loadData("crops"));
 
 
-const [irrigations,setIrrigations] =
-useState(()=>loadData("irrigations"));
+  const [irrigations,setIrrigations] =
+  useState(()=>loadData("irrigations"));
 
 
-const [fertilizers,setFertilizers] =
-useState(()=>loadData("fertilizers"));
+  const [fertilizers,setFertilizers] =
+  useState(()=>loadData("fertilizers"));
 
 
-const [pesticides,setPesticides] =
-useState(()=>loadData("pesticides"));
+  const [pesticides,setPesticides] =
+  useState(()=>loadData("pesticides"));
 
 
-const [diseases,setDiseases] =
-useState(()=>loadData("diseases"));
+  const [diseases,setDiseases] =
+  useState(()=>loadData("diseases"));
 
 
-const [expenses,setExpenses] =
-useState(()=>loadData("expenses"));
+  const [expenses,setExpenses] =
+  useState(()=>loadData("expenses"));
 
 
-const [harvests,setHarvests] =
-useState(()=>loadData("harvests"));
+  const [harvests,setHarvests] =
+  useState(()=>loadData("harvests"));
 
 
-const [inventory,setInventory] =
-useState(()=>loadData("inventory"));
+  const [inventory,setInventory] =
+  useState(()=>loadData("inventory"));
 
 
-const [consultations,setConsultations] =
-useState(()=>loadData("consultations"));
+  const [consultations,setConsultations] =
+  useState(()=>loadData("consultations"));
 
 
-const [aiQuestions,setAiQuestions] =
-useState(()=>loadData("aiQuestions"));
+  const [aiQuestions,setAiQuestions] =
+  useState(()=>loadData("aiQuestions"));
 
 
 
 
-// =========================
-// Auto Save Engine
-// =========================
 
+  // =========================
+  // Optimized Storage Engine
+  // =========================
 
-const storageList = {
 
-farms,
-fields,
-crops,
-irrigations,
-fertilizers,
-pesticides,
-diseases,
-expenses,
-harvests,
-inventory,
-consultations,
-aiQuestions
+  const storageList = useMemo(()=>({
 
-};
+    farms,
+    fields,
+    crops,
+    irrigations,
+    fertilizers,
+    pesticides,
+    diseases,
+    expenses,
+    harvests,
+    inventory,
+    consultations,
+    aiQuestions
 
+  }),[
 
+    farms,
+    fields,
+    crops,
+    irrigations,
+    fertilizers,
+    pesticides,
+    diseases,
+    expenses,
+    harvests,
+    inventory,
+    consultations,
+    aiQuestions
 
-useEffect(()=>{
+  ]);
 
 
-Object.entries(storageList)
-.forEach(([key,value])=>{
 
 
-localStorage.setItem(
-key,
-JSON.stringify(value)
-);
 
+  useEffect(()=>{
 
-});
 
+    Object.entries(storageList)
+    .forEach(([key,value])=>{
 
-},[
-farms,
-fields,
-crops,
-irrigations,
-fertilizers,
-pesticides,
-diseases,
-expenses,
-harvests,
-inventory,
-consultations,
-aiQuestions
-]);
 
+      localStorage.setItem(
 
+        key,
 
+        JSON.stringify(value)
 
+      );
 
-// =========================
-// CRUD ENGINE
-// =========================
 
+    });
 
-const addRecord = (
-setter,
-data
-)=>{
 
+  },[storageList]);
 
-setter(prev=>[
 
-...prev,
 
-{
-id:createId(),
-createdAt:
-new Date().toISOString(),
 
-...data
 
-}
 
-]);
+  // =========================
+  // CRUD ENGINE
+  // =========================
 
 
-};
+  const addRecord = (
+    setter,
+    data
+  )=>{
 
 
+    setter(prev=>[
 
+      ...prev,
 
+      {
 
-const updateRecord = (
-setter,
-id,
-data
-)=>{
+        id:createId(),
 
+        createdAt:
+        new Date()
+        .toISOString(),
 
-setter(prev=>
+        ...data
 
-prev.map(item=>
+      }
 
-item.id === id
+    ]);
 
-?
 
-{
-...item,
-...data,
-updatedAt:
-new Date().toISOString()
-}
+  };
 
-:
 
-item
 
-)
 
-);
 
+  const updateRecord = (
+    setter,
+    id,
+    data
+  )=>{
 
-};
 
+    setter(prev=>
 
+      prev.map(item=>
 
+        item.id === id
 
+        ?
 
-const deleteRecord = (
-setter,
-id
-)=>{
+        {
 
+          ...item,
 
-setter(prev=>
+          ...data,
 
-prev.filter(
-item =>
-item.id !== id
-)
+          updatedAt:
+          new Date()
+          .toISOString()
 
-);
+        }
 
+        :
 
-};  // =========================
-// FARMS CRUD
-// =========================
+        item
 
-const addFarm = (data)=>
-addRecord(
-setFarms,
-data
-);
+      )
 
+    );
 
-const updateFarm = (
-id,
-data
-)=>
-updateRecord(
-setFarms,
-id,
-data
-);
 
+  };
 
-const deleteFarm = (id)=>
-deleteRecord(
-setFarms,
-id
-);
 
 
 
 
+  const deleteRecord = (
+    setter,
+    id
+  )=>{
 
-// =========================
-// FIELDS CRUD
-// =========================
 
-const addField = (data)=>
-addRecord(
-setFields,
-data
-);
+    setter(prev=>
 
+      prev.filter(
+        item =>
+        item.id !== id
+      )
 
-const updateField = (
-id,
-data
-)=>
-updateRecord(
-setFields,
-id,
-data
-);
+    );
 
 
-const deleteField = (id)=>
-deleteRecord(
-setFields,
-id
-);
+  };
 
 
 
 
 
-// =========================
-// CROPS CRUD
-// =========================
 
-const addCrop = (data)=>
-addRecord(
-setCrops,
-data
-);
+  // =========================
+  // Generic CRUD
+  // =========================
 
 
-const updateCrop = (
-id,
-data
-)=>
-updateRecord(
-setCrops,
-id,
-data
-);
+  const createActions = (setter)=>({
 
+    add:(data)=>
+    addRecord(
+      setter,
+      data
+    ),
 
-const deleteCrop = (id)=>
-deleteRecord(
-setCrops,
-id
-);
 
+    update:(id,data)=>
+    updateRecord(
+      setter,
+      id,
+      data
+    ),
 
 
+    remove:(id)=>
+    deleteRecord(
+      setter,
+      id
+    )
 
+  });
 
-// =========================
-// IRRIGATION CRUD
-// =========================
 
-const addIrrigation = (data)=>
-addRecord(
-setIrrigations,
-data
-);
 
 
-const updateIrrigation = (
-id,
-data
-)=>
-updateRecord(
-setIrrigations,
-id,
-data
-);
 
 
-const deleteIrrigation = (id)=>
-deleteRecord(
-setIrrigations,
-id
-);
+  const farmActions =
+  createActions(setFarms);
 
 
+  const fieldActions =
+  createActions(setFields);
 
 
+  const cropActions =
+  createActions(setCrops);
 
-// =========================
-// FERTILIZERS CRUD
-// =========================
 
-const addFertilizer = (data)=>
-addRecord(
-setFertilizers,
-data
-);
 
 
-const updateFertilizer = (
-id,
-data
-)=>
-updateRecord(
-setFertilizers,
-id,
-data
-);
 
 
-const deleteFertilizer = (id)=>
-deleteRecord(
-setFertilizers,
-id
-);
+  // =========================
+  // Provider
+  // =========================
 
 
+  return (
 
+    <FarmContext.Provider
 
+    value={{
 
-// =========================
-// PESTICIDES CRUD
-// =========================
+      farms,
+      fields,
+      crops,
 
-const addPesticide = (data)=>
-addRecord(
-setPesticides,
-data
-);
+      irrigations,
+      fertilizers,
+      pesticides,
 
+      diseases,
+      expenses,
 
-const updatePesticide = (
-id,
-data
-)=>
-updateRecord(
-setPesticides,
-id,
-data
-);
+      harvests,
+      inventory,
 
+      consultations,
+      aiQuestions,
 
-const deletePesticide = (id)=>
-deleteRecord(
-setPesticides,
-id
-);
 
 
+      setFarms,
+      setFields,
+      setCrops,
 
+      setIrrigations,
+      setFertilizers,
+      setPesticides,
 
+      setDiseases,
+      setExpenses,
 
-// =========================
-// DISEASES CRUD
-// =========================
+      setHarvests,
+      setInventory,
 
-const addDisease = (data)=>
-addRecord(
-setDiseases,
-data
-);
+      setConsultations,
+      setAiQuestions,
 
 
-const updateDisease = (
-id,
-data
-)=>
-updateRecord(
-setDiseases,
-id,
-data
-);
 
+      addFarm:
+      farmActions.add,
 
-const deleteDisease = (id)=>
-deleteRecord(
-setDiseases,
-id
-);
+      updateFarm:
+      farmActions.update,
 
+      deleteFarm:
+      farmActions.remove,
 
 
 
+      addField:
+      fieldActions.add,
 
-// =========================
-// EXPENSES CRUD
-// =========================
+      updateField:
+      fieldActions.update,
 
-const addExpense = (data)=>
-addRecord(
-setExpenses,
-data
-);
+      deleteField:
+      fieldActions.remove,
 
 
-const updateExpense = (
-id,
-data
-)=>
-updateRecord(
-setExpenses,
-id,
-data
-);
 
+      addCrop:
+      cropActions.add,
 
-const deleteExpense = (id)=>
-deleteRecord(
-setExpenses,
-id
-);
+      updateCrop:
+      cropActions.update,
 
+      deleteCrop:
+      cropActions.remove,
 
 
 
+      addRecord,
 
-// =========================
-// CONSULTATIONS CRUD
-// =========================
+      updateRecord,
 
-const addConsultation = (data)=>
-addRecord(
-setConsultations,
-data
-);
+      deleteRecord
 
 
-const updateConsultation = (
-id,
-data
-)=>
-updateRecord(
-setConsultations,
-id,
-data
-);
+    }}
 
+    >
 
-const deleteConsultation = (id)=>
-deleteRecord(
-setConsultations,
-id
-);
+      {children}
 
+    </FarmContext.Provider>
 
-
-
-
-// =========================
-// AI QUESTIONS CRUD
-// =========================
-
-const addAiQuestion = (data)=>
-addRecord(
-setAiQuestions,
-data
-);
-
-
-const deleteAiQuestion = (id)=>
-deleteRecord(
-setAiQuestions,
-id
-);
-
-
-
-
-
-// =========================
-// PROVIDER EXPORT
-// =========================
-
-
-return (
-
-<FarmContext.Provider
-
-value={{
-
-// Data
-
-farms,
-fields,
-crops,
-irrigations,
-fertilizers,
-pesticides,
-diseases,
-expenses,
-harvests,
-inventory,
-consultations,
-aiQuestions,
-
-
-
-// Setters
-
-setFarms,
-setFields,
-setCrops,
-setIrrigations,
-setFertilizers,
-setPesticides,
-setDiseases,
-setExpenses,
-setHarvests,
-setInventory,
-setConsultations,
-setAiQuestions,
-
-
-
-// Farms
-
-addFarm,
-updateFarm,
-deleteFarm,
-
-
-
-// Fields
-
-addField,
-updateField,
-deleteField,
-
-
-
-// Crops
-
-addCrop,
-updateCrop,
-deleteCrop,
-
-
-
-// Irrigation
-
-addIrrigation,
-updateIrrigation,
-deleteIrrigation,
-
-
-
-// Fertilizers
-
-addFertilizer,
-updateFertilizer,
-deleteFertilizer,
-
-
-
-// Pesticides
-
-addPesticide,
-updatePesticide,
-deletePesticide,
-
-
-
-// Diseases
-
-addDisease,
-updateDisease,
-deleteDisease,
-
-
-
-// Expenses
-
-addExpense,
-updateExpense,
-deleteExpense,
-
-
-
-// Consultations
-
-addConsultation,
-updateConsultation,
-deleteConsultation,
-
-
-
-// AI
-
-addAiQuestion,
-deleteAiQuestion,
-
-
-
-// Engine
-
-addRecord,
-updateRecord,
-deleteRecord
-
-
-}}
-
-
->
-
-{children}
-
-</FarmContext.Provider>
-
-
-);
+  );
 
 }
