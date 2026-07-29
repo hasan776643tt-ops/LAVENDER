@@ -1,0 +1,80 @@
+// src/repositories/weatherRepository.js
+
+import * as weatherApi from "../api/weatherApi.js";
+
+class WeatherRepository {
+  constructor() {
+    this.cache = new Map();
+    this.cacheDuration = 10 * 60 * 1000; // 10 minutes
+  }
+
+  async getCurrentWeather(location) {
+    this.validateLocation(location);
+
+    const cacheKey = this.createCacheKey(location);
+
+    const cached = this.cache.get(cacheKey);
+
+    if (cached && !this.isCacheExpired(cached.timestamp)) {
+      return cached.data;
+    }
+
+    const weather = await weatherApi.getCurrentWeather(location);
+
+    this.cache.set(cacheKey, {
+      data: weather,
+      timestamp: Date.now(),
+    });
+
+    return weather;
+  }
+
+  async refreshWeather(location) {
+    this.validateLocation(location);
+
+    const cacheKey = this.createCacheKey(location);
+
+    const weather = await weatherApi.getCurrentWeather(location);
+
+    this.cache.set(cacheKey, {
+      data: weather,
+      timestamp: Date.now(),
+    });
+
+    return weather;
+  }
+
+  clearCache() {
+    this.cache.clear();
+  }
+
+  removeFromCache(location) {
+    const cacheKey = this.createCacheKey(location);
+
+    this.cache.delete(cacheKey);
+  }
+
+  validateLocation(location) {
+    if (!location) {
+      throw new Error("Location is required.");
+    }
+
+    if (
+      typeof location !== "object" ||
+      location.latitude == null ||
+      location.longitude == null
+    ) {
+      throw new Error("Invalid location.");
+    }
+  }
+
+  createCacheKey(location) {
+    return `${location.latitude},${location.longitude}`;
+  }
+
+  isCacheExpired(timestamp) {
+    return Date.now() - timestamp > this.cacheDuration;
+  }
+}
+
+export default new WeatherRepository();
