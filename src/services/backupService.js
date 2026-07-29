@@ -12,10 +12,11 @@ class BackupService {
   constructor(){
 
     this.version =
-      "1.0.0";
+      "2.0.0";
+
 
     this.key =
-      "lavender_backup";
+      "lavender_backups";
 
   }
 
@@ -26,31 +27,72 @@ class BackupService {
   createBackup(data){
 
 
-    const backup = {
-
-      id:
-        Date.now(),
-
-      createdAt:
-        new Date().toISOString(),
-
-      version:
-        this.version,
-
-      data
-
-    };
+    try {
 
 
-
-    storageService.save(
-      this.key,
-      backup
-    );
+      const backup = {
 
 
+        id:
+          Date.now(),
 
-    return backup;
+
+        createdAt:
+          new Date().toISOString(),
+
+
+        version:
+          this.version,
+
+
+        records:
+          Array.isArray(data)
+          ? data.length
+          : Object.keys(data || {}).length,
+
+
+        data
+
+
+      };
+
+
+
+      const backups =
+        this.getBackups();
+
+
+
+      backups.push(
+        backup
+      );
+
+
+
+      storageService.save(
+        this.key,
+        backups
+      );
+
+
+
+      return backup;
+
+
+
+    } catch(error){
+
+
+      console.error(
+        "Backup Error:",
+        error
+      );
+
+
+      return null;
+
+
+    }
 
   }
 
@@ -58,21 +100,42 @@ class BackupService {
 
 
 
-  restoreBackup(backup = null){
+  restoreBackup(id = null){
 
 
-    const source =
-      backup ||
-      storageService.load(
-        this.key,
-        null
-      );
+    const backups =
+      this.getBackups();
+
+
+
+    let backup;
+
+
+
+    if(id){
+
+      backup =
+        backups.find(
+          item =>
+          item.id === id
+        );
+
+    }else{
+
+
+      backup =
+        backups[
+          backups.length - 1
+        ];
+
+    }
 
 
 
     if(
-      !source ||
-      !source.data
+      !this.validateBackup(
+        backup
+      )
     ){
 
       return null;
@@ -81,7 +144,23 @@ class BackupService {
 
 
 
-    return source.data;
+    return backup.data;
+
+
+  }
+
+
+
+
+
+  getBackups(){
+
+
+    return storageService.load(
+      this.key,
+      []
+    );
+
 
   }
 
@@ -104,6 +183,7 @@ class BackupService {
 
     );
 
+
   }
 
 
@@ -113,10 +193,15 @@ class BackupService {
   getLastBackup(){
 
 
-    return storageService.load(
-      this.key,
-      null
-    );
+    const backups =
+      this.getBackups();
+
+
+
+    return backups[
+      backups.length - 1
+    ] || null;
+
 
   }
 
@@ -124,12 +209,41 @@ class BackupService {
 
 
 
-  deleteBackup(){
+  deleteBackup(id){
+
+
+    const backups =
+      this.getBackups();
+
+
+
+    const filtered =
+      backups.filter(
+        item =>
+        item.id !== id
+      );
+
+
+
+    storageService.save(
+      this.key,
+      filtered
+    );
+
+
+  }
+
+
+
+
+
+  clearAll(){
 
 
     storageService.remove(
       this.key
     );
+
 
   }
 
@@ -139,7 +253,9 @@ class BackupService {
 
   getVersion(){
 
+
     return this.version;
+
 
   }
 
