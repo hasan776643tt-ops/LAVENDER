@@ -1,103 +1,136 @@
 // src/models/EngineerModel.js
 
 
+import {
+  createId,
+  createTimestamp
+} from "../context/DataModel";
+
+
+
 export default class EngineerModel {
+
 
   constructor(data = {}) {
 
 
-    // المعرف
     this.id =
-      data.id || Date.now();
+      data.id || createId();
 
 
 
-    // اسم المهندس
     this.name =
       data.name || "";
 
 
 
-    // البريد الإلكتروني
     this.email =
       data.email || "";
 
 
 
-    // رقم الهاتف
     this.phone =
       data.phone || "";
 
 
 
-    // الاختصاص الزراعي
     this.specialty =
       data.specialty || "Agriculture";
 
 
 
-    // سنوات الخبرة
     this.experience =
       data.experience || 0;
 
 
 
-    // موقع المهندس
-    this.location =
-      data.location || "";
+    this.location = {
+
+      city:
+        data.location?.city || "",
+
+      coordinates:
+        data.location?.coordinates || {
+          latitude:"",
+          longitude:""
+        }
+
+    };
 
 
 
-    // حالة الحساب
     this.status =
       data.status || "active";
 
 
 
-    // المزارع المرتبطة بالمهندس
+    this.available =
+      data.available ?? true;
+
+
+
+    this.rating =
+      data.rating || 0;
+
+
+
     this.farms =
       data.farms || [];
 
 
 
-    // الاستشارات المقدمة
     this.consultations =
       data.consultations || [];
 
 
 
-    // صورة المهندس مستقبلاً
     this.image =
       data.image || "";
 
 
 
-    // تاريخ إنشاء الحساب
     this.createdAt =
-      data.createdAt || new Date();
+      data.createdAt || createTimestamp();
+
+
+
+    this.updatedAt =
+      data.updatedAt || createTimestamp();
+
 
   }
 
 
 
-  // تحديث بيانات المهندس
-  update(data = {}) {
+
+  update(data = {}){
+
 
     Object.assign(
       this,
       data
     );
 
+
+    this.updatedAt =
+      createTimestamp();
+
   }
 
 
 
-  // إضافة مزرعة للمهندس
-  addFarm(farmId) {
 
-    if(!this.farms.includes(farmId)){
 
-      this.farms.push(farmId);
+  addFarm(farmId){
+
+
+    if(
+      !this.farms.includes(farmId)
+    ){
+
+      this.farms.push(
+        farmId
+      );
 
     }
 
@@ -105,36 +138,66 @@ export default class EngineerModel {
 
 
 
-  // إضافة استشارة
+
+
   addConsultation(consultationId){
 
-    this.consultations.push(
-      consultationId
-    );
+
+    if(
+      !this.consultations.includes(
+        consultationId
+      )
+    ){
+
+      this.consultations.push(
+        consultationId
+      );
+
+    }
 
   }
 
 
 
-  // تحويل النموذج إلى بيانات قابلة للحفظ
+
+
   toJSON(){
+
 
     return {
 
       id:this.id,
+
       name:this.name,
+
       email:this.email,
+
       phone:this.phone,
+
       specialty:this.specialty,
+
       experience:this.experience,
+
       location:this.location,
+
       status:this.status,
+
+      available:this.available,
+
+      rating:this.rating,
+
       farms:this.farms,
+
       consultations:this.consultations,
+
       image:this.image,
-      createdAt:this.createdAt
+
+      createdAt:this.createdAt,
+
+      updatedAt:this.updatedAt
 
     };
+
 
   }
 
