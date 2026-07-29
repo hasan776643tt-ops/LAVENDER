@@ -1,39 +1,176 @@
+// src/services/logService.js
+
+
+import storageService
+  from "./storageService.js";
+
+
+
 class LogService {
-  constructor() {
+
+
+  constructor(){
+
+    this.storageKey =
+      "system_logs";
+
+    this.logs =
+      storageService.load(
+        this.storageKey,
+        []
+      );
+
+  }
+
+
+
+
+
+  create(
+    type,
+    message,
+    data = {}
+  ){
+
+    const log = {
+
+      id:
+        Date.now(),
+
+      type,
+
+      message,
+
+      data,
+
+      time:
+        new Date().toISOString()
+
+    };
+
+
+    this.logs.push(
+      log
+    );
+
+
+    this.save();
+
+
+    return log;
+
+  }
+
+
+
+
+
+  info(
+    message,
+    data = {}
+  ){
+
+    return this.create(
+      "info",
+      message,
+      data
+    );
+
+  }
+
+
+
+
+
+  warning(
+    message,
+    data = {}
+  ){
+
+    return this.create(
+      "warning",
+      message,
+      data
+    );
+
+  }
+
+
+
+
+
+  error(
+    message,
+    data = {}
+  ){
+
+    return this.create(
+      "error",
+      message,
+      data
+    );
+
+  }
+
+
+
+
+
+  getLogs(){
+
+    return [
+      ...this.logs
+    ];
+
+  }
+
+
+
+
+
+  getByType(type){
+
+    return this.logs.filter(
+      log =>
+        log.type === type
+    );
+
+  }
+
+
+
+
+
+  clearLogs(){
+
     this.logs = [];
+
+    this.save();
+
   }
 
-  info(message) {
-    this.logs.push({
-      type: "info",
-      message,
-      time: new Date().toISOString(),
-    });
+
+
+
+
+  save(){
+
+    storageService.save(
+      this.storageKey,
+      this.logs
+    );
+
   }
 
-  warning(message) {
-    this.logs.push({
-      type: "warning",
-      message,
-      time: new Date().toISOString(),
-    });
-  }
 
-  error(message) {
-    this.logs.push({
-      type: "error",
-      message,
-      time: new Date().toISOString(),
-    });
-  }
-
-  getLogs() {
-    return [...this.logs];
-  }
-
-  clearLogs() {
-    this.logs = [];
-  }
 }
 
-export const logService = new LogService();
+
+
+
+
+export const logService =
+  new LogService();
+
+
+export default logService;
