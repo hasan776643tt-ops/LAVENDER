@@ -1,28 +1,155 @@
-import { farmService } from "../api/farmService";
+// src/repositories/farmRepository.js
+
+
+import {
+  storageService
+} from "../services/storageService.js";
+
+
 
 class FarmRepository {
-  getAll() {
-    return farmService.getFarms();
+
+
+  constructor(){
+
+    this.key =
+      "farms";
+
   }
 
-  getById(id) {
-    return this.getAll().find(farm => farm.id === id) || null;
+
+
+
+
+  getAll(){
+
+    return storageService.load(
+      this.key,
+      []
+    );
+
   }
 
-  create(farm) {
-    farmService.addFarm(farm);
+
+
+
+
+  getById(id){
+
+    const farms =
+      this.getAll();
+
+
+    return farms.find(
+      farm =>
+        farm.id === id
+    ) || null;
+
+  }
+
+
+
+
+
+  create(farm){
+
+
+    const farms =
+      this.getAll();
+
+
+    farms.push(
+      farm
+    );
+
+
+    storageService.save(
+      this.key,
+      farms
+    );
+
+
     return farm;
+
   }
 
-  update(id, data) {
-    farmService.updateFarm(id, data);
-    return this.getById(id);
+
+
+
+
+  update(id,data){
+
+
+    const farms =
+      this.getAll();
+
+
+    const index =
+      farms.findIndex(
+        farm =>
+          farm.id === id
+      );
+
+
+    if(index === -1)
+      return null;
+
+
+
+    farms[index] = {
+
+      ...farms[index],
+
+      ...data
+
+    };
+
+
+    storageService.save(
+      this.key,
+      farms
+    );
+
+
+    return farms[index];
+
   }
 
-  delete(id) {
-    farmService.deleteFarm(id);
+
+
+
+
+  delete(id){
+
+
+    const farms =
+      this.getAll();
+
+
+    const filtered =
+      farms.filter(
+        farm =>
+          farm.id !== id
+      );
+
+
+    storageService.save(
+      this.key,
+      filtered
+    );
+
+
     return true;
+
   }
+
+
 }
 
-export const farmRepository = new FarmRepository();
+
+
+export const farmRepository =
+  new FarmRepository();
+
+
+export default farmRepository;
