@@ -1,225 +1,164 @@
-// LAVENDER Smart Farm
-// Enterprise Data Models
-// Version 3.0
+/* =================================
+   LAVENDER Smart Farm
+   Global Data Model
+================================= */
 
 
-/* =========================
-   Farm Model
-========================= */
+// إنشاء رقم معرف موحد
 
-export const FarmModel = {
-
-  id: "",
-
-  name: "",
-
-  ownerId: "",
+export const createId = () =>
+  Date.now();
 
 
-  location: {
 
-    latitude: "",
+// تاريخ التحديث
 
-    longitude: "",
-
-    address: ""
-
-  },
-
-
-  area: {
-
-    value: 0,
-
-    unit: "dunum"
-
-  },
-
-
-  cropIds: [],
-
-  fieldIds: [],
-
-
-  status: "active",
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
+export const createTimestamp = () =>
+  new Date().toISOString();
 
 
 
 
+// النموذج الرئيسي للبيانات
 
-/* =========================
-   Field Model
-========================= */
-
-export const FieldModel = {
-
-  id: "",
+export const DataModel = {
 
 
-  farmId: "",
+  // معلومات النظام
 
+  system: {
 
-  name: "",
+    appName:
+      "LAVENDER Smart Farm",
 
+    version:
+      "1.0.0",
 
-  area: {
+    createdAt:
+      createTimestamp(),
 
-    value: 0,
-
-    unit: "dunum"
+    updatedAt:
+      createTimestamp()
 
   },
 
 
-  soilType: "",
 
 
-  cropIds: [],
+  // المستخدمون
 
-
-  irrigationType: "",
-
-
-  locationId: "",
-
-
-  status: "active",
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
+  users: [],
 
 
 
+  // المزارع
+
+  farms: [],
 
 
-/* =========================
-   Crop Model
-========================= */
 
-export const CropModel = {
+  // الحقول
 
-  id: "",
+  fields: [],
 
 
-  farmId: "",
+
+  // المحاصيل
+
+  crops: [],
 
 
-  fieldId: "",
+
+  // الري
+
+  irrigations: [],
 
 
-  name: "",
+
+  // التسميد
+
+  fertilizers: [],
 
 
-  variety: "",
+
+  // المبيدات
+
+  pesticides: [],
 
 
-  seedQuantity: {
 
-    value: 0,
+  // الأمراض الزراعية
 
-    unit: "kg"
+  diseases: [],
+
+
+
+  // الطقس
+
+  weather: [],
+
+
+
+  // المهندسون الزراعيون
+
+  engineers: [],
+
+
+
+  // الاستشارات
+
+  consultations: [],
+
+
+
+  // المصاريف
+
+  expenses: [],
+
+
+
+  // التقارير
+
+  reports: [],
+
+
+
+  // الإعدادات
+
+  settings: {
+
+    language:
+      "ar",
+
+    theme:
+      "light",
+
+    notifications:
+      true
 
   },
 
 
-  production: {
 
-    expected: 0,
+  // الذكاء الاصطناعي
 
-    actual: 0,
+  ai: {
 
-    unit: "kg"
+    enabled:
+      true,
 
-  },
+    recommendations: [],
 
-
-  plantingDate: "",
-
-
-  harvestDate: "",
-
-
-  status: "growing",
-
-
-  image: "",
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
-
-
-
-
-
-/* =========================
-   Irrigation Model
-========================= */
-
-export const IrrigationModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  fieldId: "",
-
-
-  cropId: "",
-
-
-  method: "",
-
-
-  waterAmount: {
-
-    value: 0,
-
-    unit: "liter"
+    lastAnalysis:
+      ""
 
   },
 
 
-  irrigationDate: "",
 
+  // سجل العمليات
 
-  duration: "",
-
-
-  weatherCondition: "",
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
+  logs: []
 
 };
 
@@ -227,60 +166,30 @@ export const IrrigationModel = {
 
 
 
-/* =========================
-   Fertilizer Model
-========================= */
+// إضافة عنصر لأي قسم
 
-export const FertilizerModel = {
+export const addItem = (
+  collection,
+  item
+)=>{
 
-  id: "",
+  return [
 
+    ...collection,
 
-  farmId: "",
+    {
 
+      id:
+        createId(),
 
-  fieldId: "",
+      createdAt:
+        createTimestamp(),
 
+      ...item
 
-  cropId: "",
+    }
 
-
-  type: "",
-
-
-  category: "chemical",
-
-
-  quantity: {
-
-    value: 0,
-
-    unit: "kg"
-
-  },
-
-
-  applicationMethod: "",
-
-
-  applicationDate: "",
-
-
-  cost: {
-
-    amount: 0,
-
-    currency: "SYP"
-
-  },
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
+  ];
 
 };
 
@@ -288,109 +197,17 @@ export const FertilizerModel = {
 
 
 
-/* =========================
-   Pesticide Model
-========================= */
+// حذف عنصر
 
-export const PesticideModel = {
+export const removeItem = (
+  collection,
+  id
+)=>{
 
-  id: "",
-
-
-  farmId: "",
-
-
-  fieldId: "",
-
-
-  cropId: "",
-
-
-  name: "",
-
-
-  activeIngredient: "",
-
-
-  target: "",
-
-
-  quantity: {
-
-    value: 0,
-
-    unit: "ml"
-
-  },
-
-
-  applicationMethod: "spray",
-
-
-  safetyPeriod: 0,
-
-
-  sprayDate: "",
-
-
-  status: "planned",
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};/* =========================
-   Disease Model
-========================= */
-
-export const DiseaseModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  fieldId: "",
-
-
-  cropId: "",
-
-
-  name: "",
-
-
-  symptoms: "",
-
-
-  severity: "low",
-
-
-  riskLevel: "low",
-
-
-  treatment: "",
-
-
-  image: "",
-
-
-  date: "",
-
-
-  status: "active",
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
+  return collection.filter(
+    item =>
+      item.id !== id
+  );
 
 };
 
@@ -398,267 +215,36 @@ export const DiseaseModel = {
 
 
 
-/* =========================
-   Expense Model
-========================= */
+// تحديث عنصر
 
-export const ExpenseModel = {
+export const updateItem = (
+  collection,
+  id,
+  updates
+)=>{
 
-  id: "",
+  return collection.map(
+    item =>
 
+      item.id === id
 
-  farmId: "",
+      ?
 
+      {
 
-  category: "",
+        ...item,
 
+        ...updates,
 
-  description: "",
+        updatedAt:
+          createTimestamp()
 
+      }
 
-  amount: 0,
+      :
 
+      item
 
-  currency: "SYP",
-
-
-  date: "",
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
-
-
-
-
-
-/* =========================
-   Location GPS Model
-========================= */
-
-export const LocationModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  latitude: "",
-
-
-  longitude: "",
-
-
-  accuracy: "",
-
-
-  address: "",
-
-
-  createdAt: ""
-
-};
-
-
-
-
-
-/* =========================
-   User Model
-========================= */
-
-export const UserModel = {
-
-  id: "",
-
-
-  name: "",
-
-
-  email: "",
-
-
-  phone: "",
-
-
-  role: "farmer",
-
-
-  permissions: [],
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
-
-
-
-
-
-/* =========================
-   Consultation Model
-========================= */
-
-export const ConsultationModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  userId: "",
-
-
-  engineerId: "",
-
-
-  subject: "",
-
-
-  question: "",
-
-
-  answer: "",
-
-
-  status: "pending",
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
-
-
-
-
-
-/* =========================
-   Report Model
-========================= */
-
-export const ReportModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  title: "",
-
-
-  type: "",
-
-
-  content: "",
-
-
-  statistics: {},
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
-
-
-
-
-
-/* =========================
-   Harvest Model
-========================= */
-
-export const HarvestModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  fieldId: "",
-
-
-  cropId: "",
-
-
-  quantity: {
-
-    value: 0,
-
-    unit: "kg"
-
-  },
-
-
-  quality: "",
-
-
-  harvestDate: "",
-
-
-  workerIds: [],
-
-
-  notes: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
-
-};
-
-
-
-
-
-/* =========================
-   Inventory Model
-========================= */
-
-export const InventoryModel = {
-
-  id: "",
-
-
-  farmId: "",
-
-
-  name: "",
-
-
-  category: "",
-
-
-  quantity: 0,
-
-
-  unit: "",
-
-
-  minimumStock: 0,
-
-
-  supplier: "",
-
-
-  createdAt: "",
-
-  updatedAt: ""
+  );
 
 };
