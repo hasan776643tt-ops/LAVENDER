@@ -2,80 +2,102 @@
 
 import reportController from "../controllers/reportController.js";
 
-/**
- * ==========================================================
- * Report Routes
- * LAVENDER Smart Farm
- * ----------------------------------------------------------
- * مسؤول عن توجيه جميع عمليات التقارير.
- * جاهز للربط مع React Router أو Express أو أي Backend مستقبلاً.
- * ==========================================================
- */
 
 class ReportRoutes {
-  /**
-   * الحصول على جميع التقارير
-   */
+
+  constructor() {
+    this.controller = reportController;
+  }
+
+
   async getAll() {
-    return await reportController.getAllReports();
+    try {
+      return await this.controller.getAllReports();
+
+    } catch (error) {
+      throw new Error(
+        `Report routes get failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * الحصول على تقرير بواسطة المعرف
-   * @param {string} reportId
-   */
+
   async getById(reportId) {
-    return await reportController.getReportById(reportId);
+    try {
+      return await this.controller.getReportById(reportId);
+
+    } catch (error) {
+      throw new Error(
+        `Report routes get by id failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * إنشاء تقرير جديد
-   * @param {Object} reportData
-   */
+
   async create(reportData) {
-    return await reportController.createReport(reportData);
+    try {
+      return await this.controller.createReport(reportData);
+
+    } catch (error) {
+      throw new Error(
+        `Report routes create failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * تحديث تقرير
-   * @param {string} reportId
-   * @param {Object} reportData
-   */
+
   async update(reportId, reportData) {
-    return await reportController.updateReport(
-      reportId,
-      reportData
-    );
+    try {
+      return await this.controller.updateReport(
+        reportId,
+        reportData
+      );
+
+    } catch (error) {
+      throw new Error(
+        `Report routes update failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * حذف تقرير
-   * @param {string} reportId
-   */
+
   async delete(reportId) {
-    return await reportController.deleteReport(reportId);
+    try {
+      return await this.controller.deleteReport(reportId);
+
+    } catch (error) {
+      throw new Error(
+        `Report routes delete failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * إنشاء ملخص تقرير
-   * @param {Object} report
-   */
+
   async summary(report) {
-    return reportController.generateSummary(report);
+    try {
+      return await this.controller.generateSummary(report);
+
+    } catch (error) {
+      throw new Error(
+        `Report summary failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * فحص جاهزية المسار
-   */
+
   health() {
     return {
       success: true,
       module: "ReportRoutes",
       version: "1.0.0",
       status: "Ready",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
   }
+
 }
 
-export default Object.freeze(new ReportRoutes());
+
+export default Object.freeze(
+  new ReportRoutes()
+);
