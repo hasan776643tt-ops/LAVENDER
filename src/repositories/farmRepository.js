@@ -13,6 +13,7 @@ class FarmRepository {
   }
 
 
+
   getAll() {
 
     return storageService.load(
@@ -23,7 +24,15 @@ class FarmRepository {
   }
 
 
+
   getById(id) {
+
+    if (!id) {
+
+      return null;
+
+    }
+
 
     const farms =
       this.getAll();
@@ -31,19 +40,39 @@ class FarmRepository {
 
     return farms.find(
       farm =>
-        farm.id === id
+        String(farm.id) === String(id)
     ) || null;
 
   }
 
 
-  create(farm) {
+
+  create(farmData) {
+
 
     const farms =
       this.getAll();
 
 
-    farms.push(farm);
+    const farm = {
+
+      id:
+        Date.now().toString(),
+
+      ...farmData,
+
+      createdAt:
+        new Date().toISOString(),
+
+      updatedAt:
+        new Date().toISOString()
+
+    };
+
+
+    farms.push(
+      farm
+    );
 
 
     storageService.save(
@@ -57,7 +86,9 @@ class FarmRepository {
   }
 
 
+
   update(id, data) {
+
 
     const farms =
       this.getAll();
@@ -66,8 +97,9 @@ class FarmRepository {
     const index =
       farms.findIndex(
         farm =>
-          farm.id === id
+          String(farm.id) === String(id)
       );
+
 
 
     if (index === -1) {
@@ -77,16 +109,26 @@ class FarmRepository {
     }
 
 
-    farms[index] = {
+
+    const updatedFarm = {
 
       ...farms[index],
 
       ...data,
 
+      id:
+        farms[index].id,
+
       updatedAt:
         new Date().toISOString()
 
     };
+
+
+
+    farms[index] =
+      updatedFarm;
+
 
 
     storageService.save(
@@ -95,36 +137,72 @@ class FarmRepository {
     );
 
 
-    return farms[index];
+
+    return updatedFarm;
 
   }
 
 
+
   delete(id) {
+
 
     const farms =
       this.getAll();
 
 
+
     const filtered =
       farms.filter(
         farm =>
-          farm.id !== id
+          String(farm.id) !== String(id)
       );
 
 
-    storageService.save(
-      this.key,
-      filtered
+
+    const deleted =
+      filtered.length !== farms.length;
+
+
+
+    if (deleted) {
+
+      storageService.save(
+        this.key,
+        filtered
+      );
+
+    }
+
+
+
+    return deleted;
+
+  }
+
+
+
+  exists(id) {
+
+
+    return Boolean(
+      this.getById(id)
     );
 
+  }
 
-    return true;
+
+
+  count() {
+
+
+    return this.getAll().length;
 
   }
 
 
 }
+
 
 
 export default Object.freeze(
