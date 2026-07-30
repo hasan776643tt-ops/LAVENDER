@@ -1,35 +1,88 @@
-import express from "express";
+// src/routes/fieldRoutes.js
 
-import {
-  getFields,
-  getFieldById,
-  createField,
-  updateField,
-  deleteField
-} from "../controllers/fieldController.js";
+import fieldController from "../controllers/fieldController.js";
 
 
-const router = express.Router();
+class FieldRoutes {
+
+  constructor() {
+    this.controller = fieldController;
+  }
 
 
-// جلب كل الحقول
-router.get("/", getFields);
+  async getFields() {
+    try {
+      return await this.controller.getFields();
+
+    } catch (error) {
+      throw new Error(
+        `Field routes get failed: ${error.message}`
+      );
+    }
+  }
 
 
-// جلب حقل واحد
-router.get("/:id", getFieldById);
+  async getFieldById(id) {
+    try {
+      return await this.controller.getFieldById(id);
+
+    } catch (error) {
+      throw new Error(
+        `Field routes get by id failed: ${error.message}`
+      );
+    }
+  }
 
 
-// إنشاء حقل
-router.post("/", createField);
+  async createField(fieldData) {
+    try {
+      return await this.controller.createField(fieldData);
+
+    } catch (error) {
+      throw new Error(
+        `Field routes create failed: ${error.message}`
+      );
+    }
+  }
 
 
-// تعديل حقل
-router.put("/:id", updateField);
+  async updateField(id, data) {
+    try {
+      return await this.controller.updateField(id, data);
+
+    } catch (error) {
+      throw new Error(
+        `Field routes update failed: ${error.message}`
+      );
+    }
+  }
 
 
-// حذف حقل
-router.delete("/:id", deleteField);
+  async deleteField(id) {
+    try {
+      return await this.controller.deleteField(id);
+
+    } catch (error) {
+      throw new Error(
+        `Field routes delete failed: ${error.message}`
+      );
+    }
+  }
 
 
-export default router;
+  health() {
+    return {
+      success: true,
+      module: "FieldRoutes",
+      version: "1.0.0",
+      status: "Ready",
+      timestamp: new Date().toISOString()
+    };
+  }
+
+}
+
+
+export default Object.freeze(
+  new FieldRoutes()
+);
