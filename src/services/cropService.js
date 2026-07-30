@@ -1,233 +1,253 @@
 // src/services/cropService.js
 
-
 import cropRepository
   from "../repositories/cropRepository.js";
 
 
-
-const success = (
-  data,
-  message = "Success"
-) => ({
-
-  success: true,
-
-  message,
-
-  data
-
-});
+class CropService {
 
 
+  constructor() {
 
-const failure = (
-  message,
-  error = null
-) => ({
-
-  success: false,
-
-  message,
-
-  error
-
-});
-
-
-
-
-// جلب جميع المحاصيل
-
-export const getCropsService =
-async () => {
-
-  try {
-
-    const crops =
-      await cropRepository.getAll();
-
-
-    return success(
-      crops,
-      "Crops loaded successfully"
-    );
-
-
-  } catch (error) {
-
-    return failure(
-      "Failed to load crops",
-      error.message
-    );
+    this.repository =
+      cropRepository;
 
   }
 
-};
+
+
+
+  async getAll() {
+
+    try {
+
+      return await this.repository.getAll();
+
+    } catch (error) {
+
+      throw new Error(
+        `CropService getAll failed: ${error.message}`
+      );
+
+    }
+
+  }
 
 
 
 
+  async getById(id) {
 
-// جلب محصول حسب المعرف
+    try {
 
-export const getCropByIdService =
-async (id) => {
+      if (!id) {
 
-  try {
+        throw new Error(
+          "Crop ID is required"
+        );
 
-    const crop =
-      await cropRepository.getById(
-        id
+      }
+
+
+      const crop =
+        await this.repository.getById(id);
+
+
+      if (!crop) {
+
+        throw new Error(
+          "Crop not found"
+        );
+
+      }
+
+
+      return crop;
+
+    } catch (error) {
+
+      throw new Error(
+        `CropService getById failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  async create(cropData) {
+
+    try {
+
+      this.validateCrop(
+        cropData
       );
 
 
-    return success(
-      crop,
-      "Crop loaded successfully"
-    );
+      return await this.repository.create(
+        cropData
+      );
 
+    } catch (error) {
 
-  } catch (error) {
+      throw new Error(
+        `CropService create failed: ${error.message}`
+      );
 
-    return failure(
-      "Failed to load crop",
-      error.message
-    );
+    }
 
   }
 
-};
+
+
+
+  async update(
+    id,
+    cropData
+  ) {
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "Crop ID is required"
+        );
+
+      }
+
+
+      const crop =
+        await this.repository.update(
+          id,
+          cropData
+        );
+
+
+      if (!crop) {
+
+        throw new Error(
+          "Crop not found"
+        );
+
+      }
+
+
+      return crop;
+
+    } catch (error) {
+
+      throw new Error(
+        `CropService update failed: ${error.message}`
+      );
+
+    }
+
+  }
 
 
 
 
+  async delete(id) {
 
-// إنشاء محصول جديد
+    try {
 
-export const createCropService =
-async (cropData) => {
+      if (!id) {
+
+        throw new Error(
+          "Crop ID is required"
+        );
+
+      }
 
 
-  try {
+      const exists =
+        await this.repository.exists(id);
 
 
-    if (!cropData.name) {
+      if (!exists) {
 
-      return failure(
+        throw new Error(
+          "Crop not found"
+        );
+
+      }
+
+
+      await this.repository.delete(id);
+
+
+      return {
+
+        success: true,
+
+        message:
+          "Crop deleted successfully"
+
+      };
+
+    } catch (error) {
+
+      throw new Error(
+        `CropService delete failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  async count() {
+
+    try {
+
+      return await this.repository.count();
+
+    } catch (error) {
+
+      throw new Error(
+        `CropService count failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  validateCrop(crop) {
+
+    if (!crop) {
+
+      throw new Error(
+        "Crop data is required"
+      );
+
+    }
+
+
+    if (!crop.name?.trim()) {
+
+      throw new Error(
         "Crop name is required"
       );
 
     }
 
 
-
-    const crop =
-      await cropRepository.create(
-        cropData
-      );
-
-
-
-    return success(
-      crop,
-      "Crop created successfully"
-    );
-
-
-
-  } catch (error) {
-
-
-    return failure(
-      "Failed to create crop",
-      error.message
-    );
-
+    return true;
 
   }
 
-};
+
+}
 
 
-
-
-
-// تعديل محصول
-
-export const updateCropService =
-async (
-  id,
-  cropData
-) => {
-
-
-  try {
-
-
-    const crop =
-      await cropRepository.update(
-        id,
-        cropData
-      );
-
-
-
-    return success(
-      crop,
-      "Crop updated successfully"
-    );
-
-
-
-  } catch (error) {
-
-
-    return failure(
-      "Failed to update crop",
-      error.message
-    );
-
-
-  }
-
-};
-
-
-
-
-
-// حذف محصول
-
-export const deleteCropService =
-async (id) => {
-
-
-  try {
-
-
-    await cropRepository.delete(
-      id
-    );
-
-
-
-    return success(
-      null,
-      "Crop deleted successfully"
-    );
-
-
-
-  } catch (error) {
-
-
-    return failure(
-      "Failed to delete crop",
-      error.message
-    );
-
-
-  }
-
-};
+export default Object.freeze(
+  new CropService()
+);
