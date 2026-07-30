@@ -1,10 +1,16 @@
 import userRepository from "../repositories/userRepository.js";
 
+
 class UserController {
+
+  constructor() {
+    this.repository = userRepository;
+  }
+
 
   async getUsers() {
     try {
-      return await userRepository.getAll();
+      return await this.repository.getAll();
 
     } catch (error) {
       throw new Error(
@@ -18,12 +24,10 @@ class UserController {
     try {
 
       const user =
-        await userRepository.getById(id);
+        await this.repository.getById(id);
 
       if (!user) {
-        throw new Error(
-          "User not found"
-        );
+        throw new Error("User not found");
       }
 
       return user;
@@ -39,7 +43,7 @@ class UserController {
   async createUser(userData) {
     try {
 
-      return await userRepository.create(
+      return await this.repository.create(
         userData
       );
 
@@ -51,22 +55,17 @@ class UserController {
   }
 
 
-  async updateUser(
-    id,
-    userData
-  ) {
+  async updateUser(id, userData) {
     try {
 
       const user =
-        await userRepository.update(
+        await this.repository.update(
           id,
           userData
         );
 
       if (!user) {
-        throw new Error(
-          "User not found"
-        );
+        throw new Error("User not found");
       }
 
       return user;
@@ -83,18 +82,15 @@ class UserController {
     try {
 
       const deleted =
-        await userRepository.delete(id);
+        await this.repository.delete(id);
 
       if (!deleted) {
-        throw new Error(
-          "User not found"
-        );
+        throw new Error("User not found");
       }
 
       return {
         success: true,
-        message:
-          "User deleted successfully"
+        message: "User deleted successfully"
       };
 
     } catch (error) {
@@ -105,6 +101,7 @@ class UserController {
   }
 
 }
+
 
 export default Object.freeze(
   new UserController()
