@@ -14,6 +14,7 @@ class LogService {
     this.storageKey =
       "system_logs";
 
+
     this.logs =
       storageService.load(
         this.storageKey,
@@ -147,6 +148,8 @@ class LogService {
 
     this.save();
 
+    return true;
+
   }
 
 
@@ -171,6 +174,7 @@ class LogService {
 
 export const logService =
   new LogService();
+
 
 
 export default logService;
