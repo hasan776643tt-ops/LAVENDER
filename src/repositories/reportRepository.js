@@ -2,191 +2,406 @@
 
 import * as reportApi from "../api/reportService.js";
 
-/**
- * ReportRepository
- * ----------------------------------------------------
- * مسؤول عن إدارة بيانات التقارير فقط.
- * لا يحتوي على منطق الواجهة أو منطق الصفحات.
- * يمكن تبديل مصدر البيانات (API / Firebase / Supabase / Database)
- * دون تعديل الـ Controllers أو Pages.
- * ----------------------------------------------------
- */
+
 class ReportRepository {
-  #cache = new Map();
-  #cacheTTL = 5 * 60 * 1000; // 5 دقائق
 
-  /**
-   * إنشاء مفتاح للكاش
-   * @param {string} key
-   * @returns {string}
-   */
-  #createKey(key) {
-    return String(key);
+
+  constructor() {
+
+    this.cache = new Map();
+
+    this.cacheDuration =
+      5 * 60 * 1000;
+
   }
 
-  /**
-   * هل انتهت صلاحية الكاش؟
-   * @param {number} timestamp
-   * @returns {boolean}
-   */
-  #isExpired(timestamp) {
-    return Date.now() - timestamp > this.#cacheTTL;
-  }
 
-  /**
-   * حفظ داخل الكاش
-   * @param {string} key
-   * @param {any} value
-   */
-  #saveCache(key, value) {
-    this.#cache.set(this.#createKey(key), {
-      value,
-      timestamp: Date.now(),
-    });
-  }
 
-  /**
-   * قراءة من الكاش
-   * @param {string} key
-   * @returns {any|null}
-   */
-  #readCache(key) {
-    const item = this.#cache.get(this.#createKey(key));
-
-    if (!item) return null;
-
-    if (this.#isExpired(item.timestamp)) {
-      this.#cache.delete(this.#createKey(key));
-      return null;
-    }
-
-    return item.value;
-  }
-
-  /**
-   * جميع التقارير
-   */
   async getAll() {
-    const cache = this.#readCache("reports");
 
-    if (cache) return cache;
+    try {
 
-    const reports = await reportApi.getAllReports();
+      const cached =
+        this.getCache("reports");
 
-    this.#saveCache("reports", reports);
 
-    return reports;
+      if (cached) {
+
+        return cached;
+
+      }
+
+
+      const reports =
+        await reportApi.getAllReports();
+
+
+      this.setCache(
+        "reports",
+        reports
+      );
+
+
+      return reports;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `Report repository get all failed: ${error.message}`
+      );
+
+    }
+
   }
 
-  /**
-   * تقرير واحد
-   * @param {string} id
-   */
+
+
+
   async getById(id) {
-    if (!id) {
-      throw new Error("Report ID is required.");
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "Report ID is required."
+        );
+
+      }
+
+
+      const cached =
+        this.getCache(id);
+
+
+      if (cached) {
+
+        return cached;
+
+      }
+
+
+      const report =
+        await reportApi.getReportById(id);
+
+
+
+      if (report) {
+
+        this.setCache(
+          id,
+          report
+        );
+
+      }
+
+
+      return report;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `Report repository get by id failed: ${error.message}`
+      );
+
     }
 
-    const cache = this.#readCache(id);
-
-    if (cache) return cache;
-
-    const report = await reportApi.getReportById(id);
-
-    if (report) {
-      this.#saveCache(id, report);
-    }
-
-    return report;
   }
 
-  /**
-   * إنشاء تقرير
-   * @param {Object} data
-   */
+
+
+
+
   async create(data) {
-    const report = await reportApi.createReport(data);
 
-    this.clearCache();
+    try {
 
-    return report;
+      const report =
+        await reportApi.createReport(
+          data
+        );
+
+
+      this.clearCache();
+
+
+      return report;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `Report repository create failed: ${error.message}`
+      );
+
+    }
+
   }
 
-  /**
-   * تحديث تقرير
-   * @param {string} id
-   * @param {Object} data
-   */
+
+
+
+
   async update(id, data) {
-    const report = await reportApi.updateReport(id, data);
 
-    this.clearCache();
+    try {
 
-    return report;
+      if (!id) {
+
+        throw new Error(
+          "Report ID is required."
+        );
+
+      }
+
+
+      const report =
+        await reportApi.updateReport(
+          id,
+          data
+        );
+
+
+      this.clearCache();
+
+
+      return report;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `Report repository update failed: ${error.message}`
+      );
+
+    }
+
   }
 
-  /**
-   * حذف تقرير
-   * @param {string} id
-   */
+
+
+
+
   async delete(id) {
-    await reportApi.deleteReport(id);
 
-    this.clearCache();
+    try {
 
-    return true;
+      if (!id) {
+
+        throw new Error(
+          "Report ID is required."
+        );
+
+      }
+
+
+      await reportApi.deleteReport(
+        id
+      );
+
+
+      this.clearCache();
+
+
+      return true;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `Report repository delete failed: ${error.message}`
+      );
+
+    }
+
   }
 
-  /**
-   * البحث
-   * @param {string} keyword
-   */
+
+
+
+
   async search(keyword = "") {
-    const reports = await this.getAll();
 
-    const search = keyword.trim().toLowerCase();
+    try {
 
-    return reports.filter((report) =>
-      [
-        report.title,
-        report.description,
-        report.status,
-        report.cropName,
-        report.farmName,
-      ]
-        .filter(Boolean)
-        .some((value) =>
-          value.toLowerCase().includes(search)
-        )
-    );
+      const reports =
+        await this.getAll();
+
+
+      const search =
+        keyword
+          .trim()
+          .toLowerCase();
+
+
+
+      return reports.filter(
+        report => {
+
+          const values = [
+
+            report.title,
+
+            report.description,
+
+            report.status,
+
+            report.cropName,
+
+            report.farmName
+
+          ];
+
+
+          return values
+            .filter(Boolean)
+            .some(value =>
+              value
+                .toLowerCase()
+                .includes(search)
+            );
+
+        }
+      );
+
+
+    } catch (error) {
+
+      throw new Error(
+        `Report repository search failed: ${error.message}`
+      );
+
+    }
+
   }
 
-  /**
-   * إحصائيات التقارير
-   */
+
+
+
+
   async getStatistics() {
-    const reports = await this.getAll();
 
-    return {
-      total: reports.length,
-      completed: reports.filter(
-        (r) => r.status === "Completed"
-      ).length,
-      pending: reports.filter(
-        (r) => r.status === "Pending"
-      ).length,
-      draft: reports.filter(
-        (r) => r.status === "Draft"
-      ).length,
-    };
+    try {
+
+      const reports =
+        await this.getAll();
+
+
+      return {
+
+        total:
+          reports.length,
+
+
+        completed:
+          reports.filter(
+            report =>
+              report.status === "Completed"
+          ).length,
+
+
+        pending:
+          reports.filter(
+            report =>
+              report.status === "Pending"
+          ).length,
+
+
+        draft:
+          reports.filter(
+            report =>
+              report.status === "Draft"
+          ).length
+
+      };
+
+
+    } catch (error) {
+
+      throw new Error(
+        `Report statistics failed: ${error.message}`
+      );
+
+    }
+
   }
 
-  /**
-   * تنظيف الكاش
-   */
+
+
+
+
+  setCache(key, value) {
+
+    this.cache.set(
+      String(key),
+      {
+
+        data: value,
+
+        timestamp:
+          Date.now()
+
+      }
+    );
+
+  }
+
+
+
+
+
+  getCache(key) {
+
+    const item =
+      this.cache.get(
+        String(key)
+      );
+
+
+    if (!item) {
+
+      return null;
+
+    }
+
+
+    if (
+      Date.now() -
+      item.timestamp >
+      this.cacheDuration
+    ) {
+
+      this.cache.delete(
+        String(key)
+      );
+
+
+      return null;
+
+    }
+
+
+    return item.data;
+
+  }
+
+
+
+
+
   clearCache() {
-    this.#cache.clear();
+
+    this.cache.clear();
+
   }
+
+
 }
 
-export default Object.freeze(new ReportRepository());
+
+
+export default Object.freeze(
+  new ReportRepository()
+);
