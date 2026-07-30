@@ -1,15 +1,13 @@
 // src/services/authService.js
 
-
 import storageService
   from "./storageService.js";
-
 
 
 class AuthService {
 
 
-  constructor(){
+  constructor() {
 
     this.storageKey =
       "currentUser";
@@ -22,8 +20,7 @@ class AuthService {
 
 
 
-  login(user){
-
+  login(user) {
 
     const session = {
 
@@ -55,9 +52,7 @@ class AuthService {
 
 
 
-
-  logout(){
-
+  logout() {
 
     this.user =
       null;
@@ -75,9 +70,7 @@ class AuthService {
 
 
 
-
-  loadUser(){
-
+  loadUser() {
 
     return storageService.load(
       this.storageKey,
@@ -89,8 +82,7 @@ class AuthService {
 
 
 
-
-  getCurrentUser(){
+  getCurrentUser() {
 
     return this.user;
 
@@ -99,13 +91,14 @@ class AuthService {
 
 
 
-
-  isAuthenticated(){
-
+  isAuthenticated() {
 
     return (
+
       this.user !== null &&
+
       this.user.authenticated === true
+
     );
 
   }
@@ -113,9 +106,7 @@ class AuthService {
 
 
 
-
-  hasRole(role){
-
+  hasRole(role) {
 
     return (
       this.user?.role === role
@@ -126,12 +117,13 @@ class AuthService {
 
 
 
+  updateProfile(data = {}) {
 
-  updateProfile(data = {}){
+    if (!this.user) {
 
-
-    if(!this.user)
       return null;
+
+    }
 
 
     this.user = {
@@ -160,9 +152,6 @@ class AuthService {
 }
 
 
-
-export const authService =
-  new AuthService();
-
-
-export default authService;
+export default Object.freeze(
+  new AuthService()
+);
