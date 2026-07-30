@@ -1,23 +1,19 @@
 // src/repositories/cropRepository.js
 
-import storageService
-  from "../services/storageService.js";
+import storageService from "../services/storageService.js";
 
 
 class CropRepository {
 
 
-  constructor(){
+  constructor() {
 
-    this.key =
-      "crops";
+    this.key = "crops";
 
   }
 
 
-
-
-  getAll(){
+  getAll() {
 
     return storageService.load(
       this.key,
@@ -27,9 +23,7 @@ class CropRepository {
   }
 
 
-
-
-  getById(id){
+  getById(id) {
 
     return this.getAll().find(
       crop =>
@@ -39,17 +33,13 @@ class CropRepository {
   }
 
 
-
-
-  create(crop){
+  create(crop) {
 
     const crops =
       this.getAll();
 
 
-    crops.push(
-      crop
-    );
+    crops.push(crop);
 
 
     storageService.save(
@@ -63,12 +53,7 @@ class CropRepository {
   }
 
 
-
-
-  update(
-    id,
-    data
-  ){
+  update(id, data) {
 
     const crops =
       this.getAll();
@@ -81,7 +66,7 @@ class CropRepository {
       );
 
 
-    if(index === -1){
+    if (index === -1) {
 
       return null;
 
@@ -111,9 +96,7 @@ class CropRepository {
   }
 
 
-
-
-  delete(id){
+  delete(id) {
 
     const crops =
       this.getAll();
@@ -137,9 +120,7 @@ class CropRepository {
   }
 
 
-
-
-  exists(id){
+  exists(id) {
 
     return this.getAll().some(
       crop =>
@@ -149,9 +130,7 @@ class CropRepository {
   }
 
 
-
-
-  count(){
+  count() {
 
     return this.getAll().length;
 
@@ -161,8 +140,6 @@ class CropRepository {
 }
 
 
-export const cropRepository =
-  new CropRepository();
-
-
-export default cropRepository;
+export default Object.freeze(
+  new CropRepository()
+);
