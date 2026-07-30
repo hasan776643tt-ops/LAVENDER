@@ -1,23 +1,19 @@
 // src/repositories/userRepository.js
 
-import storageService
-  from "../services/storageService.js";
+import storageService from "../services/storageService.js";
 
 
 class UserRepository {
 
 
-  constructor(){
+  constructor() {
 
-    this.key =
-      "users";
+    this.key = "users";
 
   }
 
 
-
-
-  getAll(){
+  getAll() {
 
     return storageService.load(
       this.key,
@@ -27,9 +23,7 @@ class UserRepository {
   }
 
 
-
-
-  getById(id){
+  getById(id) {
 
     return this.getAll().find(
       user =>
@@ -39,17 +33,13 @@ class UserRepository {
   }
 
 
-
-
-  create(user){
+  create(user) {
 
     const users =
       this.getAll();
 
 
-    users.push(
-      user
-    );
+    users.push(user);
 
 
     storageService.save(
@@ -63,12 +53,7 @@ class UserRepository {
   }
 
 
-
-
-  update(
-    id,
-    data
-  ){
+  update(id, data) {
 
     const users =
       this.getAll();
@@ -81,7 +66,7 @@ class UserRepository {
       );
 
 
-    if(index === -1){
+    if (index === -1) {
 
       return null;
 
@@ -111,9 +96,7 @@ class UserRepository {
   }
 
 
-
-
-  delete(id){
+  delete(id) {
 
     const users =
       this.getAll();
@@ -137,9 +120,7 @@ class UserRepository {
   }
 
 
-
-
-  exists(id){
+  exists(id) {
 
     return this.getAll().some(
       user =>
@@ -149,9 +130,7 @@ class UserRepository {
   }
 
 
-
-
-  count(){
+  count() {
 
     return this.getAll().length;
 
@@ -161,8 +140,6 @@ class UserRepository {
 }
 
 
-export const userRepository =
-  new UserRepository();
-
-
-export default userRepository;
+export default Object.freeze(
+  new UserRepository()
+);
