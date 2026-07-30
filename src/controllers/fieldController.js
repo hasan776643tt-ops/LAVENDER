@@ -1,6 +1,7 @@
 // src/controllers/fieldController.js
 
 import fieldRepository from "../repositories/fieldRepository.js";
+import { fieldValidator } from "../validators/fieldValidator.js";
 
 
 class FieldController {
@@ -11,7 +12,6 @@ class FieldController {
     this.repository = fieldRepository;
 
   }
-
 
 
 
@@ -51,6 +51,7 @@ class FieldController {
         await this.repository.getById(id);
 
 
+
       if (!field) {
 
         throw new Error(
@@ -80,7 +81,9 @@ class FieldController {
 
     try {
 
+
       this.validateField(fieldData);
+
 
 
       return await this.repository.create(
@@ -101,9 +104,11 @@ class FieldController {
 
 
 
+
   async updateField(id, fieldData) {
 
     try {
+
 
       if (!id) {
 
@@ -114,7 +119,9 @@ class FieldController {
       }
 
 
+
       this.validateField(fieldData);
+
 
 
       const field =
@@ -122,6 +129,7 @@ class FieldController {
           id,
           fieldData
         );
+
 
 
       if (!field) {
@@ -133,7 +141,9 @@ class FieldController {
       }
 
 
+
       return field;
+
 
 
     } catch (error) {
@@ -149,9 +159,11 @@ class FieldController {
 
 
 
+
   async deleteField(id) {
 
     try {
+
 
       if (!id) {
 
@@ -162,11 +174,13 @@ class FieldController {
       }
 
 
-      const exists =
-        await this.repository.exists(id);
+
+      const deleted =
+        await this.repository.delete(id);
 
 
-      if (!exists) {
+
+      if (!deleted) {
 
         throw new Error(
           "Field not found"
@@ -174,8 +188,6 @@ class FieldController {
 
       }
 
-
-      await this.repository.delete(id);
 
 
       return {
@@ -186,6 +198,7 @@ class FieldController {
           "Field deleted successfully"
 
       };
+
 
 
     } catch (error) {
@@ -201,11 +214,13 @@ class FieldController {
 
 
 
+
   async countFields() {
 
     try {
 
       return await this.repository.count();
+
 
     } catch (error) {
 
@@ -220,32 +235,41 @@ class FieldController {
 
 
 
+
   validateField(field) {
 
-    if (!field) {
+
+    const result =
+      fieldValidator.validate(field);
+
+
+
+    if (!result.valid) {
+
 
       throw new Error(
-        "Field data is required"
+
+        JSON.stringify(
+          result.errors
+        )
+
       );
+
 
     }
 
-
-    if (!field.name?.trim()) {
-
-      throw new Error(
-        "Field name is required"
-      );
-
-    }
 
 
     return true;
+
 
   }
 
 
 }
+
+
+
 
 
 export default Object.freeze(
