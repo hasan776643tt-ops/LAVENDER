@@ -1,23 +1,19 @@
 // src/repositories/fieldRepository.js
 
-import storageService
-  from "../services/storageService.js";
+import storageService from "../services/storageService.js";
 
 
 class FieldRepository {
 
 
-  constructor(){
+  constructor() {
 
-    this.key =
-      "fields";
+    this.key = "fields";
 
   }
 
 
-
-
-  getAll(){
+  getAll() {
 
     return storageService.load(
       this.key,
@@ -27,9 +23,7 @@ class FieldRepository {
   }
 
 
-
-
-  getById(id){
+  getById(id) {
 
     return this.getAll().find(
       field =>
@@ -39,17 +33,13 @@ class FieldRepository {
   }
 
 
-
-
-  create(field){
+  create(field) {
 
     const fields =
       this.getAll();
 
 
-    fields.push(
-      field
-    );
+    fields.push(field);
 
 
     storageService.save(
@@ -63,12 +53,7 @@ class FieldRepository {
   }
 
 
-
-
-  update(
-    id,
-    data
-  ){
+  update(id, data) {
 
     const fields =
       this.getAll();
@@ -81,7 +66,7 @@ class FieldRepository {
       );
 
 
-    if(index === -1){
+    if (index === -1) {
 
       return null;
 
@@ -111,9 +96,7 @@ class FieldRepository {
   }
 
 
-
-
-  delete(id){
+  delete(id) {
 
     const fields =
       this.getAll();
@@ -137,9 +120,7 @@ class FieldRepository {
   }
 
 
-
-
-  exists(id){
+  exists(id) {
 
     return this.getAll().some(
       field =>
@@ -149,9 +130,7 @@ class FieldRepository {
   }
 
 
-
-
-  count(){
+  count() {
 
     return this.getAll().length;
 
@@ -161,8 +140,6 @@ class FieldRepository {
 }
 
 
-export const fieldRepository =
-  new FieldRepository();
-
-
-export default fieldRepository;
+export default Object.freeze(
+  new FieldRepository()
+);
