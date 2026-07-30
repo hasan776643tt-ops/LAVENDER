@@ -1,25 +1,70 @@
-import { cropRepository } from "../repositories/cropRepository";
+import cropRepository from "../repositories/cropRepository.js";
+
 
 class CropController {
-  getCrops() {
-    return cropRepository.getAll();
+
+  constructor() {
+    this.repository = cropRepository;
   }
 
-  getCropById(id) {
-    return cropRepository.getById(id);
+
+  async getCrops() {
+    try {
+      return await this.repository.getAll();
+
+    } catch (error) {
+      throw new Error(`Failed to get crops: ${error.message}`);
+    }
   }
 
-  createCrop(crop) {
-    return cropRepository.create(crop);
+
+  async getCropById(id) {
+    try {
+
+      const crop = await this.repository.getById(id);
+
+      if (!crop) {
+        throw new Error("Crop not found");
+      }
+
+      return crop;
+
+    } catch (error) {
+      throw new Error(`Failed to get crop: ${error.message}`);
+    }
   }
 
-  updateCrop(id, data) {
-    return cropRepository.update(id, data);
+
+  async createCrop(crop) {
+    try {
+      return await this.repository.create(crop);
+
+    } catch (error) {
+      throw new Error(`Failed to create crop: ${error.message}`);
+    }
   }
 
-  deleteCrop(id) {
-    return cropRepository.delete(id);
+
+  async updateCrop(id, data) {
+    try {
+      return await this.repository.update(id, data);
+
+    } catch (error) {
+      throw new Error(`Failed to update crop: ${error.message}`);
+    }
   }
+
+
+  async deleteCrop(id) {
+    try {
+      return await this.repository.delete(id);
+
+    } catch (error) {
+      throw new Error(`Failed to delete crop: ${error.message}`);
+    }
+  }
+
 }
 
-export const cropController = new CropController();
+
+export default Object.freeze(new CropController());
