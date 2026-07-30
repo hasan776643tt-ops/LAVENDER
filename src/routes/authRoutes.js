@@ -2,100 +2,123 @@
 
 import userController from "../controllers/userController.js";
 
-/**
- * ==========================================================
- * Auth Routes
- * LAVENDER Smart Farm
- * ----------------------------------------------------------
- * مسؤول عن جميع عمليات المصادقة (Authentication).
- * يفصل طبقة الواجهة عن طبقة الـ Controller.
- * جاهز للربط مع JWT أو Firebase أو Supabase أو أي Backend.
- * ==========================================================
- */
 
 class AuthRoutes {
-  /**
-   * تسجيل الدخول
-   * @param {Object} credentials
-   * @returns {Promise<Object>}
-   */
+
+  constructor() {
+    this.controller = userController;
+  }
+
+
   async login(credentials) {
-    return userController.login(credentials);
+    try {
+      return await this.controller.login(credentials);
+
+    } catch (error) {
+      throw new Error(
+        `Auth login failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * إنشاء حساب جديد
-   * @param {Object} userData
-   * @returns {Promise<Object>}
-   */
+
   async register(userData) {
-    return userController.register(userData);
+    try {
+      return await this.controller.register(userData);
+
+    } catch (error) {
+      throw new Error(
+        `Auth register failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * تسجيل الخروج
-   * @returns {Promise<Object>}
-   */
+
   async logout() {
-    return userController.logout();
+    try {
+      return await this.controller.logout();
+
+    } catch (error) {
+      throw new Error(
+        `Auth logout failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * تحديث بيانات المستخدم الحالي
-   * @param {Object} userData
-   * @returns {Promise<Object>}
-   */
+
   async updateProfile(userData) {
-    return userController.updateProfile(userData);
+    try {
+      return await this.controller.updateProfile(userData);
+
+    } catch (error) {
+      throw new Error(
+        `Profile update failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * تغيير كلمة المرور
-   * @param {Object} passwordData
-   * @returns {Promise<Object>}
-   */
+
   async changePassword(passwordData) {
-    return userController.changePassword(passwordData);
+    try {
+      return await this.controller.changePassword(passwordData);
+
+    } catch (error) {
+      throw new Error(
+        `Password change failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * إعادة تعيين كلمة المرور
-   * @param {string} email
-   * @returns {Promise<Object>}
-   */
+
   async forgotPassword(email) {
-    return userController.forgotPassword(email);
+    try {
+      return await this.controller.forgotPassword(email);
+
+    } catch (error) {
+      throw new Error(
+        `Password reset failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * التحقق من حالة تسجيل الدخول
-   * @returns {Promise<Object>}
-   */
+
   async isAuthenticated() {
-    return userController.isAuthenticated();
+    try {
+      return await this.controller.isAuthenticated();
+
+    } catch (error) {
+      throw new Error(
+        `Authentication check failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * الحصول على المستخدم الحالي
-   * @returns {Promise<Object>}
-   */
+
   async getCurrentUser() {
-    return userController.getCurrentUser();
+    try {
+      return await this.controller.getCurrentUser();
+
+    } catch (error) {
+      throw new Error(
+        `Get current user failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * اختبار جاهزية المسار
-   * @returns {Object}
-   */
+
   health() {
     return {
       success: true,
       module: "AuthRoutes",
       version: "1.0.0",
       status: "Ready",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
   }
+
 }
 
-export default Object.freeze(new AuthRoutes());
+
+export default Object.freeze(
+  new AuthRoutes()
+);
