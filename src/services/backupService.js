@@ -9,10 +9,10 @@ import storageService
 class BackupService {
 
 
-  constructor(){
+  constructor() {
 
     this.version =
-      "2.0.0";
+      "3.0.0";
 
 
     this.key =
@@ -23,43 +23,47 @@ class BackupService {
 
 
 
-
-  createBackup(data){
-
+  createBackup(data) {
 
     try {
 
 
-      const backup = {
+      if (data === undefined) {
 
+        throw new Error(
+          "Backup data is required"
+        );
+
+      }
+
+
+
+      const backup = {
 
         id:
           Date.now(),
-
-
-        createdAt:
-          new Date().toISOString(),
 
 
         version:
           this.version,
 
 
+        createdAt:
+          new Date().toISOString(),
+
+
         records:
-          Array.isArray(data)
-          ? data.length
-          : Object.keys(data || {}).length,
+          this.countRecords(data),
 
 
         data
-
 
       };
 
 
 
       const backups =
-        this.getBackups();
+        this.getAll();
 
 
 
@@ -80,18 +84,12 @@ class BackupService {
 
 
 
-    } catch(error){
+    } catch (error) {
 
-
-      console.error(
-        "Backup Error:",
-        error
+      throw new Error(
+        `BackupService create failed: ${error.message}`
       );
 
-
-      return null;
-
-
     }
 
   }
@@ -100,52 +98,42 @@ class BackupService {
 
 
 
-  restoreBackup(id = null){
+  restore(id = null) {
+
+    try {
 
 
-    const backups =
-      this.getBackups();
+      const backup =
+        id
+        ? this.getAll().find(
+            item =>
+              item.id === id
+          )
+        : this.getLast();
 
 
 
-    let backup;
+      if (!this.validate(backup)) {
 
-
-
-    if(id){
-
-      backup =
-        backups.find(
-          item =>
-          item.id === id
+        throw new Error(
+          "Invalid backup"
         );
 
-    }else{
-
-
-      backup =
-        backups[
-          backups.length - 1
-        ];
-
-    }
+      }
 
 
 
-    if(
-      !this.validateBackup(
-        backup
-      )
-    ){
+      return backup.data;
 
-      return null;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `BackupService restore failed: ${error.message}`
+      );
 
     }
-
-
-
-    return backup.data;
-
 
   }
 
@@ -153,7 +141,7 @@ class BackupService {
 
 
 
-  getBackups(){
+  getAll() {
 
 
     return storageService.load(
@@ -168,12 +156,94 @@ class BackupService {
 
 
 
-  validateBackup(backup){
+  getLast() {
+
+
+    const backups =
+      this.getAll();
+
+
+
+    return (
+      backups[
+        backups.length - 1
+      ] || null
+    );
+
+
+  }
+
+
+
+
+
+  delete(id) {
+
+
+    if (!id) {
+
+      throw new Error(
+        "Backup ID is required"
+      );
+
+    }
+
+
+
+    const backups =
+      this.getAll();
+
+
+
+    const filtered =
+      backups.filter(
+        item =>
+          item.id !== id
+      );
+
+
+
+    storageService.save(
+      this.key,
+      filtered
+    );
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  clear() {
+
+
+    storageService.remove(
+      this.key
+    );
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validate(backup) {
 
 
     return Boolean(
 
       backup &&
+
+      backup.id &&
 
       backup.version &&
 
@@ -190,45 +260,27 @@ class BackupService {
 
 
 
-  getLastBackup(){
+  countRecords(data) {
 
 
-    const backups =
-      this.getBackups();
+    if (Array.isArray(data)) {
+
+      return data.length;
+
+    }
 
 
+    if (
+      typeof data === "object" &&
+      data !== null
+    ) {
 
-    return backups[
-      backups.length - 1
-    ] || null;
+      return Object.keys(data).length;
 
-
-  }
-
-
-
+    }
 
 
-  deleteBackup(id){
-
-
-    const backups =
-      this.getBackups();
-
-
-
-    const filtered =
-      backups.filter(
-        item =>
-        item.id !== id
-      );
-
-
-
-    storageService.save(
-      this.key,
-      filtered
-    );
+    return 1;
 
 
   }
@@ -237,21 +289,7 @@ class BackupService {
 
 
 
-  clearAll(){
-
-
-    storageService.remove(
-      this.key
-    );
-
-
-  }
-
-
-
-
-
-  getVersion(){
+  getVersion() {
 
 
     return this.version;
@@ -264,11 +302,6 @@ class BackupService {
 
 
 
-
-
-export const backupService =
-  new BackupService();
-
-
-
-export default backupService;
+export default Object.freeze(
+  new BackupService()
+);
