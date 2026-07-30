@@ -1,50 +1,48 @@
 // src/services/index.js
 
-/* =========================
-   Core Services
-========================= */
+import storageService
+  from "./storageService.js";
 
-export * from "./userService.js";
-export * from "./farmService.js";
-export * from "./fieldService.js";
-export * from "./cropService.js";
+import cacheService
+  from "./cacheService.js";
 
+import authService
+  from "./authService.js";
 
-/* =========================
-   Storage & Sync
-========================= */
+import userService
+  from "./userService.js";
 
-export * from "./storageService.js";
-export * from "./cacheService.js";
-export * from "./backupService.js";
-export * from "./syncService.js";
+import farmService
+  from "./farmService.js";
 
+import fieldService
+  from "./fieldService.js";
 
-/* =========================
-   Security & Auth
-========================= */
-
-export * from "./authService.js";
+import cropService
+  from "./cropService.js";
 
 
-/* =========================
-   Smart Features
-========================= */
 
-export * from "./aiService.js";
-export * from "./analyticsService.js";
+const services = {
+
+  storage: storageService,
+
+  cache: cacheService,
+
+  auth: authService,
+
+  user: userService,
+
+  farm: farmService,
+
+  field: fieldService,
+
+  crop: cropService
+
+};
 
 
-/* =========================
-   Notifications & Logs
-========================= */
 
-export * from "./notificationService.js";
-export * from "./logService.js";
-
-
-/* =========================
-   Export & Reports
-========================= */
-
-export * from "./exportService.js";
+export default Object.freeze(
+  services
+);
