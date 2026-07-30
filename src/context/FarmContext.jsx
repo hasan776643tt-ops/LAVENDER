@@ -9,6 +9,9 @@ import {
 import farmController
   from "../controllers/farmController.js";
 
+import fieldController
+  from "../controllers/fieldController.js";
+
 
 // =========================
 // Context
@@ -29,38 +32,50 @@ export function FarmProvider({
 }) {
 
 
+
   const [farms, setFarms] =
     useState([]);
+
 
   const [fields, setFields] =
     useState([]);
 
+
   const [crops, setCrops] =
     useState([]);
+
 
   const [irrigations, setIrrigations] =
     useState([]);
 
+
   const [fertilizers, setFertilizers] =
     useState([]);
+
 
   const [pesticides, setPesticides] =
     useState([]);
 
+
   const [diseases, setDiseases] =
     useState([]);
+
 
   const [expenses, setExpenses] =
     useState([]);
 
+
   const [harvests, setHarvests] =
     useState([]);
+
 
   const [inventory, setInventory] =
     useState([]);
 
+
   const [consultations, setConsultations] =
     useState([]);
+
 
   const [aiQuestions, setAiQuestions] =
     useState([]);
@@ -70,17 +85,19 @@ export function FarmProvider({
 
 
   // =========================
-  // Farm Actions
+  // Farms Actions
   // =========================
 
 
   const loadFarms = async()=>{
+
 
     const data =
       await farmController.getFarms();
 
 
     setFarms(data);
+
 
   };
 
@@ -138,14 +155,11 @@ export function FarmProvider({
 
 
 
-
   const deleteFarm =
     async(id)=>{
 
 
-      await farmController.deleteFarm(
-        id
-      );
+      await farmController.deleteFarm(id);
 
 
       setFarms(prev=>
@@ -165,18 +179,103 @@ export function FarmProvider({
 
 
 
-
   // =========================
-  // Generic Actions
+  // Fields Actions
   // =========================
 
 
-  const createActions =
-    (setter)=>(()=>({
+  const loadFields = async()=>{
+
+
+    const data =
+      await fieldController.getFields();
+
+
+    setFields(data);
+
+
+  };
 
 
 
-    }));
+
+
+  const addField = async(data)=>{
+
+
+    const field =
+      await fieldController.createField(
+        data
+      );
+
+
+    setFields(prev=>[
+
+      ...prev,
+
+      field
+
+    ]);
+
+
+  };
+
+
+
+
+
+  const updateField =
+    async(id,data)=>{
+
+
+      const updated =
+        await fieldController.updateField(
+          id,
+          data
+        );
+
+
+      setFields(prev=>
+
+        prev.map(field=>
+
+          field.id === id
+          ?
+          updated
+          :
+          field
+
+        )
+
+      );
+
+
+    };
+
+
+
+
+
+  const deleteField =
+    async(id)=>{
+
+
+      await fieldController.deleteField(id);
+
+
+      setFields(prev=>
+
+        prev.filter(
+          field =>
+          field.id !== id
+        )
+
+      );
+
+
+    };
+
+
 
 
 
@@ -203,7 +302,6 @@ export function FarmProvider({
 
 
 
-    setFields,
     setCrops,
 
     setIrrigations,
@@ -224,10 +322,16 @@ export function FarmProvider({
     loadFarms,
 
     addFarm,
-
     updateFarm,
+    deleteFarm,
 
-    deleteFarm
+
+
+    loadFields,
+
+    addField,
+    updateField,
+    deleteField
 
 
   }),[
@@ -255,7 +359,6 @@ export function FarmProvider({
 
 
 
-
   return (
 
     <FarmContext.Provider
@@ -267,5 +370,6 @@ export function FarmProvider({
     </FarmContext.Provider>
 
   );
+
 
 }
