@@ -13,6 +13,7 @@ class FieldRepository {
   }
 
 
+
   getAll() {
 
     return storageService.load(
@@ -23,47 +24,101 @@ class FieldRepository {
   }
 
 
+
+
   getById(id) {
 
+
+    if (!id) {
+
+      return null;
+
+    }
+
+
     return this.getAll().find(
+
       field =>
-        field.id === id
+        String(field.id) === String(id)
+
     ) || null;
+
 
   }
 
 
-  create(field) {
+
+
+  create(fieldData) {
+
 
     const fields =
       this.getAll();
 
 
-    fields.push(field);
+
+    const field = {
+
+
+      id:
+        Date.now().toString(),
+
+
+      ...fieldData,
+
+
+      createdAt:
+        new Date().toISOString(),
+
+
+      updatedAt:
+        new Date().toISOString()
+
+
+    };
+
+
+
+    fields.push(
+      field
+    );
+
 
 
     storageService.save(
+
       this.key,
+
       fields
+
     );
+
 
 
     return field;
 
+
   }
 
 
+
+
   update(id, data) {
+
 
     const fields =
       this.getAll();
 
 
+
     const index =
       fields.findIndex(
+
         field =>
-          field.id === id
+          String(field.id) === String(id)
+
       );
+
 
 
     if (index === -1) {
@@ -73,66 +128,118 @@ class FieldRepository {
     }
 
 
-    fields[index] = {
+
+    const updatedField = {
+
 
       ...fields[index],
 
+
       ...data,
+
+
+      id:
+        fields[index].id,
+
 
       updatedAt:
         new Date().toISOString()
 
+
     };
 
 
+
+    fields[index] =
+      updatedField;
+
+
+
     storageService.save(
+
       this.key,
+
       fields
+
     );
 
 
-    return fields[index];
+
+    return updatedField;
+
 
   }
 
 
+
+
   delete(id) {
+
 
     const fields =
       this.getAll();
 
 
+
     const filtered =
       fields.filter(
+
         field =>
-          field.id !== id
+          String(field.id) !== String(id)
+
       );
 
 
-    storageService.save(
-      this.key,
-      filtered
-    );
+
+    const deleted =
+      filtered.length !== fields.length;
 
 
-    return true;
+
+    if (deleted) {
+
+
+      storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
+
+    }
+
+
+
+    return deleted;
+
 
   }
+
+
 
 
   exists(id) {
 
-    return this.getAll().some(
-      field =>
-        field.id === id
+
+    return Boolean(
+
+      this.getById(id)
+
     );
+
 
   }
 
 
+
+
   count() {
 
+
     return this.getAll().length;
+
 
   }
 
@@ -140,6 +247,9 @@ class FieldRepository {
 }
 
 
+
 export default Object.freeze(
+
   new FieldRepository()
+
 );
