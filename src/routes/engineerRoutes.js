@@ -2,88 +2,102 @@
 
 import engineerController from "../controllers/engineerController.js";
 
-/**
- * ==========================================================
- * Engineer Routes
- * LAVENDER Smart Farm
- * ----------------------------------------------------------
- * مسؤول عن توجيه جميع عمليات المهندسين الزراعيين.
- * يفصل طبقة الواجهة عن طبقة الـ Controller.
- * جاهز للربط مع React Router أو Express أو أي Backend مستقبلاً.
- * ==========================================================
- */
 
 class EngineerRoutes {
-  /**
-   * جلب جميع المهندسين
-   * @returns {Promise<Object>}
-   */
+
+  constructor() {
+    this.controller = engineerController;
+  }
+
+
   async getAll() {
-    return engineerController.getAllEngineers();
+    try {
+      return await this.controller.getAllEngineers();
+
+    } catch (error) {
+      throw new Error(
+        `Engineer routes get failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * جلب مهندس بواسطة المعرف
-   * @param {string} engineerId
-   * @returns {Promise<Object>}
-   */
+
   async getById(engineerId) {
-    return engineerController.getEngineerById(engineerId);
+    try {
+      return await this.controller.getEngineerById(engineerId);
+
+    } catch (error) {
+      throw new Error(
+        `Engineer routes get by id failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * إنشاء مهندس جديد
-   * @param {Object} engineerData
-   * @returns {Promise<Object>}
-   */
+
   async create(engineerData) {
-    return engineerController.createEngineer(engineerData);
+    try {
+      return await this.controller.createEngineer(engineerData);
+
+    } catch (error) {
+      throw new Error(
+        `Engineer routes create failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * تحديث بيانات مهندس
-   * @param {string} engineerId
-   * @param {Object} engineerData
-   * @returns {Promise<Object>}
-   */
+
   async update(engineerId, engineerData) {
-    return engineerController.updateEngineer(
-      engineerId,
-      engineerData
-    );
+    try {
+      return await this.controller.updateEngineer(
+        engineerId,
+        engineerData
+      );
+
+    } catch (error) {
+      throw new Error(
+        `Engineer routes update failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * حذف مهندس
-   * @param {string} engineerId
-   * @returns {Promise<Object>}
-   */
+
   async delete(engineerId) {
-    return engineerController.deleteEngineer(engineerId);
+    try {
+      return await this.controller.deleteEngineer(engineerId);
+
+    } catch (error) {
+      throw new Error(
+        `Engineer routes delete failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * البحث عن مهندس
-   * @param {string} keyword
-   * @returns {Promise<Object>}
-   */
+
   async search(keyword) {
-    return engineerController.searchEngineers(keyword);
+    try {
+      return await this.controller.searchEngineers(keyword);
+
+    } catch (error) {
+      throw new Error(
+        `Engineer search failed: ${error.message}`
+      );
+    }
   }
 
-  /**
-   * اختبار جاهزية المسار
-   * @returns {Object}
-   */
+
   health() {
     return {
       success: true,
       module: "EngineerRoutes",
       version: "1.0.0",
       status: "Ready",
-      timestamp: new Date().toISOString(),
+      timestamp: new Date().toISOString()
     };
   }
+
 }
 
-export default Object.freeze(new EngineerRoutes());
+
+export default Object.freeze(
+  new EngineerRoutes()
+);
