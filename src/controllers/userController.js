@@ -1,92 +1,111 @@
 import userRepository from "../repositories/userRepository.js";
 
+class UserController {
 
-// جلب جميع المستخدمين
-export const getUsers = async (req, res) => {
-  try {
-    const users = await userRepository.getAll();
+  async getUsers() {
+    try {
+      return await userRepository.getAll();
 
-    res.json(users);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء جلب المستخدمين",
-      error: error.message
-    });
-  }
-};
-
-
-// جلب مستخدم واحد
-export const getUserById = async (req, res) => {
-  try {
-    const user = await userRepository.getById(req.params.id);
-
-    if (!user) {
-      return res.status(404).json({
-        message: "المستخدم غير موجود"
-      });
+    } catch (error) {
+      throw new Error(
+        `Failed to get users: ${error.message}`
+      );
     }
-
-    res.json(user);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ",
-      error: error.message
-    });
   }
-};
 
 
-// إنشاء مستخدم جديد
-export const createUser = async (req, res) => {
-  try {
-    const user = await userRepository.create(req.body);
+  async getUserById(id) {
+    try {
 
-    res.status(201).json(user);
+      const user =
+        await userRepository.getById(id);
 
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء إنشاء المستخدم",
-      error: error.message
-    });
+      if (!user) {
+        throw new Error(
+          "User not found"
+        );
+      }
+
+      return user;
+
+    } catch (error) {
+      throw new Error(
+        `Failed to get user: ${error.message}`
+      );
+    }
   }
-};
 
 
-// تعديل مستخدم
-export const updateUser = async (req, res) => {
-  try {
-    const user = await userRepository.update(
-      req.params.id,
-      req.body
-    );
+  async createUser(userData) {
+    try {
 
-    res.json(user);
+      return await userRepository.create(
+        userData
+      );
 
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء تعديل المستخدم",
-      error: error.message
-    });
+    } catch (error) {
+      throw new Error(
+        `Failed to create user: ${error.message}`
+      );
+    }
   }
-};
 
 
-// حذف مستخدم
-export const deleteUser = async (req, res) => {
-  try {
-    await userRepository.delete(req.params.id);
+  async updateUser(
+    id,
+    userData
+  ) {
+    try {
 
-    res.json({
-      message: "تم حذف المستخدم بنجاح"
-    });
+      const user =
+        await userRepository.update(
+          id,
+          userData
+        );
 
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء حذف المستخدم",
-      error: error.message
-    });
+      if (!user) {
+        throw new Error(
+          "User not found"
+        );
+      }
+
+      return user;
+
+    } catch (error) {
+      throw new Error(
+        `Failed to update user: ${error.message}`
+      );
+    }
   }
-};
+
+
+  async deleteUser(id) {
+    try {
+
+      const deleted =
+        await userRepository.delete(id);
+
+      if (!deleted) {
+        throw new Error(
+          "User not found"
+        );
+      }
+
+      return {
+        success: true,
+        message:
+          "User deleted successfully"
+      };
+
+    } catch (error) {
+      throw new Error(
+        `Failed to delete user: ${error.message}`
+      );
+    }
+  }
+
+}
+
+export default Object.freeze(
+  new UserController()
+);
