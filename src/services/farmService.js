@@ -1,190 +1,271 @@
 // src/services/farmService.js
 
+
 import farmRepository
   from "../repositories/farmRepository.js";
 
 
 
-const success = (
-  data,
-  message = "Success"
-) => ({
-  success: true,
-  message,
-  data
-});
+class FarmService {
 
 
+  constructor() {
 
-const failure = (
-  message,
-  error = null
-) => ({
-  success: false,
-  message,
-  error
-});
-
-
-
-
-// جلب جميع المزارع
-
-export const getFarmsService =
-async () => {
-
-  try {
-
-    const farms =
-      await farmRepository.getAll();
-
-    return success(
-      farms,
-      "Farms loaded successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to load farms",
-      error.message
-    );
+    this.repository =
+      farmRepository;
 
   }
 
-};
 
 
 
 
-// جلب مزرعة حسب المعرف
+  async getAll() {
 
-export const getFarmByIdService =
-async (id) => {
+    try {
 
-  try {
+      return await this.repository.getAll();
 
-    const farm =
-      await farmRepository.getById(
-        id
+
+    } catch (error) {
+
+      throw new Error(
+        `FarmService getAll failed: ${error.message}`
       );
 
-    return success(
-      farm,
-      "Farm loaded successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to load farm",
-      error.message
-    );
+    }
 
   }
 
-};
 
 
 
 
-// إنشاء مزرعة
+  async getById(id) {
 
-export const createFarmService =
-async (farmData) => {
+    try {
 
-  try {
+      if (!id) {
 
-    if (!farmData.name) {
+        throw new Error(
+          "Farm ID is required"
+        );
 
-      return failure(
+      }
+
+
+      const farm =
+        await this.repository.getById(id);
+
+
+      if (!farm) {
+
+        throw new Error(
+          "Farm not found"
+        );
+
+      }
+
+
+      return farm;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `FarmService getById failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+
+  async create(farmData) {
+
+    try {
+
+      this.validateFarm(
+        farmData
+      );
+
+
+      return await this.repository.create(
+        farmData
+      );
+
+
+    } catch (error) {
+
+      throw new Error(
+        `FarmService create failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+
+  async update(
+    id,
+    farmData
+  ) {
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "Farm ID is required"
+        );
+
+      }
+
+
+      const farm =
+        await this.repository.update(
+          id,
+          farmData
+        );
+
+
+      if (!farm) {
+
+        throw new Error(
+          "Farm not found"
+        );
+
+      }
+
+
+      return farm;
+
+
+    } catch (error) {
+
+      throw new Error(
+        `FarmService update failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+
+  async delete(id) {
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "Farm ID is required"
+        );
+
+      }
+
+
+      const exists =
+        await this.repository.exists(id);
+
+
+      if (!exists) {
+
+        throw new Error(
+          "Farm not found"
+        );
+
+      }
+
+
+      await this.repository.delete(id);
+
+
+      return {
+
+        success: true,
+
+        message:
+          "Farm deleted successfully"
+
+      };
+
+
+    } catch (error) {
+
+      throw new Error(
+        `FarmService delete failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+
+  async count() {
+
+    try {
+
+      return await this.repository.count();
+
+
+    } catch (error) {
+
+      throw new Error(
+        `FarmService count failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+
+  validateFarm(farm) {
+
+    if (!farm) {
+
+      throw new Error(
+        "Farm data is required"
+      );
+
+    }
+
+
+    if (!farm.name?.trim()) {
+
+      throw new Error(
         "Farm name is required"
       );
 
     }
 
-    const farm =
-      await farmRepository.create(
-        farmData
-      );
 
-    return success(
-      farm,
-      "Farm created successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to create farm",
-      error.message
-    );
+    return true;
 
   }
 
-};
+
+}
 
 
 
 
-// تعديل مزرعة
 
-export const updateFarmService =
-async (
-  id,
-  farmData
-) => {
-
-  try {
-
-    const farm =
-      await farmRepository.update(
-        id,
-        farmData
-      );
-
-    return success(
-      farm,
-      "Farm updated successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to update farm",
-      error.message
-    );
-
-  }
-
-};
-
-
-
-
-// حذف مزرعة
-
-export const deleteFarmService =
-async (id) => {
-
-  try {
-
-    await farmRepository.delete(
-      id
-    );
-
-    return success(
-      null,
-      "Farm deleted successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to delete farm",
-      error.message
-    );
-
-  }
-
-};
+export default Object.freeze(
+  new FarmService()
+);
