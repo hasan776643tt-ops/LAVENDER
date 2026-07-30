@@ -1,188 +1,253 @@
+// src/services/fieldService.js
+
 import fieldRepository
   from "../repositories/fieldRepository.js";
 
 
-
-const success = (
-  data,
-  message = "Success"
-) => ({
-  success: true,
-  message,
-  data
-});
+class FieldService {
 
 
+  constructor() {
 
-const failure = (
-  message,
-  error = null
-) => ({
-  success: false,
-  message,
-  error
-});
-
-
-
-
-// جلب جميع الحقول
-
-export const getFieldsService =
-async () => {
-
-  try {
-
-    const fields =
-      await fieldRepository.getAll();
-
-    return success(
-      fields,
-      "Fields loaded successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to load fields",
-      error.message
-    );
+    this.repository =
+      fieldRepository;
 
   }
 
-};
 
 
 
+  async getAll() {
 
-// جلب حقل حسب المعرف
+    try {
 
-export const getFieldByIdService =
-async (id) => {
+      return await this.repository.getAll();
 
-  try {
+    } catch (error) {
 
-    const field =
-      await fieldRepository.getById(
-        id
+      throw new Error(
+        `FieldService getAll failed: ${error.message}`
       );
 
-    return success(
-      field,
-      "Field loaded successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to load field",
-      error.message
-    );
+    }
 
   }
 
-};
+
+
+
+  async getById(id) {
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "Field ID is required"
+        );
+
+      }
+
+
+      const field =
+        await this.repository.getById(id);
+
+
+      if (!field) {
+
+        throw new Error(
+          "Field not found"
+        );
+
+      }
+
+
+      return field;
+
+    } catch (error) {
+
+      throw new Error(
+        `FieldService getById failed: ${error.message}`
+      );
+
+    }
+
+  }
 
 
 
 
-// إنشاء حقل جديد
+  async create(fieldData) {
 
-export const createFieldService =
-async (fieldData) => {
+    try {
 
-  try {
+      this.validateField(
+        fieldData
+      );
 
-    if (!fieldData.name) {
 
-      return failure(
+      return await this.repository.create(
+        fieldData
+      );
+
+    } catch (error) {
+
+      throw new Error(
+        `FieldService create failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  async update(
+    id,
+    fieldData
+  ) {
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "Field ID is required"
+        );
+
+      }
+
+
+      const field =
+        await this.repository.update(
+          id,
+          fieldData
+        );
+
+
+      if (!field) {
+
+        throw new Error(
+          "Field not found"
+        );
+
+      }
+
+
+      return field;
+
+    } catch (error) {
+
+      throw new Error(
+        `FieldService update failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  async delete(id) {
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "Field ID is required"
+        );
+
+      }
+
+
+      const exists =
+        await this.repository.exists(id);
+
+
+      if (!exists) {
+
+        throw new Error(
+          "Field not found"
+        );
+
+      }
+
+
+      await this.repository.delete(id);
+
+
+      return {
+
+        success: true,
+
+        message:
+          "Field deleted successfully"
+
+      };
+
+    } catch (error) {
+
+      throw new Error(
+        `FieldService delete failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  async count() {
+
+    try {
+
+      return await this.repository.count();
+
+    } catch (error) {
+
+      throw new Error(
+        `FieldService count failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  validateField(field) {
+
+    if (!field) {
+
+      throw new Error(
+        "Field data is required"
+      );
+
+    }
+
+
+    if (!field.name?.trim()) {
+
+      throw new Error(
         "Field name is required"
       );
 
     }
 
-    const field =
-      await fieldRepository.create(
-        fieldData
-      );
 
-    return success(
-      field,
-      "Field created successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to create field",
-      error.message
-    );
+    return true;
 
   }
 
-};
+
+}
 
 
-
-
-// تعديل حقل
-
-export const updateFieldService =
-async (
-  id,
-  fieldData
-) => {
-
-  try {
-
-    const field =
-      await fieldRepository.update(
-        id,
-        fieldData
-      );
-
-    return success(
-      field,
-      "Field updated successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to update field",
-      error.message
-    );
-
-  }
-
-};
-
-
-
-
-// حذف حقل
-
-export const deleteFieldService =
-async (id) => {
-
-  try {
-
-    await fieldRepository.delete(
-      id
-    );
-
-    return success(
-      null,
-      "Field deleted successfully"
-    );
-
-  } catch (error) {
-
-    return failure(
-      "Failed to delete field",
-      error.message
-    );
-
-  }
-
-};
+export default Object.freeze(
+  new FieldService()
+);
