@@ -9,10 +9,11 @@ import storageService
 class AnalyticsService {
 
 
-  constructor(){
+  constructor() {
 
     this.storageKey =
       "analytics_events";
+
 
     this.events =
       this.loadEvents();
@@ -22,11 +23,19 @@ class AnalyticsService {
 
 
 
-
   track(
     event,
     data = {}
-  ){
+  ) {
+
+    if (!event) {
+
+      throw new Error(
+        "Analytics event is required"
+      );
+
+    }
+
 
     const record = {
 
@@ -58,8 +67,7 @@ class AnalyticsService {
 
 
 
-
-  getEvents(){
+  getEvents() {
 
     return [
       ...this.events
@@ -70,8 +78,7 @@ class AnalyticsService {
 
 
 
-
-  getEventsByType(type){
+  getEventsByType(type) {
 
     return this.events.filter(
       item =>
@@ -83,8 +90,7 @@ class AnalyticsService {
 
 
 
-
-  count(){
+  count() {
 
     return this.events.length;
 
@@ -93,20 +99,20 @@ class AnalyticsService {
 
 
 
-
-  clear(){
+  clear() {
 
     this.events = [];
 
     this.saveEvents();
+
+    return true;
 
   }
 
 
 
 
-
-  saveEvents(){
+  saveEvents() {
 
     storageService.save(
       this.storageKey,
@@ -118,8 +124,7 @@ class AnalyticsService {
 
 
 
-
-  loadEvents(){
+  loadEvents() {
 
     return storageService.load(
       this.storageKey,
@@ -131,8 +136,7 @@ class AnalyticsService {
 
 
 
-
-  farmReport(farms = []){
+  farmReport(farms = []) {
 
     return {
 
@@ -149,8 +153,7 @@ class AnalyticsService {
 
 
 
-
-  cropReport(crops = []){
+  cropReport(crops = []) {
 
     return {
 
@@ -169,11 +172,6 @@ class AnalyticsService {
 
 
 
-
-
-export const analyticsService =
-  new AnalyticsService();
-
-
-
-export default analyticsService;
+export default Object.freeze(
+  new AnalyticsService()
+);
