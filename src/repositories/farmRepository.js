@@ -1,27 +1,19 @@
 // src/repositories/farmRepository.js
 
-
-import {
-  storageService
-} from "../services/storageService.js";
-
+import storageService from "../services/storageService.js";
 
 
 class FarmRepository {
 
 
-  constructor(){
+  constructor() {
 
-    this.key =
-      "farms";
+    this.key = "farms";
 
   }
 
 
-
-
-
-  getAll(){
+  getAll() {
 
     return storageService.load(
       this.key,
@@ -31,10 +23,7 @@ class FarmRepository {
   }
 
 
-
-
-
-  getById(id){
+  getById(id) {
 
     const farms =
       this.getAll();
@@ -48,19 +37,13 @@ class FarmRepository {
   }
 
 
-
-
-
-  create(farm){
-
+  create(farm) {
 
     const farms =
       this.getAll();
 
 
-    farms.push(
-      farm
-    );
+    farms.push(farm);
 
 
     storageService.save(
@@ -74,11 +57,7 @@ class FarmRepository {
   }
 
 
-
-
-
-  update(id,data){
-
+  update(id, data) {
 
     const farms =
       this.getAll();
@@ -91,16 +70,21 @@ class FarmRepository {
       );
 
 
-    if(index === -1)
+    if (index === -1) {
+
       return null;
 
+    }
 
 
     farms[index] = {
 
       ...farms[index],
 
-      ...data
+      ...data,
+
+      updatedAt:
+        new Date().toISOString()
 
     };
 
@@ -116,11 +100,7 @@ class FarmRepository {
   }
 
 
-
-
-
-  delete(id){
-
+  delete(id) {
 
     const farms =
       this.getAll();
@@ -147,9 +127,6 @@ class FarmRepository {
 }
 
 
-
-export const farmRepository =
-  new FarmRepository();
-
-
-export default farmRepository;
+export default Object.freeze(
+  new FarmRepository()
+);
