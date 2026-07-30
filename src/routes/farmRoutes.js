@@ -1,35 +1,88 @@
-import express from "express";
+// src/routes/farmRoutes.js
 
-import {
-  getFarms,
-  getFarmById,
-  createFarm,
-  updateFarm,
-  deleteFarm
-} from "../controllers/farmController.js";
+import farmController from "../controllers/farmController.js";
 
 
-const router = express.Router();
+class FarmRoutes {
+
+  constructor() {
+    this.controller = farmController;
+  }
 
 
-// جلب كل المزارع
-router.get("/", getFarms);
+  async getFarms() {
+    try {
+      return await this.controller.getFarms();
+
+    } catch (error) {
+      throw new Error(
+        `Farm routes get failed: ${error.message}`
+      );
+    }
+  }
 
 
-// جلب مزرعة واحدة
-router.get("/:id", getFarmById);
+  async getFarmById(id) {
+    try {
+      return await this.controller.getFarmById(id);
+
+    } catch (error) {
+      throw new Error(
+        `Farm routes get by id failed: ${error.message}`
+      );
+    }
+  }
 
 
-// إنشاء مزرعة
-router.post("/", createFarm);
+  async createFarm(farmData) {
+    try {
+      return await this.controller.createFarm(farmData);
+
+    } catch (error) {
+      throw new Error(
+        `Farm routes create failed: ${error.message}`
+      );
+    }
+  }
 
 
-// تعديل مزرعة
-router.put("/:id", updateFarm);
+  async updateFarm(id, data) {
+    try {
+      return await this.controller.updateFarm(id, data);
+
+    } catch (error) {
+      throw new Error(
+        `Farm routes update failed: ${error.message}`
+      );
+    }
+  }
 
 
-// حذف مزرعة
-router.delete("/:id", deleteFarm);
+  async deleteFarm(id) {
+    try {
+      return await this.controller.deleteFarm(id);
+
+    } catch (error) {
+      throw new Error(
+        `Farm routes delete failed: ${error.message}`
+      );
+    }
+  }
 
 
-export default router;
+  health() {
+    return {
+      success: true,
+      module: "FarmRoutes",
+      version: "1.0.0",
+      status: "Ready",
+      timestamp: new Date().toISOString()
+    };
+  }
+
+}
+
+
+export default Object.freeze(
+  new FarmRoutes()
+);
