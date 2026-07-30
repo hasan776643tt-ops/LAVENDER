@@ -9,10 +9,11 @@ import storageService
 class SyncService {
 
 
-  constructor(){
+  constructor() {
 
     this.lastSyncKey =
       "last_sync";
+
 
     this.syncLogKey =
       "sync_history";
@@ -22,23 +23,29 @@ class SyncService {
 
 
 
-
-  async upload(data){
-
+  async upload(data) {
 
     try {
 
 
-      // مكان الربط مع API مستقبلاً
+      if (data === undefined) {
+
+        throw new Error(
+          "Sync data is required"
+        );
+
+      }
+
+
 
       const result = {
 
-        success:true,
+        success: true,
 
         data,
 
         message:
-        "Upload completed."
+          "Upload completed."
 
       };
 
@@ -49,18 +56,12 @@ class SyncService {
       return result;
 
 
-    } catch(error){
 
+    } catch (error) {
 
-      return {
-
-        success:false,
-
-        message:
-        error.message
-
-      };
-
+      throw new Error(
+        `Sync upload failed: ${error.message}`
+      );
 
     }
 
@@ -69,53 +70,42 @@ class SyncService {
 
 
 
-
-  async download(){
-
+  async download() {
 
     try {
 
 
       return {
 
-        success:true,
+        success: true,
 
-        data:null,
+        data: null,
 
         message:
-        "Download completed."
+          "Download completed."
 
       };
 
 
-    } catch(error){
+    } catch (error) {
 
-
-      return {
-
-        success:false,
-
-        message:
-        error.message
-
-      };
+      throw new Error(
+        `Sync download failed: ${error.message}`
+      );
 
     }
-
 
   }
 
 
 
 
-
-  async sync(localData){
-
+  async sync(localData) {
 
     try {
 
 
-      const uploaded =
+      const result =
         await this.upload(
           localData
         );
@@ -123,10 +113,10 @@ class SyncService {
 
       this.addLog({
 
-        type:"sync",
+        type: "sync",
 
         success:
-          uploaded.success
+          result.success
 
       });
 
@@ -134,9 +124,9 @@ class SyncService {
 
       return {
 
-        success:true,
+        success: true,
 
-        data:localData,
+        data: localData,
 
         syncedAt:
           new Date().toISOString()
@@ -144,18 +134,12 @@ class SyncService {
       };
 
 
-    } catch(error){
 
+    } catch (error) {
 
-      return {
-
-        success:false,
-
-        message:
-          error.message
-
-      };
-
+      throw new Error(
+        `Sync failed: ${error.message}`
+      );
 
     }
 
@@ -164,14 +148,16 @@ class SyncService {
 
 
 
-
-  async status(){
+  async status() {
 
 
     return {
 
       online:
-        navigator.onLine,
+        typeof navigator !== "undefined"
+        ? navigator.onLine
+        : false,
+
 
       lastSync:
         storageService.load(
@@ -186,8 +172,7 @@ class SyncService {
 
 
 
-
-  saveSyncTime(){
+  saveSyncTime() {
 
 
     storageService.save(
@@ -203,8 +188,7 @@ class SyncService {
 
 
 
-
-  addLog(item){
+  addLog(item) {
 
 
     const logs =
@@ -219,7 +203,7 @@ class SyncService {
       ...item,
 
       time:
-      new Date().toISOString()
+        new Date().toISOString()
 
     });
 
@@ -234,8 +218,7 @@ class SyncService {
 
 
 
-
-  getHistory(){
+  getHistory() {
 
 
     return storageService.load(
@@ -250,11 +233,6 @@ class SyncService {
 
 
 
-
-
-export const syncService =
-  new SyncService();
-
-
-
-export default syncService;
+export default Object.freeze(
+  new SyncService()
+);
