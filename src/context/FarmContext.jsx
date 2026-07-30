@@ -3,9 +3,11 @@
 import {
   createContext,
   useState,
-  useEffect,
   useMemo
 } from "react";
+
+import farmController
+  from "../controllers/farmController.js";
 
 
 // =========================
@@ -13,48 +15,7 @@ import {
 // =========================
 
 export const FarmContext =
-createContext();
-
-
-
-// =========================
-// Helpers
-// =========================
-
-
-const createId = () => {
-
-  if (
-    typeof crypto !== "undefined" &&
-    crypto.randomUUID
-  ) {
-
-    return crypto.randomUUID();
-
-  }
-
-
-  return Date.now().toString();
-
-};
-
-
-
-
-const loadData = (key)=>{
-
-  const saved =
-  localStorage.getItem(key);
-
-
-  return saved
-  ?
-  JSON.parse(saved)
-  :
-  [];
-
-};
-
+  createContext();
 
 
 
@@ -68,95 +29,223 @@ export function FarmProvider({
 }) {
 
 
+  const [farms, setFarms] =
+    useState([]);
 
-  // =========================
-  // Main Data
-  // =========================
+  const [fields, setFields] =
+    useState([]);
 
+  const [crops, setCrops] =
+    useState([]);
 
-  const [farms,setFarms] =
-  useState(()=>loadData("farms"));
+  const [irrigations, setIrrigations] =
+    useState([]);
 
+  const [fertilizers, setFertilizers] =
+    useState([]);
 
-  const [fields,setFields] =
-  useState(()=>loadData("fields"));
+  const [pesticides, setPesticides] =
+    useState([]);
 
+  const [diseases, setDiseases] =
+    useState([]);
 
-  const [crops,setCrops] =
-  useState(()=>loadData("crops"));
+  const [expenses, setExpenses] =
+    useState([]);
 
+  const [harvests, setHarvests] =
+    useState([]);
 
-  const [irrigations,setIrrigations] =
-  useState(()=>loadData("irrigations"));
+  const [inventory, setInventory] =
+    useState([]);
 
+  const [consultations, setConsultations] =
+    useState([]);
 
-  const [fertilizers,setFertilizers] =
-  useState(()=>loadData("fertilizers"));
-
-
-  const [pesticides,setPesticides] =
-  useState(()=>loadData("pesticides"));
-
-
-  const [diseases,setDiseases] =
-  useState(()=>loadData("diseases"));
-
-
-  const [expenses,setExpenses] =
-  useState(()=>loadData("expenses"));
-
-
-  const [harvests,setHarvests] =
-  useState(()=>loadData("harvests"));
-
-
-  const [inventory,setInventory] =
-  useState(()=>loadData("inventory"));
-
-
-  const [consultations,setConsultations] =
-  useState(()=>loadData("consultations"));
-
-
-  const [aiQuestions,setAiQuestions] =
-  useState(()=>loadData("aiQuestions"));
+  const [aiQuestions, setAiQuestions] =
+    useState([]);
 
 
 
 
 
   // =========================
-  // Optimized Storage Engine
+  // Farm Actions
   // =========================
 
 
-  const storageList = useMemo(()=>({
+  const loadFarms = async()=>{
+
+    const data =
+      await farmController.getFarms();
+
+
+    setFarms(data);
+
+  };
+
+
+
+
+  const addFarm = async(data)=>{
+
+
+    const farm =
+      await farmController.createFarm(
+        data
+      );
+
+
+    setFarms(prev=>[
+      ...prev,
+      farm
+    ]);
+
+
+  };
+
+
+
+
+  const updateFarm =
+    async(id,data)=>{
+
+
+      const updated =
+        await farmController.updateFarm(
+          id,
+          data
+        );
+
+
+      setFarms(prev=>
+
+        prev.map(farm=>
+
+          farm.id === id
+          ?
+          updated
+          :
+          farm
+
+        )
+
+      );
+
+
+    };
+
+
+
+
+
+  const deleteFarm =
+    async(id)=>{
+
+
+      await farmController.deleteFarm(
+        id
+      );
+
+
+      setFarms(prev=>
+
+        prev.filter(
+          farm =>
+          farm.id !== id
+        )
+
+      );
+
+
+    };
+
+
+
+
+
+
+
+  // =========================
+  // Generic Actions
+  // =========================
+
+
+  const createActions =
+    (setter)=>(()=>({
+
+
+
+    }));
+
+
+
+
+
+  const value = useMemo(()=>({
 
     farms,
     fields,
     crops,
+
     irrigations,
     fertilizers,
     pesticides,
+
     diseases,
     expenses,
+
     harvests,
     inventory,
+
     consultations,
-    aiQuestions
+    aiQuestions,
+
+
+
+    setFields,
+    setCrops,
+
+    setIrrigations,
+    setFertilizers,
+    setPesticides,
+
+    setDiseases,
+    setExpenses,
+
+    setHarvests,
+    setInventory,
+
+    setConsultations,
+    setAiQuestions,
+
+
+
+    loadFarms,
+
+    addFarm,
+
+    updateFarm,
+
+    deleteFarm
+
 
   }),[
 
     farms,
     fields,
     crops,
+
     irrigations,
     fertilizers,
     pesticides,
+
     diseases,
     expenses,
+
     harvests,
     inventory,
+
     consultations,
     aiQuestions
 
@@ -166,275 +255,11 @@ export function FarmProvider({
 
 
 
-  useEffect(()=>{
-
-
-    Object.entries(storageList)
-    .forEach(([key,value])=>{
-
-
-      localStorage.setItem(
-
-        key,
-
-        JSON.stringify(value)
-
-      );
-
-
-    });
-
-
-  },[storageList]);
-
-
-
-
-
-
-  // =========================
-  // CRUD ENGINE
-  // =========================
-
-
-  const addRecord = (
-    setter,
-    data
-  )=>{
-
-
-    setter(prev=>[
-
-      ...prev,
-
-      {
-
-        id:createId(),
-
-        createdAt:
-        new Date()
-        .toISOString(),
-
-        ...data
-
-      }
-
-    ]);
-
-
-  };
-
-
-
-
-
-  const updateRecord = (
-    setter,
-    id,
-    data
-  )=>{
-
-
-    setter(prev=>
-
-      prev.map(item=>
-
-        item.id === id
-
-        ?
-
-        {
-
-          ...item,
-
-          ...data,
-
-          updatedAt:
-          new Date()
-          .toISOString()
-
-        }
-
-        :
-
-        item
-
-      )
-
-    );
-
-
-  };
-
-
-
-
-
-  const deleteRecord = (
-    setter,
-    id
-  )=>{
-
-
-    setter(prev=>
-
-      prev.filter(
-        item =>
-        item.id !== id
-      )
-
-    );
-
-
-  };
-
-
-
-
-
-
-  // =========================
-  // Generic CRUD
-  // =========================
-
-
-  const createActions = (setter)=>({
-
-    add:(data)=>
-    addRecord(
-      setter,
-      data
-    ),
-
-
-    update:(id,data)=>
-    updateRecord(
-      setter,
-      id,
-      data
-    ),
-
-
-    remove:(id)=>
-    deleteRecord(
-      setter,
-      id
-    )
-
-  });
-
-
-
-
-
-
-  const farmActions =
-  createActions(setFarms);
-
-
-  const fieldActions =
-  createActions(setFields);
-
-
-  const cropActions =
-  createActions(setCrops);
-
-
-
-
-
-
-  // =========================
-  // Provider
-  // =========================
-
 
   return (
 
     <FarmContext.Provider
-
-    value={{
-
-      farms,
-      fields,
-      crops,
-
-      irrigations,
-      fertilizers,
-      pesticides,
-
-      diseases,
-      expenses,
-
-      harvests,
-      inventory,
-
-      consultations,
-      aiQuestions,
-
-
-
-      setFarms,
-      setFields,
-      setCrops,
-
-      setIrrigations,
-      setFertilizers,
-      setPesticides,
-
-      setDiseases,
-      setExpenses,
-
-      setHarvests,
-      setInventory,
-
-      setConsultations,
-      setAiQuestions,
-
-
-
-      addFarm:
-      farmActions.add,
-
-      updateFarm:
-      farmActions.update,
-
-      deleteFarm:
-      farmActions.remove,
-
-
-
-      addField:
-      fieldActions.add,
-
-      updateField:
-      fieldActions.update,
-
-      deleteField:
-      fieldActions.remove,
-
-
-
-      addCrop:
-      cropActions.add,
-
-      updateCrop:
-      cropActions.update,
-
-      deleteCrop:
-      cropActions.remove,
-
-
-
-      addRecord,
-
-      updateRecord,
-
-      deleteRecord
-
-
-    }}
-
+      value={value}
     >
 
       {children}
