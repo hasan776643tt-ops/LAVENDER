@@ -9,8 +9,7 @@ import storageService
 class AIService {
 
 
-  constructor(){
-
+  constructor() {
 
     this.baseUrl = "";
 
@@ -23,9 +22,7 @@ class AIService {
     this.historyKey =
       "ai_history";
 
-
   }
-
 
 
 
@@ -34,102 +31,29 @@ class AIService {
     baseUrl,
     apiKey,
     model
-  } = {}){
+  } = {}) {
 
 
-    if(baseUrl)
-      this.baseUrl = baseUrl;
+    if (baseUrl) {
+
+      this.baseUrl =
+        baseUrl;
+
+    }
 
 
-    if(apiKey)
-      this.apiKey = apiKey;
+    if (apiKey) {
+
+      this.apiKey =
+        apiKey;
+
+    }
 
 
-    if(model)
-      this.model = model;
+    if (model) {
 
-
-  }
-
-
-
-
-
-  async ask(
-    prompt,
-    options = {}
-  ){
-
-
-    try {
-
-
-      if(!this.baseUrl){
-
-
-        return {
-
-          success:false,
-
-          message:
-          "AI provider is not configured yet.",
-
-          prompt
-
-        };
-
-
-      }
-
-
-
-      // مكان ربط API مستقبلاً
-
-      const response = {
-
-        success:true,
-
-        model:this.model,
-
-        answer:
-        "AI response will be connected here."
-
-      };
-
-
-
-      this.saveHistory({
-
-        type:
-        options.type || "general",
-
-        prompt,
-
-        response,
-
-        date:
-        new Date().toISOString()
-
-      });
-
-
-
-      return response;
-
-
-
-    } catch(error){
-
-
-      return {
-
-        success:false,
-
-        error:
-        error.message
-
-      };
-
+      this.model =
+        model;
 
     }
 
@@ -139,10 +63,89 @@ class AIService {
 
 
 
+  async ask(
+    prompt,
+    options = {}
+  ) {
+
+    try {
+
+
+      if (!prompt?.trim()) {
+
+        throw new Error(
+          "AI prompt is required"
+        );
+
+      }
 
 
 
-  saveHistory(item){
+      if (!this.baseUrl) {
+
+        return {
+
+          success: false,
+
+          message:
+            "AI provider is not configured yet.",
+
+          prompt
+
+        };
+
+      }
+
+
+
+      const response = {
+
+        success: true,
+
+        model:
+          this.model,
+
+        answer:
+          "AI response will be connected here."
+
+      };
+
+
+
+      this.saveHistory({
+
+        type:
+          options.type || "general",
+
+        prompt,
+
+        response,
+
+        date:
+          new Date().toISOString()
+
+      });
+
+
+
+      return response;
+
+
+
+    } catch (error) {
+
+      throw new Error(
+        `AIService ask failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  saveHistory(item) {
 
 
     const history =
@@ -152,7 +155,9 @@ class AIService {
       );
 
 
-    history.push(item);
+    history.push(
+      item
+    );
 
 
     storageService.save(
@@ -166,20 +171,17 @@ class AIService {
 
 
 
-
-
-
-
-  async analyzeCrop(data){
+  async analyzeCrop(data) {
 
 
     return this.ask(
 
       `حلل بيانات المحصول:
-      ${JSON.stringify(data)}`,
+${JSON.stringify(data)}`,
 
       {
-        type:"crop-analysis"
+        type:
+          "crop-analysis"
       }
 
     );
@@ -189,20 +191,17 @@ class AIService {
 
 
 
-
-
-
-
-  async detectDisease(data){
+  async detectDisease(data) {
 
 
     return this.ask(
 
       `حلل المرض الزراعي:
-      ${JSON.stringify(data)}`,
+${JSON.stringify(data)}`,
 
       {
-        type:"disease-detection"
+        type:
+          "disease-detection"
       }
 
     );
@@ -212,20 +211,17 @@ class AIService {
 
 
 
-
-
-
-
-  async irrigationAdvice(data){
+  async irrigationAdvice(data) {
 
 
     return this.ask(
 
       `اعطني توصية ري:
-      ${JSON.stringify(data)}`,
+${JSON.stringify(data)}`,
 
       {
-        type:"irrigation"
+        type:
+          "irrigation"
       }
 
     );
@@ -235,20 +231,17 @@ class AIService {
 
 
 
-
-
-
-
-  async fertilizerAdvice(data){
+  async fertilizerAdvice(data) {
 
 
     return this.ask(
 
       `اعطني توصية تسميد:
-      ${JSON.stringify(data)}`,
+${JSON.stringify(data)}`,
 
       {
-        type:"fertilizer"
+        type:
+          "fertilizer"
       }
 
     );
@@ -258,10 +251,7 @@ class AIService {
 
 
 
-
-
-
-  async generalAdvice(question){
+  async generalAdvice(question) {
 
 
     return this.ask(
@@ -269,7 +259,8 @@ class AIService {
       question,
 
       {
-        type:"general"
+        type:
+          "general"
       }
 
     );
@@ -281,11 +272,6 @@ class AIService {
 
 
 
-
-
-export const aiService =
-  new AIService();
-
-
-
-export default aiService;
+export default Object.freeze(
+  new AIService()
+);
