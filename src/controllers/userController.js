@@ -1,62 +1,120 @@
+// src/controllers/userController.js
+
 import userRepository from "../repositories/userRepository.js";
 
 
 class UserController {
 
+
   constructor() {
+
     this.repository = userRepository;
+
   }
+
 
 
   async getUsers() {
+
     try {
+
       return await this.repository.getAll();
 
     } catch (error) {
+
       throw new Error(
-        `Failed to get users: ${error.message}`
+        `UserController getUsers failed: ${error.message}`
       );
+
     }
+
   }
 
 
+
+
   async getUserById(id) {
+
     try {
+
+      if (!id) {
+
+        throw new Error(
+          "User ID is required"
+        );
+
+      }
+
 
       const user =
         await this.repository.getById(id);
 
+
       if (!user) {
-        throw new Error("User not found");
+
+        throw new Error(
+          "User not found"
+        );
+
       }
+
 
       return user;
 
+
     } catch (error) {
+
       throw new Error(
-        `Failed to get user: ${error.message}`
+        `UserController getUserById failed: ${error.message}`
       );
+
     }
+
   }
 
 
+
+
   async createUser(userData) {
+
     try {
+
+      this.validateUser(userData);
+
 
       return await this.repository.create(
         userData
       );
 
+
     } catch (error) {
+
       throw new Error(
-        `Failed to create user: ${error.message}`
+        `UserController createUser failed: ${error.message}`
       );
+
     }
+
   }
 
 
+
+
   async updateUser(id, userData) {
+
     try {
+
+      if (!id) {
+
+        throw new Error(
+          "User ID is required"
+        );
+
+      }
+
+
+      this.validateUser(userData);
+
 
       const user =
         await this.repository.update(
@@ -64,41 +122,136 @@ class UserController {
           userData
         );
 
+
       if (!user) {
-        throw new Error("User not found");
+
+        throw new Error(
+          "User not found"
+        );
+
       }
+
 
       return user;
 
+
     } catch (error) {
+
       throw new Error(
-        `Failed to update user: ${error.message}`
+        `UserController updateUser failed: ${error.message}`
       );
+
     }
+
   }
+
+
 
 
   async deleteUser(id) {
+
     try {
 
-      const deleted =
-        await this.repository.delete(id);
+      if (!id) {
 
-      if (!deleted) {
-        throw new Error("User not found");
+        throw new Error(
+          "User ID is required"
+        );
+
       }
 
+
+      const exists =
+        await this.repository.exists(id);
+
+
+      if (!exists) {
+
+        throw new Error(
+          "User not found"
+        );
+
+      }
+
+
+      await this.repository.delete(id);
+
+
       return {
+
         success: true,
-        message: "User deleted successfully"
+
+        message:
+          "User deleted successfully"
+
       };
 
+
     } catch (error) {
+
       throw new Error(
-        `Failed to delete user: ${error.message}`
+        `UserController deleteUser failed: ${error.message}`
       );
+
     }
+
   }
+
+
+
+
+  async countUsers() {
+
+    try {
+
+      return await this.repository.count();
+
+    } catch (error) {
+
+      throw new Error(
+        `UserController countUsers failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  validateUser(user) {
+
+    if (!user) {
+
+      throw new Error(
+        "User data is required"
+      );
+
+    }
+
+
+    if (!user.name?.trim()) {
+
+      throw new Error(
+        "User name is required"
+      );
+
+    }
+
+
+    if (!user.email?.trim()) {
+
+      throw new Error(
+        "User email is required"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
 
 }
 
