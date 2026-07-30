@@ -1,240 +1,253 @@
 // src/services/userService.js
 
-
 import userRepository
   from "../repositories/userRepository.js";
 
 
-
-const success = (
-  data,
-  message = "Success"
-) => ({
-
-  success: true,
-
-  message,
-
-  data
-
-});
+class UserService {
 
 
+  constructor() {
 
-const failure = (
-  message,
-  error = null
-) => ({
-
-  success: false,
-
-  message,
-
-  error
-
-});
-
-
-
-
-
-// جلب جميع المستخدمين
-
-export const getUsersService =
-async () => {
-
-  try {
-
-    const users =
-      await userRepository.getAll();
-
-
-    return success(
-      users,
-      "Users loaded successfully"
-    );
-
-
-  } catch (error) {
-
-
-    return failure(
-      "Failed to load users",
-      error.message
-    );
-
+    this.repository =
+      userRepository;
 
   }
 
-};
+
+
+
+  async getAll() {
+
+    try {
+
+      return await this.repository.getAll();
+
+    } catch (error) {
+
+      throw new Error(
+        `UserService getAll failed: ${error.message}`
+      );
+
+    }
+
+  }
 
 
 
 
+  async getById(id) {
 
-// جلب مستخدم حسب المعرف
+    try {
 
-export const getUserByIdService =
-async (id) => {
+      if (!id) {
 
-  try {
+        throw new Error(
+          "User ID is required"
+        );
 
-    const user =
-      await userRepository.getById(
-        id
+      }
+
+
+      const user =
+        await this.repository.getById(id);
+
+
+      if (!user) {
+
+        throw new Error(
+          "User not found"
+        );
+
+      }
+
+
+      return user;
+
+    } catch (error) {
+
+      throw new Error(
+        `UserService getById failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  async create(userData) {
+
+    try {
+
+      this.validateUser(
+        userData
       );
 
 
-    return success(
-      user,
-      "User loaded successfully"
-    );
+      return await this.repository.create(
+        userData
+      );
 
+    } catch (error) {
 
-  } catch (error) {
+      throw new Error(
+        `UserService create failed: ${error.message}`
+      );
 
-
-    return failure(
-      "Failed to load user",
-      error.message
-    );
-
+    }
 
   }
 
-};
+
+
+
+  async update(
+    id,
+    userData
+  ) {
+
+    try {
+
+      if (!id) {
+
+        throw new Error(
+          "User ID is required"
+        );
+
+      }
+
+
+      const user =
+        await this.repository.update(
+          id,
+          userData
+        );
+
+
+      if (!user) {
+
+        throw new Error(
+          "User not found"
+        );
+
+      }
+
+
+      return user;
+
+    } catch (error) {
+
+      throw new Error(
+        `UserService update failed: ${error.message}`
+      );
+
+    }
+
+  }
 
 
 
 
+  async delete(id) {
 
-// إنشاء مستخدم جديد
+    try {
 
-export const createUserService =
-async (userData) => {
+      if (!id) {
+
+        throw new Error(
+          "User ID is required"
+        );
+
+      }
 
 
-  try {
+      const exists =
+        await this.repository.exists(id);
 
 
-    if(
-      !userData.name
-    ){
+      if (!exists) {
 
-      return failure(
+        throw new Error(
+          "User not found"
+        );
+
+      }
+
+
+      await this.repository.delete(id);
+
+
+      return {
+
+        success: true,
+
+        message:
+          "User deleted successfully"
+
+      };
+
+    } catch (error) {
+
+      throw new Error(
+        `UserService delete failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  async count() {
+
+    try {
+
+      return await this.repository.count();
+
+    } catch (error) {
+
+      throw new Error(
+        `UserService count failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
+  validateUser(user) {
+
+    if (!user) {
+
+      throw new Error(
+        "User data is required"
+      );
+
+    }
+
+
+    if (!user.name?.trim()) {
+
+      throw new Error(
         "User name is required"
       );
 
     }
 
 
-
-    const user =
-      await userRepository.create(
-        userData
-      );
-
-
-
-    return success(
-      user,
-      "User created successfully"
-    );
-
-
-
-  } catch (error) {
-
-
-    return failure(
-      "Failed to create user",
-      error.message
-    );
-
+    return true;
 
   }
 
-};
+
+}
 
 
-
-
-
-// تعديل مستخدم
-
-export const updateUserService =
-async (
-  id,
-  userData
-) => {
-
-
-  try {
-
-
-    const user =
-      await userRepository.update(
-        id,
-        userData
-      );
-
-
-
-    return success(
-      user,
-      "User updated successfully"
-    );
-
-
-
-  } catch (error) {
-
-
-    return failure(
-      "Failed to update user",
-      error.message
-    );
-
-
-  }
-
-};
-
-
-
-
-
-// حذف مستخدم
-
-export const deleteUserService =
-async (id) => {
-
-
-  try {
-
-
-    await userRepository.delete(
-      id
-    );
-
-
-
-    return success(
-      null,
-      "User deleted successfully"
-    );
-
-
-
-  } catch (error) {
-
-
-    return failure(
-      "Failed to delete user",
-      error.message
-    );
-
-
-  }
-
-};
+export default Object.freeze(
+  new UserService()
+);
