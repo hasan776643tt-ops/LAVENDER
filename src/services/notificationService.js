@@ -9,126 +9,59 @@ import storageService
 class NotificationService {
 
 
-  constructor(){
+  constructor() {
 
     this.storageKey =
       "notifications";
 
+
     this.notifications =
-      storageService.load(
-        this.storageKey,
-        []
-      );
+      this.load();
 
   }
 
 
 
 
-  create(
-    type,
-    message,
-    data = {}
-  ){
 
-    const notification = {
+  add(
+    notification
+  ) {
+
+    if (!notification) {
+
+      throw new Error(
+        "Notification is required"
+      );
+
+    }
+
+
+    const record = {
 
       id:
         Date.now(),
 
-      type,
-
-      message,
-
-      data,
-
-      read:false,
+      ...notification,
 
       createdAt:
-        new Date().toISOString()
+        new Date().toISOString(),
+
+      read:
+        false
 
     };
 
 
     this.notifications.push(
-      notification
+      record
     );
 
 
     this.save();
 
 
-    return notification;
-
-  }
-
-
-
-
-
-  async success(message,data={}){
-
-    return this.create(
-      "success",
-      message,
-      data
-    );
-
-  }
-
-
-
-
-
-  async error(message,data={}){
-
-    return this.create(
-      "error",
-      message,
-      data
-    );
-
-  }
-
-
-
-
-
-  async warning(message,data={}){
-
-    return this.create(
-      "warning",
-      message,
-      data
-    );
-
-  }
-
-
-
-
-
-  async info(message,data={}){
-
-    return this.create(
-      "info",
-      message,
-      data
-    );
-
-  }
-
-
-
-
-
-  async send(notification){
-
-    return this.create(
-      notification.type || "info",
-      notification.message,
-      notification.data
-    );
+    return record;
 
   }
 
@@ -148,24 +81,59 @@ class NotificationService {
 
 
 
+  getUnread(){
+
+    return this.notifications.filter(
+      item =>
+        !item.read
+    );
+
+  }
+
+
+
+
+
   markAsRead(id){
 
-    const item =
+    const notification =
       this.notifications.find(
-        n => n.id === id
+        item =>
+          item.id === id
       );
 
 
-    if(item){
+    if(notification){
 
-      item.read = true;
+      notification.read =
+        true;
 
       this.save();
 
     }
 
 
-    return item;
+    return notification;
+
+  }
+
+
+
+
+
+  remove(id){
+
+    this.notifications =
+      this.notifications.filter(
+        item =>
+          item.id !== id
+      );
+
+
+    this.save();
+
+
+    return true;
 
   }
 
@@ -177,7 +145,11 @@ class NotificationService {
 
     this.notifications = [];
 
+
     this.save();
+
+
+    return true;
 
   }
 
@@ -195,12 +167,28 @@ class NotificationService {
   }
 
 
+
+
+
+  load(){
+
+    return storageService.load(
+      this.storageKey,
+      []
+    );
+
+  }
+
+
 }
+
+
 
 
 
 export const notificationService =
   new NotificationService();
+
 
 
 export default notificationService;
