@@ -1,6 +1,7 @@
 // src/controllers/farmController.js
 
 import farmRepository from "../repositories/farmRepository.js";
+import { farmValidator } from "../validators/farmValidator.js";
 
 
 class FarmController {
@@ -222,19 +223,14 @@ class FarmController {
 
   validateFarm(farm) {
 
-    if (!farm) {
+    const result =
+      farmValidator.validate(farm);
+
+
+    if (!result.valid) {
 
       throw new Error(
-        "Farm data is required"
-      );
-
-    }
-
-
-    if (!farm.name?.trim()) {
-
-      throw new Error(
-        "Farm name is required"
+        JSON.stringify(result.errors)
       );
 
     }
