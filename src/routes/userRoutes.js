@@ -1,26 +1,88 @@
-import express from "express";
+// src/routes/userRoutes.js
 
-import {
-  getUsers,
-  getUserById,
-  createUser,
-  updateUser,
-  deleteUser
-} from "../controllers/userController.js";
+import userController from "../controllers/userController.js";
 
 
-const router = express.Router();
+class UserRoutes {
+
+  constructor() {
+    this.controller = userController;
+  }
 
 
-router.get("/", getUsers);
+  async getUsers() {
+    try {
+      return await this.controller.getUsers();
 
-router.get("/:id", getUserById);
+    } catch (error) {
+      throw new Error(
+        `User routes get failed: ${error.message}`
+      );
+    }
+  }
 
-router.post("/", createUser);
 
-router.put("/:id", updateUser);
+  async getUserById(id) {
+    try {
+      return await this.controller.getUserById(id);
 
-router.delete("/:id", deleteUser);
+    } catch (error) {
+      throw new Error(
+        `User routes get by id failed: ${error.message}`
+      );
+    }
+  }
 
 
-export default router;
+  async createUser(userData) {
+    try {
+      return await this.controller.createUser(userData);
+
+    } catch (error) {
+      throw new Error(
+        `User routes create failed: ${error.message}`
+      );
+    }
+  }
+
+
+  async updateUser(id, data) {
+    try {
+      return await this.controller.updateUser(id, data);
+
+    } catch (error) {
+      throw new Error(
+        `User routes update failed: ${error.message}`
+      );
+    }
+  }
+
+
+  async deleteUser(id) {
+    try {
+      return await this.controller.deleteUser(id);
+
+    } catch (error) {
+      throw new Error(
+        `User routes delete failed: ${error.message}`
+      );
+    }
+  }
+
+
+  health() {
+    return {
+      success: true,
+      module: "UserRoutes",
+      version: "1.0.0",
+      status: "Ready",
+      timestamp: new Date().toISOString()
+    };
+  }
+
+}
+
+
+export default Object.freeze(
+  new UserRoutes()
+);
