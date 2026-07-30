@@ -1,92 +1,73 @@
 import fieldRepository from "../repositories/fieldRepository.js";
 
 
-// جلب كل الحقول
-export const getFields = async (req, res) => {
-  try {
-    const fields = await fieldRepository.getAll();
+class FieldController {
 
-    res.json(fields);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء جلب الحقول",
-      error: error.message
-    });
+  constructor() {
+    this.repository = fieldRepository;
   }
-};
 
 
-// جلب حقل واحد
-export const getFieldById = async (req, res) => {
-  try {
-    const field = await fieldRepository.getById(req.params.id);
+  async getFields() {
+    try {
+      return await this.repository.getAll();
 
-    if (!field) {
-      return res.status(404).json({
-        message: "الحقل غير موجود"
-      });
+    } catch (error) {
+      throw new Error(`Failed to get fields: ${error.message}`);
     }
-
-    res.json(field);
-
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ",
-      error: error.message
-    });
   }
-};
 
 
-// إنشاء حقل جديد
-export const createField = async (req, res) => {
-  try {
-    const field = await fieldRepository.create(req.body);
+  async getFieldById(id) {
+    try {
 
-    res.status(201).json(field);
+      const field = await this.repository.getById(id);
 
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء إنشاء الحقل",
-      error: error.message
-    });
+      if (!field) {
+        throw new Error("Field not found");
+      }
+
+      return field;
+
+    } catch (error) {
+      throw new Error(`Failed to get field: ${error.message}`);
+    }
   }
-};
 
 
-// تعديل حقل
-export const updateField = async (req, res) => {
-  try {
-    const field = await fieldRepository.update(
-      req.params.id,
-      req.body
-    );
+  async createField(field) {
+    try {
 
-    res.json(field);
+      return await this.repository.create(field);
 
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء تعديل الحقل",
-      error: error.message
-    });
+    } catch (error) {
+      throw new Error(`Failed to create field: ${error.message}`);
+    }
   }
-};
 
 
-// حذف حقل
-export const deleteField = async (req, res) => {
-  try {
-    await fieldRepository.delete(req.params.id);
+  async updateField(id, data) {
+    try {
 
-    res.json({
-      message: "تم حذف الحقل بنجاح"
-    });
+      return await this.repository.update(id, data);
 
-  } catch (error) {
-    res.status(500).json({
-      message: "حدث خطأ أثناء حذف الحقل",
-      error: error.message
-    });
+    } catch (error) {
+      throw new Error(`Failed to update field: ${error.message}`);
+    }
   }
-};
+
+
+  async deleteField(id) {
+    try {
+
+      return await this.repository.delete(id);
+
+    } catch (error) {
+      throw new Error(`Failed to delete field: ${error.message}`);
+    }
+  }
+
+}
+
+
+export default Object.freeze(new FieldController());
