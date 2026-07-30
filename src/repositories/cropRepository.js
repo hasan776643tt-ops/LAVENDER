@@ -13,6 +13,7 @@ class CropRepository {
   }
 
 
+
   getAll() {
 
     return storageService.load(
@@ -23,47 +24,104 @@ class CropRepository {
   }
 
 
+
+
+
   getById(id) {
 
+
+    if (!id) {
+
+      return null;
+
+    }
+
+
     return this.getAll().find(
+
       crop =>
-        crop.id === id
+        String(crop.id) === String(id)
+
     ) || null;
+
 
   }
 
 
-  create(crop) {
+
+
+
+  create(cropData) {
+
 
     const crops =
       this.getAll();
 
 
-    crops.push(crop);
+
+    const crop = {
+
+
+      id:
+        Date.now().toString(),
+
+
+      ...cropData,
+
+
+      createdAt:
+        new Date().toISOString(),
+
+
+      updatedAt:
+        new Date().toISOString()
+
+
+    };
+
+
+
+    crops.push(
+      crop
+    );
+
 
 
     storageService.save(
+
       this.key,
+
       crops
+
     );
+
 
 
     return crop;
 
+
   }
 
 
+
+
+
   update(id, data) {
+
 
     const crops =
       this.getAll();
 
 
+
     const index =
       crops.findIndex(
+
         crop =>
-          crop.id === id
+          String(crop.id) === String(id)
+
       );
+
 
 
     if (index === -1) {
@@ -73,66 +131,122 @@ class CropRepository {
     }
 
 
-    crops[index] = {
+
+
+    const updatedCrop = {
+
 
       ...crops[index],
 
+
       ...data,
+
+
+      id:
+        crops[index].id,
+
 
       updatedAt:
         new Date().toISOString()
 
+
     };
 
 
+
+    crops[index] =
+      updatedCrop;
+
+
+
     storageService.save(
+
       this.key,
+
       crops
+
     );
 
 
-    return crops[index];
+
+    return updatedCrop;
+
 
   }
 
 
+
+
+
   delete(id) {
+
 
     const crops =
       this.getAll();
 
 
+
     const filtered =
       crops.filter(
+
         crop =>
-          crop.id !== id
+          String(crop.id) !== String(id)
+
       );
 
 
-    storageService.save(
-      this.key,
-      filtered
-    );
+
+    const deleted =
+      filtered.length !== crops.length;
 
 
-    return true;
+
+    if (deleted) {
+
+
+      storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
+
+    }
+
+
+
+    return deleted;
+
 
   }
+
+
+
 
 
   exists(id) {
 
-    return this.getAll().some(
-      crop =>
-        crop.id === id
+
+    return Boolean(
+
+      this.getById(id)
+
     );
+
 
   }
 
 
+
+
+
   count() {
 
+
     return this.getAll().length;
+
 
   }
 
@@ -140,6 +254,9 @@ class CropRepository {
 }
 
 
+
 export default Object.freeze(
+
   new CropRepository()
+
 );
