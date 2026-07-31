@@ -1,156 +1,391 @@
 // src/controllers/diseaseController.js
 
-import * as diseaseService from "../api/diseaseService.js";
+
+import diseaseRepository
+  from "../repositories/diseaseRepository.js";
+
+import { diseaseValidator }
+  from "../validators/diseaseValidator.js";
+
+
 
 class DiseaseController {
-  async getAllDiseases() {
-    try {
-      const diseases = await diseaseService.getAllDiseases();
 
-      return {
-        success: true,
-        data: diseases,
-        total: diseases.length,
-        message: "Diseases loaded successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+
+
+  constructor() {
+
+    this.repository =
+      diseaseRepository;
+
   }
 
-  async getDiseaseById(diseaseId) {
+
+
+
+
+  async getDiseases() {
+
     try {
-      if (!diseaseId) {
-        throw new Error("Disease ID is required.");
-      }
 
-      const disease = await diseaseService.getDiseaseById(diseaseId);
 
-      if (!disease) {
-        throw new Error("Disease not found.");
-      }
+      return await this.repository.getAll();
 
-      return {
-        success: true,
-        data: disease,
-        message: "Disease loaded successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
-  }
 
-  async createDisease(diseaseData) {
-    try {
-      this.validateDisease(diseaseData);
 
-      const disease = await diseaseService.createDisease(diseaseData);
+    } catch(error) {
 
-      return {
-        success: true,
-        data: disease,
-        message: "Disease created successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
-  }
 
-  async updateDisease(diseaseId, diseaseData) {
-    try {
-      if (!diseaseId) {
-        throw new Error("Disease ID is required.");
-      }
-
-      this.validateDisease(diseaseData);
-
-      const disease = await diseaseService.updateDisease(
-        diseaseId,
-        diseaseData
+      throw new Error(
+        `DiseaseController getDiseases failed: ${error.message}`
       );
 
-      return {
-        success: true,
-        data: disease,
-        message: "Disease updated successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
+
     }
+
   }
 
-  async deleteDisease(diseaseId) {
+
+
+
+
+  async getDiseaseById(id) {
+
     try {
-      if (!diseaseId) {
-        throw new Error("Disease ID is required.");
+
+
+      if (!id) {
+
+        throw new Error(
+          "Disease ID is required"
+        );
+
       }
 
-      await diseaseService.deleteDisease(diseaseId);
+
+
+      const disease =
+        await this.repository.getById(id);
+
+
+
+      if (!disease) {
+
+        throw new Error(
+          "Disease not found"
+        );
+
+      }
+
+
+
+      return disease;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `DiseaseController getDiseaseById failed: ${error.message}`
+      );
+
+
+    }
+
+  }
+
+
+
+
+
+  async createDisease(data) {
+
+    try {
+
+
+      this.validateDisease(
+        data
+      );
+
+
+
+      return await this.repository.create(
+        data
+      );
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `DiseaseController createDisease failed: ${error.message}`
+      );
+
+
+    }
+
+  }
+
+
+
+
+
+  async updateDisease(id,data) {
+
+    try {
+
+
+      if (!id) {
+
+        throw new Error(
+          "Disease ID is required"
+        );
+
+      }
+
+
+
+      this.validateDisease(
+        data
+      );
+
+
+
+      const updated =
+        await this.repository.update(
+          id,
+          data
+        );
+
+
+
+      if (!updated) {
+
+        throw new Error(
+          "Disease not found"
+        );
+
+      }
+
+
+
+      return updated;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `DiseaseController updateDisease failed: ${error.message}`
+      );
+
+
+    }
+
+  }
+
+
+
+
+
+  async deleteDisease(id) {
+
+    try {
+
+
+      if (!id) {
+
+        throw new Error(
+          "Disease ID is required"
+        );
+
+      }
+
+
+
+      const exists =
+        await this.repository.exists(id);
+
+
+
+      if (!exists) {
+
+        throw new Error(
+          "Disease not found"
+        );
+
+      }
+
+
+
+      await this.repository.delete(
+        id
+      );
+
+
 
       return {
-        success: true,
-        message: "Disease deleted successfully.",
+
+        success:true,
+
+        message:
+          "Disease deleted successfully"
+
       };
-    } catch (error) {
-      return this.handleError(error);
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `DiseaseController deleteDisease failed: ${error.message}`
+      );
+
+
     }
+
   }
+
+
+
+
+
+  async countDiseases() {
+
+    try {
+
+
+      return await this.repository.count();
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `DiseaseController countDiseases failed: ${error.message}`
+      );
+
+
+    }
+
+  }
+
+
+
+
 
   async searchDiseases(keyword) {
+
     try {
-      const diseases = await diseaseService.getAllDiseases();
 
-      const results = diseases.filter((disease) => {
-        const search = keyword.toLowerCase();
 
-        return (
-          disease.name?.toLowerCase().includes(search) ||
-          disease.crop?.toLowerCase().includes(search) ||
-          disease.category?.toLowerCase().includes(search) ||
-          disease.symptoms?.toLowerCase().includes(search)
-        );
-      });
+      const diseases =
+        await this.repository.getAll();
 
-      return {
-        success: true,
-        data: results,
-        total: results.length,
-        message: "Search completed successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
+
+
+      if (!keyword) {
+
+        return diseases;
+
+      }
+
+
+
+      const search =
+        keyword.toLowerCase();
+
+
+
+      return diseases.filter(
+        disease =>
+
+          disease.name
+            ?.toLowerCase()
+            .includes(search)
+
+          ||
+
+          disease.crop
+            ?.toLowerCase()
+            .includes(search)
+
+          ||
+
+          disease.category
+            ?.toLowerCase()
+            .includes(search)
+
+          ||
+
+          disease.symptoms
+            ?.toLowerCase()
+            .includes(search)
+
+      );
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `DiseaseController searchDiseases failed: ${error.message}`
+      );
+
+
     }
+
   }
 
-  validateDisease(disease) {
-    if (!disease) {
-      throw new Error("Disease data is required.");
+
+
+
+
+  validateDisease(data) {
+
+
+    const result =
+      diseaseValidator.validate(
+        data
+      );
+
+
+
+    if (!result.valid) {
+
+
+      throw new Error(
+
+        JSON.stringify(
+          result.errors
+        )
+
+      );
+
+
     }
 
-    if (!disease.name?.trim()) {
-      throw new Error("Disease name is required.");
-    }
 
-    if (!disease.crop?.trim()) {
-      throw new Error("Crop name is required.");
-    }
-
-    if (!disease.symptoms?.trim()) {
-      throw new Error("Symptoms are required.");
-    }
 
     return true;
+
+
   }
 
-  handleError(error) {
-    console.error("[DiseaseController]", error);
 
-    return {
-      success: false,
-      data: null,
-      message: error.message || "Unexpected disease error.",
-    };
-  }
+
 }
 
-export default new DiseaseController();
+
+
+export default Object.freeze(
+
+  new DiseaseController()
+
+);
