@@ -112,6 +112,22 @@ class StorageService {
 
 
 
+  exists(name) {
+
+    return (
+
+      localStorage.getItem(
+        this.key(name)
+      ) !== null
+
+    );
+
+  }
+
+
+
+
+
   remove(name) {
 
     try {
@@ -146,42 +162,37 @@ class StorageService {
 
   clear() {
 
+    try {
 
-    Object.keys(localStorage)
 
-    .filter(key =>
-      key.startsWith(
-        `${this.prefix}:`
-      )
-    )
+      Object.keys(localStorage)
 
-    .forEach(key =>
+      .filter(key =>
 
-      localStorage.removeItem(
-        key
+        key.startsWith(
+          `${this.prefix}:`
+        )
+
       )
 
-    );
+      .forEach(key =>
+
+        localStorage.removeItem(
+          key
+        )
+
+      );
 
 
-  }
+      return true;
 
 
+    } catch(error) {
 
 
+      return false;
 
-  exists(name) {
-
-
-    return (
-
-      localStorage.getItem(
-        this.key(name)
-      )
-
-      !== null
-
-    );
+    }
 
   }
 
@@ -195,21 +206,39 @@ class StorageService {
     const backup = {};
 
 
+
     Object.keys(localStorage)
 
     .filter(key =>
+
       key.startsWith(
         `${this.prefix}:`
       )
+
     )
 
-    .forEach(key=>{
+    .forEach(key => {
 
 
-      backup[key] =
-        JSON.parse(
-          localStorage.getItem(key)
+      try {
+
+
+        backup[key] =
+          JSON.parse(
+            localStorage.getItem(key)
+          );
+
+
+      } catch(error) {
+
+
+        console.error(
+          "Backup Error:",
+          error
         );
+
+
+      }
 
 
     });
@@ -226,31 +255,60 @@ class StorageService {
   restore(data) {
 
 
-    if (!data) {
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
 
       return false;
 
     }
 
 
-    Object.entries(data)
 
-    .forEach(([key,value])=>{
+    try {
 
 
-      localStorage.setItem(
+      Object.entries(data)
 
-        key,
+      .filter(([key]) =>
 
-        JSON.stringify(value)
+        key.startsWith(
+          `${this.prefix}:`
+        )
 
+      )
+
+      .forEach(([key,value])=>{
+
+
+        localStorage.setItem(
+
+          key,
+
+          JSON.stringify(value)
+
+        );
+
+
+      });
+
+
+      return true;
+
+
+    } catch(error) {
+
+
+      console.error(
+        "Restore Error:",
+        error
       );
 
 
-    });
+      return false;
 
-
-    return true;
+    }
 
   }
 
@@ -266,9 +324,11 @@ class StorageService {
       Object.keys(localStorage)
 
       .filter(key =>
+
         key.startsWith(
           `${this.prefix}:`
         )
+
       );
 
 
@@ -288,6 +348,9 @@ class StorageService {
 }
 
 
+
+
+// Singleton instance
 
 const storageService =
   new StorageService();
