@@ -113,7 +113,7 @@ class PesticideService {
     try {
 
 
-      this.validate(data);
+      this.validatePesticide(data);
 
 
 
@@ -158,7 +158,7 @@ class PesticideService {
 
 
 
-      this.validate(data);
+      this.validatePesticide(data);
 
 
 
@@ -383,7 +383,7 @@ class PesticideService {
 
 
 
-  validate(data) {
+  validatePesticide(data) {
 
 
     if (!data) {
