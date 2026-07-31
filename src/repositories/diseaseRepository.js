@@ -25,6 +25,8 @@ class DiseaseRepository {
 
 
 
+
+
   getById(id) {
 
     if (!id) {
@@ -37,15 +39,31 @@ class DiseaseRepository {
     return this.getAll().find(
 
       disease =>
-        String(disease.id) === String(id)
+
+        String(disease.id)
+        ===
+        String(id)
 
     ) || null;
+
 
   }
 
 
 
-  create(diseaseData) {
+
+
+  create(data) {
+
+
+    if (!data) {
+
+      throw new Error(
+        "Disease data is required"
+      );
+
+    }
+
 
 
     const diseases =
@@ -60,11 +78,14 @@ class DiseaseRepository {
         Date.now().toString(),
 
 
-      ...diseaseData,
+
+      ...data,
+
 
 
       createdAt:
         new Date().toISOString(),
+
 
 
       updatedAt:
@@ -93,11 +114,14 @@ class DiseaseRepository {
 
     return disease;
 
+
   }
 
 
 
-  update(id, data) {
+
+
+  update(id,data) {
 
 
     const diseases =
@@ -109,7 +133,10 @@ class DiseaseRepository {
       diseases.findIndex(
 
         disease =>
-          String(disease.id) === String(id)
+
+          String(disease.id)
+          ===
+          String(id)
 
       );
 
@@ -123,7 +150,7 @@ class DiseaseRepository {
 
 
 
-    const updatedDisease = {
+    const updated = {
 
 
       ...diseases[index],
@@ -132,8 +159,10 @@ class DiseaseRepository {
       ...data,
 
 
+
       id:
         diseases[index].id,
+
 
 
       updatedAt:
@@ -145,7 +174,7 @@ class DiseaseRepository {
 
 
     diseases[index] =
-      updatedDisease;
+      updated;
 
 
 
@@ -159,9 +188,12 @@ class DiseaseRepository {
 
 
 
-    return updatedDisease;
+    return updated;
+
 
   }
+
+
 
 
 
@@ -174,39 +206,46 @@ class DiseaseRepository {
 
 
     const filtered =
+
       diseases.filter(
 
         disease =>
-          String(disease.id) !== String(id)
+
+          String(disease.id)
+          !==
+          String(id)
 
       );
 
 
 
-    const deleted =
-      filtered.length !== diseases.length;
+    if (
+      filtered.length ===
+      diseases.length
+    ) {
 
-
-
-    if (deleted) {
-
-
-      storageService.save(
-
-        this.key,
-
-        filtered
-
-      );
-
+      return false;
 
     }
 
 
 
-    return deleted;
+    storageService.save(
+
+      this.key,
+
+      filtered
+
+    );
+
+
+
+    return true;
+
 
   }
+
+
 
 
 
@@ -219,7 +258,10 @@ class DiseaseRepository {
 
     );
 
+
   }
+
+
 
 
 
@@ -227,6 +269,7 @@ class DiseaseRepository {
 
 
     return this.getAll().length;
+
 
   }
 
