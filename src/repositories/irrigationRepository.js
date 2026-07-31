@@ -25,6 +25,8 @@ class IrrigationRepository {
 
 
 
+
+
   getById(id) {
 
     if (!id) {
@@ -37,15 +39,29 @@ class IrrigationRepository {
     return this.getAll().find(
 
       irrigation =>
+
         String(irrigation.id) === String(id)
 
     ) || null;
+
 
   }
 
 
 
-  create(irrigationData) {
+
+
+  create(data) {
+
+
+    if (!data) {
+
+      throw new Error(
+        "Irrigation data is required"
+      );
+
+    }
+
 
 
     const irrigations =
@@ -60,11 +76,14 @@ class IrrigationRepository {
         Date.now().toString(),
 
 
-      ...irrigationData,
+
+      ...data,
+
 
 
       createdAt:
         new Date().toISOString(),
+
 
 
       updatedAt:
@@ -93,11 +112,14 @@ class IrrigationRepository {
 
     return irrigation;
 
+
   }
 
 
 
-  update(id, data) {
+
+
+  update(id,data) {
 
 
     const irrigations =
@@ -109,7 +131,10 @@ class IrrigationRepository {
       irrigations.findIndex(
 
         irrigation =>
-          String(irrigation.id) === String(id)
+
+          String(irrigation.id)
+          ===
+          String(id)
 
       );
 
@@ -123,7 +148,8 @@ class IrrigationRepository {
 
 
 
-    const updatedIrrigation = {
+
+    const updated = {
 
 
       ...irrigations[index],
@@ -132,8 +158,10 @@ class IrrigationRepository {
       ...data,
 
 
+
       id:
         irrigations[index].id,
+
 
 
       updatedAt:
@@ -145,7 +173,7 @@ class IrrigationRepository {
 
 
     irrigations[index] =
-      updatedIrrigation;
+      updated;
 
 
 
@@ -159,9 +187,12 @@ class IrrigationRepository {
 
 
 
-    return updatedIrrigation;
+    return updated;
+
 
   }
+
+
 
 
 
@@ -174,39 +205,46 @@ class IrrigationRepository {
 
 
     const filtered =
+
       irrigations.filter(
 
         irrigation =>
-          String(irrigation.id) !== String(id)
+
+          String(irrigation.id)
+          !==
+          String(id)
 
       );
 
 
 
-    const deleted =
-      filtered.length !== irrigations.length;
+    if (
+      filtered.length ===
+      irrigations.length
+    ) {
 
-
-
-    if (deleted) {
-
-
-      storageService.save(
-
-        this.key,
-
-        filtered
-
-      );
-
+      return false;
 
     }
 
 
 
-    return deleted;
+    storageService.save(
+
+      this.key,
+
+      filtered
+
+    );
+
+
+
+    return true;
+
 
   }
+
+
 
 
 
@@ -219,7 +257,10 @@ class IrrigationRepository {
 
     );
 
+
   }
+
+
 
 
 
@@ -227,6 +268,7 @@ class IrrigationRepository {
 
 
     return this.getAll().length;
+
 
   }
 
