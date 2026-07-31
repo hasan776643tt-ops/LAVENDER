@@ -11,9 +11,13 @@ import reportController from "./reportController.js";
 import engineerController from "./engineerController.js";
 import diseaseController from "./diseaseController.js";
 
+import irrigationController from "./irrigationController.js";
+import pesticideController from "./pesticideController.js";
+
 
 
 const controllers = {
+
 
   crop: cropController,
 
@@ -23,7 +27,13 @@ const controllers = {
 
   user: userController,
 
+
   fertilizer: fertilizerController,
+
+  irrigation: irrigationController,
+
+  pesticide: pesticideController,
+
 
   weather: weatherController,
 
@@ -32,6 +42,7 @@ const controllers = {
   engineer: engineerController,
 
   disease: diseaseController
+
 
 };
 
