@@ -14,7 +14,7 @@ class StorageService {
 
 
 
-  key(name) {
+  createKey(name) {
 
     return `${this.prefix}:${name}`;
 
@@ -24,7 +24,7 @@ class StorageService {
 
 
 
-  save(name,data) {
+  save(name, data) {
 
     try {
 
@@ -42,7 +42,7 @@ class StorageService {
 
       localStorage.setItem(
 
-        this.key(name),
+        this.createKey(name),
 
         JSON.stringify(payload)
 
@@ -74,17 +74,18 @@ class StorageService {
 
 
 
-
-
-  load(name,defaultValue=null) {
+  load(name, defaultValue = []) {
 
 
     try {
 
 
       const value =
+
         localStorage.getItem(
-          this.key(name)
+
+          this.createKey(name)
+
         );
 
 
@@ -98,13 +99,16 @@ class StorageService {
 
 
       const parsed =
+
         JSON.parse(value);
 
 
 
       return (
+
         parsed.data ??
         defaultValue
+
       );
 
 
@@ -129,21 +133,20 @@ class StorageService {
 
 
 
-
-
   exists(name) {
 
 
     return (
+
       localStorage.getItem(
-        this.key(name)
+
+        this.createKey(name)
+
       ) !== null
+
     );
 
-
   }
-
-
 
 
 
@@ -156,8 +159,11 @@ class StorageService {
 
 
       localStorage.removeItem(
-        this.key(name)
+
+        this.createKey(name)
+
       );
+
 
 
       return true;
@@ -184,8 +190,6 @@ class StorageService {
 
 
 
-
-
   clear() {
 
 
@@ -204,9 +208,7 @@ class StorageService {
 
       .forEach(key =>
 
-        localStorage.removeItem(
-          key
-        )
+        localStorage.removeItem(key)
 
       );
 
@@ -224,10 +226,7 @@ class StorageService {
 
     }
 
-
   }
-
-
 
 
 
@@ -257,16 +256,20 @@ class StorageService {
 
 
         backup[key] =
+
           JSON.parse(
+
             localStorage.getItem(key)
+
           );
+
 
 
       } catch(error) {
 
 
         console.error(
-          "Backup Parse Error:",
+          "Backup Error:",
           error
         );
 
@@ -280,10 +283,7 @@ class StorageService {
 
     return backup;
 
-
   }
-
-
 
 
 
@@ -292,7 +292,10 @@ class StorageService {
   restore(data) {
 
 
-    if (!data || typeof data !== "object") {
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
 
       return false;
 
@@ -337,7 +340,7 @@ class StorageService {
 
 
       console.error(
-        "Storage Restore Error:",
+        "Restore Error:",
         error
       );
 
@@ -347,10 +350,7 @@ class StorageService {
 
     }
 
-
   }
-
-
 
 
 
@@ -375,16 +375,12 @@ class StorageService {
 
     return {
 
-
       totalKeys:
         keys.length,
 
-
       keys
 
-
     };
-
 
   }
 
@@ -395,7 +391,8 @@ class StorageService {
 
 
 
-export const storageService =
+const storageService =
+
   new StorageService();
 
 
