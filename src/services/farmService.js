@@ -1,22 +1,19 @@
-// src/services/storageService.js
+// src/services/farmService.js
 
 
-class StorageService {
-
-
-  constructor(prefix = "lavender") {
-
-    this.prefix = prefix;
-
-  }
+import storageService
+  from "./storageService.js";
 
 
 
+class FarmService {
 
 
-  key(name) {
 
-    return `${this.prefix}:${name}`;
+  constructor() {
+
+    this.key =
+      "farms";
 
   }
 
@@ -24,49 +21,16 @@ class StorageService {
 
 
 
-  save(name,data) {
-
-    try {
+  getAll() {
 
 
-      const payload = {
+    return storageService.load(
 
-        data,
+      this.key,
 
-        updatedAt:
-          new Date().toISOString()
+      []
 
-      };
-
-
-
-      localStorage.setItem(
-
-        this.key(name),
-
-        JSON.stringify(payload)
-
-      );
-
-
-
-      return true;
-
-
-
-    } catch(error) {
-
-
-      console.error(
-        "Storage Save Error:",
-        error
-      );
-
-
-      return false;
-
-
-    }
+    );
 
   }
 
@@ -74,70 +38,20 @@ class StorageService {
 
 
 
+  getById(id) {
 
 
-  load(name,defaultValue=null) {
-
-
-    try {
-
-
-      const value =
-        localStorage.getItem(
-          this.key(name)
-        );
+    const farms =
+      this.getAll();
 
 
 
-      if (!value) {
+    return farms.find(
 
-        return defaultValue;
+      farm =>
 
-      }
+      String(farm.id) === String(id)
 
-
-
-      const parsed =
-        JSON.parse(value);
-
-
-
-      return (
-        parsed.data ??
-        defaultValue
-      );
-
-
-
-    } catch(error) {
-
-
-      console.error(
-        "Storage Load Error:",
-        error
-      );
-
-
-      return defaultValue;
-
-
-    }
-
-  }
-
-
-
-
-
-
-
-  exists(name) {
-
-
-    return (
-      localStorage.getItem(
-        this.key(name)
-      ) !== null
     );
 
 
@@ -147,257 +61,226 @@ class StorageService {
 
 
 
+  create(data) {
 
 
-  remove(name) {
+    const farms =
+      this.getAll();
 
 
-    try {
 
+    const farm = {
 
-      localStorage.removeItem(
-        this.key(name)
-      );
 
+      id:
+        Date.now(),
 
-      return true;
 
+      ...data,
 
 
-    } catch(error) {
-
-
-      console.error(
-        "Storage Remove Error:",
-        error
-      );
-
-
-      return false;
-
-
-    }
-
-  }
-
-
-
-
-
-
-
-  clear() {
-
-
-    try {
-
-
-      Object.keys(localStorage)
-
-      .filter(key =>
-
-        key.startsWith(
-          `${this.prefix}:`
-        )
-
-      )
-
-      .forEach(key =>
-
-        localStorage.removeItem(
-          key
-        )
-
-      );
-
-
-
-      return true;
-
-
-
-    } catch(error) {
-
-
-      return false;
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  backup() {
-
-
-    const backup = {};
-
-
-
-    Object.keys(localStorage)
-
-    .filter(key =>
-
-      key.startsWith(
-        `${this.prefix}:`
-      )
-
-    )
-
-    .forEach(key => {
-
-
-      try {
-
-
-        backup[key] =
-          JSON.parse(
-            localStorage.getItem(key)
-          );
-
-
-      } catch(error) {
-
-
-        console.error(
-          "Backup Parse Error:",
-          error
-        );
-
-
-      }
-
-
-    });
-
-
-
-    return backup;
-
-
-  }
-
-
-
-
-
-
-
-  restore(data) {
-
-
-    if (!data || typeof data !== "object") {
-
-      return false;
-
-    }
-
-
-
-    try {
-
-
-      Object.entries(data)
-
-      .filter(([key]) =>
-
-        key.startsWith(
-          `${this.prefix}:`
-        )
-
-      )
-
-      .forEach(([key,value]) => {
-
-
-        localStorage.setItem(
-
-          key,
-
-          JSON.stringify(value)
-
-        );
-
-
-      });
-
-
-
-      return true;
-
-
-
-    } catch(error) {
-
-
-      console.error(
-        "Storage Restore Error:",
-        error
-      );
-
-
-      return false;
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  getStats() {
-
-
-    const keys =
-
-      Object.keys(localStorage)
-
-      .filter(key =>
-
-        key.startsWith(
-          `${this.prefix}:`
-        )
-
-      );
-
-
-
-    return {
-
-
-      totalKeys:
-        keys.length,
-
-
-      keys
+      createdAt:
+        new Date().toISOString()
 
 
     };
 
 
+
+    farms.push(
+      farm
+    );
+
+
+
+    storageService.save(
+
+      this.key,
+
+      farms
+
+    );
+
+
+
+    return farm;
+
+
   }
+
+
+
+
+
+  update(id,data) {
+
+
+    const farms =
+      this.getAll();
+
+
+
+    const index =
+
+      farms.findIndex(
+
+        farm =>
+
+        String(farm.id) === String(id)
+
+      );
+
+
+
+    if (index === -1) {
+
+
+      throw new Error(
+
+        "Farm not found"
+
+      );
+
+
+    }
+
+
+
+
+
+    farms[index] = {
+
+
+      ...farms[index],
+
+
+      ...data,
+
+
+      updatedAt:
+
+        new Date().toISOString()
+
+
+    };
+
+
+
+
+
+    storageService.save(
+
+      this.key,
+
+      farms
+
+    );
+
+
+
+    return farms[index];
+
+
+  }
+
+
+
+
+
+  delete(id) {
+
+
+    const farms =
+      this.getAll();
+
+
+
+    const filtered =
+
+      farms.filter(
+
+        farm =>
+
+        String(farm.id) !== String(id)
+
+      );
+
+
+
+    storageService.save(
+
+      this.key,
+
+      filtered
+
+    );
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  count() {
+
+
+    return this.getAll().length;
+
+
+  }
+
+
+
+
+
+  search(keyword) {
+
+
+    const farms =
+      this.getAll();
+
+
+
+    if (!keyword) {
+
+      return farms;
+
+    }
+
+
+
+    const search =
+
+      keyword.toLowerCase();
+
+
+
+
+    return farms.filter(
+
+      farm =>
+
+
+      farm.name
+
+      ?.toLowerCase()
+
+      .includes(search)
+
+    );
+
+
+  }
+
 
 
 }
 
 
 
-
-
-export const storageService =
-  new StorageService();
-
-
-
-export default storageService;
+export default new FarmService();
