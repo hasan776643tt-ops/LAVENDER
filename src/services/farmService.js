@@ -9,7 +9,6 @@ import storageService
 class FarmService {
 
 
-
   constructor() {
 
     this.key =
@@ -22,7 +21,6 @@ class FarmService {
 
 
   getAll() {
-
 
     return storageService.load(
 
@@ -39,6 +37,13 @@ class FarmService {
 
 
   getById(id) {
+
+
+    if (!id) {
+
+      return null;
+
+    }
 
 
     const farms =
@@ -62,6 +67,16 @@ class FarmService {
 
 
   create(data) {
+
+
+    if (!data) {
+
+      throw new Error(
+        "Farm data is required"
+      );
+
+    }
+
 
 
     const farms =
@@ -146,8 +161,6 @@ class FarmService {
 
 
 
-
-
     farms[index] = {
 
 
@@ -163,8 +176,6 @@ class FarmService {
 
 
     };
-
-
 
 
 
@@ -192,6 +203,32 @@ class FarmService {
 
     const farms =
       this.getAll();
+
+
+
+    const exists =
+
+      farms.some(
+
+        farm =>
+
+        String(farm.id) === String(id)
+
+      );
+
+
+
+    if (!exists) {
+
+
+      throw new Error(
+
+        "Farm not found"
+
+      );
+
+
+    }
 
 
 
@@ -260,11 +297,9 @@ class FarmService {
 
 
 
-
     return farms.filter(
 
       farm =>
-
 
       farm.name
 
@@ -278,9 +313,15 @@ class FarmService {
   }
 
 
-
 }
 
 
 
-export default new FarmService();
+const farmService =
+  new FarmService();
+
+
+
+export default Object.freeze(
+  farmService
+);
