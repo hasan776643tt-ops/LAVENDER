@@ -1,6 +1,9 @@
 // src/repositories/fieldRepository.js
 
-import storageService from "../services/storageService.js";
+
+import storageService
+  from "../services/storageService.js";
+
 
 
 class FieldRepository {
@@ -8,20 +11,41 @@ class FieldRepository {
 
   constructor() {
 
-    this.key = "fields";
+    this.key =
+      "fields";
 
   }
+
+
 
 
 
   getAll() {
 
-    return storageService.load(
-      this.key,
-      []
-    );
+    try {
+
+
+      return storageService.load(
+        this.key,
+        []
+      );
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `FieldRepository getAll failed: ${error.message}`
+      );
+
+
+    }
 
   }
+
+
+
+
 
 
 
@@ -29,22 +53,43 @@ class FieldRepository {
   getById(id) {
 
 
-    if (!id) {
+    try {
 
-      return null;
+
+      if (!id) {
+
+        return null;
+
+      }
+
+
+
+      return this.getAll().find(
+
+        field =>
+
+        String(field.id) === String(id)
+
+      ) || null;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `FieldRepository getById failed: ${error.message}`
+      );
+
 
     }
 
 
-    return this.getAll().find(
-
-      field =>
-        String(field.id) === String(id)
-
-    ) || null;
-
-
   }
+
+
+
+
 
 
 
@@ -52,123 +97,204 @@ class FieldRepository {
   create(fieldData) {
 
 
-    const fields =
-      this.getAll();
+    try {
+
+
+      this.validate(fieldData);
 
 
 
-    const field = {
-
-
-      id:
-        Date.now().toString(),
-
-
-      ...fieldData,
-
-
-      createdAt:
-        new Date().toISOString(),
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
-    fields.push(
-      field
-    );
-
-
-
-    storageService.save(
-
-      this.key,
-
-      fields
-
-    );
-
-
-
-    return field;
-
-
-  }
+      const fields =
+        this.getAll();
 
 
 
 
-  update(id, data) {
+      const field = {
 
 
-    const fields =
-      this.getAll();
+        id:
+          Date.now().toString(),
 
 
 
-    const index =
-      fields.findIndex(
+        ...fieldData,
 
-        field =>
-          String(field.id) === String(id)
+
+
+        createdAt:
+          new Date().toISOString(),
+
+
+
+        updatedAt:
+          new Date().toISOString()
+
+
+      };
+
+
+
+
+      fields.push(
+        field
+      );
+
+
+
+
+      storageService.save(
+
+        this.key,
+
+        fields
 
       );
 
 
 
-    if (index === -1) {
 
-      return null;
+      return field;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `FieldRepository create failed: ${error.message}`
+      );
+
 
     }
 
 
-
-    const updatedField = {
-
-
-      ...fields[index],
-
-
-      ...data,
-
-
-      id:
-        fields[index].id,
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
+  }
 
 
 
-    fields[index] =
-      updatedField;
 
 
 
-    storageService.save(
-
-      this.key,
-
-      fields
-
-    );
 
 
+  update(id,data) {
 
-    return updatedField;
+
+    try {
+
+
+      if (!id) {
+
+
+        throw new Error(
+          "Field ID is required"
+        );
+
+
+      }
+
+
+
+
+      this.validate(data);
+
+
+
+
+      const fields =
+        this.getAll();
+
+
+
+
+      const index =
+
+        fields.findIndex(
+
+          field =>
+
+          String(field.id) === String(id)
+
+        );
+
+
+
+
+      if(index === -1){
+
+
+        return null;
+
+
+      }
+
+
+
+
+
+
+      const updatedField = {
+
+
+        ...fields[index],
+
+
+        ...data,
+
+
+
+        id:
+          fields[index].id,
+
+
+
+        updatedAt:
+          new Date().toISOString()
+
+
+      };
+
+
+
+
+      fields[index] =
+        updatedField;
+
+
+
+
+      storageService.save(
+
+        this.key,
+
+        fields
+
+      );
+
+
+
+
+      return updatedField;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `FieldRepository update failed: ${error.message}`
+      );
+
+
+    }
 
 
   }
+
+
+
+
 
 
 
@@ -176,43 +302,80 @@ class FieldRepository {
   delete(id) {
 
 
-    const fields =
-      this.getAll();
+    try {
+
+
+      if(!id){
+
+
+        return false;
+
+
+      }
 
 
 
-    const filtered =
-      fields.filter(
 
-        field =>
+
+      const fields =
+        this.getAll();
+
+
+
+
+      const filtered =
+
+        fields.filter(
+
+          field =>
+
           String(field.id) !== String(id)
 
-      );
+        );
 
 
 
-    const deleted =
-      filtered.length !== fields.length;
+
+
+      const deleted =
+
+        filtered.length !== fields.length;
 
 
 
-    if (deleted) {
 
 
-      storageService.save(
+      if(deleted){
 
-        this.key,
 
-        filtered
+        storageService.save(
 
+          this.key,
+
+          filtered
+
+        );
+
+
+      }
+
+
+
+
+
+      return deleted;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `FieldRepository delete failed: ${error.message}`
       );
 
 
     }
-
-
-
-    return deleted;
 
 
   }
@@ -220,7 +383,11 @@ class FieldRepository {
 
 
 
-  exists(id) {
+
+
+
+
+  exists(id){
 
 
     return Boolean(
@@ -235,7 +402,11 @@ class FieldRepository {
 
 
 
-  count() {
+
+
+
+
+  count(){
 
 
     return this.getAll().length;
@@ -244,7 +415,51 @@ class FieldRepository {
   }
 
 
+
+
+
+
+
+
+  validate(field){
+
+
+    if(!field){
+
+
+      throw new Error(
+        "Field data is required"
+      );
+
+
+    }
+
+
+
+
+    if(!field.name?.trim()){
+
+
+      throw new Error(
+        "Field name is required"
+      );
+
+
+    }
+
+
+
+
+    return true;
+
+
+  }
+
+
+
 }
+
+
 
 
 
