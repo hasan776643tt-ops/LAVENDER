@@ -25,6 +25,8 @@ class PesticideRepository {
 
 
 
+
+
   getById(id) {
 
     if (!id) {
@@ -37,15 +39,31 @@ class PesticideRepository {
     return this.getAll().find(
 
       pesticide =>
-        String(pesticide.id) === String(id)
+
+        String(pesticide.id)
+        ===
+        String(id)
 
     ) || null;
+
 
   }
 
 
 
-  create(pesticideData) {
+
+
+  create(data) {
+
+
+    if (!data) {
+
+      throw new Error(
+        "Pesticide data is required"
+      );
+
+    }
+
 
 
     const pesticides =
@@ -60,11 +78,14 @@ class PesticideRepository {
         Date.now().toString(),
 
 
-      ...pesticideData,
+
+      ...data,
+
 
 
       createdAt:
         new Date().toISOString(),
+
 
 
       updatedAt:
@@ -93,11 +114,14 @@ class PesticideRepository {
 
     return pesticide;
 
+
   }
 
 
 
-  update(id, data) {
+
+
+  update(id,data) {
 
 
     const pesticides =
@@ -109,7 +133,10 @@ class PesticideRepository {
       pesticides.findIndex(
 
         pesticide =>
-          String(pesticide.id) === String(id)
+
+          String(pesticide.id)
+          ===
+          String(id)
 
       );
 
@@ -123,7 +150,7 @@ class PesticideRepository {
 
 
 
-    const updatedPesticide = {
+    const updated = {
 
 
       ...pesticides[index],
@@ -132,8 +159,10 @@ class PesticideRepository {
       ...data,
 
 
+
       id:
         pesticides[index].id,
+
 
 
       updatedAt:
@@ -145,7 +174,7 @@ class PesticideRepository {
 
 
     pesticides[index] =
-      updatedPesticide;
+      updated;
 
 
 
@@ -159,9 +188,12 @@ class PesticideRepository {
 
 
 
-    return updatedPesticide;
+    return updated;
+
 
   }
+
+
 
 
 
@@ -174,39 +206,46 @@ class PesticideRepository {
 
 
     const filtered =
+
       pesticides.filter(
 
         pesticide =>
-          String(pesticide.id) !== String(id)
+
+          String(pesticide.id)
+          !==
+          String(id)
 
       );
 
 
 
-    const deleted =
-      filtered.length !== pesticides.length;
+    if (
+      filtered.length ===
+      pesticides.length
+    ) {
 
-
-
-    if (deleted) {
-
-
-      storageService.save(
-
-        this.key,
-
-        filtered
-
-      );
-
+      return false;
 
     }
 
 
 
-    return deleted;
+    storageService.save(
+
+      this.key,
+
+      filtered
+
+    );
+
+
+
+    return true;
+
 
   }
+
+
 
 
 
@@ -219,7 +258,10 @@ class PesticideRepository {
 
     );
 
+
   }
+
+
 
 
 
@@ -227,6 +269,7 @@ class PesticideRepository {
 
 
     return this.getAll().length;
+
 
   }
 
