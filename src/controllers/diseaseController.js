@@ -1,6 +1,5 @@
 // src/controllers/diseaseController.js
 
-
 import diseaseRepository
   from "../repositories/diseaseRepository.js";
 
@@ -10,7 +9,6 @@ import { diseaseValidator }
 
 
 class DiseaseController {
-
 
 
   constructor() {
@@ -28,18 +26,14 @@ class DiseaseController {
 
     try {
 
-
       return await this.repository.getAll();
-
 
 
     } catch(error) {
 
-
       throw new Error(
         `DiseaseController getDiseases failed: ${error.message}`
       );
-
 
     }
 
@@ -85,11 +79,9 @@ class DiseaseController {
 
     } catch(error) {
 
-
       throw new Error(
         `DiseaseController getDiseaseById failed: ${error.message}`
       );
-
 
     }
 
@@ -104,9 +96,7 @@ class DiseaseController {
     try {
 
 
-      this.validateDisease(
-        data
-      );
+      this.validateDisease(data);
 
 
 
@@ -118,11 +108,9 @@ class DiseaseController {
 
     } catch(error) {
 
-
       throw new Error(
         `DiseaseController createDisease failed: ${error.message}`
       );
-
 
     }
 
@@ -132,7 +120,10 @@ class DiseaseController {
 
 
 
-  async updateDisease(id,data) {
+  async updateDisease(
+    id,
+    data
+  ) {
 
     try {
 
@@ -147,13 +138,11 @@ class DiseaseController {
 
 
 
-      this.validateDisease(
-        data
-      );
+      this.validateDisease(data);
 
 
 
-      const updated =
+      const disease =
         await this.repository.update(
           id,
           data
@@ -161,7 +150,7 @@ class DiseaseController {
 
 
 
-      if (!updated) {
+      if (!disease) {
 
         throw new Error(
           "Disease not found"
@@ -171,17 +160,15 @@ class DiseaseController {
 
 
 
-      return updated;
+      return disease;
 
 
 
     } catch(error) {
 
-
       throw new Error(
         `DiseaseController updateDisease failed: ${error.message}`
       );
-
 
     }
 
@@ -221,9 +208,7 @@ class DiseaseController {
 
 
 
-      await this.repository.delete(
-        id
-      );
+      await this.repository.delete(id);
 
 
 
@@ -240,11 +225,9 @@ class DiseaseController {
 
     } catch(error) {
 
-
       throw new Error(
         `DiseaseController deleteDisease failed: ${error.message}`
       );
-
 
     }
 
@@ -258,18 +241,14 @@ class DiseaseController {
 
     try {
 
-
       return await this.repository.count();
-
 
 
     } catch(error) {
 
-
       throw new Error(
         `DiseaseController countDiseases failed: ${error.message}`
       );
-
 
     }
 
@@ -306,26 +285,26 @@ class DiseaseController {
         disease =>
 
           disease.name
-            ?.toLowerCase()
-            .includes(search)
+          ?.toLowerCase()
+          .includes(search)
 
           ||
 
           disease.crop
-            ?.toLowerCase()
-            .includes(search)
+          ?.toLowerCase()
+          .includes(search)
 
           ||
 
           disease.category
-            ?.toLowerCase()
-            .includes(search)
+          ?.toLowerCase()
+          .includes(search)
 
           ||
 
           disease.symptoms
-            ?.toLowerCase()
-            .includes(search)
+          ?.toLowerCase()
+          .includes(search)
 
       );
 
@@ -333,11 +312,9 @@ class DiseaseController {
 
     } catch(error) {
 
-
       throw new Error(
         `DiseaseController searchDiseases failed: ${error.message}`
       );
-
 
     }
 
@@ -359,22 +336,17 @@ class DiseaseController {
 
     if (!result.valid) {
 
-
       throw new Error(
-
         JSON.stringify(
           result.errors
         )
-
       );
-
 
     }
 
 
 
     return true;
-
 
   }
 
@@ -385,7 +357,5 @@ class DiseaseController {
 
 
 export default Object.freeze(
-
   new DiseaseController()
-
 );
