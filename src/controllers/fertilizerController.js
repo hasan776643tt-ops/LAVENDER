@@ -11,7 +11,6 @@ import { fertilizerValidator }
 class FertilizerController {
 
 
-
   constructor() {
 
     this.repository =
@@ -32,11 +31,9 @@ class FertilizerController {
 
     } catch(error) {
 
-
       throw new Error(
         `FertilizerController getAllFertilizers failed: ${error.message}`
       );
-
 
     }
 
@@ -82,11 +79,9 @@ class FertilizerController {
 
     } catch(error) {
 
-
       throw new Error(
         `FertilizerController getFertilizerById failed: ${error.message}`
       );
-
 
     }
 
@@ -101,9 +96,7 @@ class FertilizerController {
     try {
 
 
-      this.validateFertilizer(
-        data
-      );
+      this.validateFertilizer(data);
 
 
 
@@ -115,11 +108,9 @@ class FertilizerController {
 
     } catch(error) {
 
-
       throw new Error(
         `FertilizerController createFertilizer failed: ${error.message}`
       );
-
 
     }
 
@@ -129,7 +120,11 @@ class FertilizerController {
 
 
 
-  async updateFertilizer(id,data) {
+  async updateFertilizer(
+    id,
+    data
+  ) {
+
 
     try {
 
@@ -144,13 +139,11 @@ class FertilizerController {
 
 
 
-      this.validateFertilizer(
-        data
-      );
+      this.validateFertilizer(data);
 
 
 
-      const updated =
+      const fertilizer =
         await this.repository.update(
           id,
           data
@@ -158,7 +151,7 @@ class FertilizerController {
 
 
 
-      if (!updated) {
+      if (!fertilizer) {
 
         throw new Error(
           "Fertilizer not found"
@@ -168,17 +161,15 @@ class FertilizerController {
 
 
 
-      return updated;
+      return fertilizer;
 
 
 
     } catch(error) {
 
-
       throw new Error(
         `FertilizerController updateFertilizer failed: ${error.message}`
       );
-
 
     }
 
@@ -189,6 +180,7 @@ class FertilizerController {
 
 
   async deleteFertilizer(id) {
+
 
     try {
 
@@ -218,9 +210,7 @@ class FertilizerController {
 
 
 
-      await this.repository.delete(
-        id
-      );
+      await this.repository.delete(id);
 
 
 
@@ -237,11 +227,9 @@ class FertilizerController {
 
     } catch(error) {
 
-
       throw new Error(
         `FertilizerController deleteFertilizer failed: ${error.message}`
       );
-
 
     }
 
@@ -253,7 +241,9 @@ class FertilizerController {
 
   async countFertilizers() {
 
+
     try {
+
 
       return await this.repository.count();
 
@@ -267,6 +257,7 @@ class FertilizerController {
 
 
     }
+
 
   }
 
@@ -286,13 +277,13 @@ class FertilizerController {
 
     if (!result.valid) {
 
-      throw new Error(
 
+      throw new Error(
         JSON.stringify(
           result.errors
         )
-
       );
+
 
     }
 
