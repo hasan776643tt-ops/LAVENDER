@@ -1,39 +1,58 @@
 // src/controllers/pesticideController.js
 
-import pesticideRepository from "../repositories/pesticideRepository.js";
-import { pesticideValidator } from "../validators/pesticideValidator.js";
+
+import pesticideRepository
+  from "../repositories/pesticideRepository.js";
+
+import { pesticideValidator }
+  from "../validators/pesticideValidator.js";
+
 
 
 class PesticideController {
 
+
+
   constructor() {
 
-    this.repository = pesticideRepository;
+    this.repository =
+      pesticideRepository;
 
   }
+
+
+
 
 
   async getPesticides() {
 
     try {
 
+
       return await this.repository.getAll();
 
-    } catch (error) {
+
+    } catch(error) {
+
 
       throw new Error(
         `PesticideController getPesticides failed: ${error.message}`
       );
 
+
     }
 
   }
+
+
+
 
 
   async getPesticideById(id) {
 
     try {
 
+
       if (!id) {
 
         throw new Error(
@@ -42,8 +61,12 @@ class PesticideController {
 
       }
 
+
+
       const pesticide =
         await this.repository.getById(id);
+
+
 
       if (!pesticide) {
 
@@ -53,48 +76,65 @@ class PesticideController {
 
       }
 
+
+
       return pesticide;
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
         `PesticideController getPesticideById failed: ${error.message}`
       );
 
+
     }
 
   }
 
 
-  async createPesticide(pesticideData) {
+
+
+
+  async createPesticide(data) {
 
     try {
 
+
       this.validatePesticide(
-        pesticideData
+        data
       );
+
+
 
       return await this.repository.create(
-        pesticideData
+        data
       );
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
         `PesticideController createPesticide failed: ${error.message}`
       );
 
+
     }
 
   }
 
 
-  async updatePesticide(
-    id,
-    pesticideData
-  ) {
+
+
+
+  async updatePesticide(id,data) {
 
     try {
+
 
       if (!id) {
 
@@ -104,17 +144,23 @@ class PesticideController {
 
       }
 
+
+
       this.validatePesticide(
-        pesticideData
+        data
       );
 
-      const pesticide =
+
+
+      const updated =
         await this.repository.update(
           id,
-          pesticideData
+          data
         );
 
-      if (!pesticide) {
+
+
+      if (!updated) {
 
         throw new Error(
           "Pesticide not found"
@@ -122,23 +168,33 @@ class PesticideController {
 
       }
 
-      return pesticide;
 
-    } catch (error) {
+
+      return updated;
+
+
+
+    } catch(error) {
+
 
       throw new Error(
         `PesticideController updatePesticide failed: ${error.message}`
       );
 
+
     }
 
   }
+
+
+
 
 
   async deletePesticide(id) {
 
     try {
 
+
       if (!id) {
 
         throw new Error(
@@ -147,8 +203,12 @@ class PesticideController {
 
       }
 
+
+
       const exists =
         await this.repository.exists(id);
+
+
 
       if (!exists) {
 
@@ -158,71 +218,104 @@ class PesticideController {
 
       }
 
-      await this.repository.delete(id);
+
+
+      await this.repository.delete(
+        id
+      );
+
+
 
       return {
 
-        success: true,
+        success:true,
 
         message:
           "Pesticide deleted successfully"
 
       };
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
         `PesticideController deletePesticide failed: ${error.message}`
       );
 
+
     }
 
   }
+
+
+
 
 
   async countPesticides() {
 
     try {
 
+
       return await this.repository.count();
 
-    } catch (error) {
+
+    } catch(error) {
+
 
       throw new Error(
         `PesticideController countPesticides failed: ${error.message}`
       );
 
+
     }
 
   }
 
 
-  validatePesticide(
-    pesticide
-  ) {
+
+
+
+  validatePesticide(data) {
+
 
     const result =
       pesticideValidator.validate(
-        pesticide
+        data
       );
+
+
 
     if (!result.valid) {
 
+
       throw new Error(
+
         JSON.stringify(
           result.errors
         )
+
       );
+
 
     }
 
+
+
     return true;
 
+
   }
+
+
 
 }
 
 
+
 export default Object.freeze(
+
   new PesticideController()
+
 );
