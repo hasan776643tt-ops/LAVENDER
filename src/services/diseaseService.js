@@ -113,7 +113,7 @@ class DiseaseService {
     try {
 
 
-      this.validate(data);
+      this.validateDisease(data);
 
 
 
@@ -158,7 +158,7 @@ class DiseaseService {
 
 
 
-      this.validate(data);
+      this.validateDisease(data);
 
 
 
@@ -390,7 +390,7 @@ class DiseaseService {
 
 
 
-  validate(data) {
+  validateDisease(data) {
 
 
     if (!data) {
