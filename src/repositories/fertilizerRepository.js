@@ -25,6 +25,8 @@ class FertilizerRepository {
 
 
 
+
+
   getById(id) {
 
     if (!id) {
@@ -37,15 +39,31 @@ class FertilizerRepository {
     return this.getAll().find(
 
       fertilizer =>
-        String(fertilizer.id) === String(id)
+
+        String(fertilizer.id)
+        ===
+        String(id)
 
     ) || null;
+
 
   }
 
 
 
-  create(fertilizerData) {
+
+
+  create(data) {
+
+
+    if (!data) {
+
+      throw new Error(
+        "Fertilizer data is required"
+      );
+
+    }
+
 
 
     const fertilizers =
@@ -60,11 +78,14 @@ class FertilizerRepository {
         Date.now().toString(),
 
 
-      ...fertilizerData,
+
+      ...data,
+
 
 
       createdAt:
         new Date().toISOString(),
+
 
 
       updatedAt:
@@ -93,11 +114,14 @@ class FertilizerRepository {
 
     return fertilizer;
 
+
   }
 
 
 
-  update(id, data) {
+
+
+  update(id,data) {
 
 
     const fertilizers =
@@ -109,7 +133,10 @@ class FertilizerRepository {
       fertilizers.findIndex(
 
         fertilizer =>
-          String(fertilizer.id) === String(id)
+
+          String(fertilizer.id)
+          ===
+          String(id)
 
       );
 
@@ -123,7 +150,7 @@ class FertilizerRepository {
 
 
 
-    const updatedFertilizer = {
+    const updated = {
 
 
       ...fertilizers[index],
@@ -132,8 +159,10 @@ class FertilizerRepository {
       ...data,
 
 
+
       id:
         fertilizers[index].id,
+
 
 
       updatedAt:
@@ -145,7 +174,7 @@ class FertilizerRepository {
 
 
     fertilizers[index] =
-      updatedFertilizer;
+      updated;
 
 
 
@@ -159,9 +188,12 @@ class FertilizerRepository {
 
 
 
-    return updatedFertilizer;
+    return updated;
+
 
   }
+
+
 
 
 
@@ -174,39 +206,46 @@ class FertilizerRepository {
 
 
     const filtered =
+
       fertilizers.filter(
 
         fertilizer =>
-          String(fertilizer.id) !== String(id)
+
+          String(fertilizer.id)
+          !==
+          String(id)
 
       );
 
 
 
-    const deleted =
-      filtered.length !== fertilizers.length;
+    if (
+      filtered.length ===
+      fertilizers.length
+    ) {
 
-
-
-    if (deleted) {
-
-
-      storageService.save(
-
-        this.key,
-
-        filtered
-
-      );
-
+      return false;
 
     }
 
 
 
-    return deleted;
+    storageService.save(
+
+      this.key,
+
+      filtered
+
+    );
+
+
+
+    return true;
+
 
   }
+
+
 
 
 
@@ -219,7 +258,10 @@ class FertilizerRepository {
 
     );
 
+
   }
+
+
 
 
 
@@ -227,6 +269,7 @@ class FertilizerRepository {
 
 
     return this.getAll().length;
+
 
   }
 
