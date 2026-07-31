@@ -30,7 +30,6 @@ import diseaseController
 
 
 
-
 // =========================
 // Context
 // =========================
@@ -50,56 +49,53 @@ export function FarmProvider({
 }) {
 
 
-
-  const [farms, setFarms] =
+  const [farms,setFarms] =
     useState([]);
 
 
-  const [fields, setFields] =
+  const [fields,setFields] =
     useState([]);
 
 
-  const [crops, setCrops] =
+  const [crops,setCrops] =
     useState([]);
 
 
-  const [irrigations, setIrrigations] =
+  const [irrigations,setIrrigations] =
     useState([]);
 
 
-  const [fertilizers, setFertilizers] =
+  const [fertilizers,setFertilizers] =
     useState([]);
 
 
-  const [pesticides, setPesticides] =
+  const [pesticides,setPesticides] =
     useState([]);
 
 
-  const [diseases, setDiseases] =
+  const [diseases,setDiseases] =
     useState([]);
 
 
 
-
-  const [expenses, setExpenses] =
+  const [expenses,setExpenses] =
     useState([]);
 
 
-  const [harvests, setHarvests] =
+  const [harvests,setHarvests] =
     useState([]);
 
 
-  const [inventory, setInventory] =
+  const [inventory,setInventory] =
     useState([]);
 
 
-  const [consultations, setConsultations] =
+  const [consultations,setConsultations] =
     useState([]);
 
 
-  const [aiQuestions, setAiQuestions] =
+  const [aiQuestions,setAiQuestions] =
     useState([]);
-
 
 
 
@@ -124,7 +120,10 @@ const loadFarms = async()=>{
 const addFarm = async(data)=>{
 
   const farm =
-    await farmController.createFarm(data);
+    await farmController.createFarm(
+      data
+    );
+
 
   setFarms(prev=>[
     ...prev,
@@ -138,6 +137,7 @@ const addFarm = async(data)=>{
 const updateFarm =
 async(id,data)=>{
 
+
  const updated =
    await farmController.updateFarm(
      id,
@@ -147,17 +147,18 @@ async(id,data)=>{
 
  setFarms(prev=>
 
-   prev.map(farm=>
+  prev.map(item=>
 
-    String(farm.id) === String(id)
-    ?
-    updated
-    :
-    farm
+   String(item.id) === String(id)
+   ?
+   updated
+   :
+   item
 
-   )
+  )
 
  );
+
 
 };
 
@@ -167,15 +168,17 @@ const deleteFarm =
 async(id)=>{
 
 
- await farmController.deleteFarm(id);
+ await farmController.deleteFarm(
+   id
+ );
 
 
  setFarms(prev=>
 
-  prev.filter(
+  prev.filter(item=>
 
-   farm =>
-   String(farm.id)!==String(id)
+   String(item.id)!==
+   String(id)
 
   )
 
@@ -183,6 +186,8 @@ async(id)=>{
 
 
 };
+
+
 
 
 
@@ -198,7 +203,6 @@ const loadFields = async()=>{
 
  const data =
    await fieldController.getFields();
-
 
  setFields(data);
 
@@ -232,20 +236,20 @@ async(id,data)=>{
 
  const updated =
    await fieldController.updateField(
-    id,
-    data
+     id,
+     data
    );
 
 
  setFields(prev=>
 
-  prev.map(field=>
+  prev.map(item=>
 
-   String(field.id)===String(id)
+   String(item.id)===String(id)
    ?
    updated
    :
-   field
+   item
 
   )
 
@@ -261,15 +265,17 @@ const deleteField =
 async(id)=>{
 
 
- await fieldController.deleteField(id);
+ await fieldController.deleteField(
+   id
+ );
 
 
  setFields(prev=>
 
-  prev.filter(
+  prev.filter(item=>
 
-   field =>
-   String(field.id)!==String(id)
+   String(item.id)!==
+   String(id)
 
   )
 
@@ -301,10 +307,14 @@ const loadCrops = async()=>{
 
 
 
+
 const addCrop = async(data)=>{
 
+
  const crop =
-   await cropController.createCrop(data);
+   await cropController.createCrop(
+     data
+   );
 
 
  setCrops(prev=>[
@@ -322,21 +332,21 @@ async(id,data)=>{
 
 
  const updated =
-  await cropController.updateCrop(
-    id,
-    data
-  );
+   await cropController.updateCrop(
+     id,
+     data
+   );
 
 
  setCrops(prev=>
 
-  prev.map(crop=>
+  prev.map(item=>
 
-   String(crop.id)===String(id)
+   String(item.id)===String(id)
    ?
    updated
    :
-   crop
+   item
 
   )
 
@@ -352,15 +362,17 @@ const deleteCrop =
 async(id)=>{
 
 
- await cropController.deleteCrop(id);
+ await cropController.deleteCrop(
+   id
+ );
 
 
  setCrops(prev=>
 
-  prev.filter(
+  prev.filter(item=>
 
-   crop =>
-   String(crop.id)!==String(id)
+   String(item.id)!==
+   String(id)
 
   )
 
@@ -368,11 +380,6 @@ async(id)=>{
 
 
 };
-
-
-
-
-
 
 
 
@@ -382,18 +389,62 @@ async(id)=>{
 // =========================
 
 
+const loadIrrigations = async()=>{
+
+ const data =
+   await irrigationController.getIrrigations();
+
+
+ setIrrigations(data);
+
+};
+
+
+
+
 const addIrrigation = async(data)=>{
 
+
  const irrigation =
-  await irrigationController.createIrrigation(
-   data
-  );
+   await irrigationController.createIrrigation(
+     data
+   );
 
 
  setIrrigations(prev=>[
-  ...prev,
-  irrigation
+   ...prev,
+   irrigation
  ]);
+
+};
+
+
+
+const updateIrrigation =
+async(id,data)=>{
+
+
+ const updated =
+   await irrigationController.updateIrrigation(
+     id,
+     data
+   );
+
+
+ setIrrigations(prev=>
+
+  prev.map(item=>
+
+   String(item.id)===String(id)
+   ?
+   updated
+   :
+   item
+
+  )
+
+ );
+
 
 };
 
@@ -402,45 +453,86 @@ const addIrrigation = async(data)=>{
 const deleteIrrigation =
 async(id)=>{
 
- await irrigationController.deleteIrrigation(id);
+
+ await irrigationController.deleteIrrigation(
+   id
+ );
 
 
  setIrrigations(prev=>
 
-  prev.filter(
-   item =>
-   String(item.id)!==String(id)
+  prev.filter(item=>
+
+   String(item.id)!==
+   String(id)
+
   )
 
  );
+
+
+};  // =========================
+// Fertilizers
+// =========================
+
+
+const loadFertilizers = async()=>{
+
+ const data =
+   await fertilizerController.getAllFertilizers();
+
+
+ setFertilizers(data);
 
 };
 
 
 
 
-
-
-
-
-// =========================
-// Fertilizers
-// =========================
-
-
 const addFertilizer = async(data)=>{
 
 
  const fertilizer =
-  await fertilizerController.createFertilizer(
-   data
-  );
+   await fertilizerController.createFertilizer(
+     data
+   );
 
 
  setFertilizers(prev=>[
-  ...prev,
-  fertilizer
+   ...prev,
+   fertilizer
  ]);
+
+};
+
+
+
+
+const updateFertilizer =
+async(id,data)=>{
+
+
+ const updated =
+   await fertilizerController.updateFertilizer(
+     id,
+     data
+   );
+
+
+ setFertilizers(prev=>
+
+  prev.map(item=>
+
+   String(item.id)===String(id)
+   ?
+   updated
+   :
+   item
+
+  )
+
+ );
+
 
 };
 
@@ -451,14 +543,18 @@ const deleteFertilizer =
 async(id)=>{
 
 
- await fertilizerController.deleteFertilizer(id);
+ await fertilizerController.deleteFertilizer(
+   id
+ );
 
 
  setFertilizers(prev=>
 
-  prev.filter(
-   item =>
-   String(item.id)!==String(id)
+  prev.filter(item=>
+
+   String(item.id)!==
+   String(id)
+
   )
 
  );
@@ -478,19 +574,65 @@ async(id)=>{
 // =========================
 
 
+const loadPesticides = async()=>{
+
+
+ const data =
+   await pesticideController.getPesticides();
+
+
+ setPesticides(data);
+
+
+};
+
+
+
+
 const addPesticide = async(data)=>{
 
 
  const pesticide =
-  await pesticideController.createPesticide(
-   data
-  );
+   await pesticideController.createPesticide(
+     data
+   );
 
 
  setPesticides(prev=>[
-  ...prev,
-  pesticide
+   ...prev,
+   pesticide
  ]);
+
+};
+
+
+
+
+const updatePesticide =
+async(id,data)=>{
+
+
+ const updated =
+   await pesticideController.updatePesticide(
+     id,
+     data
+   );
+
+
+ setPesticides(prev=>
+
+  prev.map(item=>
+
+   String(item.id)===String(id)
+   ?
+   updated
+   :
+   item
+
+  )
+
+ );
+
 
 };
 
@@ -501,14 +643,18 @@ const deletePesticide =
 async(id)=>{
 
 
- await pesticideController.deletePesticide(id);
+ await pesticideController.deletePesticide(
+   id
+ );
 
 
  setPesticides(prev=>
 
-  prev.filter(
-   item =>
-   String(item.id)!==String(id)
+  prev.filter(item=>
+
+   String(item.id)!==
+   String(id)
+
   )
 
  );
@@ -528,19 +674,65 @@ async(id)=>{
 // =========================
 
 
+const loadDiseases = async()=>{
+
+
+ const data =
+   await diseaseController.getDiseases();
+
+
+ setDiseases(data);
+
+
+};
+
+
+
+
 const addDisease = async(data)=>{
 
 
  const disease =
-  await diseaseController.createDisease(
-   data
-  );
+   await diseaseController.createDisease(
+     data
+   );
 
 
  setDiseases(prev=>[
-  ...prev,
-  disease
+   ...prev,
+   disease
  ]);
+
+};
+
+
+
+
+const updateDisease =
+async(id,data)=>{
+
+
+ const updated =
+   await diseaseController.updateDisease(
+     id,
+     data
+   );
+
+
+ setDiseases(prev=>
+
+  prev.map(item=>
+
+   String(item.id)===String(id)
+   ?
+   updated
+   :
+   item
+
+  )
+
+ );
+
 
 };
 
@@ -551,14 +743,18 @@ const deleteDisease =
 async(id)=>{
 
 
- await diseaseController.deleteDisease(id);
+ await diseaseController.deleteDisease(
+   id
+ );
 
 
  setDiseases(prev=>
 
-  prev.filter(
-   item =>
-   String(item.id)!==String(id)
+  prev.filter(item=>
+
+   String(item.id)!==
+   String(id)
+
   )
 
  );
@@ -573,8 +769,13 @@ async(id)=>{
 
 
 
+// =========================
+// Context Value
+// =========================
+
 
 const value = useMemo(()=>({
+
 
  farms,
  fields,
@@ -583,8 +784,8 @@ const value = useMemo(()=>({
  irrigations,
  fertilizers,
  pesticides,
-
  diseases,
+
 
  expenses,
  harvests,
@@ -626,19 +827,35 @@ const value = useMemo(()=>({
  deleteCrop,
 
 
+
+ loadIrrigations,
+
  addIrrigation,
+ updateIrrigation,
  deleteIrrigation,
 
 
+
+ loadFertilizers,
+
  addFertilizer,
+ updateFertilizer,
  deleteFertilizer,
 
 
+
+ loadPesticides,
+
  addPesticide,
+ updatePesticide,
  deletePesticide,
 
 
+
+ loadDiseases,
+
  addDisease,
+ updateDisease,
  deleteDisease
 
 
@@ -652,8 +869,8 @@ const value = useMemo(()=>({
  irrigations,
  fertilizers,
  pesticides,
-
  diseases,
+
 
  expenses,
  harvests,
@@ -663,6 +880,7 @@ const value = useMemo(()=>({
  aiQuestions
 
 ]);
+
 
 
 
@@ -682,4 +900,4 @@ return (
 );
 
 
-}
+}  
