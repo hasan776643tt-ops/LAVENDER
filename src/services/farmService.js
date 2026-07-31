@@ -1,18 +1,12 @@
-// src/services/farmService.js
+// src/services/storageService.js
 
 
-import farmRepository
-  from "../repositories/farmRepository.js";
+class StorageService {
 
 
+  constructor(prefix = "lavender") {
 
-class FarmService {
-
-
-  constructor() {
-
-    this.repository =
-      farmRepository;
+    this.prefix = prefix;
 
   }
 
@@ -20,20 +14,9 @@ class FarmService {
 
 
 
-  async getAll() {
+  key(name) {
 
-    try {
-
-      return await this.repository.getAll();
-
-
-    } catch (error) {
-
-      throw new Error(
-        `FarmService getAll failed: ${error.message}`
-      );
-
-    }
+    return `${this.prefix}:${name}`;
 
   }
 
@@ -41,170 +24,47 @@ class FarmService {
 
 
 
-  async getById(id) {
+  save(name,data) {
 
     try {
 
-      if (!id) {
 
-        throw new Error(
-          "Farm ID is required"
-        );
+      const payload = {
 
-      }
+        data,
 
-
-      const farm =
-        await this.repository.getById(id);
-
-
-      if (!farm) {
-
-        throw new Error(
-          "Farm not found"
-        );
-
-      }
-
-
-      return farm;
-
-
-    } catch (error) {
-
-      throw new Error(
-        `FarmService getById failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  async create(farmData) {
-
-    try {
-
-      this.validateFarm(
-        farmData
-      );
-
-
-      return await this.repository.create(
-        farmData
-      );
-
-
-    } catch (error) {
-
-      throw new Error(
-        `FarmService create failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  async update(
-    id,
-    farmData
-  ) {
-
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "Farm ID is required"
-        );
-
-      }
-
-
-      const farm =
-        await this.repository.update(
-          id,
-          farmData
-        );
-
-
-      if (!farm) {
-
-        throw new Error(
-          "Farm not found"
-        );
-
-      }
-
-
-      return farm;
-
-
-    } catch (error) {
-
-      throw new Error(
-        `FarmService update failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  async delete(id) {
-
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "Farm ID is required"
-        );
-
-      }
-
-
-      const exists =
-        await this.repository.exists(id);
-
-
-      if (!exists) {
-
-        throw new Error(
-          "Farm not found"
-        );
-
-      }
-
-
-      await this.repository.delete(id);
-
-
-      return {
-
-        success: true,
-
-        message:
-          "Farm deleted successfully"
+        updatedAt:
+          new Date().toISOString()
 
       };
 
 
-    } catch (error) {
 
-      throw new Error(
-        `FarmService delete failed: ${error.message}`
+      localStorage.setItem(
+
+        this.key(name),
+
+        JSON.stringify(payload)
+
       );
+
+
+
+      return true;
+
+
+
+    } catch(error) {
+
+
+      console.error(
+        "Storage Save Error:",
+        error
+      );
+
+
+      return false;
+
 
     }
 
@@ -214,18 +74,52 @@ class FarmService {
 
 
 
-  async count() {
+
+
+  load(name,defaultValue=null) {
+
 
     try {
 
-      return await this.repository.count();
+
+      const value =
+        localStorage.getItem(
+          this.key(name)
+        );
 
 
-    } catch (error) {
 
-      throw new Error(
-        `FarmService count failed: ${error.message}`
+      if (!value) {
+
+        return defaultValue;
+
+      }
+
+
+
+      const parsed =
+        JSON.parse(value);
+
+
+
+      return (
+        parsed.data ??
+        defaultValue
       );
+
+
+
+    } catch(error) {
+
+
+      console.error(
+        "Storage Load Error:",
+        error
+      );
+
+
+      return defaultValue;
+
 
     }
 
@@ -235,27 +129,262 @@ class FarmService {
 
 
 
-  validateFarm(farm) {
 
-    if (!farm) {
 
-      throw new Error(
-        "Farm data is required"
+  exists(name) {
+
+
+    return (
+      localStorage.getItem(
+        this.key(name)
+      ) !== null
+    );
+
+
+  }
+
+
+
+
+
+
+
+  remove(name) {
+
+
+    try {
+
+
+      localStorage.removeItem(
+        this.key(name)
       );
+
+
+      return true;
+
+
+
+    } catch(error) {
+
+
+      console.error(
+        "Storage Remove Error:",
+        error
+      );
+
+
+      return false;
+
+
+    }
+
+  }
+
+
+
+
+
+
+
+  clear() {
+
+
+    try {
+
+
+      Object.keys(localStorage)
+
+      .filter(key =>
+
+        key.startsWith(
+          `${this.prefix}:`
+        )
+
+      )
+
+      .forEach(key =>
+
+        localStorage.removeItem(
+          key
+        )
+
+      );
+
+
+
+      return true;
+
+
+
+    } catch(error) {
+
+
+      return false;
+
 
     }
 
 
-    if (!farm.name?.trim()) {
+  }
 
-      throw new Error(
-        "Farm name is required"
-      );
+
+
+
+
+
+
+  backup() {
+
+
+    const backup = {};
+
+
+
+    Object.keys(localStorage)
+
+    .filter(key =>
+
+      key.startsWith(
+        `${this.prefix}:`
+      )
+
+    )
+
+    .forEach(key => {
+
+
+      try {
+
+
+        backup[key] =
+          JSON.parse(
+            localStorage.getItem(key)
+          );
+
+
+      } catch(error) {
+
+
+        console.error(
+          "Backup Parse Error:",
+          error
+        );
+
+
+      }
+
+
+    });
+
+
+
+    return backup;
+
+
+  }
+
+
+
+
+
+
+
+  restore(data) {
+
+
+    if (!data || typeof data !== "object") {
+
+      return false;
 
     }
 
 
-    return true;
+
+    try {
+
+
+      Object.entries(data)
+
+      .filter(([key]) =>
+
+        key.startsWith(
+          `${this.prefix}:`
+        )
+
+      )
+
+      .forEach(([key,value]) => {
+
+
+        localStorage.setItem(
+
+          key,
+
+          JSON.stringify(value)
+
+        );
+
+
+      });
+
+
+
+      return true;
+
+
+
+    } catch(error) {
+
+
+      console.error(
+        "Storage Restore Error:",
+        error
+      );
+
+
+      return false;
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+  getStats() {
+
+
+    const keys =
+
+      Object.keys(localStorage)
+
+      .filter(key =>
+
+        key.startsWith(
+          `${this.prefix}:`
+        )
+
+      );
+
+
+
+    return {
+
+
+      totalKeys:
+        keys.length,
+
+
+      keys
+
+
+    };
+
 
   }
 
@@ -266,6 +395,9 @@ class FarmService {
 
 
 
-export default Object.freeze(
-  new FarmService()
-);
+export const storageService =
+  new StorageService();
+
+
+
+export default storageService;
