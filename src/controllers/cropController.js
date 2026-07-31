@@ -1,16 +1,24 @@
 // src/controllers/cropController.js
 
-import cropRepository from "../repositories/cropRepository.js";
+import cropRepository
+  from "../repositories/cropRepository.js";
+
+import { cropValidator }
+  from "../validators/cropValidator.js";
+
 
 
 class CropController {
 
 
+
   constructor() {
 
-    this.repository = cropRepository;
+    this.repository =
+      cropRepository;
 
   }
+
 
 
 
@@ -20,6 +28,7 @@ class CropController {
     try {
 
       return await this.repository.getAll();
+
 
     } catch (error) {
 
@@ -34,9 +43,11 @@ class CropController {
 
 
 
+
   async getCropById(id) {
 
     try {
+
 
       if (!id) {
 
@@ -47,8 +58,10 @@ class CropController {
       }
 
 
+
       const crop =
         await this.repository.getById(id);
+
 
 
       if (!crop) {
@@ -60,7 +73,9 @@ class CropController {
       }
 
 
+
       return crop;
+
 
 
     } catch (error) {
@@ -76,11 +91,16 @@ class CropController {
 
 
 
+
   async createCrop(cropData) {
 
     try {
 
-      this.validateCrop(cropData);
+
+      this.validateCrop(
+        cropData
+      );
+
 
 
       return await this.repository.create(
@@ -88,11 +108,14 @@ class CropController {
       );
 
 
+
     } catch (error) {
+
 
       throw new Error(
         `CropController createCrop failed: ${error.message}`
       );
+
 
     }
 
@@ -101,9 +124,11 @@ class CropController {
 
 
 
+
   async updateCrop(id, cropData) {
 
     try {
+
 
       if (!id) {
 
@@ -114,7 +139,11 @@ class CropController {
       }
 
 
-      this.validateCrop(cropData);
+
+      this.validateCrop(
+        cropData
+      );
+
 
 
       const crop =
@@ -122,6 +151,7 @@ class CropController {
           id,
           cropData
         );
+
 
 
       if (!crop) {
@@ -133,14 +163,18 @@ class CropController {
       }
 
 
+
       return crop;
+
 
 
     } catch (error) {
 
+
       throw new Error(
         `CropController updateCrop failed: ${error.message}`
       );
+
 
     }
 
@@ -149,9 +183,11 @@ class CropController {
 
 
 
+
   async deleteCrop(id) {
 
     try {
+
 
       if (!id) {
 
@@ -162,8 +198,10 @@ class CropController {
       }
 
 
+
       const exists =
         await this.repository.exists(id);
+
 
 
       if (!exists) {
@@ -175,12 +213,14 @@ class CropController {
       }
 
 
+
       await this.repository.delete(id);
+
 
 
       return {
 
-        success: true,
+        success:true,
 
         message:
           "Crop deleted successfully"
@@ -188,15 +228,19 @@ class CropController {
       };
 
 
-    } catch (error) {
+
+    } catch(error) {
+
 
       throw new Error(
         `CropController deleteCrop failed: ${error.message}`
       );
 
+
     }
 
   }
+
 
 
 
@@ -207,47 +251,62 @@ class CropController {
 
       return await this.repository.count();
 
-    } catch (error) {
+
+    } catch(error) {
+
 
       throw new Error(
         `CropController countCrops failed: ${error.message}`
       );
 
+
     }
 
   }
+
 
 
 
 
   validateCrop(crop) {
 
-    if (!crop) {
+
+    const result =
+      cropValidator.validate(
+        crop
+      );
+
+
+
+    if (!result.valid) {
+
 
       throw new Error(
-        "Crop data is required"
+
+        JSON.stringify(
+          result.errors
+        )
+
       );
+
 
     }
 
-
-    if (!crop.name?.trim()) {
-
-      throw new Error(
-        "Crop name is required"
-      );
-
-    }
 
 
     return true;
 
+
   }
+
 
 
 }
 
 
+
 export default Object.freeze(
+
   new CropController()
+
 );
