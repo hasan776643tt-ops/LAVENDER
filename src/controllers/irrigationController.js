@@ -7,7 +7,10 @@ import { irrigationValidator }
   from "../validators/irrigationValidator.js";
 
 
+
 class IrrigationController {
+
+
 
   constructor() {
 
@@ -17,105 +20,293 @@ class IrrigationController {
   }
 
 
+
+
+
   async getIrrigations() {
 
-    return await this.repository.getAll();
+    try {
+
+      return await this.repository.getAll();
+
+
+    } catch(error) {
+
+      throw new Error(
+        `IrrigationController getIrrigations failed: ${error.message}`
+      );
+
+    }
 
   }
+
+
+
 
 
   async getIrrigationById(id) {
 
-    if (!id) {
+    try {
+
+
+      if (!id) {
+
+        throw new Error(
+          "Irrigation ID is required"
+        );
+
+      }
+
+
+
+      const irrigation =
+        await this.repository.getById(id);
+
+
+
+      if (!irrigation) {
+
+        throw new Error(
+          "Irrigation not found"
+        );
+
+      }
+
+
+
+      return irrigation;
+
+
+
+    } catch(error) {
+
 
       throw new Error(
-        "Irrigation ID is required"
+        `IrrigationController getIrrigationById failed: ${error.message}`
       );
+
 
     }
 
-    return await this.repository.getById(id);
-
   }
+
+
+
 
 
   async createIrrigation(data) {
 
-    this.validateIrrigation(data);
-
-    return await this.repository.create(
-      data
-    );
-
-  }
+    try {
 
 
-  async updateIrrigation(id, data) {
+      this.validateIrrigation(
+        data
+      );
 
-    if (!id) {
+
+      return await this.repository.create(
+        data
+      );
+
+
+
+    } catch(error) {
+
 
       throw new Error(
-        "Irrigation ID is required"
+        `IrrigationController createIrrigation failed: ${error.message}`
       );
+
 
     }
 
-    this.validateIrrigation(data);
+  }
 
-    return await this.repository.update(
-      id,
-      data
-    );
+
+
+
+
+  async updateIrrigation(id,data) {
+
+    try {
+
+
+      if (!id) {
+
+        throw new Error(
+          "Irrigation ID is required"
+        );
+
+      }
+
+
+
+      this.validateIrrigation(
+        data
+      );
+
+
+
+      const updated =
+        await this.repository.update(
+          id,
+          data
+        );
+
+
+
+      if (!updated) {
+
+        throw new Error(
+          "Irrigation not found"
+        );
+
+      }
+
+
+
+      return updated;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `IrrigationController updateIrrigation failed: ${error.message}`
+      );
+
+
+    }
 
   }
+
+
+
 
 
   async deleteIrrigation(id) {
 
-    if (!id) {
+    try {
+
+
+      if (!id) {
+
+        throw new Error(
+          "Irrigation ID is required"
+        );
+
+      }
+
+
+
+      const exists =
+        await this.repository.exists(id);
+
+
+
+      if (!exists) {
+
+        throw new Error(
+          "Irrigation not found"
+        );
+
+      }
+
+
+
+      await this.repository.delete(
+        id
+      );
+
+
+
+      return {
+
+        success:true,
+
+        message:
+          "Irrigation deleted successfully"
+
+      };
+
+
+
+    } catch(error) {
+
 
       throw new Error(
-        "Irrigation ID is required"
+        `IrrigationController deleteIrrigation failed: ${error.message}`
       );
+
 
     }
 
-    return await this.repository.delete(
-      id
-    );
-
   }
+
+
+
 
 
   async countIrrigations() {
 
-    return await this.repository.count();
+    try {
+
+
+      return await this.repository.count();
+
+
+    } catch(error) {
+
+
+      throw new Error(
+        `IrrigationController countIrrigations failed: ${error.message}`
+      );
+
+
+    }
 
   }
 
 
+
+
+
   validateIrrigation(data) {
+
 
     const result =
       irrigationValidator.validate(
         data
       );
 
+
+
     if (!result.valid) {
 
+
       throw new Error(
+
         JSON.stringify(
           result.errors
         )
+
       );
+
 
     }
 
+
+
     return true;
+
 
   }
 
+
+
 }
+
 
 
 export default Object.freeze(
