@@ -1,6 +1,5 @@
 // src/controllers/pesticideController.js
 
-
 import pesticideRepository
   from "../repositories/pesticideRepository.js";
 
@@ -10,7 +9,6 @@ import { pesticideValidator }
 
 
 class PesticideController {
-
 
 
   constructor() {
@@ -28,17 +26,14 @@ class PesticideController {
 
     try {
 
-
       return await this.repository.getAll();
 
 
     } catch(error) {
 
-
       throw new Error(
         `PesticideController getPesticides failed: ${error.message}`
       );
-
 
     }
 
@@ -84,11 +79,9 @@ class PesticideController {
 
     } catch(error) {
 
-
       throw new Error(
         `PesticideController getPesticideById failed: ${error.message}`
       );
-
 
     }
 
@@ -103,9 +96,7 @@ class PesticideController {
     try {
 
 
-      this.validatePesticide(
-        data
-      );
+      this.validatePesticide(data);
 
 
 
@@ -117,11 +108,9 @@ class PesticideController {
 
     } catch(error) {
 
-
       throw new Error(
         `PesticideController createPesticide failed: ${error.message}`
       );
-
 
     }
 
@@ -131,7 +120,10 @@ class PesticideController {
 
 
 
-  async updatePesticide(id,data) {
+  async updatePesticide(
+    id,
+    data
+  ) {
 
     try {
 
@@ -146,13 +138,11 @@ class PesticideController {
 
 
 
-      this.validatePesticide(
-        data
-      );
+      this.validatePesticide(data);
 
 
 
-      const updated =
+      const pesticide =
         await this.repository.update(
           id,
           data
@@ -160,7 +150,7 @@ class PesticideController {
 
 
 
-      if (!updated) {
+      if (!pesticide) {
 
         throw new Error(
           "Pesticide not found"
@@ -170,17 +160,15 @@ class PesticideController {
 
 
 
-      return updated;
+      return pesticide;
 
 
 
     } catch(error) {
 
-
       throw new Error(
         `PesticideController updatePesticide failed: ${error.message}`
       );
-
 
     }
 
@@ -220,9 +208,7 @@ class PesticideController {
 
 
 
-      await this.repository.delete(
-        id
-      );
+      await this.repository.delete(id);
 
 
 
@@ -239,11 +225,9 @@ class PesticideController {
 
     } catch(error) {
 
-
       throw new Error(
         `PesticideController deletePesticide failed: ${error.message}`
       );
-
 
     }
 
@@ -257,17 +241,14 @@ class PesticideController {
 
     try {
 
-
       return await this.repository.count();
 
 
     } catch(error) {
 
-
       throw new Error(
         `PesticideController countPesticides failed: ${error.message}`
       );
-
 
     }
 
@@ -289,22 +270,17 @@ class PesticideController {
 
     if (!result.valid) {
 
-
       throw new Error(
-
         JSON.stringify(
           result.errors
         )
-
       );
-
 
     }
 
 
 
     return true;
-
 
   }
 
@@ -315,7 +291,5 @@ class PesticideController {
 
 
 export default Object.freeze(
-
   new PesticideController()
-
 );
