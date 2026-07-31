@@ -21,86 +21,24 @@ class WeatherService {
 
 
 
-
-
-  async getAll() {
-
+  async getCurrentWeather(location) {
 
     try {
 
 
-      return await this.repository.getAll();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `WeatherService getAll failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-
-  async getById(id) {
-
-
-    try {
-
-
-      if (!id) {
-
+      if (!location) {
 
         throw new Error(
-
-          "Weather ID is required"
-
+          "Location is required"
         );
-
 
       }
 
 
 
-
-      const weather =
-
-        await this.repository.getById(id);
-
-
-
-
-
-      if (!weather) {
-
-
-        throw new Error(
-
-          "Weather record not found"
-
-        );
-
-
-      }
-
-
-
-
-      return weather;
+      return await this.repository.getCurrentWeather(
+        location
+      );
 
 
 
@@ -109,13 +47,12 @@ class WeatherService {
 
       throw new Error(
 
-        `WeatherService getById failed: ${error.message}`
+        `WeatherService getCurrentWeather failed: ${error.message}`
 
       );
 
 
     }
-
 
   }
 
@@ -125,117 +62,24 @@ class WeatherService {
 
 
 
-
-
-  async create(weatherData) {
-
+  async refreshWeather(location) {
 
     try {
 
 
-      this.validateWeather(
-
-        weatherData
-
-      );
-
-
-
-
-
-      return await this.repository.create(
-
-        weatherData
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `WeatherService create failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-
-  async update(id,weatherData) {
-
-
-    try {
-
-
-      if (!id) {
-
+      if (!location) {
 
         throw new Error(
-
-          "Weather ID is required"
-
+          "Location is required"
         );
-
 
       }
 
 
 
-
-
-      this.validateWeather(
-
-        weatherData
-
+      return await this.repository.refreshWeather(
+        location
       );
-
-
-
-
-
-      const weather =
-
-        await this.repository.update(
-
-          id,
-
-          weatherData
-
-        );
-
-
-
-
-
-      if (!weather) {
-
-
-        throw new Error(
-
-          "Weather record not found"
-
-        );
-
-
-      }
-
-
-
-
-      return weather;
 
 
 
@@ -244,13 +88,12 @@ class WeatherService {
 
       throw new Error(
 
-        `WeatherService update failed: ${error.message}`
+        `WeatherService refreshWeather failed: ${error.message}`
 
       );
 
 
     }
-
 
   }
 
@@ -260,230 +103,30 @@ class WeatherService {
 
 
 
+  validateLocation(location) {
 
 
-  async delete(id) {
+    if (!location) {
 
-
-    try {
-
-
-      if (!id) {
-
-
-        throw new Error(
-
-          "Weather ID is required"
-
-        );
-
-
-      }
-
-
-
-
-
-      const exists =
-
-        await this.repository.exists(id);
-
-
-
-
-
-      if (!exists) {
-
-
-        throw new Error(
-
-          "Weather record not found"
-
-        );
-
-
-      }
-
-
-
-
-
-      await this.repository.delete(
-
-        id
-
-      );
-
-
-
-
-
-      return {
-
-
-        success:true,
-
-
-        message:
-
-          "Weather deleted successfully"
-
-
-      };
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `WeatherService delete failed: ${error.message}`
-
-      );
-
+      return false;
 
     }
 
 
-  }
 
+    if (
 
+      typeof location !== "object" ||
 
+      location.latitude == null ||
 
+      location.longitude == null
 
+    ) {
 
-
-
-
-  async count() {
-
-
-    try {
-
-
-      return await this.repository.count();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `WeatherService count failed: ${error.message}`
-
-      );
-
+      return false;
 
     }
-
-
-  }
-
-
-
-
-
-
-
-
-
-  async getLatest() {
-
-
-    try {
-
-
-      const weather =
-
-        await this.repository.getAll();
-
-
-
-
-
-      if (!weather.length) {
-
-
-        return null;
-
-
-      }
-
-
-
-
-
-      return weather.sort(
-
-        (a,b)=>
-
-          new Date(b.createdAt)
-
-          -
-
-          new Date(a.createdAt)
-
-      )[0];
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `WeatherService getLatest failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-
-  validateWeather(weather) {
-
-
-    if (!weather) {
-
-
-      throw new Error(
-
-        "Weather data is required"
-
-      );
-
-
-    }
-
-
-
-
-
-    if (!weather.location) {
-
-
-      throw new Error(
-
-        "Weather location is required"
-
-      );
-
-
-    }
-
-
 
 
 
@@ -495,8 +138,6 @@ class WeatherService {
 
 
 }
-
-
 
 
 
