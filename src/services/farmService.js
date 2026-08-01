@@ -1,8 +1,7 @@
-// src/services/farmService.js
+ // src/services/farmService.js
 
-
-import storageService
-  from "./storageService.js";
+import farmRepository
+  from "../repositories/farmRepository.js";
 
 
 
@@ -11,8 +10,8 @@ class FarmService {
 
   constructor() {
 
-    this.key =
-      "farms";
+    this.repository =
+      farmRepository;
 
   }
 
@@ -22,13 +21,7 @@ class FarmService {
 
   getAll() {
 
-    return storageService.load(
-
-      this.key,
-
-      []
-
-    );
+    return this.repository.getAll();
 
   }
 
@@ -46,19 +39,7 @@ class FarmService {
     }
 
 
-    const farms =
-      this.getAll();
-
-
-
-    return farms.find(
-
-      farm =>
-
-      String(farm.id) === String(id)
-
-    );
-
+    return this.repository.getById(id);
 
   }
 
@@ -79,47 +60,7 @@ class FarmService {
 
 
 
-    const farms =
-      this.getAll();
-
-
-
-    const farm = {
-
-
-      id:
-        Date.now(),
-
-
-      ...data,
-
-
-      createdAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
-    farms.push(
-      farm
-    );
-
-
-
-    storageService.save(
-
-      this.key,
-
-      farms
-
-    );
-
-
-
-    return farm;
-
+    return this.repository.create(data);
 
   }
 
@@ -127,70 +68,38 @@ class FarmService {
 
 
 
-  update(id,data) {
+  update(id, data) {
 
 
-    const farms =
-      this.getAll();
-
-
-
-    const index =
-
-      farms.findIndex(
-
-        farm =>
-
-        String(farm.id) === String(id)
-
-      );
-
-
-
-    if (index === -1) {
-
+    if (!id) {
 
       throw new Error(
-
-        "Farm not found"
-
+        "Farm id is required"
       );
-
 
     }
 
 
 
-    farms[index] = {
-
-
-      ...farms[index],
-
-
-      ...data,
-
-
-      updatedAt:
-
-        new Date().toISOString()
-
-
-    };
+    const updatedFarm =
+      this.repository.update(
+        id,
+        data
+      );
 
 
 
-    storageService.save(
+    if (!updatedFarm) {
 
-      this.key,
+      throw new Error(
+        "Farm not found"
+      );
 
-      farms
-
-    );
+    }
 
 
 
-    return farms[index];
-
+    return updatedFarm;
 
   }
 
@@ -201,61 +110,32 @@ class FarmService {
   delete(id) {
 
 
-    const farms =
-      this.getAll();
-
-
-
-    const exists =
-
-      farms.some(
-
-        farm =>
-
-        String(farm.id) === String(id)
-
-      );
-
-
-
-    if (!exists) {
-
+    if (!id) {
 
       throw new Error(
-
-        "Farm not found"
-
+        "Farm id is required"
       );
-
 
     }
 
 
 
-    const filtered =
+    const deleted =
+      this.repository.delete(id);
 
-      farms.filter(
 
-        farm =>
 
-        String(farm.id) !== String(id)
+    if (!deleted) {
 
+      throw new Error(
+        "Farm not found"
       );
 
-
-
-    storageService.save(
-
-      this.key,
-
-      filtered
-
-    );
+    }
 
 
 
     return true;
-
 
   }
 
@@ -265,9 +145,7 @@ class FarmService {
 
   count() {
 
-
-    return this.getAll().length;
-
+    return this.repository.count();
 
   }
 
@@ -275,42 +153,14 @@ class FarmService {
 
 
 
-  search(keyword) {
+  exists(id) {
 
-
-    const farms =
-      this.getAll();
-
-
-
-    if (!keyword) {
-
-      return farms;
-
-    }
-
-
-
-    const search =
-
-      keyword.toLowerCase();
-
-
-
-    return farms.filter(
-
-      farm =>
-
-      farm.name
-
-      ?.toLowerCase()
-
-      .includes(search)
-
-    );
-
+    return this.repository.exists(id);
 
   }
+
+
+
 
 
 }
