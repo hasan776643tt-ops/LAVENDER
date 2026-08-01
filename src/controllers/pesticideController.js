@@ -1,20 +1,23 @@
 // src/controllers/pesticideController.js
 
-import pesticideRepository
-  from "../repositories/pesticideRepository.js";
 
-import { pesticideValidator }
-  from "../validators/pesticideValidator.js";
+import pesticideService
+  from "../services/pesticideService.js";
+
+
 
 
 
 class PesticideController {
 
 
+
   constructor() {
 
-    this.repository =
-      pesticideRepository;
+
+    this.service =
+      pesticideService;
+
 
   }
 
@@ -22,20 +25,31 @@ class PesticideController {
 
 
 
-  async getPesticides() {
-
-    try {
-
-      return await this.repository.getAll();
 
 
-    } catch(error) {
+
+  async getPesticides(){
+
+
+    try{
+
+
+      return await this.service.getAll();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `PesticideController getPesticides failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -43,47 +57,35 @@ class PesticideController {
 
 
 
-  async getPesticideById(id) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Pesticide ID is required"
-        );
-
-      }
 
 
 
-      const pesticide =
-        await this.repository.getById(id);
+  async getPesticideById(id){
+
+
+    try{
+
+
+      return await this.service.getById(
+
+        id
+
+      );
 
 
 
-      if (!pesticide) {
+    }catch(error){
 
-        throw new Error(
-          "Pesticide not found"
-        );
-
-      }
-
-
-
-      return pesticide;
-
-
-
-    } catch(error) {
 
       throw new Error(
+
         `PesticideController getPesticideById failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -91,30 +93,40 @@ class PesticideController {
 
 
 
-  async createPesticide(data) {
-
-    try {
-
-
-      this.validatePesticide(data);
 
 
 
-      return await this.repository.create(
+  async createPesticide(data){
+
+
+    try{
+
+
+      return await this.service.create(
+
         data
+
       );
 
 
 
-    } catch(error) {
+    }catch(error){
+
 
       throw new Error(
+
         `PesticideController createPesticide failed: ${error.message}`
+
       );
+
 
     }
 
+
   }
+
+
+
 
 
 
@@ -123,166 +135,106 @@ class PesticideController {
   async updatePesticide(
     id,
     data
-  ) {
+  ){
 
-    try {
 
+    try{
 
-      if (!id) {
 
-        throw new Error(
-          "Pesticide ID is required"
-        );
+      return await this.service.update(
 
-      }
+        id,
 
-
-
-      this.validatePesticide(data);
-
-
-
-      const pesticide =
-        await this.repository.update(
-          id,
-          data
-        );
-
-
-
-      if (!pesticide) {
-
-        throw new Error(
-          "Pesticide not found"
-        );
-
-      }
-
-
-
-      return pesticide;
-
-
-
-    } catch(error) {
-
-      throw new Error(
-        `PesticideController updatePesticide failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  async deletePesticide(id) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Pesticide ID is required"
-        );
-
-      }
-
-
-
-      const exists =
-        await this.repository.exists(id);
-
-
-
-      if (!exists) {
-
-        throw new Error(
-          "Pesticide not found"
-        );
-
-      }
-
-
-
-      await this.repository.delete(id);
-
-
-
-      return {
-
-        success:true,
-
-        message:
-          "Pesticide deleted successfully"
-
-      };
-
-
-
-    } catch(error) {
-
-      throw new Error(
-        `PesticideController deletePesticide failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  async countPesticides() {
-
-    try {
-
-      return await this.repository.count();
-
-
-    } catch(error) {
-
-      throw new Error(
-        `PesticideController countPesticides failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  validatePesticide(data) {
-
-
-    const result =
-      pesticideValidator.validate(
         data
+
       );
 
 
 
-    if (!result.valid) {
+    }catch(error){
+
 
       throw new Error(
-        JSON.stringify(
-          result.errors
-        )
+
+        `PesticideController updatePesticide failed: ${error.message}`
+
       );
+
 
     }
 
 
+  }
 
-    return true;
+
+
+
+
+
+
+
+  async deletePesticide(id){
+
+
+    try{
+
+
+      return await this.service.delete(
+
+        id
+
+      );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `PesticideController deletePesticide failed: ${error.message}`
+
+      );
+
+
+    }
+
 
   }
+
+
+
+
+
+
+
+
+  async countPesticides(){
+
+
+    try{
+
+
+      return await this.service.count();
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `PesticideController countPesticides failed: ${error.message}`
+
+      );
+
+
+    }
+
+
+  }
+
+
 
 
 
@@ -290,6 +242,10 @@ class PesticideController {
 
 
 
+
+
 export default Object.freeze(
+
   new PesticideController()
+
 );
