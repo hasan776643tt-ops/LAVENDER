@@ -1,104 +1,182 @@
 // src/services/userService.js
 
+
 import userRepository
   from "../repositories/userRepository.js";
+
+
+import userValidator
+  from "../validators/userValidator.js";
+
+
+
 
 
 class UserService {
 
 
+
   constructor() {
+
 
     this.repository =
       userRepository;
 
+
+    this.validator =
+      userValidator;
+
+
   }
+
+
 
 
 
 
   async getAll() {
 
+
     try {
+
 
       return await this.repository.getAll();
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
+
         `UserService getAll failed: ${error.message}`
+
       );
+
 
     }
 
+
   }
+
+
+
+
 
 
 
 
   async getById(id) {
 
+
     try {
 
-      if (!id) {
+
+      if(!id){
+
 
         throw new Error(
+
           "User ID is required"
+
         );
 
+
       }
+
+
 
 
       const user =
+
         await this.repository.getById(id);
 
 
-      if (!user) {
+
+
+
+      if(!user){
+
 
         throw new Error(
+
           "User not found"
+
         );
 
+
       }
+
+
 
 
       return user;
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
+
         `UserService getById failed: ${error.message}`
+
       );
+
 
     }
 
+
   }
+
+
+
+
 
 
 
 
   async create(userData) {
 
+
     try {
 
-      this.validateUser(
+
+      this.validator.validate(
+
         userData
+
       );
+
+
 
 
       return await this.repository.create(
+
         userData
+
       );
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
+
         `UserService create failed: ${error.message}`
+
       );
+
 
     }
 
+
   }
+
+
+
+
 
 
 
@@ -106,148 +184,219 @@ class UserService {
   async update(
     id,
     userData
-  ) {
+  ){
+
 
     try {
 
-      if (!id) {
+
+      if(!id){
+
 
         throw new Error(
+
           "User ID is required"
+
         );
+
 
       }
 
 
-      const user =
-        await this.repository.update(
-          id,
-          userData
-        );
 
 
-      if (!user) {
+      this.validator.validate(
 
-        throw new Error(
-          "User not found"
-        );
+        userData
 
-      }
-
-
-      return user;
-
-    } catch (error) {
-
-      throw new Error(
-        `UserService update failed: ${error.message}`
       );
 
+
+
+
+
+      const updatedUser =
+
+        await this.repository.update(
+
+          id,
+
+          userData
+
+        );
+
+
+
+
+
+      if(!updatedUser){
+
+
+        throw new Error(
+
+          "User not found"
+
+        );
+
+
+      }
+
+
+
+
+      return updatedUser;
+
+
+
+    } catch(error) {
+
+
+      throw new Error(
+
+        `UserService update failed: ${error.message}`
+
+      );
+
+
     }
+
 
   }
 
 
 
 
-  async delete(id) {
+
+
+
+
+  async delete(id){
+
 
     try {
 
-      if (!id) {
+
+      if(!id){
+
 
         throw new Error(
+
           "User ID is required"
+
         );
 
+
       }
+
+
+
 
 
       const exists =
+
         await this.repository.exists(id);
 
 
-      if (!exists) {
+
+
+
+      if(!exists){
+
 
         throw new Error(
+
           "User not found"
+
         );
 
+
       }
+
+
+
 
 
       await this.repository.delete(id);
 
 
+
+
+
       return {
 
-        success: true,
+
+        success:true,
+
 
         message:
+
           "User deleted successfully"
+
 
       };
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
+
         `UserService delete failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async count() {
+
+
+
+
+  async count(){
+
 
     try {
 
+
       return await this.repository.count();
 
-    } catch (error) {
+
+
+    } catch(error) {
+
 
       throw new Error(
+
         `UserService count failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  validateUser(user) {
-
-    if (!user) {
-
-      throw new Error(
-        "User data is required"
-      );
-
-    }
-
-
-    if (!user.name?.trim()) {
-
-      throw new Error(
-        "User name is required"
-      );
-
-    }
-
-
-    return true;
-
-  }
 
 
 }
 
 
+
+
+
 export default Object.freeze(
+
   new UserService()
+
 );
