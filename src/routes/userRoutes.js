@@ -1,88 +1,214 @@
 // src/routes/userRoutes.js
 
-import userController from "../controllers/userController.js";
+
+import userController
+  from "../controllers/userController.js";
+
+
+
 
 
 class UserRoutes {
 
-  constructor() {
-    this.controller = userController;
+
+
+  constructor(){
+
+
+    this.controller =
+      userController;
+
+
   }
 
 
-  async getUsers() {
-    try {
+
+
+
+
+
+
+  async getUsers(){
+
+
+    try{
+
+
       return await this.controller.getUsers();
 
-    } catch (error) {
+
+
+    }catch(error){
+
+
       throw new Error(
-        `User routes get failed: ${error.message}`
+
+        `UserRoutes getUsers failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  async getUserById(id) {
-    try {
-      return await this.controller.getUserById(id);
 
-    } catch (error) {
+
+
+
+
+
+  async getUserById(id){
+
+
+    try{
+
+
+      return await this.controller.getUserById(
+
+        id
+
+      );
+
+
+
+    }catch(error){
+
+
       throw new Error(
-        `User routes get by id failed: ${error.message}`
+
+        `UserRoutes getUserById failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  async createUser(userData) {
-    try {
-      return await this.controller.createUser(userData);
 
-    } catch (error) {
+
+
+
+
+
+  async createUser(data){
+
+
+    try{
+
+
+      return await this.controller.createUser(
+
+        data
+
+      );
+
+
+
+    }catch(error){
+
+
       throw new Error(
-        `User routes create failed: ${error.message}`
+
+        `UserRoutes createUser failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  async updateUser(id, data) {
-    try {
-      return await this.controller.updateUser(id, data);
 
-    } catch (error) {
+
+
+
+
+
+  async updateUser(id,data){
+
+
+    try{
+
+
+      return await this.controller.updateUser(
+
+        id,
+
+        data
+
+      );
+
+
+
+    }catch(error){
+
+
       throw new Error(
-        `User routes update failed: ${error.message}`
+
+        `UserRoutes updateUser failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  async deleteUser(id) {
-    try {
-      return await this.controller.deleteUser(id);
 
-    } catch (error) {
+
+
+
+
+
+  async deleteUser(id){
+
+
+    try{
+
+
+      return await this.controller.deleteUser(
+
+        id
+
+      );
+
+
+
+    }catch(error){
+
+
       throw new Error(
-        `User routes delete failed: ${error.message}`
+
+        `UserRoutes deleteUser failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  health() {
-    return {
-      success: true,
-      module: "UserRoutes",
-      version: "1.0.0",
-      status: "Ready",
-      timestamp: new Date().toISOString()
-    };
-  }
 
 }
 
 
+
+
+
 export default Object.freeze(
+
   new UserRoutes()
+
 );
