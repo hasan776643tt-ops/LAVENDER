@@ -6,142 +6,17 @@ import weatherService
 
 
 
+
+
 class WeatherController {
 
 
 
-  async getCurrentWeather(location) {
+  constructor(){
 
-    try {
 
-
-      if (!this.validateLocation(location)) {
-
-        throw new Error(
-          "Invalid location"
-        );
-
-      }
-
-
-
-      const weather =
-        await weatherService.getCurrentWeather(
-          location
-        );
-
-
-
-      return {
-
-        success:true,
-
-        data:weather,
-
-        message:
-          "Weather loaded successfully."
-
-      };
-
-
-
-    } catch(error) {
-
-
-      return this.handleError(error);
-
-
-    }
-
-  }
-
-
-
-
-
-
-
-
-  async refreshWeather(location) {
-
-    try {
-
-
-      if (!this.validateLocation(location)) {
-
-        throw new Error(
-          "Invalid location"
-        );
-
-      }
-
-
-
-      const weather =
-        await weatherService.refreshWeather(
-          location
-        );
-
-
-
-      return {
-
-        success:true,
-
-        data:weather,
-
-        message:
-          "Weather refreshed successfully."
-
-      };
-
-
-
-    } catch(error) {
-
-
-      return this.handleError(error);
-
-
-    }
-
-  }
-
-
-
-
-
-
-
-
-  validateLocation(location) {
-
-
-    if (!location) {
-
-      return false;
-
-    }
-
-
-
-    if (
-
-      typeof location !== "object" ||
-
-      location.latitude == null ||
-
-      location.longitude == null
-
-    ) {
-
-      return false;
-
-    }
-
-
-
-    return true;
+    this.service =
+      weatherService;
 
 
   }
@@ -153,39 +28,78 @@ class WeatherController {
 
 
 
-  handleError(error) {
+  async getCurrentWeather(location){
 
 
-    console.error(
-
-      "[WeatherController]",
-
-      error
-
-    );
+    try{
 
 
+      return await this.service.getCurrentWeather(
 
-    return {
+        location
 
-      success:false,
+      );
 
-      data:null,
 
-      message:
 
-        error.message ||
+    }catch(error){
 
-        "Unexpected weather error."
 
-    };
+      throw new Error(
+
+        `WeatherController getCurrentWeather failed: ${error.message}`
+
+      );
+
+
+    }
 
 
   }
+
+
+
+
+
+
+
+
+  async refreshWeather(location){
+
+
+    try{
+
+
+      return await this.service.refreshWeather(
+
+        location
+
+      );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `WeatherController refreshWeather failed: ${error.message}`
+
+      );
+
+
+    }
+
+
+  }
+
+
 
 
 
 }
+
+
 
 
 
