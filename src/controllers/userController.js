@@ -1,261 +1,245 @@
 // src/controllers/userController.js
 
-import userRepository from "../repositories/userRepository.js";
+
+import userService
+  from "../services/userService.js";
+
+
+
 
 
 class UserController {
 
 
+
   constructor() {
 
-    this.repository = userRepository;
+
+    this.service =
+      userService;
+
 
   }
 
 
 
-  async getUsers() {
 
-    try {
 
-      return await this.repository.getAll();
 
-    } catch (error) {
+
+  async getUsers(){
+
+
+    try{
+
+
+      return await this.service.getAll();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `UserController getUsers failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async getUserById(id) {
-
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "User ID is required"
-        );
-
-      }
 
 
-      const user =
-        await this.repository.getById(id);
 
 
-      if (!user) {
-
-        throw new Error(
-          "User not found"
-        );
-
-      }
+  async getUserById(id){
 
 
-      return user;
+    try{
 
 
-    } catch (error) {
+      return await this.service.getById(id);
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `UserController getUserById failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async createUser(userData) {
-
-    try {
-
-      this.validateUser(userData);
 
 
-      return await this.repository.create(
+
+
+  async createUser(userData){
+
+
+    try{
+
+
+      return await this.service.create(
+
         userData
+
       );
 
 
-    } catch (error) {
+
+    }catch(error){
+
 
       throw new Error(
+
         `UserController createUser failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async updateUser(id, userData) {
-
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "User ID is required"
-        );
-
-      }
 
 
-      this.validateUser(userData);
 
 
-      const user =
-        await this.repository.update(
-          id,
-          userData
-        );
+  async updateUser(
+    id,
+    userData
+  ){
 
 
-      if (!user) {
-
-        throw new Error(
-          "User not found"
-        );
-
-      }
+    try{
 
 
-      return user;
+      return await this.service.update(
+
+        id,
+
+        userData
+
+      );
 
 
-    } catch (error) {
+
+    }catch(error){
+
 
       throw new Error(
+
         `UserController updateUser failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async deleteUser(id) {
-
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "User ID is required"
-        );
-
-      }
 
 
-      const exists =
-        await this.repository.exists(id);
 
 
-      if (!exists) {
-
-        throw new Error(
-          "User not found"
-        );
-
-      }
+  async deleteUser(id){
 
 
-      await this.repository.delete(id);
+    try{
 
 
-      return {
+      return await this.service.delete(
 
-        success: true,
+        id
 
-        message:
-          "User deleted successfully"
-
-      };
+      );
 
 
-    } catch (error) {
+
+    }catch(error){
+
 
       throw new Error(
+
         `UserController deleteUser failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async countUsers() {
 
-    try {
 
-      return await this.repository.count();
 
-    } catch (error) {
+
+  async countUsers(){
+
+
+    try{
+
+
+      return await this.service.count();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `UserController countUsers failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
-
-
-  validateUser(user) {
-
-    if (!user) {
-
-      throw new Error(
-        "User data is required"
-      );
-
-    }
-
-
-    if (!user.name?.trim()) {
-
-      throw new Error(
-        "User name is required"
-      );
-
-    }
-
-
-    if (!user.email?.trim()) {
-
-      throw new Error(
-        "User email is required"
-      );
-
-    }
-
-
-    return true;
-
-  }
 
 
 }
 
 
+
+
+
 export default Object.freeze(
+
   new UserController()
+
 );
