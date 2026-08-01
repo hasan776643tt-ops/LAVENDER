@@ -1,124 +1,312 @@
 // src/routes/authRoutes.js
 
-import userController from "../controllers/userController.js";
+
+import authController
+  from "../controllers/authController.js";
+
+
+
 
 
 class AuthRoutes {
 
-  constructor() {
-    this.controller = userController;
+
+
+  constructor(){
+
+
+    this.controller =
+      authController;
+
+
   }
 
 
-  async login(credentials) {
-    try {
-      return await this.controller.login(credentials);
 
-    } catch (error) {
-      throw new Error(
-        `Auth login failed: ${error.message}`
+
+
+
+
+
+  async login(credentials){
+
+
+    try{
+
+
+      return await this.controller.login(
+
+        credentials
+
       );
-    }
-  }
 
 
-  async register(userData) {
-    try {
-      return await this.controller.register(userData);
 
-    } catch (error) {
+    }catch(error){
+
+
       throw new Error(
-        `Auth register failed: ${error.message}`
+
+        `AuthRoutes login failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  async logout() {
-    try {
+
+
+
+
+
+
+  async register(userData){
+
+
+    try{
+
+
+      return await this.controller.register(
+
+        userData
+
+      );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `AuthRoutes register failed: ${error.message}`
+
+      );
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+
+  async logout(){
+
+
+    try{
+
+
       return await this.controller.logout();
 
-    } catch (error) {
+
+
+    }catch(error){
+
+
       throw new Error(
-        `Auth logout failed: ${error.message}`
+
+        `AuthRoutes logout failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  async updateProfile(userData) {
-    try {
-      return await this.controller.updateProfile(userData);
 
-    } catch (error) {
-      throw new Error(
-        `Profile update failed: ${error.message}`
+
+
+
+
+
+  async updateProfile(userData){
+
+
+    try{
+
+
+      return await this.controller.updateProfile(
+
+        userData
+
       );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `AuthRoutes updateProfile failed: ${error.message}`
+
+      );
+
+
     }
+
+
   }
 
 
-  async changePassword(passwordData) {
-    try {
-      return await this.controller.changePassword(passwordData);
 
-    } catch (error) {
-      throw new Error(
-        `Password change failed: ${error.message}`
+
+
+
+
+
+  async changePassword(passwordData){
+
+
+    try{
+
+
+      return await this.controller.changePassword(
+
+        passwordData
+
       );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `AuthRoutes changePassword failed: ${error.message}`
+
+      );
+
+
     }
+
+
   }
 
 
-  async forgotPassword(email) {
-    try {
-      return await this.controller.forgotPassword(email);
 
-    } catch (error) {
-      throw new Error(
-        `Password reset failed: ${error.message}`
+
+
+
+
+
+  async forgotPassword(email){
+
+
+    try{
+
+
+      return await this.controller.forgotPassword(
+
+        email
+
       );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `AuthRoutes forgotPassword failed: ${error.message}`
+
+      );
+
+
     }
+
+
   }
 
 
-  async isAuthenticated() {
-    try {
+
+
+
+
+
+
+  async isAuthenticated(){
+
+
+    try{
+
+
       return await this.controller.isAuthenticated();
 
-    } catch (error) {
+
+
+    }catch(error){
+
+
       throw new Error(
-        `Authentication check failed: ${error.message}`
+
+        `AuthRoutes isAuthenticated failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  async getCurrentUser() {
-    try {
+
+
+
+
+
+
+  async getCurrentUser(){
+
+
+    try{
+
+
       return await this.controller.getCurrentUser();
 
-    } catch (error) {
+
+
+    }catch(error){
+
+
       throw new Error(
-        `Get current user failed: ${error.message}`
+
+        `AuthRoutes getCurrentUser failed: ${error.message}`
+
       );
+
+
     }
+
+
   }
 
 
-  health() {
-    return {
-      success: true,
-      module: "AuthRoutes",
-      version: "1.0.0",
-      status: "Ready",
-      timestamp: new Date().toISOString()
-    };
-  }
 
 }
 
 
+
+
+
 export default Object.freeze(
+
   new AuthRoutes()
+
 );
