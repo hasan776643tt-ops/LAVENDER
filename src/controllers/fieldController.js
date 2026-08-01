@@ -1,103 +1,127 @@
 // src/controllers/fieldController.js
 
-import fieldRepository from "../repositories/fieldRepository.js";
-import { fieldValidator } from "../validators/fieldValidator.js";
+
+import fieldService
+  from "../services/fieldService.js";
+
+
+
 
 
 class FieldController {
 
 
+
   constructor() {
 
-    this.repository = fieldRepository;
+
+    this.service =
+      fieldService;
+
 
   }
 
 
 
-  async getFields() {
 
-    try {
 
-      return await this.repository.getAll();
 
-    } catch (error) {
+
+
+  async getFields(){
+
+
+    try{
+
+
+      return await this.service.getAll();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `FieldController getFields failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async getFieldById(id) {
-
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "Field ID is required"
-        );
-
-      }
-
-
-      const field =
-        await this.repository.getById(id);
 
 
 
-      if (!field) {
 
-        throw new Error(
-          "Field not found"
-        );
-
-      }
+  async getFieldById(id){
 
 
-      return field;
+    try{
 
 
-    } catch (error) {
+      return await this.service.getById(
+
+        id
+
+      );
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `FieldController getFieldById failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
 
 
 
-  async createField(fieldData) {
-
-    try {
-
-
-      this.validateField(fieldData);
 
 
 
-      return await this.repository.create(
+
+  async createField(fieldData){
+
+
+    try{
+
+
+      return await this.service.create(
+
         fieldData
+
       );
 
 
-    } catch (error) {
+
+    }catch(error){
+
 
       throw new Error(
+
         `FieldController createField failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -105,54 +129,40 @@ class FieldController {
 
 
 
-  async updateField(id, fieldData) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Field ID is required"
-        );
-
-      }
 
 
 
-      this.validateField(fieldData);
+  async updateField(
+    id,
+    fieldData
+  ){
+
+
+    try{
+
+
+      return await this.service.update(
+
+        id,
+
+        fieldData
+
+      );
 
 
 
-      const field =
-        await this.repository.update(
-          id,
-          fieldData
-        );
+    }catch(error){
 
-
-
-      if (!field) {
-
-        throw new Error(
-          "Field not found"
-        );
-
-      }
-
-
-
-      return field;
-
-
-
-    } catch (error) {
 
       throw new Error(
+
         `FieldController updateField failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -160,54 +170,35 @@ class FieldController {
 
 
 
-  async deleteField(id) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Field ID is required"
-        );
-
-      }
 
 
 
-      const deleted =
-        await this.repository.delete(id);
+  async deleteField(id){
+
+
+    try{
+
+
+      return await this.service.delete(
+
+        id
+
+      );
 
 
 
-      if (!deleted) {
+    }catch(error){
 
-        throw new Error(
-          "Field not found"
-        );
-
-      }
-
-
-
-      return {
-
-        success: true,
-
-        message:
-          "Field deleted successfully"
-
-      };
-
-
-
-    } catch (error) {
 
       throw new Error(
+
         `FieldController deleteField failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -215,43 +206,25 @@ class FieldController {
 
 
 
-  async countFields() {
-
-    try {
-
-      return await this.repository.count();
 
 
-    } catch (error) {
+
+  async countFields(){
+
+
+    try{
+
+
+      return await this.service.count();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `FieldController countFields failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  validateField(field) {
-
-
-    const result =
-      fieldValidator.validate(field);
-
-
-
-    if (!result.valid) {
-
-
-      throw new Error(
-
-        JSON.stringify(
-          result.errors
-        )
 
       );
 
@@ -259,11 +232,10 @@ class FieldController {
     }
 
 
-
-    return true;
-
-
   }
+
+
+
 
 
 }
@@ -273,5 +245,7 @@ class FieldController {
 
 
 export default Object.freeze(
+
   new FieldController()
+
 );
