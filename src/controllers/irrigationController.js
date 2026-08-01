@@ -1,10 +1,10 @@
 // src/controllers/irrigationController.js
 
-import irrigationRepository
-  from "../repositories/irrigationRepository.js";
 
-import { irrigationValidator }
-  from "../validators/irrigationValidator.js";
+import irrigationService
+  from "../services/irrigationService.js";
+
+
 
 
 
@@ -14,8 +14,10 @@ class IrrigationController {
 
   constructor() {
 
-    this.repository =
-      irrigationRepository;
+
+    this.service =
+      irrigationService;
+
 
   }
 
@@ -23,20 +25,31 @@ class IrrigationController {
 
 
 
-  async getIrrigations() {
-
-    try {
-
-      return await this.repository.getAll();
 
 
-    } catch(error) {
+
+  async getIrrigations(){
+
+
+    try{
+
+
+      return await this.service.getAll();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `IrrigationController getIrrigations failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -44,203 +57,35 @@ class IrrigationController {
 
 
 
-  async getIrrigationById(id) {
 
-    try {
 
 
-      if (!id) {
+  async getIrrigationById(id){
 
-        throw new Error(
-          "Irrigation ID is required"
-        );
 
-      }
+    try{
 
 
+      return await this.service.getById(
 
-      const irrigation =
-        await this.repository.getById(id);
-
-
-
-      if (!irrigation) {
-
-        throw new Error(
-          "Irrigation not found"
-        );
-
-      }
-
-
-
-      return irrigation;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `IrrigationController getIrrigationById failed: ${error.message}`
-      );
-
-
-    }
-
-  }
-
-
-
-
-
-  async createIrrigation(data) {
-
-    try {
-
-
-      this.validateIrrigation(
-        data
-      );
-
-
-      return await this.repository.create(
-        data
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `IrrigationController createIrrigation failed: ${error.message}`
-      );
-
-
-    }
-
-  }
-
-
-
-
-
-  async updateIrrigation(id,data) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Irrigation ID is required"
-        );
-
-      }
-
-
-
-      this.validateIrrigation(
-        data
-      );
-
-
-
-      const updated =
-        await this.repository.update(
-          id,
-          data
-        );
-
-
-
-      if (!updated) {
-
-        throw new Error(
-          "Irrigation not found"
-        );
-
-      }
-
-
-
-      return updated;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `IrrigationController updateIrrigation failed: ${error.message}`
-      );
-
-
-    }
-
-  }
-
-
-
-
-
-  async deleteIrrigation(id) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Irrigation ID is required"
-        );
-
-      }
-
-
-
-      const exists =
-        await this.repository.exists(id);
-
-
-
-      if (!exists) {
-
-        throw new Error(
-          "Irrigation not found"
-        );
-
-      }
-
-
-
-      await this.repository.delete(
         id
+
       );
 
 
 
-      return {
-
-        success:true,
-
-        message:
-          "Irrigation deleted successfully"
-
-      };
-
-
-
-    } catch(error) {
+    }catch(error){
 
 
       throw new Error(
-        `IrrigationController deleteIrrigation failed: ${error.message}`
+
+        `IrrigationController getIrrigationById failed: ${error.message}`
+
       );
 
 
     }
+
 
   }
 
@@ -248,48 +93,29 @@ class IrrigationController {
 
 
 
-  async countIrrigations() {
-
-    try {
-
-
-      return await this.repository.count();
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `IrrigationController countIrrigations failed: ${error.message}`
-      );
-
-
-    }
-
-  }
 
 
 
+  async createIrrigation(data){
 
 
-  validateIrrigation(data) {
+    try{
 
 
-    const result =
-      irrigationValidator.validate(
+      return await this.service.create(
+
         data
+
       );
 
 
 
-    if (!result.valid) {
+    }catch(error){
 
 
       throw new Error(
 
-        JSON.stringify(
-          result.errors
-        )
+        `IrrigationController createIrrigation failed: ${error.message}`
 
       );
 
@@ -297,11 +123,118 @@ class IrrigationController {
     }
 
 
+  }
 
-    return true;
+
+
+
+
+
+
+
+  async updateIrrigation(
+    id,
+    data
+  ){
+
+
+    try{
+
+
+      return await this.service.update(
+
+        id,
+
+        data
+
+      );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `IrrigationController updateIrrigation failed: ${error.message}`
+
+      );
+
+
+    }
 
 
   }
+
+
+
+
+
+
+
+
+  async deleteIrrigation(id){
+
+
+    try{
+
+
+      return await this.service.delete(
+
+        id
+
+      );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `IrrigationController deleteIrrigation failed: ${error.message}`
+
+      );
+
+
+    }
+
+
+  }
+
+
+
+
+
+
+
+
+  async countIrrigations(){
+
+
+    try{
+
+
+      return await this.service.count();
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `IrrigationController countIrrigations failed: ${error.message}`
+
+      );
+
+
+    }
+
+
+  }
+
+
 
 
 
@@ -309,6 +242,10 @@ class IrrigationController {
 
 
 
+
+
 export default Object.freeze(
+
   new IrrigationController()
+
 );
