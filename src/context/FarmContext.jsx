@@ -28,6 +28,9 @@ import pesticideController
 import diseaseController
   from "../controllers/diseaseController.js";
 
+import expenseController
+  from "../controllers/expenseController.js";
+
 
 
 // =========================
@@ -379,12 +382,7 @@ async(id)=>{
  );
 
 
-};
-
-
-
-
-// =========================
+};  // =========================
 // Irrigation
 // =========================
 
@@ -471,7 +469,16 @@ async(id)=>{
  );
 
 
-};  // =========================
+};
+
+
+
+
+
+
+
+
+// =========================
 // Fertilizers
 // =========================
 
@@ -770,6 +777,114 @@ async(id)=>{
 
 
 // =========================
+// Expenses
+// =========================
+
+
+const loadExpenses = async()=>{
+
+
+ const data =
+   await expenseController.getExpenses();
+
+
+ setExpenses(data);
+
+
+};
+
+
+
+
+const addExpense = async(data)=>{
+
+
+ const expense =
+   await expenseController.createExpense(
+     data
+   );
+
+
+ setExpenses(prev=>[
+
+   ...prev,
+
+   expense
+
+ ]);
+
+
+};
+
+
+
+
+const updateExpense =
+async(id,data)=>{
+
+
+ const updated =
+   await expenseController.updateExpense(
+     id,
+     data
+   );
+
+
+ setExpenses(prev=>
+
+  prev.map(item=>
+
+   String(item.id)===String(id)
+
+   ?
+
+   updated
+
+   :
+
+   item
+
+  )
+
+ );
+
+
+};
+
+
+
+
+const deleteExpense =
+async(id)=>{
+
+
+ await expenseController.deleteExpense(
+   id
+ );
+
+
+ setExpenses(prev=>
+
+  prev.filter(item=>
+
+   String(item.id)!==
+   String(id)
+
+  )
+
+ );
+
+
+};
+
+
+
+
+
+
+
+
+// =========================
 // Context Value
 // =========================
 
@@ -856,7 +971,15 @@ const value = useMemo(()=>({
 
  addDisease,
  updateDisease,
- deleteDisease
+ deleteDisease,
+
+
+
+ loadExpenses,
+
+ addExpense,
+ updateExpense,
+ deleteExpense
 
 
 
@@ -900,4 +1023,4 @@ return (
 );
 
 
-}  
+}
