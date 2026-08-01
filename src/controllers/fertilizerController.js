@@ -1,20 +1,23 @@
 // src/controllers/fertilizerController.js
 
-import fertilizerRepository
-  from "../repositories/fertilizerRepository.js";
 
-import { fertilizerValidator }
-  from "../validators/fertilizerValidator.js";
+import fertilizerService
+  from "../services/fertilizerService.js";
+
+
 
 
 
 class FertilizerController {
 
 
+
   constructor() {
 
-    this.repository =
-      fertilizerRepository;
+
+    this.service =
+      fertilizerService;
+
 
   }
 
@@ -22,20 +25,31 @@ class FertilizerController {
 
 
 
-  async getAllFertilizers() {
-
-    try {
-
-      return await this.repository.getAll();
 
 
-    } catch(error) {
+
+  async getAllFertilizers(){
+
+
+    try{
+
+
+      return await this.service.getAll();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `FertilizerController getAllFertilizers failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -43,47 +57,35 @@ class FertilizerController {
 
 
 
-  async getFertilizerById(id) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Fertilizer ID is required"
-        );
-
-      }
 
 
 
-      const fertilizer =
-        await this.repository.getById(id);
+  async getFertilizerById(id){
+
+
+    try{
+
+
+      return await this.service.getById(
+
+        id
+
+      );
 
 
 
-      if (!fertilizer) {
+    }catch(error){
 
-        throw new Error(
-          "Fertilizer not found"
-        );
-
-      }
-
-
-
-      return fertilizer;
-
-
-
-    } catch(error) {
 
       throw new Error(
+
         `FertilizerController getFertilizerById failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -91,30 +93,40 @@ class FertilizerController {
 
 
 
-  async createFertilizer(data) {
-
-    try {
-
-
-      this.validateFertilizer(data);
 
 
 
-      return await this.repository.create(
+  async createFertilizer(data){
+
+
+    try{
+
+
+      return await this.service.create(
+
         data
+
       );
 
 
 
-    } catch(error) {
+    }catch(error){
+
 
       throw new Error(
+
         `FertilizerController createFertilizer failed: ${error.message}`
+
       );
+
 
     }
 
+
   }
+
+
+
 
 
 
@@ -123,176 +135,106 @@ class FertilizerController {
   async updateFertilizer(
     id,
     data
-  ) {
+  ){
 
 
-    try {
+    try{
 
 
-      if (!id) {
+      return await this.service.update(
 
-        throw new Error(
-          "Fertilizer ID is required"
-        );
+        id,
 
-      }
-
-
-
-      this.validateFertilizer(data);
-
-
-
-      const fertilizer =
-        await this.repository.update(
-          id,
-          data
-        );
-
-
-
-      if (!fertilizer) {
-
-        throw new Error(
-          "Fertilizer not found"
-        );
-
-      }
-
-
-
-      return fertilizer;
-
-
-
-    } catch(error) {
-
-      throw new Error(
-        `FertilizerController updateFertilizer failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  async deleteFertilizer(id) {
-
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Fertilizer ID is required"
-        );
-
-      }
-
-
-
-      const exists =
-        await this.repository.exists(id);
-
-
-
-      if (!exists) {
-
-        throw new Error(
-          "Fertilizer not found"
-        );
-
-      }
-
-
-
-      await this.repository.delete(id);
-
-
-
-      return {
-
-        success:true,
-
-        message:
-          "Fertilizer deleted successfully"
-
-      };
-
-
-
-    } catch(error) {
-
-      throw new Error(
-        `FertilizerController deleteFertilizer failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-
-  async countFertilizers() {
-
-
-    try {
-
-
-      return await this.repository.count();
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `FertilizerController countFertilizers failed: ${error.message}`
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-  validateFertilizer(data) {
-
-
-    const result =
-      fertilizerValidator.validate(
         data
+
       );
 
 
 
-    if (!result.valid) {
+    }catch(error){
 
 
       throw new Error(
-        JSON.stringify(
-          result.errors
-        )
+
+        `FertilizerController updateFertilizer failed: ${error.message}`
+
       );
 
 
     }
 
 
+  }
 
-    return true;
+
+
+
+
+
+
+
+  async deleteFertilizer(id){
+
+
+    try{
+
+
+      return await this.service.delete(
+
+        id
+
+      );
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `FertilizerController deleteFertilizer failed: ${error.message}`
+
+      );
+
+
+    }
 
 
   }
+
+
+
+
+
+
+
+
+  async countFertilizers(){
+
+
+    try{
+
+
+      return await this.service.count();
+
+
+
+    }catch(error){
+
+
+      throw new Error(
+
+        `FertilizerController countFertilizers failed: ${error.message}`
+
+      );
+
+
+    }
+
+
+  }
+
+
 
 
 
@@ -300,6 +242,10 @@ class FertilizerController {
 
 
 
+
+
 export default Object.freeze(
+
   new FertilizerController()
+
 );
