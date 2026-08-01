@@ -1,14 +1,25 @@
 const appConfig = {
   appName: "LAVENDER",
+  fullName: "LAVENDER Smart Farm",
   appDescription: "Smart Farm Management System",
 
   version: "1.0.0",
 
+  language: "ar",
+
   api: {
-    baseURL: ""
+    baseURL: "",
+    timeout: 10000
   },
 
-  language: "ar",
+  storage: {
+    prefix: "lavender_"
+  },
+
+  brand: {
+    primary: "green",
+    secondary: "lavender"
+  },
 
   modules: {
     farms: true,
@@ -22,7 +33,10 @@ const appConfig = {
     map: true,
     reports: true,
     ai: true,
-    engineer: true
+    engineer: true,
+    harvest: true,
+    inventory: true,
+    expenses: true
   }
 };
 
