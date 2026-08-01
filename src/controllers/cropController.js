@@ -1,10 +1,10 @@
 // src/controllers/cropController.js
 
-import cropRepository
-  from "../repositories/cropRepository.js";
 
-import { cropValidator }
-  from "../validators/cropValidator.js";
+import cropService
+  from "../services/cropService.js";
+
+
 
 
 
@@ -14,8 +14,10 @@ class CropController {
 
   constructor() {
 
-    this.repository =
-      cropRepository;
+
+    this.service =
+      cropService;
+
 
   }
 
@@ -23,20 +25,31 @@ class CropController {
 
 
 
-  async getCrops() {
-
-    try {
-
-      return await this.repository.getAll();
 
 
-    } catch (error) {
+
+  async getCrops(){
+
+
+    try{
+
+
+      return await this.service.getAll();
+
+
+
+    }catch(error){
+
 
       throw new Error(
+
         `CropController getCrops failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -44,47 +57,35 @@ class CropController {
 
 
 
-  async getCropById(id) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Crop ID is required"
-        );
-
-      }
 
 
 
-      const crop =
-        await this.repository.getById(id);
+  async getCropById(id){
+
+
+    try{
+
+
+      return await this.service.getById(
+
+        id
+
+      );
 
 
 
-      if (!crop) {
+    }catch(error){
 
-        throw new Error(
-          "Crop not found"
-        );
-
-      }
-
-
-
-      return crop;
-
-
-
-    } catch (error) {
 
       throw new Error(
+
         `CropController getCropById failed: ${error.message}`
+
       );
 
+
     }
+
 
   }
 
@@ -92,32 +93,35 @@ class CropController {
 
 
 
-  async createCrop(cropData) {
-
-    try {
 
 
-      this.validateCrop(
+
+  async createCrop(cropData){
+
+
+    try{
+
+
+      return await this.service.create(
+
         cropData
+
       );
 
 
 
-      return await this.repository.create(
-        cropData
-      );
-
-
-
-    } catch (error) {
+    }catch(error){
 
 
       throw new Error(
+
         `CropController createCrop failed: ${error.message}`
+
       );
 
 
     }
+
 
   }
 
@@ -125,58 +129,40 @@ class CropController {
 
 
 
-  async updateCrop(id, cropData) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Crop ID is required"
-        );
-
-      }
 
 
 
-      this.validateCrop(
+  async updateCrop(
+    id,
+    cropData
+  ){
+
+
+    try{
+
+
+      return await this.service.update(
+
+        id,
+
         cropData
+
       );
 
 
 
-      const crop =
-        await this.repository.update(
-          id,
-          cropData
-        );
-
-
-
-      if (!crop) {
-
-        throw new Error(
-          "Crop not found"
-        );
-
-      }
-
-
-
-      return crop;
-
-
-
-    } catch (error) {
+    }catch(error){
 
 
       throw new Error(
+
         `CropController updateCrop failed: ${error.message}`
+
       );
 
 
     }
+
 
   }
 
@@ -184,60 +170,35 @@ class CropController {
 
 
 
-  async deleteCrop(id) {
-
-    try {
-
-
-      if (!id) {
-
-        throw new Error(
-          "Crop ID is required"
-        );
-
-      }
 
 
 
-      const exists =
-        await this.repository.exists(id);
+  async deleteCrop(id){
+
+
+    try{
+
+
+      return await this.service.delete(
+
+        id
+
+      );
 
 
 
-      if (!exists) {
-
-        throw new Error(
-          "Crop not found"
-        );
-
-      }
-
-
-
-      await this.repository.delete(id);
-
-
-
-      return {
-
-        success:true,
-
-        message:
-          "Crop deleted successfully"
-
-      };
-
-
-
-    } catch(error) {
+    }catch(error){
 
 
       throw new Error(
+
         `CropController deleteCrop failed: ${error.message}`
+
       );
 
 
     }
+
 
   }
 
@@ -245,47 +206,25 @@ class CropController {
 
 
 
-  async countCrops() {
-
-    try {
-
-      return await this.repository.count();
 
 
-    } catch(error) {
+
+  async countCrops(){
+
+
+    try{
+
+
+      return await this.service.count();
+
+
+
+    }catch(error){
 
 
       throw new Error(
+
         `CropController countCrops failed: ${error.message}`
-      );
-
-
-    }
-
-  }
-
-
-
-
-
-  validateCrop(crop) {
-
-
-    const result =
-      cropValidator.validate(
-        crop
-      );
-
-
-
-    if (!result.valid) {
-
-
-      throw new Error(
-
-        JSON.stringify(
-          result.errors
-        )
 
       );
 
@@ -293,15 +232,15 @@ class CropController {
     }
 
 
-
-    return true;
-
-
   }
+
+
 
 
 
 }
+
+
 
 
 
