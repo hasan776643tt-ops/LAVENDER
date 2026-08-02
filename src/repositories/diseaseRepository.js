@@ -1,233 +1,248 @@
+
 // src/repositories/diseaseRepository.js
 
-import storageService from "../services/storageService.js";
+
+import storageService
+from "../services/storageService.js";
+
 
 
 class DiseaseRepository {
 
 
-  constructor() {
 
-    this.key = "diseases";
+constructor(){
+
+  this.key =
+  "diseases";
+
+}
+
+
+
+
+async getAll(){
+
+  return storageService.load(
+    this.key,
+    []
+  );
+
+}
+
+
+
+
+async getById(id){
+
+
+  if(!id){
+
+    return null;
 
   }
 
 
 
-  getAll() {
-
-    return storageService.load(
-      this.key,
-      []
-    );
-
-  }
+  const diseases =
+  await this.getAll();
 
 
 
-
-
-  getById(id) {
-
-    if (!id) {
-
-      return null;
-
-    }
-
-
-    return this.getAll().find(
+  return (
+    diseases.find(
 
       disease =>
 
-        String(disease.id)
-        ===
-        String(id)
+      String(disease.id)
+      ===
+      String(id)
 
-    ) || null;
+    )
+    || null
+  );
 
+
+}
+
+
+
+
+async create(data){
+
+
+  if(!data){
+
+    throw new Error(
+      "Disease data is required"
+    );
+
+  }
+
+
+
+  const diseases =
+  await this.getAll();
+
+
+
+  const disease = {
+
+
+    id:
+    Date.now().toString(),
+
+
+    ...data,
+
+
+    createdAt:
+    new Date().toISOString(),
+
+
+    updatedAt:
+    new Date().toISOString()
+
+
+  };
+
+
+
+  diseases.push(
+    disease
+  );
+
+
+
+  storageService.save(
+
+    this.key,
+
+    diseases
+
+  );
+
+
+
+  return disease;
+
+
+}
+
+
+
+
+async update(id,data){
+
+
+  if(!id){
+
+    throw new Error(
+      "Disease id is required"
+    );
+
+  }
+
+
+
+  const diseases =
+  await this.getAll();
+
+
+
+  const index =
+  diseases.findIndex(
+
+    disease =>
+
+    String(disease.id)
+    ===
+    String(id)
+
+  );
+
+
+
+  if(index === -1){
+
+    return null;
 
   }
 
 
 
 
+  const updated = {
 
-  create(data) {
 
+    ...diseases[index],
 
-    if (!data) {
 
-      throw new Error(
-        "Disease data is required"
-      );
+    ...data,
 
-    }
 
+    id:
+    diseases[index].id,
 
 
-    const diseases =
-      this.getAll();
+    updatedAt:
+    new Date().toISOString()
 
 
+  };
 
-    const disease = {
 
 
-      id:
-        Date.now().toString(),
+  diseases[index] =
+  updated;
 
 
 
-      ...data,
+  storageService.save(
 
+    this.key,
 
+    diseases
 
-      createdAt:
-        new Date().toISOString(),
+  );
 
 
 
-      updatedAt:
-        new Date().toISOString()
+  return updated;
 
 
-    };
+}
 
 
 
-    diseases.push(
-      disease
-    );
 
+async delete(id){
 
 
-    storageService.save(
+  const diseases =
+  await this.getAll();
 
-      this.key,
 
-      diseases
 
-    );
+  const filtered =
+  diseases.filter(
 
+    disease =>
 
+    String(disease.id)
+    !==
+    String(id)
 
-    return disease;
+  );
 
 
-  }
 
+  const deleted =
+  filtered.length !== diseases.length;
 
 
 
-
-  update(id,data) {
-
-
-    const diseases =
-      this.getAll();
-
-
-
-    const index =
-      diseases.findIndex(
-
-        disease =>
-
-          String(disease.id)
-          ===
-          String(id)
-
-      );
-
-
-
-    if (index === -1) {
-
-      return null;
-
-    }
-
-
-
-    const updated = {
-
-
-      ...diseases[index],
-
-
-      ...data,
-
-
-
-      id:
-        diseases[index].id,
-
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
-    diseases[index] =
-      updated;
-
-
-
-    storageService.save(
-
-      this.key,
-
-      diseases
-
-    );
-
-
-
-    return updated;
-
-
-  }
-
-
-
-
-
-  delete(id) {
-
-
-    const diseases =
-      this.getAll();
-
-
-
-    const filtered =
-
-      diseases.filter(
-
-        disease =>
-
-          String(disease.id)
-          !==
-          String(id)
-
-      );
-
-
-
-    if (
-      filtered.length ===
-      diseases.length
-    ) {
-
-      return false;
-
-    }
-
+  if(deleted){
 
 
     storageService.save(
@@ -239,39 +254,41 @@ class DiseaseRepository {
     );
 
 
-
-    return true;
-
-
   }
 
 
 
+  return deleted;
 
 
-  exists(id) {
-
-
-    return Boolean(
-
-      this.getById(id)
-
-    );
-
-
-  }
+}
 
 
 
 
+async exists(id){
 
-  count() {
+  return Boolean(
+    await this.getById(id)
+  );
+
+}
 
 
-    return this.getAll().length;
 
 
-  }
+async count(){
+
+
+  const diseases =
+  await this.getAll();
+
+
+  return diseases.length;
+
+
+}
+
 
 
 }
@@ -279,7 +296,5 @@ class DiseaseRepository {
 
 
 export default Object.freeze(
-
   new DiseaseRepository()
-
 );
