@@ -1,240 +1,136 @@
 // src/controllers/farmController.js
 
-
 import farmService
-  from "../services/farmService.js";
-
-
+from "../services/farmService.js";
 
 
 
 class FarmController {
 
 
+constructor(){
 
-  constructor() {
+ this.service =
+ farmService;
 
+}
 
-    this.service =
-      farmService;
 
 
-  }
 
+async getAll(){
 
+ try{
 
+  return await this.service.getAll();
 
+ }catch(error){
 
+  throw new Error(
+   `FarmController getAll failed: ${error.message}`
+  );
 
+ }
 
+}
 
-  async getFarms(){
 
 
-    try{
 
+async getById(id){
 
-      return await this.service.getAll();
+ try{
 
+  return await this.service.getById(id);
 
+ }catch(error){
 
-    }catch(error){
+  throw new Error(
+   `FarmController getById failed: ${error.message}`
+  );
 
+ }
 
-      throw new Error(
+}
 
-        `FarmController getFarms failed: ${error.message}`
 
-      );
 
 
-    }
+async create(data){
 
+ try{
 
-  }
+  return await this.service.create(data);
 
+ }catch(error){
 
+  throw new Error(
+   `FarmController create failed: ${error.message}`
+  );
 
+ }
 
+}
 
 
 
 
-  async getFarmById(id){
+async update(id,data){
 
+ try{
 
-    try{
+  return await this.service.update(
+   id,
+   data
+  );
 
+ }catch(error){
 
-      return await this.service.getById(
+  throw new Error(
+   `FarmController update failed: ${error.message}`
+  );
 
-        id
+ }
 
-      );
+}
 
 
 
-    }catch(error){
 
+async remove(id){
 
-      throw new Error(
+ try{
 
-        `FarmController getFarmById failed: ${error.message}`
+  return await this.service.delete(id);
 
-      );
+ }catch(error){
 
+  throw new Error(
+   `FarmController remove failed: ${error.message}`
+  );
 
-    }
+ }
 
+}
 
-  }
 
 
 
+async count(){
 
+ try{
 
+  return await this.service.count();
 
+ }catch(error){
 
+  throw new Error(
+   `FarmController count failed: ${error.message}`
+  );
 
-  async createFarm(farmData){
+ }
 
-
-    try{
-
-
-      return await this.service.create(
-
-        farmData
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FarmController createFarm failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  async updateFarm(
-    id,
-    farmData
-  ){
-
-
-    try{
-
-
-      return await this.service.update(
-
-        id,
-
-        farmData
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FarmController updateFarm failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  async deleteFarm(id){
-
-
-    try{
-
-
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FarmController deleteFarm failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  async countFarms(){
-
-
-    try{
-
-
-      return await this.service.count();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FarmController countFarms failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
+}
 
 
 
@@ -242,10 +138,6 @@ class FarmController {
 
 
 
-
-
 export default Object.freeze(
-
-  new FarmController()
-
+ new FarmController()
 );
