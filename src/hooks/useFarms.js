@@ -1,78 +1,105 @@
-import { useContext, useMemo } from "react";
+// src/hooks/useFarms.js
 
-import { FarmContext } from "../context/FarmContext";
+import {
+  useContext,
+  useMemo
+} from "react";
+
+
+import {
+  FarmContext
+} from "../context/FarmContext";
+
 
 
 export default function useFarms() {
 
 
+  const context =
+    useContext(FarmContext);
+
+
+
+  if (!context) {
+
+    throw new Error(
+      "useFarms must be used inside FarmProvider"
+    );
+
+  }
+
+
+
   const {
+
     farms = [],
-    setFarms,
-  } = useContext(FarmContext);
+
+    farmActions
+
+  } = context;
 
 
 
-  // إضافة مزرعة
-  const addFarm = (farm) => {
 
-    const newFarm = {
+  const statistics = useMemo(() => {
 
-      id: Date.now(),
 
-      createdAt:
-      new Date()
-      .toISOString(),
+    return {
 
-      status: "active",
+      total:
+        farms.length,
 
-      ...farm,
+
+      active:
+        farms.filter(
+          farm =>
+            farm.status === "active"
+        ).length,
+
+
+      inactive:
+        farms.filter(
+          farm =>
+            farm.status === "inactive"
+        ).length
 
     };
 
 
-    setFarms([
-      ...farms,
-      newFarm
-    ]);
+  }, [farms]);
+
+
+
+
+
+
+  const addFarm = async (data) => {
+
+
+    return await farmActions.create(
+      data
+    );
+
 
   };
 
 
 
 
-  // تعديل مزرعة
-  const updateFarm = (
+
+
+
+  const updateFarm = async (
     id,
     data
   ) => {
 
 
-    setFarms(
-
-      farms.map(
-        farm =>
-
-        farm.id === id
-
-        ?
-
-        {
-          ...farm,
-          ...data,
-
-          updatedAt:
-          new Date()
-          .toISOString()
-        }
-
-        :
-
-        farm
-
-      )
-
+    return await farmActions.update(
+      id,
+      data
     );
+
 
   };
 
@@ -80,18 +107,15 @@ export default function useFarms() {
 
 
 
-  // حذف مزرعة
-  const deleteFarm = (id)=>{
 
 
-    setFarms(
+  const deleteFarm = async (id) => {
 
-      farms.filter(
-        farm =>
-        farm.id !== id
-      )
 
+    return await farmActions.remove(
+      id
     );
+
 
   };
 
@@ -99,55 +123,46 @@ export default function useFarms() {
 
 
 
-  // البحث
-  const searchFarms = (text)=>{
+
+
+  const getFarms = async () => {
+
+
+    return await farmActions.load();
+
+
+  };
+
+
+
+
+
+
+
+  const searchFarms = (
+    text = ""
+  ) => {
+
+
+    const value =
+      text.toLowerCase();
+
 
 
     return farms.filter(
 
       farm =>
 
-      farm.name
-      ?.toLowerCase()
-      .includes(
-        text.toLowerCase()
-      )
+        farm.name
+        ?.toLowerCase()
+        .includes(value)
 
     );
+
 
   };
 
 
-
-
-
-  // إحصائيات المزارع
-  const statistics = useMemo(()=>{
-
-
-    return {
-
-      total:
-      farms.length,
-
-
-      active:
-      farms.filter(
-        farm =>
-        farm.status === "active"
-      ).length,
-
-
-      inactive:
-      farms.filter(
-        farm =>
-        farm.status === "inactive"
-      ).length,
-
-    };
-
-
-  },[farms]);
 
 
 
@@ -163,10 +178,13 @@ export default function useFarms() {
 
     deleteFarm,
 
+    getFarms,
+
     searchFarms,
 
-    statistics,
+    statistics
 
   };
+
 
 }
