@@ -119,6 +119,23 @@ class InventoryController {
   }
 
 
+  async exists(id) {
+
+    try {
+
+      return await this.service.exists(id);
+
+    } catch (error) {
+
+      throw new Error(
+        `InventoryController exists failed: ${error.message}`
+      );
+
+    }
+
+  }
+
+
 }
 
 
