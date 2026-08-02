@@ -5,35 +5,132 @@ import inventoryRepository from "../repositories/inventoryRepository.js";
 
 class InventoryService {
 
-  constructor(repository) {
 
-    this.repository = repository;
-
+  constructor() {
+    this.repository = inventoryRepository;
   }
 
 
-  getAll() {
+  async getAll() {
 
     return this.repository.getAll();
 
   }
 
 
-  getById(id) {
+  async getById(id) {
 
     if (!id) {
-
-      return null;
-
+      throw new Error(
+        "Inventory id is required"
+      );
     }
 
 
-    return this.repository.getById(id);
+    const item =
+      await this.repository.getById(id);
+
+
+    if (!item) {
+      throw new Error(
+        "Inventory item not found"
+      );
+    }
+
+
+    return item;
 
   }
 
 
-  create(data) {
+  async create(data) {
+
+    this.validateInventory(data);
+
+
+    return this.repository.create(data);
+
+  }
+
+
+  async update(id, data) {
+
+    if (!id) {
+      throw new Error(
+        "Inventory id is required"
+      );
+    }
+
+
+    this.validateInventory(data);
+
+
+    const updatedItem =
+      await this.repository.update(
+        id,
+        data
+      );
+
+
+    if (!updatedItem) {
+      throw new Error(
+        "Inventory item not found"
+      );
+    }
+
+
+    return updatedItem;
+
+  }
+
+
+  async delete(id) {
+
+    if (!id) {
+      throw new Error(
+        "Inventory id is required"
+      );
+    }
+
+
+    const deleted =
+      await this.repository.delete(id);
+
+
+    if (!deleted) {
+      throw new Error(
+        "Inventory item not found"
+      );
+    }
+
+
+    return true;
+
+  }
+
+
+  async exists(id) {
+
+    if (!id) {
+      throw new Error(
+        "Inventory id is required"
+      );
+    }
+
+
+    return this.repository.exists(id);
+
+  }
+
+
+  async count() {
+
+    return this.repository.count();
+
+  }
+
+
+  validateInventory(data) {
 
     if (!data || typeof data !== "object") {
 
@@ -44,104 +141,15 @@ class InventoryService {
     }
 
 
-    return this.repository.create(data);
-
-  }
-
-
-  update(id, data) {
-
-    if (!id) {
-
-      throw new Error(
-        "Inventory id is required"
-      );
-
-    }
-
-
-    if (!data || typeof data !== "object") {
-
-      throw new Error(
-        "Inventory update data is required"
-      );
-
-    }
-
-
-    const updatedItem =
-      this.repository.update(
-        id,
-        data
-      );
-
-
-    if (!updatedItem) {
-
-      throw new Error(
-        "Inventory item not found"
-      );
-
-    }
-
-
-    return updatedItem;
-
-  }
-
-
-  delete(id) {
-
-    if (!id) {
-
-      throw new Error(
-        "Inventory id is required"
-      );
-
-    }
-
-
-    const deleted =
-      this.repository.delete(id);
-
-
-    if (!deleted) {
-
-      throw new Error(
-        "Inventory item not found"
-      );
-
-    }
-
-
     return true;
 
   }
 
-
-  exists(id) {
-
-    return this.repository.exists(id);
-
-  }
-
-
-  count() {
-
-    return this.repository.count();
-
-  }
-
-
 }
 
 
-// Singleton Service
-
 const inventoryService =
-  new InventoryService(
-    inventoryRepository
-  );
+new InventoryService();
 
 
 export default Object.freeze(
