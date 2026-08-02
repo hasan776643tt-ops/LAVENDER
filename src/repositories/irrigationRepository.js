@@ -1,232 +1,247 @@
+
 // src/repositories/irrigationRepository.js
 
-import storageService from "../services/storageService.js";
+
+import storageService
+from "../services/storageService.js";
+
 
 
 class IrrigationRepository {
 
 
-  constructor() {
 
-    this.key = "irrigations";
+constructor(){
+
+  this.key =
+  "irrigations";
+
+}
+
+
+
+
+async getAll(){
+
+  return storageService.load(
+    this.key,
+    []
+  );
+
+}
+
+
+
+
+async getById(id){
+
+
+  if(!id){
+
+    return null;
 
   }
 
 
 
-  getAll() {
-
-    return storageService.load(
-      this.key,
-      []
-    );
-
-  }
+  const irrigations =
+  await this.getAll();
 
 
 
-
-
-  getById(id) {
-
-    if (!id) {
-
-      return null;
-
-    }
-
-
-    return this.getAll().find(
+  return (
+    irrigations.find(
 
       irrigation =>
+      String(irrigation.id)
+      ===
+      String(id)
 
-        String(irrigation.id) === String(id)
+    )
+    || null
+  );
 
-    ) || null;
 
+}
+
+
+
+
+async create(data){
+
+
+  if(!data){
+
+    throw new Error(
+      "Irrigation data is required"
+    );
+
+  }
+
+
+
+  const irrigations =
+  await this.getAll();
+
+
+
+  const irrigation = {
+
+
+    id:
+    Date.now().toString(),
+
+
+    ...data,
+
+
+    createdAt:
+    new Date().toISOString(),
+
+
+    updatedAt:
+    new Date().toISOString()
+
+
+  };
+
+
+
+  irrigations.push(
+    irrigation
+  );
+
+
+
+  storageService.save(
+
+    this.key,
+
+    irrigations
+
+  );
+
+
+
+  return irrigation;
+
+
+}
+
+
+
+
+async update(id,data){
+
+
+  if(!id){
+
+    throw new Error(
+      "Irrigation id is required"
+    );
+
+  }
+
+
+
+  const irrigations =
+  await this.getAll();
+
+
+
+  const index =
+  irrigations.findIndex(
+
+    irrigation =>
+
+    String(irrigation.id)
+    ===
+    String(id)
+
+  );
+
+
+
+  if(index === -1){
+
+    return null;
 
   }
 
 
 
 
+  const updated = {
 
-  create(data) {
 
+    ...irrigations[index],
 
-    if (!data) {
 
-      throw new Error(
-        "Irrigation data is required"
-      );
+    ...data,
 
-    }
 
+    id:
+    irrigations[index].id,
 
 
-    const irrigations =
-      this.getAll();
+    updatedAt:
+    new Date().toISOString()
 
 
+  };
 
-    const irrigation = {
 
 
-      id:
-        Date.now().toString(),
+  irrigations[index] =
+  updated;
 
 
 
-      ...data,
+  storageService.save(
 
+    this.key,
 
+    irrigations
 
-      createdAt:
-        new Date().toISOString(),
+  );
 
 
 
-      updatedAt:
-        new Date().toISOString()
+  return updated;
 
 
-    };
+}
 
 
 
-    irrigations.push(
-      irrigation
-    );
 
+async delete(id){
 
 
-    storageService.save(
+  const irrigations =
+  await this.getAll();
 
-      this.key,
 
-      irrigations
 
-    );
+  const filtered =
+  irrigations.filter(
 
+    irrigation =>
 
+    String(irrigation.id)
+    !==
+    String(id)
 
-    return irrigation;
+  );
 
 
-  }
 
+  const deleted =
+  filtered.length !== irrigations.length;
 
 
 
-
-  update(id,data) {
-
-
-    const irrigations =
-      this.getAll();
-
-
-
-    const index =
-      irrigations.findIndex(
-
-        irrigation =>
-
-          String(irrigation.id)
-          ===
-          String(id)
-
-      );
-
-
-
-    if (index === -1) {
-
-      return null;
-
-    }
-
-
-
-
-    const updated = {
-
-
-      ...irrigations[index],
-
-
-      ...data,
-
-
-
-      id:
-        irrigations[index].id,
-
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
-    irrigations[index] =
-      updated;
-
-
-
-    storageService.save(
-
-      this.key,
-
-      irrigations
-
-    );
-
-
-
-    return updated;
-
-
-  }
-
-
-
-
-
-  delete(id) {
-
-
-    const irrigations =
-      this.getAll();
-
-
-
-    const filtered =
-
-      irrigations.filter(
-
-        irrigation =>
-
-          String(irrigation.id)
-          !==
-          String(id)
-
-      );
-
-
-
-    if (
-      filtered.length ===
-      irrigations.length
-    ) {
-
-      return false;
-
-    }
-
+  if(deleted){
 
 
     storageService.save(
@@ -238,39 +253,41 @@ class IrrigationRepository {
     );
 
 
-
-    return true;
-
-
   }
 
 
 
+  return deleted;
 
 
-  exists(id) {
-
-
-    return Boolean(
-
-      this.getById(id)
-
-    );
-
-
-  }
+}
 
 
 
 
+async exists(id){
 
-  count() {
+  return Boolean(
+    await this.getById(id)
+  );
+
+}
 
 
-    return this.getAll().length;
 
 
-  }
+async count(){
+
+
+  const irrigations =
+  await this.getAll();
+
+
+  return irrigations.length;
+
+
+}
+
 
 
 }
@@ -278,7 +295,5 @@ class IrrigationRepository {
 
 
 export default Object.freeze(
-
   new IrrigationRepository()
-
 );
