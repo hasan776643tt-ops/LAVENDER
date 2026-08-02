@@ -1,8 +1,6 @@
 // src/controllers/harvestController.js
 
-import harvestService
-  from "../services/harvestService.js";
-
+import harvestService from "../services/harvestService.js";
 
 
 class HarvestController {
@@ -10,216 +8,70 @@ class HarvestController {
 
   constructor() {
 
-    this.service =
-      harvestService;
+    this.service = harvestService;
 
   }
 
 
+  async getAll() {
 
-
-
-  async getHarvests() {
-
-
-    try {
-
-
-      return await this.service.getAll();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `HarvestController getHarvests failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getAll();
 
   }
 
 
+  async getById(id) {
 
-
-
-  async getHarvestById(id) {
-
-
-    try {
-
-
-      return await this.service.getById(
-
-        id
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `HarvestController getHarvestById failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getById(id);
 
   }
 
 
+  async create(data) {
 
-
-
-  async createHarvest(harvestData) {
-
-
-    try {
-
-
-      return await this.service.create(
-
-        harvestData
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `HarvestController createHarvest failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.create(data);
 
   }
 
 
+  async update(id, data) {
 
-
-
-  async updateHarvest(
-    id,
-    harvestData
-  ) {
-
-
-    try {
-
-
-      return await this.service.update(
-
-        id,
-
-        harvestData
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `HarvestController updateHarvest failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.update(
+      id,
+      data
+    );
 
   }
 
 
+  async delete(id) {
 
-
-
-  async deleteHarvest(id) {
-
-
-    try {
-
-
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `HarvestController deleteHarvest failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.delete(id);
 
   }
 
 
+  async count() {
 
-
-
-  async countHarvests() {
-
-
-    try {
-
-
-      return await this.service.count();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `HarvestController countHarvests failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.count();
 
   }
 
 
+  async exists(id) {
 
+    return this.service.exists(id);
+
+  }
 
 
 }
 
 
+const harvestController =
+new HarvestController();
+
 
 export default Object.freeze(
-
-  new HarvestController()
-
+  harvestController
 );
