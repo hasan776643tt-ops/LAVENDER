@@ -2,11 +2,34 @@
 
 
 // ===============================
-// Local Storage Manager
+// LAVENDER Storage Manager
 // ===============================
 
 
-// حفظ بيانات
+const PREFIX =
+  "lavender_";
+
+
+
+
+// ===============================
+// Create Storage Key
+// ===============================
+
+const createKey = (key) => {
+
+  return PREFIX + key;
+
+};
+
+
+
+
+// ===============================
+// Save Data
+// حفظ البيانات
+// ===============================
+
 export const saveData = (
   key,
   data
@@ -14,19 +37,35 @@ export const saveData = (
 
   try {
 
+    if(
+      typeof localStorage === "undefined"
+    ){
+
+      return false;
+
+    }
+
+
     localStorage.setItem(
-      key,
+
+      createKey(key),
+
       JSON.stringify(data)
+
     );
+
 
     return true;
 
+
   } catch(error) {
 
+
     console.error(
-      "Storage Save Error:",
+      "LAVENDER Storage Save Error:",
       error
     );
+
 
     return false;
 
@@ -36,34 +75,61 @@ export const saveData = (
 
 
 
+
 // ===============================
-// قراءة بيانات
+// Get Data
+// قراءة البيانات
 // ===============================
 
 export const getData = (
+
   key,
-  defaultValue = []
+
+  defaultValue = null
+
 ) => {
+
 
   try {
 
+
+    if(
+      typeof localStorage === "undefined"
+    ){
+
+      return defaultValue;
+
+    }
+
+
+
     const data =
-      localStorage.getItem(key);
+
+      localStorage.getItem(
+        createKey(key)
+      );
+
 
 
     return data
+
       ? JSON.parse(data)
+
       : defaultValue;
+
 
 
   } catch(error) {
 
+
     console.error(
-      "Storage Read Error:",
+      "LAVENDER Storage Read Error:",
       error
     );
 
+
     return defaultValue;
+
 
   }
 
@@ -71,7 +137,9 @@ export const getData = (
 
 
 
+
 // ===============================
+// Remove Data
 // حذف بيانات
 // ===============================
 
@@ -79,50 +147,92 @@ export const removeData = (
   key
 ) => {
 
-  localStorage.removeItem(
-    key
-  );
+
+  if(
+    typeof localStorage !== "undefined"
+  ){
+
+    localStorage.removeItem(
+      createKey(key)
+    );
+
+  }
 
 };
 
 
 
+
 // ===============================
-// مسح كل التخزين
+// Clear LAVENDER Storage
+// مسح بيانات التطبيق فقط
 // ===============================
 
 export const clearStorage = () => {
 
-  localStorage.clear();
+
+  if(
+    typeof localStorage === "undefined"
+  ){
+
+    return;
+
+  }
+
+
+
+  Object.keys(
+    localStorage
+  )
+  .filter(
+    key =>
+    key.startsWith(PREFIX)
+  )
+  .forEach(
+    key =>
+    localStorage.removeItem(key)
+  );
+
 
 };
 
 
 
+
 // ===============================
-// تحديث عنصر
+// Update Data
+// تحديث بيانات
 // ===============================
 
 export const updateData = (
+
   key,
+
   callback
+
 ) => {
 
+
   const oldData =
+
     getData(
       key,
       []
     );
 
 
+
   const newData =
+
     callback(oldData);
+
 
 
   saveData(
     key,
     newData
   );
+
 
 
   return newData;
