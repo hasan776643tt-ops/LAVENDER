@@ -1,233 +1,248 @@
+
 // src/repositories/fertilizerRepository.js
 
-import storageService from "../services/storageService.js";
+
+import storageService
+from "../services/storageService.js";
+
 
 
 class FertilizerRepository {
 
 
-  constructor() {
 
-    this.key = "fertilizers";
+constructor(){
+
+  this.key =
+  "fertilizers";
+
+}
+
+
+
+
+async getAll(){
+
+  return storageService.load(
+    this.key,
+    []
+  );
+
+}
+
+
+
+
+async getById(id){
+
+
+  if(!id){
+
+    return null;
 
   }
 
 
 
-  getAll() {
-
-    return storageService.load(
-      this.key,
-      []
-    );
-
-  }
+  const fertilizers =
+  await this.getAll();
 
 
 
-
-
-  getById(id) {
-
-    if (!id) {
-
-      return null;
-
-    }
-
-
-    return this.getAll().find(
+  return (
+    fertilizers.find(
 
       fertilizer =>
 
-        String(fertilizer.id)
-        ===
-        String(id)
+      String(fertilizer.id)
+      ===
+      String(id)
 
-    ) || null;
+    )
+    || null
+  );
 
+
+}
+
+
+
+
+async create(data){
+
+
+  if(!data){
+
+    throw new Error(
+      "Fertilizer data is required"
+    );
+
+  }
+
+
+
+  const fertilizers =
+  await this.getAll();
+
+
+
+  const fertilizer = {
+
+
+    id:
+    Date.now().toString(),
+
+
+    ...data,
+
+
+    createdAt:
+    new Date().toISOString(),
+
+
+    updatedAt:
+    new Date().toISOString()
+
+
+  };
+
+
+
+  fertilizers.push(
+    fertilizer
+  );
+
+
+
+  storageService.save(
+
+    this.key,
+
+    fertilizers
+
+  );
+
+
+
+  return fertilizer;
+
+
+}
+
+
+
+
+async update(id,data){
+
+
+  if(!id){
+
+    throw new Error(
+      "Fertilizer id is required"
+    );
+
+  }
+
+
+
+  const fertilizers =
+  await this.getAll();
+
+
+
+  const index =
+  fertilizers.findIndex(
+
+    fertilizer =>
+
+    String(fertilizer.id)
+    ===
+    String(id)
+
+  );
+
+
+
+  if(index === -1){
+
+    return null;
 
   }
 
 
 
 
+  const updated = {
 
-  create(data) {
 
+    ...fertilizers[index],
 
-    if (!data) {
 
-      throw new Error(
-        "Fertilizer data is required"
-      );
+    ...data,
 
-    }
 
+    id:
+    fertilizers[index].id,
 
 
-    const fertilizers =
-      this.getAll();
+    updatedAt:
+    new Date().toISOString()
 
 
+  };
 
-    const fertilizer = {
 
 
-      id:
-        Date.now().toString(),
+  fertilizers[index] =
+  updated;
 
 
 
-      ...data,
+  storageService.save(
 
+    this.key,
 
+    fertilizers
 
-      createdAt:
-        new Date().toISOString(),
+  );
 
 
 
-      updatedAt:
-        new Date().toISOString()
+  return updated;
 
 
-    };
+}
 
 
 
-    fertilizers.push(
-      fertilizer
-    );
 
+async delete(id){
 
 
-    storageService.save(
+  const fertilizers =
+  await this.getAll();
 
-      this.key,
 
-      fertilizers
 
-    );
+  const filtered =
+  fertilizers.filter(
 
+    fertilizer =>
 
+    String(fertilizer.id)
+    !==
+    String(id)
 
-    return fertilizer;
+  );
 
 
-  }
 
+  const deleted =
+  filtered.length !== fertilizers.length;
 
 
 
-
-  update(id,data) {
-
-
-    const fertilizers =
-      this.getAll();
-
-
-
-    const index =
-      fertilizers.findIndex(
-
-        fertilizer =>
-
-          String(fertilizer.id)
-          ===
-          String(id)
-
-      );
-
-
-
-    if (index === -1) {
-
-      return null;
-
-    }
-
-
-
-    const updated = {
-
-
-      ...fertilizers[index],
-
-
-      ...data,
-
-
-
-      id:
-        fertilizers[index].id,
-
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
-    fertilizers[index] =
-      updated;
-
-
-
-    storageService.save(
-
-      this.key,
-
-      fertilizers
-
-    );
-
-
-
-    return updated;
-
-
-  }
-
-
-
-
-
-  delete(id) {
-
-
-    const fertilizers =
-      this.getAll();
-
-
-
-    const filtered =
-
-      fertilizers.filter(
-
-        fertilizer =>
-
-          String(fertilizer.id)
-          !==
-          String(id)
-
-      );
-
-
-
-    if (
-      filtered.length ===
-      fertilizers.length
-    ) {
-
-      return false;
-
-    }
-
+  if(deleted){
 
 
     storageService.save(
@@ -239,39 +254,41 @@ class FertilizerRepository {
     );
 
 
-
-    return true;
-
-
   }
 
 
 
+  return deleted;
 
 
-  exists(id) {
-
-
-    return Boolean(
-
-      this.getById(id)
-
-    );
-
-
-  }
+}
 
 
 
 
+async exists(id){
 
-  count() {
+  return Boolean(
+    await this.getById(id)
+  );
+
+}
 
 
-    return this.getAll().length;
 
 
-  }
+async count(){
+
+
+  const fertilizers =
+  await this.getAll();
+
+
+  return fertilizers.length;
+
+
+}
+
 
 
 }
@@ -279,7 +296,5 @@ class FertilizerRepository {
 
 
 export default Object.freeze(
-
   new FertilizerRepository()
-
 );
