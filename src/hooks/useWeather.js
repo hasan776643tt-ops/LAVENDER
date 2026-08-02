@@ -1,7 +1,14 @@
+// src/hooks/useWeather.js
+
 import {
   useState,
-  useCallback,
+  useCallback
 } from "react";
+
+
+import weatherService
+from "../services/weatherService.js";
+
 
 
 export default function useWeather() {
@@ -11,8 +18,10 @@ export default function useWeather() {
     useState(null);
 
 
+
   const [loading, setLoading] =
     useState(false);
+
 
 
   const [error, setError] =
@@ -20,8 +29,12 @@ export default function useWeather() {
 
 
 
-  // جلب الطقس حسب إحداثيات المزرعة
+
+
+
+
   const getWeather = useCallback(
+
     async (
       latitude,
       longitude
@@ -30,114 +43,50 @@ export default function useWeather() {
 
       try {
 
+
         setLoading(true);
 
         setError(null);
 
 
 
-        /*
-          هنا يتم ربط API الطقس الحقيقي
-
-          latitude  = خط العرض
-          longitude = خط الطول
-        */
-
-
-        const response =
-          await fetch(
-            `YOUR_WEATHER_API_URL`
-          );
-
-
-        if(!response.ok){
-
-          throw new Error(
-            "فشل جلب بيانات الطقس"
-          );
-
-        }
-
-
-
         const data =
-          await response.json();
 
-
-
-        const smartWeather = {
-
-
-          location: {
+          await weatherService.getWeather(
 
             latitude,
 
-            longitude,
+            longitude
 
-          },
-
-
-          temperature:
-
-          data.temperature ?? null,
-
-
-          humidity:
-
-          data.humidity ?? null,
-
-
-          windSpeed:
-
-          data.windSpeed ?? null,
-
-
-          pressure:
-
-          data.pressure ?? null,
-
-
-          rainChance:
-
-          data.rainChance ?? null,
+          );
 
 
 
-          condition:
-
-          data.condition ?? "unknown",
+        setWeather(data);
 
 
 
-          updatedAt:
-
-          new Date()
-          .toISOString()
-
-        };
+        return data;
 
 
 
-        setWeather(
-          smartWeather
-        );
+      } catch(error) {
 
-
-      }
-
-
-      catch(err){
 
         setError(
-          err.message
+          error.message
         );
 
-      }
+
+        throw error;
 
 
-      finally{
+
+      } finally {
+
 
         setLoading(false);
+
 
       }
 
@@ -152,43 +101,68 @@ export default function useWeather() {
 
 
 
-  // تقييم زراعي ذكي
+
+
   const farmAdvice = useCallback(
-    ()=>{
+
+    () => {
 
 
-      if(!weather)
+      if (!weather) {
+
         return null;
 
+      }
 
 
-      if(
+
+
+      if (
+
+        weather.humidity !== null &&
+
         weather.humidity < 30
-      ){
+
+      ) {
+
 
         return "الرطوبة منخفضة، يفضل فحص الري";
 
+
       }
 
 
 
-      if(
+
+
+      if (
+
+        weather.rainChance !== null &&
+
         weather.rainChance > 70
-      ){
+
+      ) {
+
 
         return "احتمال أمطار مرتفع، راقب عمليات الري";
 
+
       }
+
+
 
 
 
       return "الظروف الجوية مناسبة";
+
 
     },
 
     [weather]
 
   );
+
+
 
 
 
@@ -209,7 +183,7 @@ export default function useWeather() {
     getWeather,
 
 
-    farmAdvice,
+    farmAdvice
 
 
   };
