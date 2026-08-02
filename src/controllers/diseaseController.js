@@ -1,287 +1,84 @@
 // src/controllers/diseaseController.js
 
-
-import diseaseService
-  from "../services/diseaseService.js";
-
-
-
+import diseaseService from "../services/diseaseService.js";
 
 
 class DiseaseController {
 
 
-
   constructor() {
 
-
-    this.service =
-      diseaseService;
-
+    this.service = diseaseService;
 
   }
 
 
+  async getAll() {
 
-
-
-
-
-
-  async getDiseases(){
-
-
-    try{
-
-
-      return await this.service.getAll();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `DiseaseController getDiseases failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getAll();
 
   }
 
 
+  async getById(id) {
 
-
-
-
-
-
-  async getDiseaseById(id){
-
-
-    try{
-
-
-      return await this.service.getById(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `DiseaseController getDiseaseById failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getById(id);
 
   }
 
 
+  async create(data) {
 
-
-
-
-
-
-  async createDisease(data){
-
-
-    try{
-
-
-      return await this.service.create(
-
-        data
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `DiseaseController createDisease failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.create(data);
 
   }
 
 
+  async update(id, data) {
 
-
-
-
-
-
-  async updateDisease(
-    id,
-    data
-  ){
-
-
-    try{
-
-
-      return await this.service.update(
-
-        id,
-
-        data
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `DiseaseController updateDisease failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.update(
+      id,
+      data
+    );
 
   }
 
 
+  async delete(id) {
 
-
-
-
-
-
-  async deleteDisease(id){
-
-
-    try{
-
-
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `DiseaseController deleteDisease failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.delete(id);
 
   }
 
 
+  async count() {
 
-
-
-
-
-
-  async countDiseases(){
-
-
-    try{
-
-
-      return await this.service.count();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `DiseaseController countDiseases failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.count();
 
   }
 
 
+  async exists(id) {
 
-
-
-
-
-
-  async searchDiseases(keyword){
-
-
-    try{
-
-
-      return await this.service.search(
-
-        keyword
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `DiseaseController searchDiseases failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.exists(id);
 
   }
 
 
+  async search(keyword) {
 
+    return this.service.search(keyword);
+
+  }
 
 
 }
 
 
-
+const diseaseController =
+new DiseaseController();
 
 
 export default Object.freeze(
-
-  new DiseaseController()
-
+  diseaseController
 );
