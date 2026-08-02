@@ -1,429 +1,185 @@
 // src/services/pesticideService.js
 
-
-import pesticideRepository
-  from "../repositories/pesticideRepository.js";
-
+import pesticideRepository from "../repositories/pesticideRepository.js";
 
 
 class PesticideService {
 
 
-
   constructor() {
-
-    this.repository =
-      pesticideRepository;
-
+    this.repository = pesticideRepository;
   }
-
-
-
 
 
   async getAll() {
 
-
-    try {
-
-
-      return await this.repository.getAll();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `PesticideService getAll failed: ${error.message}`
-      );
-
-
-    }
-
+    return this.repository.getAll();
 
   }
-
-
-
 
 
   async getById(id) {
 
-
-    try {
-
-
-      if (!id) {
-
-
-        throw new Error(
-          "Pesticide ID is required"
-        );
-
-
-      }
-
-
-
-      const pesticide =
-
-        await this.repository.getById(id);
-
-
-
-
-      if (!pesticide) {
-
-
-        throw new Error(
-          "Pesticide not found"
-        );
-
-
-      }
-
-
-
-
-      return pesticide;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `PesticideService getById failed: ${error.message}`
-      );
-
-
+    if (!id) {
+      throw new Error("Pesticide id is required");
     }
 
 
+    const pesticide =
+      await this.repository.getById(id);
+
+
+    if (!pesticide) {
+      throw new Error("Pesticide not found");
+    }
+
+
+    return pesticide;
+
   }
-
-
-
 
 
   async create(data) {
 
-
-    try {
-
-
-      this.validatePesticide(data);
+    this.validatePesticide(data);
 
 
+    return this.repository.create(data);
 
-      return await this.repository.create(
+  }
+
+
+  async update(id, data) {
+
+    if (!id) {
+      throw new Error("Pesticide id is required");
+    }
+
+
+    this.validatePesticide(data);
+
+
+    const updatedPesticide =
+      await this.repository.update(
+        id,
         data
       );
 
 
-
-    } catch(error) {
-
-
-      throw new Error(
-        `PesticideService create failed: ${error.message}`
-      );
-
-
+    if (!updatedPesticide) {
+      throw new Error("Pesticide not found");
     }
 
 
-  }
-
-
-
-
-
-  async update(id,data) {
-
-
-    try {
-
-
-      if (!id) {
-
-
-        throw new Error(
-          "Pesticide ID is required"
-        );
-
-
-      }
-
-
-
-      this.validatePesticide(data);
-
-
-
-      const pesticide =
-
-        await this.repository.update(
-          id,
-          data
-        );
-
-
-
-
-      if (!pesticide) {
-
-
-        throw new Error(
-          "Pesticide not found"
-        );
-
-
-      }
-
-
-
-
-      return pesticide;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `PesticideService update failed: ${error.message}`
-      );
-
-
-    }
-
+    return updatedPesticide;
 
   }
-
-
-
 
 
   async delete(id) {
 
-
-    try {
-
-
-      if (!id) {
+    if (!id) {
+      throw new Error("Pesticide id is required");
+    }
 
 
-        throw new Error(
-          "Pesticide ID is required"
-        );
-
-
-      }
-
-
-
-
-      const exists =
-
-        await this.repository.exists(id);
-
-
-
-
-      if (!exists) {
-
-
-        throw new Error(
-          "Pesticide not found"
-        );
-
-
-      }
-
-
-
-
+    const deleted =
       await this.repository.delete(id);
 
 
-
-      return {
-
-
-        success:true,
-
-
-        message:
-          "Pesticide deleted successfully"
-
-
-      };
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `PesticideService delete failed: ${error.message}`
-      );
-
-
+    if (!deleted) {
+      throw new Error("Pesticide not found");
     }
-
-
-  }
-
-
-
-
-
-  async count() {
-
-
-    try {
-
-
-      return await this.repository.count();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `PesticideService count failed: ${error.message}`
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-  async search(keyword) {
-
-
-    try {
-
-
-      const pesticides =
-
-        await this.repository.getAll();
-
-
-
-
-      if (!keyword) {
-
-
-        return pesticides;
-
-
-      }
-
-
-
-
-      const search =
-
-        keyword.toLowerCase();
-
-
-
-
-      return pesticides.filter(
-
-        pesticide =>
-
-
-          pesticide.name
-          ?.toLowerCase()
-          .includes(search)
-
-
-          ||
-
-          pesticide.type
-          ?.toLowerCase()
-          .includes(search)
-
-
-          ||
-
-          pesticide.crop
-          ?.toLowerCase()
-          .includes(search)
-
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `PesticideService search failed: ${error.message}`
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-  validatePesticide(data) {
-
-
-    if (!data) {
-
-
-      throw new Error(
-        "Pesticide data is required"
-      );
-
-
-    }
-
-
-
-
-    if (!data.name?.trim()) {
-
-
-      throw new Error(
-        "Pesticide name is required"
-      );
-
-
-    }
-
 
 
     return true;
 
+  }
+
+
+  async count() {
+
+    return this.repository.count();
 
   }
 
 
+  async exists(id) {
+
+    if (!id) {
+      throw new Error("Pesticide id is required");
+    }
+
+
+    return this.repository.exists(id);
+
+  }
+
+
+  async search(keyword) {
+
+    const pesticides =
+      await this.repository.getAll();
+
+
+    if (!keyword) {
+      return pesticides;
+    }
+
+
+    const search =
+      keyword.toLowerCase();
+
+
+    return pesticides.filter(
+      pesticide =>
+        pesticide.name
+          ?.toLowerCase()
+          .includes(search)
+
+        ||
+
+        pesticide.type
+          ?.toLowerCase()
+          .includes(search)
+
+        ||
+
+        pesticide.crop
+          ?.toLowerCase()
+          .includes(search)
+    );
+
+  }
+
+
+  validatePesticide(data) {
+
+    if (!data) {
+      throw new Error(
+        "Pesticide data is required"
+      );
+    }
+
+
+    if (!data.name?.trim()) {
+      throw new Error(
+        "Pesticide name is required"
+      );
+    }
+
+
+    return true;
+
+  }
 
 }
 
 
+const pesticideService =
+new PesticideService();
+
 
 export default Object.freeze(
-
-  new PesticideService()
-
+  pesticideService
 );
