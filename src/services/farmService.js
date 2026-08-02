@@ -1,165 +1,162 @@
- // src/services/farmService.js
+// src/services/farmService.js
+
 
 import farmRepository
-  from "../repositories/farmRepository.js";
+from "../repositories/farmRepository.js";
 
 
 
 class FarmService {
 
 
-  constructor() {
 
-    this.repository =
-      farmRepository;
+constructor(){
 
-  }
+  this.repository =
+  farmRepository;
 
-
-
-
-
-  getAll() {
-
-    return this.repository.getAll();
-
-  }
+}
 
 
 
 
+async getAll(){
 
-  getById(id) {
+  return await this.repository.getAll();
 
-
-    if (!id) {
-
-      return null;
-
-    }
+}
 
 
-    return this.repository.getById(id);
+
+
+async getById(id){
+
+
+  if(!id){
+
+    throw new Error(
+      "Farm id is required"
+    );
 
   }
 
 
+  return await this.repository.getById(id);
+
+}
 
 
 
-  create(data) {
+
+async create(data){
 
 
-    if (!data) {
+  if(!data){
 
-      throw new Error(
-        "Farm data is required"
-      );
-
-    }
-
-
-
-    return this.repository.create(data);
+    throw new Error(
+      "Farm data is required"
+    );
 
   }
 
 
+  return await this.repository.create(data);
+
+}
 
 
 
-  update(id, data) {
+
+async update(id,data){
 
 
-    if (!id) {
+  if(!id){
 
-      throw new Error(
-        "Farm id is required"
-      );
-
-    }
-
-
-
-    const updatedFarm =
-      this.repository.update(
-        id,
-        data
-      );
-
-
-
-    if (!updatedFarm) {
-
-      throw new Error(
-        "Farm not found"
-      );
-
-    }
-
-
-
-    return updatedFarm;
+    throw new Error(
+      "Farm id is required"
+    );
 
   }
 
 
+  if(!data){
 
-
-
-  delete(id) {
-
-
-    if (!id) {
-
-      throw new Error(
-        "Farm id is required"
-      );
-
-    }
-
-
-
-    const deleted =
-      this.repository.delete(id);
-
-
-
-    if (!deleted) {
-
-      throw new Error(
-        "Farm not found"
-      );
-
-    }
-
-
-
-    return true;
+    throw new Error(
+      "Farm data is required"
+    );
 
   }
 
 
+  const updatedFarm =
+  await this.repository.update(
+    id,
+    data
+  );
 
 
+  if(!updatedFarm){
 
-  count() {
-
-    return this.repository.count();
-
-  }
-
-
-
-
-
-  exists(id) {
-
-    return this.repository.exists(id);
+    throw new Error(
+      "Farm not found"
+    );
 
   }
 
 
+  return updatedFarm;
+
+}
+
+
+
+
+async delete(id){
+
+
+  if(!id){
+
+    throw new Error(
+      "Farm id is required"
+    );
+
+  }
+
+
+  const deleted =
+  await this.repository.delete(id);
+
+
+  if(!deleted){
+
+    throw new Error(
+      "Farm not found"
+    );
+
+  }
+
+
+  return true;
+
+}
+
+
+
+
+async count(){
+
+  return await this.repository.count();
+
+}
+
+
+
+
+async exists(id){
+
+  return await this.repository.exists(id);
+
+}
 
 
 
@@ -168,7 +165,7 @@ class FarmService {
 
 
 const farmService =
-  new FarmService();
+new FarmService();
 
 
 
