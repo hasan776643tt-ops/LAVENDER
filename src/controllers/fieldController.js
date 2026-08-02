@@ -1,251 +1,77 @@
 // src/controllers/fieldController.js
 
-
-import fieldService
-  from "../services/fieldService.js";
-
-
-
+import fieldService from "../services/fieldService.js";
 
 
 class FieldController {
 
 
-
   constructor() {
 
-
-    this.service =
-      fieldService;
-
+    this.service = fieldService;
 
   }
 
 
+  async getAll() {
 
-
-
-
-
-
-  async getFields(){
-
-
-    try{
-
-
-      return await this.service.getAll();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldController getFields failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getAll();
 
   }
 
 
+  async getById(id) {
 
-
-
-
-
-
-  async getFieldById(id){
-
-
-    try{
-
-
-      return await this.service.getById(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldController getFieldById failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getById(id);
 
   }
 
 
+  async create(data) {
 
-
-
-
-
-
-  async createField(fieldData){
-
-
-    try{
-
-
-      return await this.service.create(
-
-        fieldData
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldController createField failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.create(data);
 
   }
 
 
+  async update(id, data) {
 
-
-
-
-
-
-  async updateField(
-    id,
-    fieldData
-  ){
-
-
-    try{
-
-
-      return await this.service.update(
-
-        id,
-
-        fieldData
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldController updateField failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.update(
+      id,
+      data
+    );
 
   }
 
 
+  async delete(id) {
 
-
-
-
-
-
-  async deleteField(id){
-
-
-    try{
-
-
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldController deleteField failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.delete(id);
 
   }
 
 
+  async count() {
 
-
-
-
-
-
-  async countFields(){
-
-
-    try{
-
-
-      return await this.service.count();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldController countFields failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.count();
 
   }
 
 
+  async exists(id) {
 
+    return this.service.exists(id);
+
+  }
 
 
 }
 
 
-
+const fieldController =
+new FieldController();
 
 
 export default Object.freeze(
-
-  new FieldController()
-
+  fieldController
 );
