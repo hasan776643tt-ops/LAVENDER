@@ -1,45 +1,81 @@
-// الدول المدعومة في نظام LAVENDER Smart Farm
+// src/config/countries.js
 
-export const countries = [
-  {
+
+const countries = Object.freeze([
+
+  Object.freeze({
+
     code: "SY",
+
     name: "سوريا",
+
     currency: "SYP",
-    areaUnit: "dunum",
-  },
 
-  {
+    areaUnit: "dunum"
+
+  }),
+
+  Object.freeze({
+
     code: "TR",
+
     name: "تركيا",
+
     currency: "TRY",
-    areaUnit: "hectare",
-  },
 
-  {
+    areaUnit: "hectare"
+
+  }),
+
+  Object.freeze({
+
     code: "SA",
+
     name: "السعودية",
+
     currency: "SAR",
-    areaUnit: "hectare",
-  },
 
-  {
+    areaUnit: "hectare"
+
+  }),
+
+  Object.freeze({
+
     code: "AE",
+
     name: "الإمارات",
+
     currency: "AED",
-    areaUnit: "hectare",
-  },
 
-  {
+    areaUnit: "hectare"
+
+  }),
+
+  Object.freeze({
+
     code: "US",
-    name: "الولايات المتحدة",
-    currency: "USD",
-    areaUnit: "acre",
-  },
 
-  {
+    name: "الولايات المتحدة",
+
+    currency: "USD",
+
+    areaUnit: "acre"
+
+  }),
+
+  Object.freeze({
+
     code: "FR",
+
     name: "فرنسا",
+
     currency: "EUR",
-    areaUnit: "hectare",
-  },
-];
+
+    areaUnit: "hectare"
+
+  })
+
+]);
+
+
+export default countries;
