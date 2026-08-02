@@ -2,43 +2,8 @@
 
 
 // ===============================
-// تنسيق التاريخ للعرض
-// ===============================
-
-export function formatDate(date) {
-
-  if (!date) return "";
-
-  return new Date(date)
-    .toLocaleDateString("ar");
-
-}
-
-
-
-
-// ===============================
-// إنشاء معرف موحد
-// يعتمد على مصدر واحد
-// ===============================
-
-export function generateId() {
-
-  return (
-    Date.now()
-    +
-    Math.random()
-      .toString(36)
-      .substring(2, 9)
-  );
-
-}
-
-
-
-
-// ===============================
-// حساب مجموع القيم المالية
+// Calculate Total
+// حساب مجموع القيم
 // ===============================
 
 export function calculateTotal(items = []) {
@@ -60,21 +25,55 @@ export function calculateTotal(items = []) {
 
 
 
-
 // ===============================
-// تنظيف الحقول بعد الحفظ
+// Clear Inputs
+// تنظيف الحقول
 // ===============================
 
 export function clearInputs(setters = []) {
 
   setters.forEach(
 
-    (setter) => {
+    (setter)=>{
 
-      setter("");
+      if(typeof setter === "function"){
+
+        setter("");
+
+      }
 
     }
 
+  );
+
+}
+
+
+
+// ===============================
+// Safe Value
+// حماية القيم الفارغة
+// ===============================
+
+export function safeValue(value) {
+
+  return value ?? "";
+
+}
+
+
+
+// ===============================
+// Check Empty
+// فحص القيمة الفارغة
+// ===============================
+
+export function isEmpty(value) {
+
+  return (
+    value === null ||
+    value === undefined ||
+    value === ""
   );
 
 }
