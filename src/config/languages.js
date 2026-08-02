@@ -1,21 +1,39 @@
-// اللغات المدعومة في نظام LAVENDER Smart Farm
+// src/config/languages.js
 
-export const languages = [
-  {
+
+const languages = Object.freeze([
+
+  Object.freeze({
+
     code: "ar",
+
     name: "العربية",
-    direction: "rtl",
-  },
 
-  {
+    direction: "rtl"
+
+  }),
+
+  Object.freeze({
+
     code: "en",
-    name: "English",
-    direction: "ltr",
-  },
 
-  {
+    name: "English",
+
+    direction: "ltr"
+
+  }),
+
+  Object.freeze({
+
     code: "tr",
+
     name: "Türkçe",
-    direction: "ltr",
-  },
-];
+
+    direction: "ltr"
+
+  })
+
+]);
+
+
+export default languages;
