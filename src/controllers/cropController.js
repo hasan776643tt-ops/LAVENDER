@@ -1,251 +1,77 @@
 // src/controllers/cropController.js
 
-
-import cropService
-  from "../services/cropService.js";
-
-
-
+import cropService from "../services/cropService.js";
 
 
 class CropController {
 
 
-
   constructor() {
 
-
-    this.service =
-      cropService;
-
+    this.service = cropService;
 
   }
 
 
+  async getAll() {
 
-
-
-
-
-
-  async getCrops(){
-
-
-    try{
-
-
-      return await this.service.getAll();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `CropController getCrops failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getAll();
 
   }
 
 
+  async getById(id) {
 
-
-
-
-
-
-  async getCropById(id){
-
-
-    try{
-
-
-      return await this.service.getById(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `CropController getCropById failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getById(id);
 
   }
 
 
+  async create(data) {
 
-
-
-
-
-
-  async createCrop(cropData){
-
-
-    try{
-
-
-      return await this.service.create(
-
-        cropData
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `CropController createCrop failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.create(data);
 
   }
 
 
+  async update(id, data) {
 
-
-
-
-
-
-  async updateCrop(
-    id,
-    cropData
-  ){
-
-
-    try{
-
-
-      return await this.service.update(
-
-        id,
-
-        cropData
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `CropController updateCrop failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.update(
+      id,
+      data
+    );
 
   }
 
 
+  async delete(id) {
 
-
-
-
-
-
-  async deleteCrop(id){
-
-
-    try{
-
-
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `CropController deleteCrop failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.delete(id);
 
   }
 
 
+  async count() {
 
-
-
-
-
-
-  async countCrops(){
-
-
-    try{
-
-
-      return await this.service.count();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `CropController countCrops failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.count();
 
   }
 
 
+  async exists(id) {
 
+    return this.service.exists(id);
+
+  }
 
 
 }
 
 
-
+const cropController =
+new CropController();
 
 
 export default Object.freeze(
-
-  new CropController()
-
+  cropController
 );
