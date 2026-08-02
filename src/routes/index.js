@@ -1,44 +1,43 @@
 // src/routes/index.js
 
+
 import authRoutes from "./authRoutes.js";
+
 import userRoutes from "./userRoutes.js";
+
 import farmRoutes from "./farmRoutes.js";
+
 import fieldRoutes from "./fieldRoutes.js";
+
 import cropRoutes from "./cropRoutes.js";
+
 import reportRoutes from "./reportRoutes.js";
+
 import engineerRoutes from "./engineerRoutes.js";
+
 import weatherRoutes from "./weatherRoutes.js";
 
 
 
-const routes = {
+const routes = [
 
+  ...authRoutes,
 
-  auth: authRoutes,
+  ...userRoutes,
 
+  ...farmRoutes,
 
-  user: userRoutes,
+  ...fieldRoutes,
 
+  ...cropRoutes,
 
-  farm: farmRoutes,
+  ...reportRoutes,
 
+  ...engineerRoutes,
 
-  field: fieldRoutes,
+  ...weatherRoutes,
 
-
-  crop: cropRoutes,
-
-
-  report: reportRoutes,
-
-
-  engineer: engineerRoutes,
-
-
-  weather: weatherRoutes
-
-
-};
+];
 
 
 
