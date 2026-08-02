@@ -8,13 +8,34 @@ import {
 
 
 import farmController
-from "../controllers/farmController.js";
+  from "../controllers/farmController.js";
 
 import fieldController
-from "../controllers/fieldController.js";
+  from "../controllers/fieldController.js";
 
 import cropController
-from "../controllers/cropController.js";
+  from "../controllers/cropController.js";
+
+import irrigationController
+  from "../controllers/irrigationController.js";
+
+import fertilizerController
+  from "../controllers/fertilizerController.js";
+
+import pesticideController
+  from "../controllers/pesticideController.js";
+
+import diseaseController
+  from "../controllers/diseaseController.js";
+
+import expenseController
+  from "../controllers/expenseController.js";
+
+import harvestController
+  from "../controllers/harvestController.js";
+
+import inventoryController
+  from "../controllers/inventoryController.js";
 
 
 // =========================
@@ -38,49 +59,35 @@ export function FarmProvider({
 const [farms,setFarms] =
 useState([]);
 
-
 const [fields,setFields] =
 useState([]);
 
-
 const [crops,setCrops] =
-useState([]);  
-// =========================
-// Farm Data States
-// =========================
-
+useState([]);
 
 const [irrigations,setIrrigations] =
 useState([]);
 
-
 const [fertilizers,setFertilizers] =
 useState([]);
-
 
 const [pesticides,setPesticides] =
 useState([]);
 
-
 const [diseases,setDiseases] =
 useState([]);
-
 
 const [expenses,setExpenses] =
 useState([]);
 
-
 const [harvests,setHarvests] =
 useState([]);
-
 
 const [inventory,setInventory] =
 useState([]);
 
-
 const [consultations,setConsultations] =
 useState([]);
-
 
 const [aiQuestions,setAiQuestions] =
 useState([]);
@@ -88,13 +95,11 @@ useState([]);
 
 
 // =========================
-// Generic CRUD Handler
+// Generic CRUD Actions
 // =========================
-
 
 const createActions =
 (
- data,
  setData,
  controller
 )=>
@@ -102,7 +107,7 @@ const createActions =
 
 
 load:
-async ()=>{
+async()=>{
 
  const result =
  await controller.getAll();
@@ -116,16 +121,16 @@ async ()=>{
 
 
 create:
-async (item)=>{
+async(data)=>{
 
  const result =
- await controller.create(item);
+ await controller.create(data);
 
 
  setData(
  prev=>[
-   ...prev,
-   result
+  ...prev,
+  result
  ]
  );
 
@@ -137,23 +142,19 @@ async (item)=>{
 
 
 update:
-async (
- id,
- updated
-)=>{
-
+async(id,data)=>{
 
  const result =
  await controller.update(
-   id,
-   updated
+  id,
+  data
  );
 
 
  setData(
  prev=>
  prev.map(
- item =>
+ item=>
  item.id===id
  ? result
  : item
@@ -167,120 +168,125 @@ async (
 
 
 
-remove:
+delete:
 async(id)=>{
 
-
- await controller.remove(id);
+ const result =
+ await controller.delete(id);
 
 
  setData(
  prev=>
  prev.filter(
- item =>
+ item=>
  item.id!==id
  )
  );
 
 
+ return result;
+
+},
+
+
+
+count:
+async()=>{
+
+ return controller.count();
+
+},
+
+
+
+exists:
+async(id)=>{
+
+ return controller.exists(id);
+
 }
 
 
-});  
+});
+
+
+
 // =========================
-// Controllers Actions
+// Actions
 // =========================
 
 
 const farmActions =
 createActions(
-  farms,
-  setFarms,
-  farmController
+ setFarms,
+ farmController
 );
-
 
 
 const fieldActions =
 createActions(
-  fields,
-  setFields,
-  fieldController
+ setFields,
+ fieldController
 );
-
 
 
 const cropActions =
 createActions(
-  crops,
-  setCrops,
-  cropController
-);  
-// =========================
-// More Controllers Actions
-// =========================
+ setCrops,
+ cropController
+);
 
 
 const irrigationActions =
 createActions(
-  irrigations,
-  setIrrigations,
-  irrigationController
+ setIrrigations,
+ irrigationController
 );
-
 
 
 const fertilizerActions =
 createActions(
-  fertilizers,
-  setFertilizers,
-  fertilizerController
+ setFertilizers,
+ fertilizerController
 );
-
 
 
 const pesticideActions =
 createActions(
-  pesticides,
-  setPesticides,
-  pesticideController
+ setPesticides,
+ pesticideController
 );
-
 
 
 const diseaseActions =
 createActions(
-  diseases,
-  setDiseases,
-  diseaseController
+ setDiseases,
+ diseaseController
 );
-
 
 
 const expenseActions =
 createActions(
-  expenses,
-  setExpenses,
-  expenseController
+ setExpenses,
+ expenseController
 );
-
 
 
 const harvestActions =
 createActions(
-  harvests,
-  setHarvests,
-  harvestController
+ setHarvests,
+ harvestController
 );
-
 
 
 const inventoryActions =
 createActions(
-  inventory,
-  setInventory,
-  inventoryController
-);  
+ setInventory,
+ inventoryController
+);
+
+
+
 // =========================
 // Context Value
 // =========================
@@ -290,96 +296,84 @@ const value =
 useMemo(
 ()=>({
 
-  // Data
 
-  farms,
-  fields,
-  crops,
+farms,
+fields,
+crops,
 
-  irrigations,
-  fertilizers,
-  pesticides,
+irrigations,
+fertilizers,
+pesticides,
 
-  diseases,
+diseases,
 
-  expenses,
-  harvests,
+expenses,
+harvests,
 
-  inventory,
+inventory,
 
-  consultations,
-  aiQuestions,
-
-
-  // Actions
-
-  farmActions,
-
-  fieldActions,
-
-  cropActions,
-
-  irrigationActions,
-
-  fertilizerActions,
-
-  pesticideActions,
-
-  diseaseActions,
-
-  expenseActions,
-
-  harvestActions,
-
-  inventoryActions,
+consultations,
+aiQuestions,
 
 
-  // Setters
 
-  setFarms,
+farmActions,
+fieldActions,
+cropActions,
 
-  setFields,
+irrigationActions,
+fertilizerActions,
 
-  setCrops,
+pesticideActions,
+diseaseActions,
 
-  setIrrigations,
+expenseActions,
+harvestActions,
 
-  setFertilizers,
+inventoryActions,
 
-  setPesticides,
 
-  setDiseases,
 
-  setExpenses,
+setFarms,
+setFields,
+setCrops,
 
-  setHarvests,
+setIrrigations,
+setFertilizers,
 
-  setInventory,
+setPesticides,
+setDiseases,
 
-  setConsultations,
+setExpenses,
+setHarvests,
 
-  setAiQuestions
+setInventory,
+
+setConsultations,
+setAiQuestions
 
 
 }),
 [
-  farms,
-  fields,
-  crops,
 
-  irrigations,
-  fertilizers,
-  pesticides,
+farms,
+fields,
+crops,
 
-  diseases,
+irrigations,
+fertilizers,
 
-  expenses,
-  harvests,
+pesticides,
+diseases,
 
-  inventory,
+expenses,
+harvests,
 
-  consultations,
-  aiQuestions
+inventory,
+
+consultations,
+aiQuestions
+
 ]
 );
 
@@ -389,11 +383,10 @@ useMemo(
 // Provider
 // =========================
 
-
 return (
 
 <FarmContext.Provider
-value={value}
+ value={value}
 >
 
 {children}
