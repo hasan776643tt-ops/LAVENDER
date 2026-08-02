@@ -1,3 +1,4 @@
+
 // src/services/storageService.js
 
 
@@ -29,7 +30,7 @@ class StorageService {
         data,
 
         updatedAt:
-          new Date().toISOString()
+        new Date().toISOString()
 
       };
 
@@ -71,12 +72,12 @@ class StorageService {
 
 
       const value =
-        localStorage.getItem(
-          this.key(name)
-        );
+      localStorage.getItem(
+        this.key(name)
+      );
 
 
-      if (!value) {
+      if(!value){
 
         return defaultValue;
 
@@ -84,16 +85,29 @@ class StorageService {
 
 
       const parsed =
-        JSON.parse(value);
+      JSON.parse(value);
 
 
-      return (
-        parsed.data ??
-        defaultValue
-      );
+
+      if(
+        parsed &&
+        Object.prototype.hasOwnProperty.call(
+          parsed,
+          "data"
+        )
+      ){
+
+        return parsed.data;
+
+      }
 
 
-    } catch(error) {
+
+      return parsed;
+
+
+
+    }catch(error){
 
 
       console.error(
@@ -112,14 +126,12 @@ class StorageService {
 
 
 
-  exists(name) {
+  exists(name){
 
     return (
-
       localStorage.getItem(
         this.key(name)
       ) !== null
-
     );
 
   }
@@ -128,9 +140,9 @@ class StorageService {
 
 
 
-  remove(name) {
+  remove(name){
 
-    try {
+    try{
 
 
       localStorage.removeItem(
@@ -141,7 +153,7 @@ class StorageService {
       return true;
 
 
-    } catch(error) {
+    }catch(error){
 
 
       console.error(
@@ -160,34 +172,36 @@ class StorageService {
 
 
 
-  clear() {
+  clear(){
 
-    try {
+    try{
 
 
       Object.keys(localStorage)
 
-      .filter(key =>
-
+      .filter(
+        key =>
         key.startsWith(
           `${this.prefix}:`
         )
-
       )
 
-      .forEach(key =>
-
-        localStorage.removeItem(
-          key
-        )
-
+      .forEach(
+        key =>
+        localStorage.removeItem(key)
       );
 
 
       return true;
 
 
-    } catch(error) {
+    }catch(error){
+
+
+      console.error(
+        "Storage Clear Error:",
+        error
+      );
 
 
       return false;
@@ -200,8 +214,7 @@ class StorageService {
 
 
 
-  backup() {
-
+  backup(){
 
     const backup = {};
 
@@ -209,39 +222,38 @@ class StorageService {
 
     Object.keys(localStorage)
 
-    .filter(key =>
-
+    .filter(
+      key =>
       key.startsWith(
         `${this.prefix}:`
       )
-
     )
 
-    .forEach(key => {
+    .forEach(
+      key=>{
 
+        try{
 
-      try {
-
-
-        backup[key] =
+          backup[key] =
           JSON.parse(
             localStorage.getItem(key)
           );
 
 
-      } catch(error) {
+        }catch(error){
 
 
-        console.error(
-          "Backup Error:",
-          error
-        );
+          console.error(
+            "Backup Error:",
+            error
+          );
+
+
+        }
 
 
       }
-
-
-    });
+    );
 
 
     return backup;
@@ -252,13 +264,13 @@ class StorageService {
 
 
 
-  restore(data) {
+  restore(data){
 
 
-    if (
+    if(
       !data ||
       typeof data !== "object"
-    ) {
+    ){
 
       return false;
 
@@ -266,38 +278,39 @@ class StorageService {
 
 
 
-    try {
+    try{
 
 
       Object.entries(data)
 
-      .filter(([key]) =>
-
+      .filter(
+        ([key]) =>
         key.startsWith(
           `${this.prefix}:`
         )
-
       )
 
-      .forEach(([key,value])=>{
+      .forEach(
+        ([key,value])=>{
 
 
-        localStorage.setItem(
+          localStorage.setItem(
 
-          key,
+            key,
 
-          JSON.stringify(value)
+            JSON.stringify(value)
 
-        );
+          );
 
 
-      });
+        }
+      );
 
 
       return true;
 
 
-    } catch(error) {
+    }catch(error){
 
 
       console.error(
@@ -316,26 +329,26 @@ class StorageService {
 
 
 
-  getStats() {
+  getStats(){
 
 
     const keys =
 
-      Object.keys(localStorage)
+    Object.keys(localStorage)
 
-      .filter(key =>
+    .filter(
+      key =>
+      key.startsWith(
+        `${this.prefix}:`
+      )
+    );
 
-        key.startsWith(
-          `${this.prefix}:`
-        )
-
-      );
 
 
     return {
 
       totalKeys:
-        keys.length,
+      keys.length,
 
       keys
 
@@ -350,11 +363,12 @@ class StorageService {
 
 
 
-// Singleton instance
 
 const storageService =
-  new StorageService();
+new StorageService();
 
 
 
-export default storageService;
+export default Object.freeze(
+  storageService
+);
