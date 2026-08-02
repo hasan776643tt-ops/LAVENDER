@@ -1,4 +1,8 @@
-const menuConfig = [
+// src/config/menuConfig.js
+
+
+const menuConfig = Object.freeze([
+
   {
     id: "dashboard",
     title: "Dashboard",
@@ -6,6 +10,7 @@ const menuConfig = [
     icon: "dashboard",
     module: "dashboard"
   },
+
   {
     id: "farms",
     title: "Farms",
@@ -13,6 +18,7 @@ const menuConfig = [
     icon: "farm",
     module: "farms"
   },
+
   {
     id: "fields",
     title: "Fields",
@@ -20,6 +26,7 @@ const menuConfig = [
     icon: "field",
     module: "fields"
   },
+
   {
     id: "crops",
     title: "Crops",
@@ -27,6 +34,7 @@ const menuConfig = [
     icon: "crop",
     module: "crops"
   },
+
   {
     id: "irrigation",
     title: "Irrigation",
@@ -34,6 +42,7 @@ const menuConfig = [
     icon: "water",
     module: "irrigation"
   },
+
   {
     id: "fertilizers",
     title: "Fertilizers",
@@ -41,6 +50,7 @@ const menuConfig = [
     icon: "fertilizer",
     module: "fertilizers"
   },
+
   {
     id: "pesticides",
     title: "Pesticides",
@@ -48,6 +58,7 @@ const menuConfig = [
     icon: "pesticide",
     module: "pesticides"
   },
+
   {
     id: "diseases",
     title: "Diseases",
@@ -55,6 +66,7 @@ const menuConfig = [
     icon: "disease",
     module: "diseases"
   },
+
   {
     id: "weather",
     title: "Weather",
@@ -62,6 +74,7 @@ const menuConfig = [
     icon: "weather",
     module: "weather"
   },
+
   {
     id: "map",
     title: "Map",
@@ -69,6 +82,7 @@ const menuConfig = [
     icon: "map",
     module: "map"
   },
+
   {
     id: "ai",
     title: "AI Assistant",
@@ -76,6 +90,7 @@ const menuConfig = [
     icon: "ai",
     module: "ai"
   },
+
   {
     id: "engineer",
     title: "Engineer",
@@ -83,6 +98,7 @@ const menuConfig = [
     icon: "engineer",
     module: "engineer"
   },
+
   {
     id: "reports",
     title: "Reports",
@@ -90,6 +106,7 @@ const menuConfig = [
     icon: "reports",
     module: "reports"
   },
+
   {
     id: "harvest",
     title: "Harvest",
@@ -97,6 +114,7 @@ const menuConfig = [
     icon: "harvest",
     module: "harvest"
   },
+
   {
     id: "inventory",
     title: "Inventory",
@@ -104,6 +122,7 @@ const menuConfig = [
     icon: "inventory",
     module: "inventory"
   },
+
   {
     id: "expenses",
     title: "Expenses",
@@ -111,6 +130,7 @@ const menuConfig = [
     icon: "expenses",
     module: "expenses"
   },
+
   {
     id: "settings",
     title: "Settings",
@@ -118,6 +138,8 @@ const menuConfig = [
     icon: "settings",
     module: "settings"
   }
-];
+
+]);
+
 
 export default menuConfig;
