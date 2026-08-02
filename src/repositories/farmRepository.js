@@ -1,204 +1,219 @@
 // src/repositories/farmRepository.js
 
-import storageService from "../services/storageService.js";
+
+import storageService
+from "../services/storageService.js";
+
 
 
 class FarmRepository {
 
 
-  constructor() {
 
-    this.key = "farms";
+constructor(){
+
+  this.key =
+  "farms";
+
+}
+
+
+
+
+async getAll(){
+
+  return storageService.load(
+    this.key,
+    []
+  );
+
+}
+
+
+
+
+async getById(id){
+
+
+  if(!id){
+
+    return null;
 
   }
 
 
-
-  getAll() {
-
-    return storageService.load(
-      this.key,
-      []
-    );
-
-  }
+  const farms =
+  await this.getAll();
 
 
-
-  getById(id) {
-
-    if (!id) {
-
-      return null;
-
-    }
-
-
-    const farms =
-      this.getAll();
-
-
-    return farms.find(
+  return (
+    farms.find(
       farm =>
-        String(farm.id) === String(id)
-    ) || null;
+      String(farm.id) === String(id)
+    )
+    || null
+  );
+
+}
+
+
+
+
+async create(farmData){
+
+
+  const farms =
+  await this.getAll();
+
+
+  const farm = {
+
+    id:
+    Date.now().toString(),
+
+    ...farmData,
+
+    createdAt:
+    new Date().toISOString(),
+
+    updatedAt:
+    new Date().toISOString()
+
+  };
+
+
+  farms.push(farm);
+
+
+  storageService.save(
+    this.key,
+    farms
+  );
+
+
+  return farm;
+
+}
+
+
+
+
+async update(id,data){
+
+
+  const farms =
+  await this.getAll();
+
+
+  const index =
+  farms.findIndex(
+    farm =>
+    String(farm.id) === String(id)
+  );
+
+
+  if(index === -1){
+
+    return null;
 
   }
 
 
 
-  create(farmData) {
+  const updatedFarm = {
+
+    ...farms[index],
+
+    ...data,
+
+    id:
+    farms[index].id,
+
+    updatedAt:
+    new Date().toISOString()
+
+  };
 
 
-    const farms =
-      this.getAll();
+
+  farms[index] =
+  updatedFarm;
 
 
-    const farm = {
 
-      id:
-        Date.now().toString(),
-
-      ...farmData,
-
-      createdAt:
-        new Date().toISOString(),
-
-      updatedAt:
-        new Date().toISOString()
-
-    };
+  storageService.save(
+    this.key,
+    farms
+  );
 
 
-    farms.push(
-      farm
-    );
+  return updatedFarm;
 
+}
+
+
+
+
+async delete(id){
+
+
+  const farms =
+  await this.getAll();
+
+
+
+  const filtered =
+  farms.filter(
+    farm =>
+    String(farm.id) !== String(id)
+  );
+
+
+
+  const deleted =
+  filtered.length !== farms.length;
+
+
+
+  if(deleted){
 
     storageService.save(
       this.key,
-      farms
-    );
-
-
-    return farm;
-
-  }
-
-
-
-  update(id, data) {
-
-
-    const farms =
-      this.getAll();
-
-
-    const index =
-      farms.findIndex(
-        farm =>
-          String(farm.id) === String(id)
-      );
-
-
-
-    if (index === -1) {
-
-      return null;
-
-    }
-
-
-
-    const updatedFarm = {
-
-      ...farms[index],
-
-      ...data,
-
-      id:
-        farms[index].id,
-
-      updatedAt:
-        new Date().toISOString()
-
-    };
-
-
-
-    farms[index] =
-      updatedFarm;
-
-
-
-    storageService.save(
-      this.key,
-      farms
-    );
-
-
-
-    return updatedFarm;
-
-  }
-
-
-
-  delete(id) {
-
-
-    const farms =
-      this.getAll();
-
-
-
-    const filtered =
-      farms.filter(
-        farm =>
-          String(farm.id) !== String(id)
-      );
-
-
-
-    const deleted =
-      filtered.length !== farms.length;
-
-
-
-    if (deleted) {
-
-      storageService.save(
-        this.key,
-        filtered
-      );
-
-    }
-
-
-
-    return deleted;
-
-  }
-
-
-
-  exists(id) {
-
-
-    return Boolean(
-      this.getById(id)
+      filtered
     );
 
   }
 
 
 
-  count() {
+  return deleted;
+
+}
 
 
-    return this.getAll().length;
 
-  }
+
+async exists(id){
+
+  return Boolean(
+    await this.getById(id)
+  );
+
+}
+
+
+
+
+async count(){
+
+  const farms =
+  await this.getAll();
+
+
+  return farms.length;
+
+}
+
 
 
 }
