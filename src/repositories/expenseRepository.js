@@ -1,279 +1,291 @@
- // src/repositories/expenseRepository.js
+
+// src/repositories/expenseRepository.js
+
 
 import storageService
-  from "../services/storageService.js";
+from "../services/storageService.js";
+
 
 
 class ExpenseRepository {
 
 
-  constructor() {
 
-    this.key = "expenses";
+constructor(){
+
+  this.key =
+  "expenses";
+
+}
+
+
+
+
+async getAll(){
+
+  return storageService.load(
+    this.key,
+    []
+  );
+
+}
+
+
+
+
+async getById(id){
+
+
+  if(!id){
+
+    return null;
 
   }
 
 
 
-
-
-  getAll() {
-
-    return storageService.load(
-      this.key,
-      []
-    );
-
-  }
+  const expenses =
+  await this.getAll();
 
 
 
-
-
-  getById(id) {
-
-
-    if (!id) {
-
-      return null;
-
-    }
-
-
-
-    const expenses =
-      this.getAll();
-
-
-
-    return expenses.find(
+  return (
+    expenses.find(
 
       expense =>
 
-      String(expense.id) === String(id)
+      String(expense.id)
+      ===
+      String(id)
 
-    ) || null;
+    )
+    || null
+  );
 
+
+}
+
+
+
+
+async create(expenseData){
+
+
+  if(!expenseData){
+
+    throw new Error(
+      "Expense data is required"
+    );
+
+  }
+
+
+
+  const expenses =
+  await this.getAll();
+
+
+
+  const expense = {
+
+
+    id:
+    Date.now().toString(),
+
+
+    ...expenseData,
+
+
+    createdAt:
+    new Date().toISOString(),
+
+
+    updatedAt:
+    new Date().toISOString()
+
+
+  };
+
+
+
+  expenses.push(expense);
+
+
+
+  storageService.save(
+
+    this.key,
+
+    expenses
+
+  );
+
+
+
+  return expense;
+
+
+}
+
+
+
+
+async update(id,data){
+
+
+  if(!id){
+
+    throw new Error(
+      "Expense id is required"
+    );
+
+  }
+
+
+
+  const expenses =
+  await this.getAll();
+
+
+
+  const index =
+  expenses.findIndex(
+
+    expense =>
+
+    String(expense.id)
+    ===
+    String(id)
+
+  );
+
+
+
+  if(index === -1){
+
+    return null;
 
   }
 
 
 
 
-
-  create(expenseData) {
-
-
-    if (!expenseData) {
-
-      throw new Error(
-        "Expense data is required"
-      );
-
-    }
+  const updatedExpense = {
 
 
-
-    const expenses =
-      this.getAll();
+    ...expenses[index],
 
 
-
-    const expense = {
-
-
-      id:
-        Date.now().toString(),
+    ...data,
 
 
-      ...expenseData,
+    id:
+    expenses[index].id,
 
 
-      createdAt:
-        new Date().toISOString(),
+    updatedAt:
+    new Date().toISOString()
 
 
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
+  };
 
 
 
-    expenses.push(
-      expense
-    );
+  expenses[index] =
+  updatedExpense;
 
+
+
+  storageService.save(
+
+    this.key,
+
+    expenses
+
+  );
+
+
+
+  return updatedExpense;
+
+
+}
+
+
+
+
+async delete(id){
+
+
+  const expenses =
+  await this.getAll();
+
+
+
+  const filtered =
+  expenses.filter(
+
+    expense =>
+
+    String(expense.id)
+    !==
+    String(id)
+
+  );
+
+
+
+  const deleted =
+  filtered.length !== expenses.length;
+
+
+
+  if(deleted){
 
 
     storageService.save(
 
       this.key,
 
-      expenses
+      filtered
 
     );
 
 
-
-    return expense;
-
-
   }
 
 
 
+  return deleted;
 
 
-  update(id, data) {
+}
 
 
-    const expenses =
-      this.getAll();
 
 
+async exists(id){
 
-    const index =
+  return Boolean(
+    await this.getById(id)
+  );
 
-      expenses.findIndex(
+}
 
-        expense =>
 
-        String(expense.id) === String(id)
 
-      );
 
+async count(){
 
 
-    if (index === -1) {
+  const expenses =
+  await this.getAll();
 
-      return null;
 
-    }
+  return expenses.length;
 
 
-
-    const updatedExpense = {
-
-
-      ...expenses[index],
-
-
-      ...data,
-
-
-      id:
-        expenses[index].id,
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
-    expenses[index] =
-      updatedExpense;
-
-
-
-    storageService.save(
-
-      this.key,
-
-      expenses
-
-    );
-
-
-
-    return updatedExpense;
-
-
-  }
-
-
-
-
-
-  delete(id) {
-
-
-    const expenses =
-      this.getAll();
-
-
-
-    const filtered =
-
-      expenses.filter(
-
-        expense =>
-
-        String(expense.id) !== String(id)
-
-      );
-
-
-
-    const deleted =
-
-      filtered.length !== expenses.length;
-
-
-
-    if (deleted) {
-
-
-      storageService.save(
-
-        this.key,
-
-        filtered
-
-      );
-
-
-    }
-
-
-
-    return deleted;
-
-
-  }
-
-
-
-
-
-  exists(id) {
-
-
-    return Boolean(
-
-      this.getById(id)
-
-    );
-
-  }
-
-
-
-
-
-  count() {
-
-
-    return this.getAll().length;
-
-
-  }
-
-
+}
 
 
 
@@ -282,7 +294,5 @@ class ExpenseRepository {
 
 
 export default Object.freeze(
-
   new ExpenseRepository()
-
 );
