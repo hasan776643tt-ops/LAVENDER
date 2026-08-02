@@ -1,51 +1,103 @@
-// وحدات القياس المدعومة في نظام LAVENDER Smart Farm
+// src/config/units.js
 
-export const units = {
-  area: [
-    {
+
+const units = Object.freeze({
+
+  area: Object.freeze([
+
+    Object.freeze({
+
       code: "dunum",
-      name: "دونم",
-    },
-    {
+
+      name: "دونم"
+
+    }),
+
+    Object.freeze({
+
       code: "hectare",
-      name: "هكتار",
-    },
-    {
+
+      name: "هكتار"
+
+    }),
+
+    Object.freeze({
+
       code: "acre",
-      name: "فدان",
-    },
-    {
+
+      name: "فدان"
+
+    }),
+
+    Object.freeze({
+
       code: "sqm",
-      name: "متر مربع",
-    },
-  ],
 
-  weight: [
-    {
+      name: "متر مربع"
+
+    })
+
+  ]),
+
+
+
+  weight: Object.freeze([
+
+    Object.freeze({
+
       code: "kg",
-      name: "كيلوغرام",
-    },
-    {
+
+      name: "كيلوغرام"
+
+    }),
+
+    Object.freeze({
+
       code: "ton",
-      name: "طن",
-    },
-  ],
 
-  water: [
-    {
+      name: "طن"
+
+    })
+
+  ]),
+
+
+
+  water: Object.freeze([
+
+    Object.freeze({
+
       code: "liter",
-      name: "لتر",
-    },
-    {
+
+      name: "لتر"
+
+    }),
+
+    Object.freeze({
+
       code: "cubic_meter",
-      name: "متر مكعب",
-    },
-  ],
 
-  volume: [
-    {
+      name: "متر مكعب"
+
+    })
+
+  ]),
+
+
+
+  volume: Object.freeze([
+
+    Object.freeze({
+
       code: "liter",
-      name: "لتر",
-    },
-  ],
-};
+
+      name: "لتر"
+
+    })
+
+  ])
+
+});
+
+
+export default units;
