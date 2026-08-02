@@ -1,8 +1,6 @@
 // src/controllers/expenseController.js
 
-import expenseService
-  from "../services/expenseService.js";
-
+import expenseService from "../services/expenseService.js";
 
 
 class ExpenseController {
@@ -10,216 +8,70 @@ class ExpenseController {
 
   constructor() {
 
-    this.service =
-      expenseService;
+    this.service = expenseService;
 
   }
 
 
+  async getAll() {
 
-
-
-  async getExpenses() {
-
-
-    try {
-
-
-      return await this.service.getAll();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ExpenseController getExpenses failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getAll();
 
   }
 
 
+  async getById(id) {
 
-
-
-  async getExpenseById(id) {
-
-
-    try {
-
-
-      return await this.service.getById(
-
-        id
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ExpenseController getExpenseById failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getById(id);
 
   }
 
 
+  async create(data) {
 
-
-
-  async createExpense(expenseData) {
-
-
-    try {
-
-
-      return await this.service.create(
-
-        expenseData
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ExpenseController createExpense failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.create(data);
 
   }
 
 
+  async update(id, data) {
 
-
-
-  async updateExpense(
-    id,
-    expenseData
-  ) {
-
-
-    try {
-
-
-      return await this.service.update(
-
-        id,
-
-        expenseData
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ExpenseController updateExpense failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.update(
+      id,
+      data
+    );
 
   }
 
 
+  async delete(id) {
 
-
-
-  async deleteExpense(id) {
-
-
-    try {
-
-
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ExpenseController deleteExpense failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.delete(id);
 
   }
 
 
+  async count() {
 
-
-
-  async countExpenses() {
-
-
-    try {
-
-
-      return await this.service.count();
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ExpenseController countExpenses failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.count();
 
   }
 
 
+  async exists(id) {
 
+    return this.service.exists(id);
+
+  }
 
 
 }
 
 
+const expenseController =
+new ExpenseController();
+
 
 export default Object.freeze(
-
-  new ExpenseController()
-
+  expenseController
 );
