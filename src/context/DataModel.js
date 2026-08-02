@@ -1,30 +1,44 @@
+// src/models/DataModel.js
+
 /* =================================
    LAVENDER Smart Farm
    Global Data Model
 ================================= */
 
 
-// إنشاء رقم معرف موحد
+// ================================
+// ID Generator
+// ================================
 
 export const createId = () =>
-  Date.now();
+
+  `${Date.now()}-${Math.random()
+    .toString(36)
+    .substring(2, 10)}`;
 
 
 
-// تاريخ التحديث
+
+
+// ================================
+// Timestamp Generator
+// ================================
 
 export const createTimestamp = () =>
+
   new Date().toISOString();
 
 
 
 
-// النموذج الرئيسي للبيانات
 
-export const DataModel = {
+// ================================
+// Default Data Model
+// ================================
 
+export const DataModel =
+Object.freeze({
 
-  // معلومات النظام
 
   system: {
 
@@ -44,86 +58,45 @@ export const DataModel = {
 
 
 
-
-  // المستخدمون
-
   users: [],
 
-
-
-  // المزارع
 
   farms: [],
 
 
-
-  // الحقول
-
   fields: [],
 
-
-
-  // المحاصيل
 
   crops: [],
 
 
-
-  // الري
-
   irrigations: [],
 
-
-
-  // التسميد
 
   fertilizers: [],
 
 
-
-  // المبيدات
-
   pesticides: [],
 
-
-
-  // الأمراض الزراعية
 
   diseases: [],
 
 
-
-  // الطقس
-
   weather: [],
 
-
-
-  // المهندسون الزراعيون
 
   engineers: [],
 
 
-
-  // الاستشارات
-
   consultations: [],
 
-
-
-  // المصاريف
 
   expenses: [],
 
 
-
-  // التقارير
-
   reports: [],
 
 
-
-  // الإعدادات
 
   settings: {
 
@@ -140,8 +113,6 @@ export const DataModel = {
 
 
 
-  // الذكاء الاصطناعي
-
   ai: {
 
     enabled:
@@ -156,40 +127,49 @@ export const DataModel = {
 
 
 
-  // سجل العمليات
-
   logs: []
 
-};
+
+});
 
 
 
 
 
-// إضافة عنصر لأي قسم
+// ================================
+// Add Item
+// ================================
 
 export const addItem = (
-  collection,
-  item
+
+  collection = [],
+
+  item = {}
+
 )=>{
 
-  return [
 
-    ...collection,
+return [
 
-    {
+ ...collection,
 
-      id:
-        createId(),
 
-      createdAt:
-        createTimestamp(),
+ {
 
-      ...item
+   ...item,
 
-    }
+   id:
+     createId(),
 
-  ];
+
+   createdAt:
+     createTimestamp()
+
+
+ }
+
+];
+
 
 };
 
@@ -197,17 +177,27 @@ export const addItem = (
 
 
 
-// حذف عنصر
+// ================================
+// Remove Item
+// ================================
 
 export const removeItem = (
-  collection,
-  id
+
+ collection = [],
+
+ id
+
 )=>{
 
-  return collection.filter(
-    item =>
-      item.id !== id
-  );
+
+return collection.filter(
+
+ item =>
+
+ item.id !== id
+
+);
+
 
 };
 
@@ -215,36 +205,57 @@ export const removeItem = (
 
 
 
-// تحديث عنصر
+// ================================
+// Update Item
+// ================================
 
 export const updateItem = (
-  collection,
-  id,
-  updates
+
+ collection = [],
+
+ id,
+
+ updates = {}
+
 )=>{
 
-  return collection.map(
-    item =>
 
-      item.id === id
+return collection.map(
 
-      ?
+ item =>
 
-      {
 
-        ...item,
+ item.id === id
 
-        ...updates,
 
-        updatedAt:
-          createTimestamp()
+ ?
 
-      }
 
-      :
+ {
 
-      item
+   ...item,
 
-  );
+   ...updates,
+
+
+   id:
+     item.id,
+
+
+   updatedAt:
+     createTimestamp()
+
+
+ }
+
+
+ :
+
+
+ item
+
+
+);
+
 
 };
