@@ -1,242 +1,96 @@
 // src/services/cropService.js
 
-import cropRepository
-  from "../repositories/cropRepository.js";
+import cropRepository from "../repositories/cropRepository.js";
 
 
 class CropService {
 
 
   constructor() {
-
-    this.repository =
-      cropRepository;
-
+    this.repository = cropRepository;
   }
-
-
 
 
   async getAll() {
 
-    try {
-
-      return await this.repository.getAll();
-
-    } catch (error) {
-
-      throw new Error(
-        `CropService getAll failed: ${error.message}`
-      );
-
-    }
+    return this.repository.getAll();
 
   }
-
-
 
 
   async getById(id) {
 
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "Crop ID is required"
-        );
-
-      }
-
-
-      const crop =
-        await this.repository.getById(id);
-
-
-      if (!crop) {
-
-        throw new Error(
-          "Crop not found"
-        );
-
-      }
-
-
-      return crop;
-
-    } catch (error) {
-
-      throw new Error(
-        `CropService getById failed: ${error.message}`
-      );
-
+    if (!id) {
+      throw new Error("Crop id is required");
     }
 
+
+    const crop =
+      await this.repository.getById(id);
+
+
+    if (!crop) {
+      throw new Error("Crop not found");
+    }
+
+
+    return crop;
+
   }
-
-
 
 
   async create(cropData) {
 
-    try {
-
-      this.validateCrop(
-        cropData
-      );
+    this.validateCrop(cropData);
 
 
-      return await this.repository.create(
-        cropData
-      );
-
-    } catch (error) {
-
-      throw new Error(
-        `CropService create failed: ${error.message}`
-      );
-
-    }
+    return this.repository.create(
+      cropData
+    );
 
   }
 
 
+  async update(id, cropData) {
 
-
-  async update(
-    id,
-    cropData
-  ) {
-
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "Crop ID is required"
-        );
-
-      }
-
-
-      const crop =
-        await this.repository.update(
-          id,
-          cropData
-        );
-
-
-      if (!crop) {
-
-        throw new Error(
-          "Crop not found"
-        );
-
-      }
-
-
-      return crop;
-
-    } catch (error) {
-
-      throw new Error(
-        `CropService update failed: ${error.message}`
-      );
-
+    if (!id) {
+      throw new Error("Crop id is required");
     }
 
+
+    this.validateCrop(cropData);
+
+
+    const updatedCrop =
+      await this.repository.update(
+        id,
+        cropData
+      );
+
+
+    if (!updatedCrop) {
+      throw new Error("Crop not found");
+    }
+
+
+    return updatedCrop;
+
   }
-
-
 
 
   async delete(id) {
 
-    try {
-
-      if (!id) {
-
-        throw new Error(
-          "Crop ID is required"
-        );
-
-      }
+    if (!id) {
+      throw new Error("Crop id is required");
+    }
 
 
-      const exists =
-        await this.repository.exists(id);
-
-
-      if (!exists) {
-
-        throw new Error(
-          "Crop not found"
-        );
-
-      }
-
-
+    const deleted =
       await this.repository.delete(id);
 
 
-      return {
-
-        success: true,
-
-        message:
-          "Crop deleted successfully"
-
-      };
-
-    } catch (error) {
-
-      throw new Error(
-        `CropService delete failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-  async count() {
-
-    try {
-
-      return await this.repository.count();
-
-    } catch (error) {
-
-      throw new Error(
-        `CropService count failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-  validateCrop(crop) {
-
-    if (!crop) {
-
-      throw new Error(
-        "Crop data is required"
-      );
-
-    }
-
-
-    if (!crop.name?.trim()) {
-
-      throw new Error(
-        "Crop name is required"
-      );
-
+    if (!deleted) {
+      throw new Error("Crop not found");
     }
 
 
@@ -245,9 +99,52 @@ class CropService {
   }
 
 
+  async count() {
+
+    return this.repository.count();
+
+  }
+
+
+  async exists(id) {
+
+    if (!id) {
+      throw new Error("Crop id is required");
+    }
+
+
+    return this.repository.exists(id);
+
+  }
+
+
+  validateCrop(crop) {
+
+    if (!crop) {
+      throw new Error(
+        "Crop data is required"
+      );
+    }
+
+
+    if (!crop.name?.trim()) {
+      throw new Error(
+        "Crop name is required"
+      );
+    }
+
+
+    return true;
+
+  }
+
 }
 
 
+const cropService =
+new CropService();
+
+
 export default Object.freeze(
-  new CropService()
+  cropService
 );
