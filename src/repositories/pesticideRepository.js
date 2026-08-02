@@ -1,233 +1,248 @@
+
 // src/repositories/pesticideRepository.js
 
-import storageService from "../services/storageService.js";
+
+import storageService
+from "../services/storageService.js";
+
 
 
 class PesticideRepository {
 
 
-  constructor() {
 
-    this.key = "pesticides";
+constructor(){
+
+  this.key =
+  "pesticides";
+
+}
+
+
+
+
+async getAll(){
+
+  return storageService.load(
+    this.key,
+    []
+  );
+
+}
+
+
+
+
+async getById(id){
+
+
+  if(!id){
+
+    return null;
 
   }
 
 
 
-  getAll() {
-
-    return storageService.load(
-      this.key,
-      []
-    );
-
-  }
+  const pesticides =
+  await this.getAll();
 
 
 
-
-
-  getById(id) {
-
-    if (!id) {
-
-      return null;
-
-    }
-
-
-    return this.getAll().find(
+  return (
+    pesticides.find(
 
       pesticide =>
 
-        String(pesticide.id)
-        ===
-        String(id)
+      String(pesticide.id)
+      ===
+      String(id)
 
-    ) || null;
+    )
+    || null
+  );
 
+
+}
+
+
+
+
+async create(data){
+
+
+  if(!data){
+
+    throw new Error(
+      "Pesticide data is required"
+    );
+
+  }
+
+
+
+  const pesticides =
+  await this.getAll();
+
+
+
+  const pesticide = {
+
+
+    id:
+    Date.now().toString(),
+
+
+    ...data,
+
+
+    createdAt:
+    new Date().toISOString(),
+
+
+    updatedAt:
+    new Date().toISOString()
+
+
+  };
+
+
+
+  pesticides.push(
+    pesticide
+  );
+
+
+
+  storageService.save(
+
+    this.key,
+
+    pesticides
+
+  );
+
+
+
+  return pesticide;
+
+
+}
+
+
+
+
+async update(id,data){
+
+
+  if(!id){
+
+    throw new Error(
+      "Pesticide id is required"
+    );
+
+  }
+
+
+
+  const pesticides =
+  await this.getAll();
+
+
+
+  const index =
+  pesticides.findIndex(
+
+    pesticide =>
+
+    String(pesticide.id)
+    ===
+    String(id)
+
+  );
+
+
+
+  if(index === -1){
+
+    return null;
 
   }
 
 
 
 
+  const updated = {
 
-  create(data) {
 
+    ...pesticides[index],
 
-    if (!data) {
 
-      throw new Error(
-        "Pesticide data is required"
-      );
+    ...data,
 
-    }
 
+    id:
+    pesticides[index].id,
 
 
-    const pesticides =
-      this.getAll();
+    updatedAt:
+    new Date().toISOString()
 
 
+  };
 
-    const pesticide = {
 
 
-      id:
-        Date.now().toString(),
+  pesticides[index] =
+  updated;
 
 
 
-      ...data,
+  storageService.save(
 
+    this.key,
 
+    pesticides
 
-      createdAt:
-        new Date().toISOString(),
+  );
 
 
 
-      updatedAt:
-        new Date().toISOString()
+  return updated;
 
 
-    };
+}
 
 
 
-    pesticides.push(
-      pesticide
-    );
 
+async delete(id){
 
 
-    storageService.save(
+  const pesticides =
+  await this.getAll();
 
-      this.key,
 
-      pesticides
 
-    );
+  const filtered =
+  pesticides.filter(
 
+    pesticide =>
 
+    String(pesticide.id)
+    !==
+    String(id)
 
-    return pesticide;
+  );
 
 
-  }
 
+  const deleted =
+  filtered.length !== pesticides.length;
 
 
 
-
-  update(id,data) {
-
-
-    const pesticides =
-      this.getAll();
-
-
-
-    const index =
-      pesticides.findIndex(
-
-        pesticide =>
-
-          String(pesticide.id)
-          ===
-          String(id)
-
-      );
-
-
-
-    if (index === -1) {
-
-      return null;
-
-    }
-
-
-
-    const updated = {
-
-
-      ...pesticides[index],
-
-
-      ...data,
-
-
-
-      id:
-        pesticides[index].id,
-
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
-    pesticides[index] =
-      updated;
-
-
-
-    storageService.save(
-
-      this.key,
-
-      pesticides
-
-    );
-
-
-
-    return updated;
-
-
-  }
-
-
-
-
-
-  delete(id) {
-
-
-    const pesticides =
-      this.getAll();
-
-
-
-    const filtered =
-
-      pesticides.filter(
-
-        pesticide =>
-
-          String(pesticide.id)
-          !==
-          String(id)
-
-      );
-
-
-
-    if (
-      filtered.length ===
-      pesticides.length
-    ) {
-
-      return false;
-
-    }
-
+  if(deleted){
 
 
     storageService.save(
@@ -239,39 +254,41 @@ class PesticideRepository {
     );
 
 
-
-    return true;
-
-
   }
 
 
 
+  return deleted;
 
 
-  exists(id) {
-
-
-    return Boolean(
-
-      this.getById(id)
-
-    );
-
-
-  }
+}
 
 
 
 
+async exists(id){
 
-  count() {
+  return Boolean(
+    await this.getById(id)
+  );
+
+}
 
 
-    return this.getAll().length;
 
 
-  }
+async count(){
+
+
+  const pesticides =
+  await this.getAll();
+
+
+  return pesticides.length;
+
+
+}
+
 
 
 }
@@ -279,7 +296,5 @@ class PesticideRepository {
 
 
 export default Object.freeze(
-
   new PesticideRepository()
-
 );
