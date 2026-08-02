@@ -1,214 +1,26 @@
 // src/routes/fieldRoutes.js
 
 
-import fieldController
-  from "../controllers/fieldController.js";
+import {
+  lazy
+} from "react";
 
 
+const fieldRoutes = [
 
+  {
+    path: "/fields",
 
-
-class FieldRoutes {
-
-
-
-  constructor(){
-
-
-    this.controller =
-      fieldController;
-
+    element: lazy(
+      () =>
+        import("../pages/Fields.jsx")
+    )
 
   }
 
-
-
-
-
-
-
-
-  async getFields(){
-
-
-    try{
-
-
-      return await this.controller.getFields();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldRoutes getFields failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  async getFieldById(id){
-
-
-    try{
-
-
-      return await this.controller.getFieldById(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldRoutes getFieldById failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  async createField(data){
-
-
-    try{
-
-
-      return await this.controller.createField(
-
-        data
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldRoutes createField failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  async updateField(id,data){
-
-
-    try{
-
-
-      return await this.controller.updateField(
-
-        id,
-
-        data
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldRoutes updateField failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-
-  async deleteField(id){
-
-
-    try{
-
-
-      return await this.controller.deleteField(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FieldRoutes deleteField failed: ${error.message}`
-
-      );
-
-
-    }
-
-
-  }
-
-
-
-}
-
-
-
+];
 
 
 export default Object.freeze(
-
-  new FieldRoutes()
-
+  fieldRoutes
 );
