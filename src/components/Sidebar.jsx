@@ -6,265 +6,129 @@ import {
 } from "react-router-dom";
 
 
+import menuConfig from "../config/menuConfig.js";
+
+
 
 export default function Sidebar(){
 
 
+  return (
 
-const menuItems = [
+    <aside
 
+      className="sidebar"
 
-{
-title:"الرئيسية",
-path:"/",
-icon:"🏠"
-},
+      aria-label="القائمة الرئيسية"
 
+    >
 
-{
-title:"لوحة التحكم",
-path:"/dashboard",
-icon:"📊"
-},
 
+      <div className="sidebar-brand">
 
-{
-title:"المزارع",
-path:"/farms",
-icon:"🌾"
-},
 
+        <h2>
 
-{
-title:"الحقول",
-path:"/fields",
-icon:"📍"
-},
+          🌱 LAVENDER
 
+        </h2>
 
-{
-title:"المحاصيل",
-path:"/crops",
-icon:"🌱"
-},
 
+        <p>
 
-{
-title:"الري",
-path:"/irrigation",
-icon:"💧"
-},
+          Smart Farm
 
+        </p>
 
-{
-title:"الأسمدة",
-path:"/fertilizers",
-icon:"🧪"
-},
 
+      </div>
 
-{
-title:"المبيدات",
-path:"/pesticides",
-icon:"🛡️"
-},
 
 
-{
-title:"الأمراض",
-path:"/diseases",
-icon:"🦠"
-},
 
 
-{
-title:"الطقس",
-path:"/weather",
-icon:"☀️"
-},
+      <nav>
 
 
-{
-title:"الخريطة",
-path:"/map",
-icon:"🗺️"
-},
+        <ul>
 
 
-{
-title:"المصاريف",
-path:"/expenses",
-icon:"💰"
-},
+          {
 
+            menuConfig.map(
 
-{
-title:"الحصاد",
-path:"/harvest",
-icon:"🚜"
-},
+              (item)=>(
 
 
-{
-title:"المخزون",
-path:"/inventory",
-icon:"📦"
-},
+                <li
 
+                  key={
+                    item.id
+                  }
 
-{
-title:"التقارير",
-path:"/reports",
-icon:"📈"
-},
+                >
 
 
-{
-title:"الذكاء الاصطناعي",
-path:"/ai",
-icon:"🤖"
-},
+                  <NavLink
 
+                    to={
+                      item.path
+                    }
 
-{
-title:"المهندس الزراعي",
-path:"/engineer",
-icon:"👨‍🌾"
-},
+                    className={
 
+                      ({isActive}) =>
 
-{
-title:"المستخدمون",
-path:"/users",
-icon:"👥"
-},
+                      isActive
 
+                      ?
 
-{
-title:"الإعدادات",
-path:"/settings",
-icon:"⚙️"
-}
+                      "sidebar-link active"
 
+                      :
 
-];
+                      "sidebar-link"
 
+                    }
 
+                  >
 
 
+                    <span className="sidebar-icon">
 
-return (
+                      {item.icon}
 
+                    </span>
 
-<aside
 
-className="sidebar"
+                    <span>
 
-aria-label="القائمة الرئيسية"
+                      {item.title}
 
->
+                    </span>
 
 
-<div className="sidebar-brand">
+                  </NavLink>
 
 
-<h2>
+                </li>
 
-🌱 LAVENDER
 
-</h2>
+              )
 
+            )
 
-<p>
+          }
 
-Smart Farm
 
-</p>
+        </ul>
 
 
-</div>
+      </nav>
 
 
+    </aside>
 
-
-
-<nav>
-
-
-<ul>
-
-
-{
-
-menuItems.map((item)=>(
-
-
-<li
-
-key={item.path}
-
->
-
-
-<NavLink
-
-to={item.path}
-
-className={
-
-({isActive}) =>
-
-isActive
-
-?
-
-"sidebar-link active"
-
-:
-
-"sidebar-link"
-
-}
-
->
-
-
-<span className="sidebar-icon">
-
-{item.icon}
-
-</span>
-
-
-<span>
-
-{item.title}
-
-</span>
-
-
-</NavLink>
-
-
-</li>
-
-
-))
-
-}
-
-
-
-</ul>
-
-
-</nav>
-
-
-</aside>
-
-
-);
-
+  );
 
 }
