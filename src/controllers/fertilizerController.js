@@ -1,251 +1,77 @@
 // src/controllers/fertilizerController.js
 
-
-import fertilizerService
-  from "../services/fertilizerService.js";
-
-
-
+import fertilizerService from "../services/fertilizerService.js";
 
 
 class FertilizerController {
 
 
-
   constructor() {
 
-
-    this.service =
-      fertilizerService;
-
+    this.service = fertilizerService;
 
   }
 
 
+  async getAll() {
 
-
-
-
-
-
-  async getAllFertilizers(){
-
-
-    try{
-
-
-      return await this.service.getAll();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FertilizerController getAllFertilizers failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getAll();
 
   }
 
 
+  async getById(id) {
 
-
-
-
-
-
-  async getFertilizerById(id){
-
-
-    try{
-
-
-      return await this.service.getById(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FertilizerController getFertilizerById failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getById(id);
 
   }
 
 
+  async create(data) {
 
-
-
-
-
-
-  async createFertilizer(data){
-
-
-    try{
-
-
-      return await this.service.create(
-
-        data
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FertilizerController createFertilizer failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.create(data);
 
   }
 
 
+  async update(id, data) {
 
-
-
-
-
-
-  async updateFertilizer(
-    id,
-    data
-  ){
-
-
-    try{
-
-
-      return await this.service.update(
-
-        id,
-
-        data
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FertilizerController updateFertilizer failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.update(
+      id,
+      data
+    );
 
   }
 
 
+  async delete(id) {
 
-
-
-
-
-
-  async deleteFertilizer(id){
-
-
-    try{
-
-
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FertilizerController deleteFertilizer failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.delete(id);
 
   }
 
 
+  async count() {
 
-
-
-
-
-
-  async countFertilizers(){
-
-
-    try{
-
-
-      return await this.service.count();
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `FertilizerController countFertilizers failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.count();
 
   }
 
 
+  async exists(id) {
 
+    return this.service.exists(id);
+
+  }
 
 
 }
 
 
-
+const fertilizerController =
+new FertilizerController();
 
 
 export default Object.freeze(
-
-  new FertilizerController()
-
+  fertilizerController
 );
