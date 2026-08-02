@@ -1,42 +1,56 @@
-import { useContext, useMemo } from "react";
+// src/hooks/useFields.js
 
-import { FarmContext } from "../context/FarmContext";
+import {
+  useContext,
+  useMemo
+} from "react";
+
+
+import {
+  FarmContext
+} from "../context/FarmContext";
+
 
 
 export default function useFields() {
 
 
+  const context =
+    useContext(FarmContext);
+
+
+
+  if (!context) {
+
+    throw new Error(
+      "useFields must be used inside FarmProvider"
+    );
+
+  }
+
+
+
   const {
+
     fields = [],
-    setFields,
-  } = useContext(FarmContext);
+
+    fieldActions
+
+  } = context;
 
 
 
 
-  // إضافة حقل جديد
-  const addField = (field) => {
+
+  const addField = async (
+    data
+  ) => {
 
 
-    const newField = {
+    return await fieldActions.create(
+      data
+    );
 
-      id: Date.now(),
-
-      createdAt:
-      new Date()
-      .toISOString(),
-
-      status: "active",
-
-      ...field,
-
-    };
-
-
-    setFields([
-      ...fields,
-      newField
-    ]);
 
   };
 
@@ -44,38 +58,19 @@ export default function useFields() {
 
 
 
-  // تعديل حقل
-  const updateField = (
+
+
+  const updateField = async (
     id,
     data
   ) => {
 
 
-    setFields(
-
-      fields.map(
-        field =>
-
-        field.id === id
-
-        ?
-
-        {
-          ...field,
-          ...data,
-
-          updatedAt:
-          new Date()
-          .toISOString()
-        }
-
-        :
-
-        field
-
-      )
-
+    return await fieldActions.update(
+      id,
+      data
     );
+
 
   };
 
@@ -83,18 +78,17 @@ export default function useFields() {
 
 
 
-  // حذف حقل
-  const deleteField = (id)=>{
 
 
-    setFields(
+  const deleteField = async (
+    id
+  ) => {
 
-      fields.filter(
-        field =>
-        field.id !== id
-      )
 
+    return await fieldActions.remove(
+      id
     );
+
 
   };
 
@@ -102,21 +96,42 @@ export default function useFields() {
 
 
 
-  // البحث عن الحقول
-  const searchFields = (text)=>{
+
+
+  const loadFields = async () => {
+
+
+    return await fieldActions.load();
+
+
+  };
+
+
+
+
+
+
+
+  const searchFields = (
+    text = ""
+  ) => {
+
+
+    const value =
+      text.toLowerCase();
+
 
 
     return fields.filter(
 
       field =>
 
-      field.name
-      ?.toLowerCase()
-      .includes(
-        text.toLowerCase()
-      )
+        field.name
+        ?.toLowerCase()
+        .includes(value)
 
     );
+
 
   };
 
@@ -124,42 +139,46 @@ export default function useFields() {
 
 
 
-  // إحصائيات الحقول
-  const statistics = useMemo(()=>{
 
 
-    return {
+  const statistics = useMemo(
+    () => ({
 
       total:
-      fields.length,
+        fields.length,
 
 
       totalArea:
-      fields.reduce(
+        fields.reduce(
 
-        (sum, field)=>
+          (sum, field) =>
 
-        sum +
-        Number(
-          field.area || 0
+            sum +
+            Number(
+              field.area || 0
+            ),
+
+          0
+
         ),
-
-        0
-
-      ),
 
 
       active:
-      fields.filter(
-        field =>
-        field.status === "active"
-      ).length,
+        fields.filter(
+
+          field =>
+
+            field.status === "active"
+
+        ).length
 
 
-    };
+    }),
+
+    [fields]
+  );
 
 
-  },[fields]);
 
 
 
@@ -175,10 +194,13 @@ export default function useFields() {
 
     deleteField,
 
+    loadFields,
+
     searchFields,
 
-    statistics,
+    statistics
 
   };
+
 
 }
