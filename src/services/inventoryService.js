@@ -1,21 +1,15 @@
 // src/services/inventoryService.js
 
-import inventoryRepository
-  from "../repositories/inventoryRepository.js";
+import inventoryRepository from "../repositories/inventoryRepository.js";
 
 
 class InventoryService {
 
+  constructor(repository) {
 
-  constructor() {
-
-    this.repository =
-      inventoryRepository;
+    this.repository = repository;
 
   }
-
-
-
 
 
   getAll() {
@@ -25,11 +19,7 @@ class InventoryService {
   }
 
 
-
-
-
   getById(id) {
-
 
     if (!id) {
 
@@ -38,19 +28,14 @@ class InventoryService {
     }
 
 
-
     return this.repository.getById(id);
 
   }
 
 
-
-
-
   create(data) {
 
-
-    if (!data) {
+    if (!data || typeof data !== "object") {
 
       throw new Error(
         "Inventory data is required"
@@ -59,17 +44,12 @@ class InventoryService {
     }
 
 
-
     return this.repository.create(data);
 
   }
 
 
-
-
-
   update(id, data) {
-
 
     if (!id) {
 
@@ -80,14 +60,20 @@ class InventoryService {
     }
 
 
+    if (!data || typeof data !== "object") {
+
+      throw new Error(
+        "Inventory update data is required"
+      );
+
+    }
+
 
     const updatedItem =
-
       this.repository.update(
         id,
         data
       );
-
 
 
     if (!updatedItem) {
@@ -99,17 +85,12 @@ class InventoryService {
     }
 
 
-
     return updatedItem;
 
   }
 
 
-
-
-
   delete(id) {
-
 
     if (!id) {
 
@@ -120,11 +101,8 @@ class InventoryService {
     }
 
 
-
     const deleted =
-
       this.repository.delete(id);
-
 
 
     if (!deleted) {
@@ -136,23 +114,9 @@ class InventoryService {
     }
 
 
-
     return true;
 
   }
-
-
-
-
-
-  count() {
-
-    return this.repository.count();
-
-  }
-
-
-
 
 
   exists(id) {
@@ -162,16 +126,22 @@ class InventoryService {
   }
 
 
+  count() {
 
+    return this.repository.count();
+
+  }
 
 
 }
 
 
+// Singleton Service
 
 const inventoryService =
-  new InventoryService();
-
+  new InventoryService(
+    inventoryRepository
+  );
 
 
 export default Object.freeze(
