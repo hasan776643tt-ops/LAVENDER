@@ -4,222 +4,130 @@ import inventoryService
   from "../services/inventoryService.js";
 
 
-
 class InventoryController {
 
 
-  constructor() {
+  constructor(service) {
 
-    this.service =
-      inventoryService;
+    this.service = service;
 
   }
 
 
-
-
-
-  async getInventory() {
-
+  async getAll() {
 
     try {
-
 
       return await this.service.getAll();
 
-
-
-    } catch(error) {
-
+    } catch (error) {
 
       throw new Error(
-
-        `InventoryController getInventory failed: ${error.message}`
-
+        `InventoryController getAll failed: ${error.message}`
       );
 
-
     }
-
 
   }
 
 
-
-
-
-  async getInventoryById(id) {
-
+  async getById(id) {
 
     try {
 
+      return await this.service.getById(id);
 
-      return await this.service.getById(
-
-        id
-
-      );
-
-
-
-    } catch(error) {
-
+    } catch (error) {
 
       throw new Error(
-
-        `InventoryController getInventoryById failed: ${error.message}`
-
+        `InventoryController getById failed: ${error.message}`
       );
 
-
     }
-
 
   }
 
 
-
-
-
-  async createInventory(inventoryData) {
-
+  async create(data) {
 
     try {
 
+      return await this.service.create(data);
 
-      return await this.service.create(
-
-        inventoryData
-
-      );
-
-
-
-    } catch(error) {
-
+    } catch (error) {
 
       throw new Error(
-
-        `InventoryController createInventory failed: ${error.message}`
-
+        `InventoryController create failed: ${error.message}`
       );
 
-
     }
-
 
   }
 
 
-
-
-
-  async updateInventory(
-    id,
-    inventoryData
-  ) {
-
+  async update(id, data) {
 
     try {
-
 
       return await this.service.update(
-
         id,
-
-        inventoryData
-
+        data
       );
 
-
-
-    } catch(error) {
-
+    } catch (error) {
 
       throw new Error(
-
-        `InventoryController updateInventory failed: ${error.message}`
-
+        `InventoryController update failed: ${error.message}`
       );
 
-
     }
-
 
   }
 
 
-
-
-
-  async deleteInventory(id) {
-
+  async delete(id) {
 
     try {
 
+      return await this.service.delete(id);
 
-      return await this.service.delete(
-
-        id
-
-      );
-
-
-
-    } catch(error) {
-
+    } catch (error) {
 
       throw new Error(
-
-        `InventoryController deleteInventory failed: ${error.message}`
-
+        `InventoryController delete failed: ${error.message}`
       );
 
-
     }
-
 
   }
 
 
-
-
-
-  async countInventory() {
-
+  async count() {
 
     try {
-
 
       return await this.service.count();
 
-
-
-    } catch(error) {
-
+    } catch (error) {
 
       throw new Error(
-
-        `InventoryController countInventory failed: ${error.message}`
-
+        `InventoryController count failed: ${error.message}`
       );
-
 
     }
 
-
   }
-
-
-
 
 
 }
 
 
+const inventoryController =
+  new InventoryController(
+    inventoryService
+  );
+
 
 export default Object.freeze(
-
-  new InventoryController()
-
+  inventoryController
 );
