@@ -1,9 +1,7 @@
 // src/services/analyticsService.js
 
-
 import storageService
   from "./storageService.js";
-
 
 
 class AnalyticsService {
@@ -14,12 +12,7 @@ class AnalyticsService {
     this.storageKey =
       "analytics_events";
 
-
-    this.events =
-      this.loadEvents();
-
   }
-
 
 
 
@@ -28,36 +21,52 @@ class AnalyticsService {
     data = {}
   ) {
 
+
     if (!event) {
 
       throw new Error(
-        "Analytics event is required"
+        "ANALYTICS_EVENT_REQUIRED"
       );
 
     }
 
 
+
+    const events =
+      this.getEvents();
+
+
+
     const record = {
 
+
       id:
-        Date.now(),
+        crypto.randomUUID(),
+
 
       event,
 
+
       data,
 
-      time:
+
+      createdAt:
         new Date().toISOString()
 
     };
 
 
-    this.events.push(
+
+    events.push(
       record
     );
 
 
-    this.saveEvents();
+
+    this.saveEvents(
+      events
+    );
+
 
 
     return record;
@@ -66,82 +75,66 @@ class AnalyticsService {
 
 
 
-
   getEvents() {
 
-    return [
-      ...this.events
-    ];
+
+    return storageService.load(
+
+      this.storageKey,
+
+      []
+
+    );
 
   }
-
 
 
 
   getEventsByType(type) {
 
-    return this.events.filter(
-      item =>
-        item.event === type
-    );
+
+    if (!type) {
+
+      return [];
+
+    }
+
+
+    return this.getEvents()
+
+      .filter(
+
+        item =>
+          item.event === type
+
+      );
 
   }
-
 
 
 
   count() {
 
-    return this.events.length;
+
+    return this.getEvents().length;
 
   }
 
 
 
-
-  clear() {
-
-    this.events = [];
-
-    this.saveEvents();
-
-    return true;
-
-  }
+  getStats() {
 
 
+    const events =
+      this.getEvents();
 
 
-  saveEvents() {
-
-    storageService.save(
-      this.storageKey,
-      this.events
-    );
-
-  }
-
-
-
-
-  loadEvents() {
-
-    return storageService.load(
-      this.storageKey,
-      []
-    );
-
-  }
-
-
-
-
-  farmReport(farms = []) {
 
     return {
 
-      totalFarms:
-        farms.length,
+      total:
+        events.length,
+
 
       generatedAt:
         new Date().toISOString()
@@ -152,13 +145,60 @@ class AnalyticsService {
 
 
 
+  clear() {
+
+
+    return storageService.remove(
+
+      this.storageKey
+
+    );
+
+  }
+
+
+
+  saveEvents(data) {
+
+
+    return storageService.save(
+
+      this.storageKey,
+
+      data
+
+    );
+
+  }
+
+
+
+  farmReport(farms = []) {
+
+
+    return {
+
+      totalFarms:
+        farms.length,
+
+
+      generatedAt:
+        new Date().toISOString()
+
+    };
+
+  }
+
+
 
   cropReport(crops = []) {
+
 
     return {
 
       totalCrops:
         crops.length,
+
 
       generatedAt:
         new Date().toISOString()
@@ -169,7 +209,6 @@ class AnalyticsService {
 
 
 }
-
 
 
 export default Object.freeze(
