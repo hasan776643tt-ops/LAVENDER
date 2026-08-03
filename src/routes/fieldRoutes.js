@@ -6,21 +6,34 @@ import {
 } from "react";
 
 
-const fieldRoutes = [
 
-  {
+const Fields = lazy(
+  () =>
+    import("../pages/Fields.jsx")
+);
+
+
+
+const fieldRoutes = Object.freeze([
+
+
+  Object.freeze({
+
+    id: "fields",
+
     path: "/fields",
 
-    element: lazy(
-      () =>
-        import("../pages/Fields.jsx")
-    )
+    element: Fields,
 
-  }
+    module: "fields",
 
-];
+    protected: true
+
+  })
 
 
-export default Object.freeze(
-  fieldRoutes
-);
+]);
+
+
+
+export default fieldRoutes;
