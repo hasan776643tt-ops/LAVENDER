@@ -6,21 +6,34 @@ import {
 } from "react";
 
 
-const engineerRoutes = [
 
-  {
+const Engineer = lazy(
+  () =>
+    import("../pages/Engineer.jsx")
+);
+
+
+
+const engineerRoutes = Object.freeze([
+
+
+  Object.freeze({
+
+    id: "engineer",
+
     path: "/engineer",
 
-    element: lazy(
-      () =>
-        import("../pages/Engineer.jsx")
-    )
+    element: Engineer,
 
-  }
+    module: "engineer",
 
-];
+    protected: true
+
+  })
 
 
-export default Object.freeze(
-  engineerRoutes
-);
+]);
+
+
+
+export default engineerRoutes;
