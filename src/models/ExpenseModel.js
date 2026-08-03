@@ -1,121 +1,271 @@
 // src/models/ExpenseModel.js
 
 
-export const createExpenseModel = (data = {}) => {
+/**
+ * Expense Model
+ * نموذج المصروف الذكي
+ *
+ * مسؤول عن:
+ * - إدارة مصاريف المزرعة
+ * - دعم التقارير والتحليلات المالية
+ */
 
 
-  return {
+export class ExpenseModel {
 
 
-    id:
+  constructor(data = {}) {
+
+
+    this.id =
       data.id ||
-      Date.now(),
+      (
+        globalThis.crypto?.randomUUID?.()
+        ||
+        Date.now().toString()
+      );
 
 
 
-    // ربط المصروف بالمزرعة
+    // ارتباط بالمزرعة
 
-    farmId:
-      data.farmId || "",
+    this.farmId =
+      data.farmId ||
+      "";
 
 
 
     // معلومات المصروف
 
-    type:
-      data.type || "",
+    this.type =
+      data.type ||
+      "";
+
+
+    this.category =
+      data.category ||
+      "operation";
+
+
+    this.amount =
+      Number(data.amount) || 0;
+
+
+    this.currency =
+      data.currency ||
+      "USD";
 
 
 
-    category:
-      data.category || "تشغيل",
+    // الدفع
 
-
-
-    amount:
-      Number(
-        data.amount || 0
-      ),
-
-
-
-    currency:
-      data.currency || "ل.س",
-
-
-
-    // طريقة الدفع
-
-    paymentMethod:
-      data.paymentMethod || "نقدي",
+    this.paymentMethod =
+      data.paymentMethod ||
+      "cash";
 
 
 
     // المورد والفاتورة
 
-    supplier:
-      data.supplier || "",
+    this.supplier =
+      data.supplier ||
+      "";
 
 
-
-    invoice:
-      data.invoice || "",
+    this.invoice =
+      data.invoice ||
+      "";
 
 
 
     // التاريخ
 
-    date:
-      data.date || "",
+    this.date =
+      data.date ||
+      "";
 
 
 
-    createdAt:
-      data.createdAt ||
-      new Date()
-      .toISOString(),
+    // الحالة
+
+    this.status =
+      data.status ||
+      "paid";
 
 
 
-    // حالة الدفع
+    // الذكاء الاصطناعي
 
-    status:
-      data.status || "paid",
+    this.aiAnalysis =
+      data.aiAnalysis ||
+      {
+
+
+        costLevel:"normal",
+
+
+        recommendation:"",
+
+
+        savingTips:[],
+
+
+        farmImpact:""
+
+
+      };
 
 
 
     // ملاحظات
 
-    notes:
-      data.notes || "",
+    this.notes =
+      data.notes ||
+      "";
 
 
 
-    // طبقة التحليل الذكي المستقبلية
+    // النظام الزمني
 
-    aiAnalysis:
-      data.aiAnalysis || {
-
-
-        costLevel:
-          "normal",
+    this.createdAt =
+      data.createdAt ||
+      new Date().toISOString();
 
 
-        recommendation:
-          "",
+    this.updatedAt =
+      data.updatedAt ||
+      new Date().toISOString();
 
 
-        savingTips:
-          [],
+  }
 
 
-        farmImpact:
-          ""
+
+
+
+  update(data = {}){
+
+
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
 
       }
 
 
-  };
+    });
+
+
+
+    this.updatedAt =
+      new Date().toISOString();
+
+
+
+    return this;
+
+
+  }
+
+
+
+
+
+  getAmount(){
+
+
+    return {
+
+
+      value:this.amount,
+
+
+      currency:this.currency
+
+
+    };
+
+
+  }
+
+
+
+
+
+  toJSON(){
+
+
+    return {
+
+
+      id:this.id,
+
+
+      farmId:this.farmId,
+
+
+      type:this.type,
+
+
+      category:this.category,
+
+
+      amount:this.amount,
+
+
+      currency:this.currency,
+
+
+      paymentMethod:this.paymentMethod,
+
+
+      supplier:this.supplier,
+
+
+      invoice:this.invoice,
+
+
+      date:this.date,
+
+
+      status:this.status,
+
+
+      aiAnalysis:this.aiAnalysis,
+
+
+      notes:this.notes,
+
+
+      createdAt:this.createdAt,
+
+
+      updatedAt:this.updatedAt
+
+
+    };
+
+
+  }
+
+
+}
+
+
+
+
+
+export const createExpense = (data = {}) => {
+
+
+  return new ExpenseModel(data);
 
 
 };
@@ -124,57 +274,51 @@ export const createExpenseModel = (data = {}) => {
 
 
 
-// تصنيفات المصاريف
-
 export const expenseCategories = [
 
 
-  "تشغيل",
+  "operation",
 
-  "زراعة",
+  "planting",
 
-  "سماد",
+  "fertilizer",
 
-  "مبيدات",
+  "pesticide",
 
-  "ري",
+  "irrigation",
 
-  "معدات",
+  "equipment",
 
-  "عمال",
+  "workers",
 
-  "نقل",
+  "transport",
 
-  "صيانة",
+  "maintenance",
 
-  "أخرى"
+  "other"
 
 ];
 
 
 
 
-
-// طرق الدفع
 
 export const paymentMethods = [
 
 
-  "نقدي",
+  "cash",
 
-  "تحويل بنكي",
+  "bank_transfer",
 
-  "بطاقة مصرفية",
+  "card",
 
-  "محفظة إلكترونية"
+  "digital_wallet"
 
 ];
 
 
 
 
-
-// حالات المصروف
 
 export const expenseStatus = [
 
