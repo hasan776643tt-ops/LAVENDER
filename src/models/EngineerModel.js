@@ -1,101 +1,140 @@
 // src/models/EngineerModel.js
 
 
-import {
-  createId,
-  createTimestamp
-} from "../context/DataModel";
+/**
+ * Engineer Model
+ * نموذج المهندس الزراعي الذكي
+ *
+ * مسؤول عن:
+ * - إدارة بيانات المهندسين
+ * - ربط المهندس بالمزارع والاستشارات
+ * - دعم نظام الاستشارات الزراعية
+ */
 
 
-
-export default class EngineerModel {
+export class EngineerModel {
 
 
   constructor(data = {}) {
 
 
     this.id =
-      data.id || createId();
+      data.id ||
+      (
+        globalThis.crypto?.randomUUID?.()
+        ||
+        Date.now().toString()
+      );
 
 
+
+    // البيانات الأساسية
 
     this.name =
-      data.name || "";
-
+      data.name ||
+      "";
 
 
     this.email =
-      data.email || "";
-
+      data.email ||
+      "";
 
 
     this.phone =
-      data.phone || "";
+      data.phone ||
+      "";
 
 
+
+    // الاختصاص
 
     this.specialty =
-      data.specialty || "Agriculture";
-
+      data.specialty ||
+      "Agriculture";
 
 
     this.experience =
-      data.experience || 0;
+      Number(data.experience) || 0;
 
 
 
-    this.location = {
+    // الموقع
 
-      city:
-        data.location?.city || "",
+    this.location =
+      data.location ||
+      {
 
-      coordinates:
-        data.location?.coordinates || {
-          latitude:"",
-          longitude:""
+
+        city:"",
+
+
+        coordinates:{
+
+
+          latitude:null,
+
+
+          longitude:null
+
+
         }
 
-    };
+
+      };
 
 
+
+    // الحالة
 
     this.status =
-      data.status || "active";
-
+      data.status ||
+      "active";
 
 
     this.available =
-      data.available ?? true;
+      data.available ??
+      true;
 
 
+
+    // التقييم
 
     this.rating =
-      data.rating || 0;
+      Number(data.rating) || 0;
 
 
+
+    // العلاقات
 
     this.farms =
-      data.farms || [];
-
+      data.farms ||
+      [];
 
 
     this.consultations =
-      data.consultations || [];
+      data.consultations ||
+      [];
 
 
+
+    // الصورة
 
     this.image =
-      data.image || "";
+      data.image ||
+      "";
 
 
+
+    // النظام الزمني
 
     this.createdAt =
-      data.createdAt || createTimestamp();
-
+      data.createdAt ||
+      new Date().toISOString();
 
 
     this.updatedAt =
-      data.updatedAt || createTimestamp();
+      data.updatedAt ||
+      new Date().toISOString();
 
 
   }
@@ -103,17 +142,35 @@ export default class EngineerModel {
 
 
 
+
   update(data = {}){
 
 
-    Object.assign(
-      this,
-      data
-    );
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
+
+      }
+
+
+    });
+
 
 
     this.updatedAt =
-      createTimestamp();
+      new Date().toISOString();
+
+
+
+    return this;
+
 
   }
 
@@ -125,14 +182,19 @@ export default class EngineerModel {
 
 
     if(
+      farmId &&
       !this.farms.includes(farmId)
     ){
 
-      this.farms.push(
-        farmId
-      );
+
+      this.farms.push(farmId);
+
 
     }
+
+
+    return this;
+
 
   }
 
@@ -144,16 +206,23 @@ export default class EngineerModel {
 
 
     if(
+      consultationId &&
       !this.consultations.includes(
         consultationId
       )
     ){
 
+
       this.consultations.push(
         consultationId
       );
 
+
     }
+
+
+    return this;
+
 
   }
 
@@ -166,35 +235,51 @@ export default class EngineerModel {
 
     return {
 
+
       id:this.id,
+
 
       name:this.name,
 
+
       email:this.email,
+
 
       phone:this.phone,
 
+
       specialty:this.specialty,
+
 
       experience:this.experience,
 
+
       location:this.location,
+
 
       status:this.status,
 
+
       available:this.available,
+
 
       rating:this.rating,
 
+
       farms:this.farms,
+
 
       consultations:this.consultations,
 
+
       image:this.image,
+
 
       createdAt:this.createdAt,
 
+
       updatedAt:this.updatedAt
+
 
     };
 
@@ -203,3 +288,15 @@ export default class EngineerModel {
 
 
 }
+
+
+
+
+
+export const createEngineer = (data = {}) => {
+
+
+  return new EngineerModel(data);
+
+
+};
