@@ -1,210 +1,337 @@
 // src/models/DiseaseModel.js
 
 
-// إنشاء نموذج مرض زراعي ذكي
+/**
+ * Disease Model
+ * نموذج المرض الزراعي الذكي
+ *
+ * مسؤول عن:
+ * - إدارة الأمراض الزراعية
+ * - متابعة التشخيص والعلاج
+ * - دعم الذكاء الاصطناعي والتحليلات
+ */
 
-export const createDiseaseModel = (data = {}) => {
+
+export class DiseaseModel {
 
 
-  return {
+  constructor(data = {}) {
 
 
-    // الهوية
-
-    id:
-      data.id ??
-      crypto.randomUUID(),
+    this.id =
+      data.id ||
+      (
+        globalThis.crypto?.randomUUID?.()
+        ||
+        Date.now().toString()
+      );
 
 
 
     // العلاقات
 
-    farmId:
-      data.farmId ?? "",
+    this.farmId =
+      data.farmId ||
+      "";
 
 
-    fieldId:
-      data.fieldId ?? "",
+    this.fieldId =
+      data.fieldId ||
+      "";
 
 
-    cropId:
-      data.cropId ?? "",
+    this.cropId =
+      data.cropId ||
+      "";
 
 
 
+    // معلومات المرض
+
+    this.diseaseName =
+      data.diseaseName ||
+      "";
 
 
-    // معلومات المرض الأساسية
-
-    diseaseName:
-      data.diseaseName ?? "",
-
-
-    scientificName:
-      data.scientificName ?? "",
+    this.scientificName =
+      data.scientificName ||
+      "";
 
 
-    symptoms:
-      data.symptoms ?? "",
+    this.symptoms =
+      data.symptoms ||
+      "";
 
 
-    severity:
-      data.severity ?? DiseaseSeverity.MEDIUM,
-
-
+    this.severity =
+      data.severity ||
+      DiseaseSeverity.MEDIUM;
 
 
 
     // التشخيص والعلاج
 
-    diagnosis:
-      data.diagnosis ?? "",
+    this.diagnosis =
+      data.diagnosis ||
+      "";
 
 
-    treatment:
-      data.treatment ?? "",
+    this.treatment =
+      data.treatment ||
+      "";
 
 
-    prevention:
-      data.prevention ?? "",
+    this.prevention =
+      data.prevention ||
+      "";
 
 
-    pesticidesUsed:
-      data.pesticidesUsed ?? [],
-
-
+    this.pesticidesUsed =
+      data.pesticidesUsed ||
+      [];
 
 
 
     // المتابعة الزمنية
 
-    detectedDate:
-      data.detectedDate ?? "",
+    this.detectedDate =
+      data.detectedDate ||
+      "";
 
 
-    treatmentDate:
-      data.treatmentDate ?? "",
+    this.treatmentDate =
+      data.treatmentDate ||
+      "";
 
 
-    followUpDate:
-      data.followUpDate ?? "",
-
-
-
-
-
-    // الحالة والإدارة
-
-    status:
-      data.status ?? DiseaseStatus.ACTIVE,
-
-
-    priority:
-      data.priority ?? PriorityLevel.MEDIUM,
+    this.followUpDate =
+      data.followUpDate ||
+      "";
 
 
 
+    // الإدارة
+
+    this.status =
+      data.status ||
+      DiseaseStatus.ACTIVE;
 
 
-    // بيانات المراقبة
-
-    images:
-      data.images ?? [],
-
-
-    notes:
-      data.notes ?? "",
-
-
+    this.priority =
+      data.priority ||
+      PriorityLevel.MEDIUM;
 
 
 
-    // نظام الذكاء الاصطناعي مستقبلاً
+    // الصور والملاحظات
 
-    ai:
-
-      data.ai ?? {
-
-
-        riskScore: 0,
+    this.images =
+      data.images ||
+      [];
 
 
-        riskLevel:
-          "low",
+    this.notes =
+      data.notes ||
+      "";
 
 
-        confidence:
-          0,
+
+    // الذكاء الاصطناعي
+
+    this.ai =
+      data.ai ||
+      {
 
 
-        detectedSigns:
-          [],
+        riskScore:0,
 
 
-        recommendations:
-          [],
+        riskLevel:"low",
 
 
-        preventionPlan:
-          []
+        confidence:0,
 
 
-      },
+        detectedSigns:[],
 
 
+        recommendations:[],
+
+
+        preventionPlan:[]
+
+
+      };
 
 
 
     // التحليلات
 
-    analytics:
-
-      data.analytics ?? {
-
-
-        occurrenceCount:
-          0,
+    this.analytics =
+      data.analytics ||
+      {
 
 
-        affectedArea:
-          0,
+        occurrenceCount:0,
 
 
-        estimatedLoss:
-          0,
+        affectedArea:0,
 
 
-        recoveryRate:
-          0
+        estimatedLoss:0,
 
 
-      },
+        recoveryRate:0
+
+
+      };
 
 
 
+    // النظام الزمني
+
+    this.createdAt =
+      data.createdAt ||
+      new Date().toISOString();
 
 
-    // النظام
-
-    createdAt:
-
-      data.createdAt ??
-
-      new Date()
-      .toISOString(),
+    this.updatedAt =
+      data.updatedAt ||
+      new Date().toISOString();
 
 
-
-    updatedAt:
-
-      data.updatedAt ??
-
-      new Date()
-      .toISOString()
+  }
 
 
 
-  };
+
+
+  update(data = {}){
+
+
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
+
+      }
+
+
+    });
+
+
+
+    this.updatedAt =
+      new Date().toISOString();
+
+
+
+    return this;
+
+
+  }
+
+
+
+
+
+  toJSON(){
+
+
+    return {
+
+
+      id:this.id,
+
+
+      farmId:this.farmId,
+
+
+      fieldId:this.fieldId,
+
+
+      cropId:this.cropId,
+
+
+      diseaseName:this.diseaseName,
+
+
+      scientificName:this.scientificName,
+
+
+      symptoms:this.symptoms,
+
+
+      severity:this.severity,
+
+
+      diagnosis:this.diagnosis,
+
+
+      treatment:this.treatment,
+
+
+      prevention:this.prevention,
+
+
+      pesticidesUsed:this.pesticidesUsed,
+
+
+      detectedDate:this.detectedDate,
+
+
+      treatmentDate:this.treatmentDate,
+
+
+      followUpDate:this.followUpDate,
+
+
+      status:this.status,
+
+
+      priority:this.priority,
+
+
+      images:this.images,
+
+
+      notes:this.notes,
+
+
+      ai:this.ai,
+
+
+      analytics:this.analytics,
+
+
+      createdAt:this.createdAt,
+
+
+      updatedAt:this.updatedAt
+
+
+    };
+
+
+  }
+
+
+}
+
+
+
+
+
+export const createDisease = (data = {}) => {
+
+
+  return new DiseaseModel(data);
 
 
 };
@@ -212,26 +339,17 @@ export const createDiseaseModel = (data = {}) => {
 
 
 
-
-
-
-
-
-// درجات خطورة المرض
 
 export const DiseaseSeverity = {
 
 
-  LOW:
-    "خفيفة",
+  LOW:"low",
 
 
-  MEDIUM:
-    "متوسطة",
+  MEDIUM:"medium",
 
 
-  HIGH:
-    "شديدة"
+  HIGH:"high"
 
 
 };
@@ -239,30 +357,20 @@ export const DiseaseSeverity = {
 
 
 
-
-
-
-
-
-// حالات المرض
 
 export const DiseaseStatus = {
 
 
-  ACTIVE:
-    "active",
+  ACTIVE:"active",
 
 
-  TREATED:
-    "treated",
+  TREATED:"treated",
 
 
-  MONITORING:
-    "monitoring",
+  MONITORING:"monitoring",
 
 
-  CLOSED:
-    "closed"
+  CLOSED:"closed"
 
 
 };
@@ -271,29 +379,19 @@ export const DiseaseStatus = {
 
 
 
-
-
-
-
-// مستويات الأولوية
-
 export const PriorityLevel = {
 
 
-  LOW:
-    "low",
+  LOW:"low",
 
 
-  MEDIUM:
-    "medium",
+  MEDIUM:"medium",
 
 
-  HIGH:
-    "high",
+  HIGH:"high",
 
 
-  CRITICAL:
-    "critical"
+  CRITICAL:"critical"
 
 
 };
