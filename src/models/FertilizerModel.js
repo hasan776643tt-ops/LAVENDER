@@ -1,176 +1,320 @@
 // src/models/FertilizerModel.js
 
 
-export const createFertilizerModel = (data = {}) => {
+/**
+ * Fertilizer Model
+ * نموذج بيانات التسميد الذكي
+ *
+ * مسؤول عن:
+ * - إدارة عمليات التسميد
+ * - ربط المزرعة والحقل والمحصول
+ * - دعم التحليلات الذكية
+ */
 
 
-  return {
+export class FertilizerModel {
 
 
-    id:
+  constructor(data = {}) {
+
+
+    this.id =
       data.id ||
-      Date.now(),
+      Date.now();
 
 
 
-    farmId:
-      data.farmId || "",
+    // العلاقات
+
+    this.farmId =
+      data.farmId ||
+      "";
 
 
+    this.fieldId =
+      data.fieldId ||
+      "";
 
-    fieldId:
-      data.fieldId || "",
 
-
-
-    cropId:
-      data.cropId || "",
+    this.cropId =
+      data.cropId ||
+      "";
 
 
 
     // معلومات السماد
 
-    type:
-      data.type || "",
+    this.type =
+      data.type ||
+      "";
 
 
-
-    category:
-      data.category || "كيميائي",
-
-
-
-    quantity:
-      Number(
-        data.quantity || 0
-      ),
+    this.category =
+      data.category ||
+      "organic";
 
 
+    this.quantity =
+      Number(data.quantity) || 0;
 
-    unit:
-      data.unit || "كغ",
+
+    this.unit =
+      data.unit ||
+      "kg";
 
 
 
     // طريقة الاستخدام
 
-    method:
-      data.method || "تربة",
+    this.method =
+      data.method ||
+      "soil";
 
 
-
-    stage:
-      data.stage || "",
+    this.stage =
+      data.stage ||
+      "";
 
 
 
     // المورد والتكلفة
 
-    supplier:
-      data.supplier || "",
+    this.supplier =
+      data.supplier ||
+      "";
 
 
-
-    cost:
-      Number(
-        data.cost || 0
-      ),
+    this.cost =
+      Number(data.cost) || 0;
 
 
-
-    currency:
-      data.currency || "ل.س",
+    this.currency =
+      data.currency ||
+      "USD";
 
 
 
     // الزمن
 
-    date:
-      data.date || "",
+    this.date =
+      data.date ||
+      "";
 
 
 
-    createdAt:
-      data.createdAt ||
-      new Date()
-      .toISOString(),
+    // الحالة
+
+    this.status =
+      data.status ||
+      "scheduled";
+
+
+    this.priority =
+      data.priority ||
+      "medium";
 
 
 
-    // إدارة الحالة
+    // التحليل الذكي
 
-    status:
-      data.status || "scheduled",
+    this.aiAnalysis =
+      data.aiAnalysis ||
+      {
 
 
+        recommendation:"",
 
-    priority:
-      data.priority || "medium",
+
+        riskLevel:"low",
+
+
+        efficiency:null
+
+
+      };
 
 
 
     // ملاحظات
 
-    notes:
-      data.notes || "",
+    this.notes =
+      data.notes ||
+      "";
 
 
 
-    // بيانات مستقبلية للذكاء الاصطناعي
+    // النظام الزمني
 
-    aiAnalysis:
-      data.aiAnalysis || {
+    this.createdAt =
+      data.createdAt ||
+      new Date().toISOString();
 
-        recommendation:
-          "",
 
-        riskLevel:
-          "low",
+    this.updatedAt =
+      data.updatedAt ||
+      new Date().toISOString();
 
-        efficiency:
-          null
+
+  }
+
+
+
+
+
+  update(data = {}){
+
+
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
 
       }
 
 
-  };
+    });
+
+
+
+    this.updatedAt =
+      new Date().toISOString();
+
+
+
+    return this;
+
+
+  }
+
+
+
+
+
+  toJSON(){
+
+
+    return {
+
+
+      id:this.id,
+
+
+      farmId:this.farmId,
+
+
+      fieldId:this.fieldId,
+
+
+      cropId:this.cropId,
+
+
+      type:this.type,
+
+
+      category:this.category,
+
+
+      quantity:this.quantity,
+
+
+      unit:this.unit,
+
+
+      method:this.method,
+
+
+      stage:this.stage,
+
+
+      supplier:this.supplier,
+
+
+      cost:this.cost,
+
+
+      currency:this.currency,
+
+
+      date:this.date,
+
+
+      status:this.status,
+
+
+      priority:this.priority,
+
+
+      aiAnalysis:this.aiAnalysis,
+
+
+      notes:this.notes,
+
+
+      createdAt:this.createdAt,
+
+
+      updatedAt:this.updatedAt
+
+
+    };
+
+
+  }
+
+
+}
+
+
+
+
+
+export const createFertilizer = (data = {}) => {
+
+
+  return new FertilizerModel(data);
 
 
 };
 
 
 
-// أنواع السماد المدعومة
+
 
 export const fertilizerCategories = [
 
-  "عضوي",
+  "organic",
 
-  "كيميائي",
+  "chemical",
 
-  "ورقي",
+  "foliar",
 
-  "مركب"
+  "compound"
 
 ];
 
 
 
-// طرق التسميد
+
 
 export const fertilizerMethods = [
 
-  "تربة",
+  "soil",
 
-  "رش ورقي",
+  "foliar",
 
-  "مع الري"
+  "irrigation"
 
 ];
 
 
 
-// حالات العملية
+
 
 export const fertilizerStatus = [
 
@@ -184,7 +328,7 @@ export const fertilizerStatus = [
 
 
 
-// مستويات الأولوية
+
 
 export const fertilizerPriority = [
 
