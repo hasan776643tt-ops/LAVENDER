@@ -1,6 +1,4 @@
-
 // src/services/storageService.js
-
 
 class StorageService {
 
@@ -23,14 +21,22 @@ class StorageService {
 
   save(name, data) {
 
+    if (!name) {
+
+      return false;
+
+    }
+
+
     try {
+
 
       const payload = {
 
         data,
 
         updatedAt:
-        new Date().toISOString()
+          new Date().toISOString()
 
       };
 
@@ -50,12 +56,6 @@ class StorageService {
     } catch(error) {
 
 
-      console.error(
-        "Storage Save Error:",
-        error
-      );
-
-
       return false;
 
     }
@@ -64,20 +64,26 @@ class StorageService {
 
 
 
-
-
   load(name, defaultValue = []) {
+
+
+    if (!name) {
+
+      return defaultValue;
+
+    }
+
 
     try {
 
 
       const value =
-      localStorage.getItem(
-        this.key(name)
-      );
+        localStorage.getItem(
+          this.key(name)
+        );
 
 
-      if(!value){
+      if (!value) {
 
         return defaultValue;
 
@@ -85,35 +91,17 @@ class StorageService {
 
 
       const parsed =
-      JSON.parse(value);
+        JSON.parse(value);
 
 
 
-      if(
-        parsed &&
-        Object.prototype.hasOwnProperty.call(
-          parsed,
-          "data"
-        )
-      ){
-
-        return parsed.data;
-
-      }
-
-
-
-      return parsed;
-
-
-
-    }catch(error){
-
-
-      console.error(
-        "Storage Load Error:",
-        error
+      return (
+        parsed?.data ??
+        parsed
       );
+
+
+    } catch(error) {
 
 
       return defaultValue;
@@ -124,9 +112,15 @@ class StorageService {
 
 
 
+  exists(name) {
 
 
-  exists(name){
+    if (!name) {
+
+      return false;
+
+    }
+
 
     return (
       localStorage.getItem(
@@ -138,11 +132,17 @@ class StorageService {
 
 
 
+  remove(name) {
 
 
-  remove(name){
+    if (!name) {
 
-    try{
+      return false;
+
+    }
+
+
+    try {
 
 
       localStorage.removeItem(
@@ -153,13 +153,7 @@ class StorageService {
       return true;
 
 
-    }catch(error){
-
-
-      console.error(
-        "Storage Remove Error:",
-        error
-      );
+    } catch(error) {
 
 
       return false;
@@ -170,38 +164,31 @@ class StorageService {
 
 
 
+  clear() {
 
 
-  clear(){
-
-    try{
+    try {
 
 
       Object.keys(localStorage)
 
-      .filter(
-        key =>
-        key.startsWith(
-          `${this.prefix}:`
+        .filter(
+          key =>
+            key.startsWith(
+              `${this.prefix}:`
+            )
         )
-      )
 
-      .forEach(
-        key =>
-        localStorage.removeItem(key)
-      );
+        .forEach(
+          key =>
+            localStorage.removeItem(key)
+        );
 
 
       return true;
 
 
-    }catch(error){
-
-
-      console.error(
-        "Storage Clear Error:",
-        error
-      );
+    } catch(error) {
 
 
       return false;
@@ -212,148 +199,29 @@ class StorageService {
 
 
 
-
-
-  backup(){
-
-    const backup = {};
-
-
-
-    Object.keys(localStorage)
-
-    .filter(
-      key =>
-      key.startsWith(
-        `${this.prefix}:`
-      )
-    )
-
-    .forEach(
-      key=>{
-
-        try{
-
-          backup[key] =
-          JSON.parse(
-            localStorage.getItem(key)
-          );
-
-
-        }catch(error){
-
-
-          console.error(
-            "Backup Error:",
-            error
-          );
-
-
-        }
-
-
-      }
-    );
-
-
-    return backup;
-
-  }
-
-
-
-
-
-  restore(data){
-
-
-    if(
-      !data ||
-      typeof data !== "object"
-    ){
-
-      return false;
-
-    }
-
-
-
-    try{
-
-
-      Object.entries(data)
-
-      .filter(
-        ([key]) =>
-        key.startsWith(
-          `${this.prefix}:`
-        )
-      )
-
-      .forEach(
-        ([key,value])=>{
-
-
-          localStorage.setItem(
-
-            key,
-
-            JSON.stringify(value)
-
-          );
-
-
-        }
-      );
-
-
-      return true;
-
-
-    }catch(error){
-
-
-      console.error(
-        "Restore Error:",
-        error
-      );
-
-
-      return false;
-
-    }
-
-  }
-
-
-
-
-
-  getStats(){
+  getStats() {
 
 
     const keys =
 
-    Object.keys(localStorage)
+      Object.keys(localStorage)
 
-    .filter(
-      key =>
-      key.startsWith(
-        `${this.prefix}:`
-      )
-    );
-
+        .filter(
+          key =>
+            key.startsWith(
+              `${this.prefix}:`
+            )
+        );
 
 
     return {
 
       totalKeys:
-      keys.length,
+        keys.length,
 
       keys
 
     };
-
 
   }
 
@@ -361,14 +229,6 @@ class StorageService {
 }
 
 
-
-
-
-const storageService =
-new StorageService();
-
-
-
 export default Object.freeze(
-  storageService
+  new StorageService()
 );
