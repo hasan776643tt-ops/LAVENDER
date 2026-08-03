@@ -4,31 +4,79 @@
 class ExportService {
 
 
+
   exportJSON(data) {
 
+
+    if (data === undefined) {
+
+      throw new Error(
+        "EXPORT_DATA_REQUIRED"
+      );
+
+    }
+
+
     return JSON.stringify(
-      data,
+
+      {
+
+        version:
+          "3.0.0",
+
+
+        exportedAt:
+          new Date().toISOString(),
+
+
+        data
+
+      },
+
       null,
+
       2
+
     );
 
   }
 
 
 
-
-
   importJSON(json) {
+
+
+    if (!json) {
+
+      throw new Error(
+        "IMPORT_DATA_REQUIRED"
+      );
+
+    }
+
 
     try {
 
-      return JSON.parse(
-        json
+
+      const parsed =
+        JSON.parse(json);
+
+
+
+      return (
+
+        parsed?.data ??
+        parsed
+
       );
 
-    } catch {
 
-      return null;
+    } catch(error) {
+
+
+      throw new Error(
+        "INVALID_JSON_DATA"
+      );
 
     }
 
@@ -36,9 +84,8 @@ class ExportService {
 
 
 
-
-
   exportData(data) {
+
 
     return this.exportJSON(
       data
@@ -48,9 +95,8 @@ class ExportService {
 
 
 
-
-
   importData(data) {
+
 
     return this.importJSON(
       data
@@ -63,9 +109,6 @@ class ExportService {
 
 
 
-export const exportService =
-  new ExportService();
-
-
-
-export default exportService;
+export default Object.freeze(
+  new ExportService()
+);
