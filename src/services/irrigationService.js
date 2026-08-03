@@ -7,7 +7,9 @@ class IrrigationService {
 
 
   constructor() {
+
     this.repository = irrigationRepository;
+
   }
 
 
@@ -21,7 +23,11 @@ class IrrigationService {
   async getById(id) {
 
     if (!id) {
-      throw new Error("Irrigation id is required");
+
+      throw new Error(
+        "IRRIGATION_ID_REQUIRED"
+      );
+
     }
 
 
@@ -30,7 +36,11 @@ class IrrigationService {
 
 
     if (!irrigation) {
-      throw new Error("Irrigation not found");
+
+      throw new Error(
+        "IRRIGATION_NOT_FOUND"
+      );
+
     }
 
 
@@ -39,47 +49,47 @@ class IrrigationService {
   }
 
 
-  async create(irrigationData) {
+  async create(data) {
 
-    this.validateIrrigation(
-      irrigationData
-    );
+    this.validate(data);
 
 
-    return this.repository.create(
-      irrigationData
-    );
+    return this.repository.create(data);
 
   }
 
 
-  async update(id, irrigationData) {
+  async update(id, data) {
 
     if (!id) {
-      throw new Error("Irrigation id is required");
+
+      throw new Error(
+        "IRRIGATION_ID_REQUIRED"
+      );
+
     }
 
 
-    this.validateIrrigation(
-      irrigationData
-    );
+    this.validate(data);
 
 
-    const updatedIrrigation =
+    const updated =
       await this.repository.update(
         id,
-        irrigationData
+        data
       );
 
 
-    if (!updatedIrrigation) {
+    if (!updated) {
+
       throw new Error(
-        "Irrigation not found"
+        "IRRIGATION_NOT_FOUND"
       );
+
     }
 
 
-    return updatedIrrigation;
+    return updated;
 
   }
 
@@ -87,7 +97,11 @@ class IrrigationService {
   async delete(id) {
 
     if (!id) {
-      throw new Error("Irrigation id is required");
+
+      throw new Error(
+        "IRRIGATION_ID_REQUIRED"
+      );
+
     }
 
 
@@ -96,20 +110,15 @@ class IrrigationService {
 
 
     if (!deleted) {
+
       throw new Error(
-        "Irrigation not found"
+        "IRRIGATION_NOT_FOUND"
       );
+
     }
 
 
     return true;
-
-  }
-
-
-  async count() {
-
-    return this.repository.count();
 
   }
 
@@ -117,39 +126,66 @@ class IrrigationService {
   async exists(id) {
 
     if (!id) {
-      throw new Error("Irrigation id is required");
+
+      return false;
+
     }
 
 
-    return this.repository.exists(id);
+    const irrigation =
+      await this.repository.getById(id);
+
+
+    return Boolean(irrigation);
 
   }
 
 
-  validateIrrigation(irrigation) {
+  async count() {
+
+    const irrigations =
+      await this.repository.getAll();
 
 
-    if (!irrigation) {
+    return irrigations.length;
+
+  }
+
+
+  validate(data) {
+
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
       throw new Error(
-        "Irrigation data is required"
+        "IRRIGATION_DATA_REQUIRED"
       );
-    }
 
-
-    if (!irrigation.type?.trim()) {
-      throw new Error(
-        "Irrigation type is required"
-      );
     }
 
 
     if (
-      irrigation.quantity != null &&
-      Number(irrigation.quantity) < 0
+      !data.type ||
+      !data.type.trim()
     ) {
 
       throw new Error(
-        "Invalid irrigation quantity"
+        "IRRIGATION_TYPE_REQUIRED"
+      );
+
+    }
+
+
+    if (
+      data.quantity != null &&
+      Number(data.quantity) < 0
+    ) {
+
+      throw new Error(
+        "IRRIGATION_QUANTITY_INVALID"
       );
 
     }
@@ -159,13 +195,10 @@ class IrrigationService {
 
   }
 
+
 }
 
 
-const irrigationService =
-new IrrigationService();
-
-
 export default Object.freeze(
-  irrigationService
+  new IrrigationService()
 );
