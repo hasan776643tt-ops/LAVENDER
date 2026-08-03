@@ -4,6 +4,7 @@
 class CacheService {
 
 
+
   constructor(){
 
     this.cache =
@@ -13,37 +14,47 @@ class CacheService {
 
 
 
-
-
   set(
     key,
     value,
     ttl = null
   ){
 
-    const item = {
 
-      value,
+    if (!key) {
 
-      createdAt:
-        Date.now(),
+      throw new Error(
+        "CACHE_KEY_REQUIRED"
+      );
 
-      ttl
+    }
 
-    };
 
 
     this.cache.set(
+
       key,
-      item
+
+      {
+
+        value,
+
+
+        createdAt:
+          Date.now(),
+
+
+        ttl
+
+      }
+
     );
+
 
 
     return value;
 
   }
-
-
 
 
 
@@ -56,19 +67,29 @@ class CacheService {
       );
 
 
-    if(!item)
+    if (!item) {
+
       return null;
 
+    }
 
 
-    if(
-      item.ttl &&
+
+    if (
+
+      item.ttl !== null &&
+
       Date.now() -
-      item.createdAt >
+      item.createdAt >=
       item.ttl
-    ){
 
-      this.remove(key);
+    ) {
+
+
+      this.remove(
+        key
+      );
+
 
       return null;
 
@@ -82,21 +103,19 @@ class CacheService {
 
 
 
-
-
   has(key){
 
-    return this.cache.has(
-      key
+
+    return (
+      this.get(key) !== null
     );
 
   }
 
 
 
-
-
   remove(key){
+
 
     return this.cache.delete(
       key
@@ -106,19 +125,20 @@ class CacheService {
 
 
 
-
-
   clear(){
 
+
     this.cache.clear();
+
+
+    return true;
 
   }
 
 
 
-
-
   keys(){
+
 
     return [
       ...this.cache.keys()
@@ -128,24 +148,25 @@ class CacheService {
 
 
 
-
-
   values(){
 
+
     return [
+
       ...this.cache.values()
+
     ]
     .map(
-      item => item.value
+      item =>
+        item.value
     );
 
   }
 
 
 
-
-
   size(){
+
 
     return this.cache.size;
 
@@ -153,14 +174,14 @@ class CacheService {
 
 
 
-
-
   getInfo(){
+
 
     return {
 
       size:
         this.cache.size,
+
 
       keys:
         this.keys()
@@ -174,11 +195,6 @@ class CacheService {
 
 
 
-
-
-export const cacheService =
-  new CacheService();
-
-
-
-export default cacheService;
+export default Object.freeze(
+  new CacheService()
+);
