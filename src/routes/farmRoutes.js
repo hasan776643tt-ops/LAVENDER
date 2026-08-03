@@ -6,21 +6,34 @@ import {
 } from "react";
 
 
-const farmRoutes = [
 
-  {
+const Farms = lazy(
+  () =>
+    import("../pages/Farms.jsx")
+);
+
+
+
+const farmRoutes = Object.freeze([
+
+
+  Object.freeze({
+
+    id: "farms",
+
     path: "/farms",
 
-    element: lazy(
-      () =>
-        import("../pages/Farms.jsx")
-    )
+    element: Farms,
 
-  }
+    module: "farms",
 
-];
+    protected: true
+
+  })
 
 
-export default Object.freeze(
-  farmRoutes
-);
+]);
+
+
+
+export default farmRoutes;
