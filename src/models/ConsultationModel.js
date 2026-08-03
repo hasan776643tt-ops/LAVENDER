@@ -1,160 +1,287 @@
 // src/models/ConsultationModel.js
 
 
-export default class ConsultationModel {
+/**
+ * Consultation Model
+ * نموذج الاستشارات الزراعية الذكي
+ */
+
+
+export class ConsultationModel {
 
 
   constructor(data = {}) {
 
 
-    // المعرف
     this.id =
-      data.id || Date.now();
+      data.id ||
+      (
+        globalThis.crypto?.randomUUID?.()
+        ||
+        Date.now().toString()
+      );
 
 
 
-    // معرف المزارع
+    // العلاقات
+
     this.farmerId =
-      data.farmerId || "";
+      data.farmerId ||
+      "";
 
 
-
-    // معرف المزرعة
     this.farmId =
-      data.farmId || "";
+      data.farmId ||
+      "";
 
 
-
-    // معرف المهندس
     this.engineerId =
-      data.engineerId || "";
+      data.engineerId ||
+      "";
 
 
 
-    // عنوان الاستشارة
+    // بيانات الاستشارة
+
     this.title =
-      data.title || "";
+      data.title ||
+      "";
 
 
-
-    // نوع المشكلة
     this.type =
-      data.type || "";
+      data.type ||
+      "";
 
 
-
-    // وصف المشكلة
     this.description =
-      data.description || "";
+      data.description ||
+      "";
 
 
 
-    // صورة المشكلة مستقبلاً
-    this.image =
-      data.image || "";
+    // المرفقات
+
+    this.images =
+      data.images ||
+      [];
 
 
 
-    // رد المهندس
+    // الرد
+
     this.response =
-      data.response || "";
+      data.response ||
+      "";
 
 
 
-    // حالة الاستشارة
-    // pending - answered - closed
+    // الحالة
+
     this.status =
-      data.status || "pending";
+      data.status ||
+      "pending";
 
 
 
-    // أولوية الطلب
     this.priority =
-      data.priority || "normal";
+      data.priority ||
+      "medium";
 
 
 
-    // تاريخ الطلب
+    // تقييم الحل
+
+    this.rating =
+      Number(data.rating) || 0;
+
+
+
+    // طبقة الذكاء الاصطناعي
+
+    this.aiAnalysis =
+      data.aiAnalysis ||
+      {
+
+
+        diagnosis:"",
+
+
+        recommendations:[],
+
+
+        confidence:0
+
+
+      };
+
+
+
+    // النظام الزمني
+
     this.createdAt =
-      data.createdAt || new Date();
+      data.createdAt ||
+      new Date().toISOString();
 
 
-
-    // تاريخ الرد
     this.updatedAt =
-      data.updatedAt || null;
+      data.updatedAt ||
+      new Date().toISOString();
 
 
   }
 
 
 
-  // تحديث بيانات الاستشارة
-  update(data = {}) {
 
-    Object.assign(
-      this,
-      data
-    );
+
+  update(data = {}){
+
+
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
+
+      }
+
+
+    });
+
+
 
     this.updatedAt =
-      new Date();
+      new Date().toISOString();
+
+
+
+    return this;
+
 
   }
 
 
 
-  // إضافة رد المهندس
+
+
   addResponse(response){
+
 
     this.response =
       response;
 
+
     this.status =
       "answered";
 
+
     this.updatedAt =
-      new Date();
+      new Date().toISOString();
+
+
+
+    return this;
+
 
   }
 
 
 
-  // إغلاق الاستشارة
+
+
   close(){
+
 
     this.status =
       "closed";
 
+
     this.updatedAt =
-      new Date();
+      new Date().toISOString();
+
+
+
+    return this;
+
 
   }
 
 
 
-  // تحويل البيانات للحفظ
+
+
   toJSON(){
+
 
     return {
 
+
       id:this.id,
+
+
       farmerId:this.farmerId,
+
+
       farmId:this.farmId,
+
+
       engineerId:this.engineerId,
+
+
       title:this.title,
+
+
       type:this.type,
+
+
       description:this.description,
-      image:this.image,
+
+
+      images:this.images,
+
+
       response:this.response,
+
+
       status:this.status,
+
+
       priority:this.priority,
+
+
+      rating:this.rating,
+
+
+      aiAnalysis:this.aiAnalysis,
+
+
       createdAt:this.createdAt,
+
+
       updatedAt:this.updatedAt
 
+
     };
+
 
   }
 
 
 }
+
+
+
+
+
+export const createConsultation = (data = {}) => {
+
+
+  return new ConsultationModel(data);
+
+
+};
