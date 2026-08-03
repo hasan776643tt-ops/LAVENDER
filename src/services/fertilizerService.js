@@ -7,7 +7,9 @@ class FertilizerService {
 
 
   constructor() {
+
     this.repository = fertilizerRepository;
+
   }
 
 
@@ -21,7 +23,11 @@ class FertilizerService {
   async getById(id) {
 
     if (!id) {
-      throw new Error("Fertilizer id is required");
+
+      throw new Error(
+        "FERTILIZER_ID_REQUIRED"
+      );
+
     }
 
 
@@ -30,7 +36,11 @@ class FertilizerService {
 
 
     if (!fertilizer) {
-      throw new Error("Fertilizer not found");
+
+      throw new Error(
+        "FERTILIZER_NOT_FOUND"
+      );
+
     }
 
 
@@ -52,26 +62,34 @@ class FertilizerService {
   async update(id, data) {
 
     if (!id) {
-      throw new Error("Fertilizer id is required");
+
+      throw new Error(
+        "FERTILIZER_ID_REQUIRED"
+      );
+
     }
 
 
     this.validate(data);
 
 
-    const updatedFertilizer =
+    const updated =
       await this.repository.update(
         id,
         data
       );
 
 
-    if (!updatedFertilizer) {
-      throw new Error("Fertilizer not found");
+    if (!updated) {
+
+      throw new Error(
+        "FERTILIZER_NOT_FOUND"
+      );
+
     }
 
 
-    return updatedFertilizer;
+    return updated;
 
   }
 
@@ -79,7 +97,11 @@ class FertilizerService {
   async delete(id) {
 
     if (!id) {
-      throw new Error("Fertilizer id is required");
+
+      throw new Error(
+        "FERTILIZER_ID_REQUIRED"
+      );
+
     }
 
 
@@ -88,18 +110,15 @@ class FertilizerService {
 
 
     if (!deleted) {
-      throw new Error("Fertilizer not found");
+
+      throw new Error(
+        "FERTILIZER_NOT_FOUND"
+      );
+
     }
 
 
     return true;
-
-  }
-
-
-  async count() {
-
-    return this.repository.count();
 
   }
 
@@ -107,28 +126,55 @@ class FertilizerService {
   async exists(id) {
 
     if (!id) {
-      throw new Error("Fertilizer id is required");
+
+      return false;
+
     }
 
 
-    return this.repository.exists(id);
+    const fertilizer =
+      await this.repository.getById(id);
+
+
+    return Boolean(fertilizer);
+
+  }
+
+
+  async count() {
+
+    const fertilizers =
+      await this.repository.getAll();
+
+
+    return fertilizers.length;
 
   }
 
 
   validate(data) {
 
-    if (!data) {
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
       throw new Error(
-        "Fertilizer data is required"
+        "FERTILIZER_DATA_REQUIRED"
       );
+
     }
 
 
-    if (!data.name?.trim()) {
+    if (
+      !data.name ||
+      !data.name.trim()
+    ) {
+
       throw new Error(
-        "Fertilizer name is required"
+        "FERTILIZER_NAME_REQUIRED"
       );
+
     }
 
 
@@ -136,13 +182,10 @@ class FertilizerService {
 
   }
 
+
 }
 
 
-const fertilizerService =
-new FertilizerService();
-
-
 export default Object.freeze(
-  fertilizerService
+  new FertilizerService()
 );
