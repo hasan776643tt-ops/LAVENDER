@@ -1,132 +1,237 @@
 // src/models/ReportModel.js
 
 
-export default class ReportModel {
+/**
+ * Report Model
+ * نموذج التقارير الذكي
+ *
+ * مسؤول عن:
+ * - إنشاء وإدارة تقارير المزرعة
+ * - ربط التقارير بالبيانات الزراعية
+ * - دعم التحليلات المستقبلية
+ */
+
+
+export class ReportModel {
 
 
   constructor(data = {}) {
 
 
-    // المعرف
     this.id =
-      data.id || Date.now();
+      data.id ||
+      (
+        globalThis.crypto?.randomUUID?.()
+        ||
+        Date.now().toString()
+      );
 
 
 
-    // معرف المزرعة
+    // العلاقات
+
     this.farmId =
-      data.farmId || "";
+      data.farmId ||
+      "";
 
 
-
-    // معرف الحقل
     this.fieldId =
-      data.fieldId || "";
+      data.fieldId ||
+      "";
+
+
+    this.engineerId =
+      data.engineerId ||
+      "";
 
 
 
     // نوع التقرير
-    // farm - crop - disease - irrigation - fertilizer
+
     this.type =
-      data.type || "farm";
-
-
-
-    // عنوان التقرير
-    this.title =
-      data.title || "";
-
-
-
-    // محتوى التقرير
-    this.content =
-      data.content || "";
+      data.type ||
+      "farm";
 
 
 
     // بيانات التقرير
+
+    this.title =
+      data.title ||
+      "";
+
+
+    this.content =
+      data.content ||
+      "";
+
+
     this.data =
-      data.data || {};
+      data.data ||
+      {};
 
 
 
-    // اسم المهندس المسؤول
-    this.engineerId =
-      data.engineerId || "";
+    // الحالة
 
-
-
-    // حالة التقرير
     this.status =
-      data.status || "created";
+      data.status ||
+      "created";
 
 
 
-    // تاريخ إنشاء التقرير
+    // التحليل الذكي
+
+    this.aiAnalysis =
+      data.aiAnalysis ||
+      {
+
+
+        summary:"",
+
+
+        recommendations:[],
+
+
+        riskLevel:"low"
+
+
+      };
+
+
+
+    // النظام الزمني
+
     this.createdAt =
-      data.createdAt || new Date();
+      data.createdAt ||
+      new Date().toISOString();
 
 
-
-    // تاريخ التحديث
     this.updatedAt =
-      data.updatedAt || null;
+      data.updatedAt ||
+      new Date().toISOString();
 
 
   }
 
 
 
-  // تحديث التقرير
-  update(data = {}) {
 
-    Object.assign(
-      this,
-      data
-    );
+
+  update(data = {}){
+
+
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
+
+      }
+
+
+    });
+
 
 
     this.updatedAt =
-      new Date();
+      new Date().toISOString();
+
+
+
+    return this;
+
 
   }
 
 
 
-  // تغيير حالة التقرير
+
+
   changeStatus(status){
+
 
     this.status =
       status;
 
 
     this.updatedAt =
-      new Date();
+      new Date().toISOString();
+
+
+
+    return this;
+
 
   }
 
 
 
-  // تحويل البيانات للحفظ
+
+
   toJSON(){
+
 
     return {
 
+
       id:this.id,
+
+
       farmId:this.farmId,
+
+
       fieldId:this.fieldId,
-      type:this.type,
-      title:this.title,
-      content:this.content,
-      data:this.data,
+
+
       engineerId:this.engineerId,
+
+
+      type:this.type,
+
+
+      title:this.title,
+
+
+      content:this.content,
+
+
+      data:this.data,
+
+
       status:this.status,
+
+
+      aiAnalysis:this.aiAnalysis,
+
+
       createdAt:this.createdAt,
+
+
       updatedAt:this.updatedAt
 
+
     };
+
 
   }
 
 
 }
+
+
+
+
+
+export const createReport = (data = {}) => {
+
+
+  return new ReportModel(data);
+
+
+};
