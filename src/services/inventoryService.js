@@ -7,7 +7,9 @@ class InventoryService {
 
 
   constructor() {
+
     this.repository = inventoryRepository;
+
   }
 
 
@@ -21,9 +23,11 @@ class InventoryService {
   async getById(id) {
 
     if (!id) {
+
       throw new Error(
-        "Inventory id is required"
+        "INVENTORY_ID_REQUIRED"
       );
+
     }
 
 
@@ -32,9 +36,11 @@ class InventoryService {
 
 
     if (!item) {
+
       throw new Error(
-        "Inventory item not found"
+        "INVENTORY_NOT_FOUND"
       );
+
     }
 
 
@@ -45,7 +51,7 @@ class InventoryService {
 
   async create(data) {
 
-    this.validateInventory(data);
+    this.validate(data);
 
 
     return this.repository.create(data);
@@ -56,30 +62,34 @@ class InventoryService {
   async update(id, data) {
 
     if (!id) {
+
       throw new Error(
-        "Inventory id is required"
+        "INVENTORY_ID_REQUIRED"
       );
+
     }
 
 
-    this.validateInventory(data);
+    this.validate(data);
 
 
-    const updatedItem =
+    const updated =
       await this.repository.update(
         id,
         data
       );
 
 
-    if (!updatedItem) {
+    if (!updated) {
+
       throw new Error(
-        "Inventory item not found"
+        "INVENTORY_NOT_FOUND"
       );
+
     }
 
 
-    return updatedItem;
+    return updated;
 
   }
 
@@ -87,9 +97,11 @@ class InventoryService {
   async delete(id) {
 
     if (!id) {
+
       throw new Error(
-        "Inventory id is required"
+        "INVENTORY_ID_REQUIRED"
       );
+
     }
 
 
@@ -98,9 +110,11 @@ class InventoryService {
 
 
     if (!deleted) {
+
       throw new Error(
-        "Inventory item not found"
+        "INVENTORY_NOT_FOUND"
       );
+
     }
 
 
@@ -112,30 +126,41 @@ class InventoryService {
   async exists(id) {
 
     if (!id) {
-      throw new Error(
-        "Inventory id is required"
-      );
+
+      return false;
+
     }
 
 
-    return this.repository.exists(id);
+    const item =
+      await this.repository.getById(id);
+
+
+    return Boolean(item);
 
   }
 
 
   async count() {
 
-    return this.repository.count();
+    const items =
+      await this.repository.getAll();
+
+
+    return items.length;
 
   }
 
 
-  validateInventory(data) {
+  validate(data) {
 
-    if (!data || typeof data !== "object") {
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
 
       throw new Error(
-        "Inventory data is required"
+        "INVENTORY_DATA_REQUIRED"
       );
 
     }
@@ -145,13 +170,10 @@ class InventoryService {
 
   }
 
+
 }
 
 
-const inventoryService =
-new InventoryService();
-
-
 export default Object.freeze(
-  inventoryService
+  new InventoryService()
 );
