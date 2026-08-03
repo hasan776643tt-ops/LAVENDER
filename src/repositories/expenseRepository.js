@@ -30,15 +30,16 @@ class ExpenseRepository {
     }
 
 
-    const expenses =
+    const items =
       await this.getAll();
 
 
     return (
-      expenses.find(
-        expense =>
-          String(expense.id) === String(id)
-      ) || null
+      items.find(
+        item =>
+          String(item.id) === String(id)
+      )
+      || null
     );
 
   }
@@ -46,34 +47,65 @@ class ExpenseRepository {
 
   async create(data) {
 
-    const expenses =
+    if (!data) {
+
+      throw new Error(
+        "Expense data is required"
+      );
+
+    }
+
+
+    const items =
       await this.getAll();
 
 
-    expenses.push(data);
+    const item = {
+
+      id:
+        data.id ??
+        crypto.randomUUID(),
+
+      ...data,
+
+      createdAt:
+        new Date().toISOString(),
+
+      updatedAt:
+        new Date().toISOString()
+
+    };
+
+
+    items.push(item);
 
 
     storageService.save(
       this.key,
-      expenses
+      items
     );
 
 
-    return data;
+    return item;
 
   }
 
 
-  async update(id, data) {
+  async update(id, changes) {
 
-    const expenses =
+    if (!id) {
+      return null;
+    }
+
+
+    const items =
       await this.getAll();
 
 
     const index =
-      expenses.findIndex(
-        expense =>
-          String(expense.id) === String(id)
+      items.findIndex(
+        item =>
+          String(item.id) === String(id)
       );
 
 
@@ -82,51 +114,70 @@ class ExpenseRepository {
     }
 
 
-    expenses[index] = {
-      ...expenses[index],
-      ...data
+    const updatedItem = {
+
+      ...items[index],
+
+      ...changes,
+
+      id:
+        items[index].id,
+
+      updatedAt:
+        new Date().toISOString()
+
     };
+
+
+    items[index] =
+      updatedItem;
 
 
     storageService.save(
       this.key,
-      expenses
+      items
     );
 
 
-    return expenses[index];
+    return updatedItem;
 
   }
 
 
   async delete(id) {
 
-    const expenses =
+    if (!id) {
+      return false;
+    }
+
+
+    const items =
       await this.getAll();
 
 
     const filtered =
-      expenses.filter(
-        expense =>
-          String(expense.id) !== String(id)
+      items.filter(
+        item =>
+          String(item.id) !== String(id)
       );
 
 
-    const deleted =
-      filtered.length !== expenses.length;
+    if (
+      filtered.length === items.length
+    ) {
 
-
-    if (deleted) {
-
-      storageService.save(
-        this.key,
-        filtered
-      );
+      return false;
 
     }
 
 
-    return deleted;
+    storageService.save(
+      this.key,
+      filtered
+    );
+
+
+    return true;
 
   }
 
