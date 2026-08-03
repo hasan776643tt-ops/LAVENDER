@@ -6,21 +6,34 @@ import {
 } from "react";
 
 
-const cropRoutes = [
 
-  {
+const Crops = lazy(
+  () =>
+    import("../pages/Crops.jsx")
+);
+
+
+
+const cropRoutes = Object.freeze([
+
+
+  Object.freeze({
+
+    id: "crops",
+
     path: "/crops",
 
-    element: lazy(
-      () =>
-        import("../pages/Crops.jsx")
-    )
+    element: Crops,
 
-  }
+    module: "crops",
 
-];
+    protected: true
+
+  })
 
 
-export default Object.freeze(
-  cropRoutes
-);
+]);
+
+
+
+export default cropRoutes;
