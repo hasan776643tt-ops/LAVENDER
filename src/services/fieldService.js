@@ -7,7 +7,9 @@ class FieldService {
 
 
   constructor() {
+
     this.repository = fieldRepository;
+
   }
 
 
@@ -21,7 +23,11 @@ class FieldService {
   async getById(id) {
 
     if (!id) {
-      throw new Error("Field id is required");
+
+      throw new Error(
+        "FIELD_ID_REQUIRED"
+      );
+
     }
 
 
@@ -30,7 +36,11 @@ class FieldService {
 
 
     if (!field) {
-      throw new Error("Field not found");
+
+      throw new Error(
+        "FIELD_NOT_FOUND"
+      );
+
     }
 
 
@@ -39,41 +49,47 @@ class FieldService {
   }
 
 
-  async create(fieldData) {
+  async create(data) {
 
-    this.validateField(fieldData);
+    this.validate(data);
 
 
-    return this.repository.create(
-      fieldData
-    );
+    return this.repository.create(data);
 
   }
 
 
-  async update(id, fieldData) {
+  async update(id, data) {
 
     if (!id) {
-      throw new Error("Field id is required");
+
+      throw new Error(
+        "FIELD_ID_REQUIRED"
+      );
+
     }
 
 
-    this.validateField(fieldData);
+    this.validate(data);
 
 
-    const updatedField =
+    const updated =
       await this.repository.update(
         id,
-        fieldData
+        data
       );
 
 
-    if (!updatedField) {
-      throw new Error("Field not found");
+    if (!updated) {
+
+      throw new Error(
+        "FIELD_NOT_FOUND"
+      );
+
     }
 
 
-    return updatedField;
+    return updated;
 
   }
 
@@ -81,7 +97,11 @@ class FieldService {
   async delete(id) {
 
     if (!id) {
-      throw new Error("Field id is required");
+
+      throw new Error(
+        "FIELD_ID_REQUIRED"
+      );
+
     }
 
 
@@ -90,18 +110,15 @@ class FieldService {
 
 
     if (!deleted) {
-      throw new Error("Field not found");
+
+      throw new Error(
+        "FIELD_NOT_FOUND"
+      );
+
     }
 
 
     return true;
-
-  }
-
-
-  async count() {
-
-    return this.repository.count();
 
   }
 
@@ -109,28 +126,55 @@ class FieldService {
   async exists(id) {
 
     if (!id) {
-      throw new Error("Field id is required");
+
+      return false;
+
     }
 
 
-    return this.repository.exists(id);
+    const field =
+      await this.repository.getById(id);
+
+
+    return Boolean(field);
 
   }
 
 
-  validateField(field) {
+  async count() {
 
-    if (!field) {
+    const fields =
+      await this.repository.getAll();
+
+
+    return fields.length;
+
+  }
+
+
+  validate(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
       throw new Error(
-        "Field data is required"
+        "FIELD_DATA_REQUIRED"
       );
+
     }
 
 
-    if (!field.name?.trim()) {
+    if (
+      !data.name ||
+      !data.name.trim()
+    ) {
+
       throw new Error(
-        "Field name is required"
+        "FIELD_NAME_REQUIRED"
       );
+
     }
 
 
@@ -138,13 +182,10 @@ class FieldService {
 
   }
 
+
 }
 
 
-const fieldService =
-new FieldService();
-
-
 export default Object.freeze(
-  fieldService
+  new FieldService()
 );
