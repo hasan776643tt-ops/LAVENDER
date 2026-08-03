@@ -5,7 +5,6 @@ import storageService from "../services/storageService.js";
 
 class HarvestRepository {
 
-
   constructor() {
 
     this.key = "harvests";
@@ -25,55 +24,79 @@ class HarvestRepository {
 
   async getById(id) {
 
-    if (!id) {
-      return null;
-    }
+    if (!id) return null;
 
 
-    const harvests =
-      await this.getAll();
+    const items = await this.getAll();
 
 
     return (
-      harvests.find(
-        harvest =>
-          String(harvest.id) === String(id)
+      items.find(
+        item => String(item.id) === String(id)
       ) || null
     );
 
   }
 
 
-  async create(data) {
+  async create(entity) {
 
-    const harvests =
-      await this.getAll();
+    if (!entity) {
+      throw new Error(
+        "Harvest data is required"
+      );
+    }
 
 
-    harvests.push(data);
+    const items = await this.getAll();
+
+
+    const newItem = {
+
+      id:
+        entity.id ??
+        crypto.randomUUID(),
+
+      createdAt:
+        entity.createdAt ??
+        new Date().toISOString(),
+
+      updatedAt:
+        new Date().toISOString(),
+
+      ...entity
+
+    };
+
+
+    items.push(newItem);
 
 
     storageService.save(
       this.key,
-      harvests
+      items
     );
 
 
-    return data;
+    return newItem;
 
   }
 
 
-  async update(id, data) {
+  async update(id, changes) {
 
-    const harvests =
-      await this.getAll();
+    if (!id || !changes) {
+      return null;
+    }
+
+
+    const items = await this.getAll();
 
 
     const index =
-      harvests.findIndex(
-        harvest =>
-          String(harvest.id) === String(id)
+      items.findIndex(
+        item =>
+          String(item.id) === String(id)
       );
 
 
@@ -82,51 +105,66 @@ class HarvestRepository {
     }
 
 
-    harvests[index] = {
-      ...harvests[index],
-      ...data
+    const updatedItem = {
+
+      ...items[index],
+
+      ...changes,
+
+      id:
+        items[index].id,
+
+      updatedAt:
+        new Date().toISOString()
+
     };
+
+
+    items[index] = updatedItem;
 
 
     storageService.save(
       this.key,
-      harvests
+      items
     );
 
 
-    return harvests[index];
+    return updatedItem;
 
   }
 
 
   async delete(id) {
 
-    const harvests =
-      await this.getAll();
-
-
-    const filtered =
-      harvests.filter(
-        harvest =>
-          String(harvest.id) !== String(id)
-      );
-
-
-    const deleted =
-      filtered.length !== harvests.length;
-
-
-    if (deleted) {
-
-      storageService.save(
-        this.key,
-        filtered
-      );
-
+    if (!id) {
+      return false;
     }
 
 
-    return deleted;
+    const items = await getAll();
+
+
+    const remaining =
+      items.filter(
+        item =>
+          String(item.id) !== String(id)
+      );
+
+
+    if (
+      remaining.length === items.length
+    ) {
+      return false;
+    }
+
+
+    storageService.save(
+      this.key,
+      remaining
+    );
+
+
+    return true;
 
   }
 
