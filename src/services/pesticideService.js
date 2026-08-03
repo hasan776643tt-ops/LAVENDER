@@ -7,7 +7,9 @@ class PesticideService {
 
 
   constructor() {
+
     this.repository = pesticideRepository;
+
   }
 
 
@@ -21,7 +23,11 @@ class PesticideService {
   async getById(id) {
 
     if (!id) {
-      throw new Error("Pesticide id is required");
+
+      throw new Error(
+        "PESTICIDE_ID_REQUIRED"
+      );
+
     }
 
 
@@ -30,7 +36,11 @@ class PesticideService {
 
 
     if (!pesticide) {
-      throw new Error("Pesticide not found");
+
+      throw new Error(
+        "PESTICIDE_NOT_FOUND"
+      );
+
     }
 
 
@@ -41,7 +51,7 @@ class PesticideService {
 
   async create(data) {
 
-    this.validatePesticide(data);
+    this.validate(data);
 
 
     return this.repository.create(data);
@@ -52,26 +62,34 @@ class PesticideService {
   async update(id, data) {
 
     if (!id) {
-      throw new Error("Pesticide id is required");
+
+      throw new Error(
+        "PESTICIDE_ID_REQUIRED"
+      );
+
     }
 
 
-    this.validatePesticide(data);
+    this.validate(data);
 
 
-    const updatedPesticide =
+    const updated =
       await this.repository.update(
         id,
         data
       );
 
 
-    if (!updatedPesticide) {
-      throw new Error("Pesticide not found");
+    if (!updated) {
+
+      throw new Error(
+        "PESTICIDE_NOT_FOUND"
+      );
+
     }
 
 
-    return updatedPesticide;
+    return updated;
 
   }
 
@@ -79,7 +97,11 @@ class PesticideService {
   async delete(id) {
 
     if (!id) {
-      throw new Error("Pesticide id is required");
+
+      throw new Error(
+        "PESTICIDE_ID_REQUIRED"
+      );
+
     }
 
 
@@ -88,7 +110,11 @@ class PesticideService {
 
 
     if (!deleted) {
-      throw new Error("Pesticide not found");
+
+      throw new Error(
+        "PESTICIDE_NOT_FOUND"
+      );
+
     }
 
 
@@ -97,21 +123,31 @@ class PesticideService {
   }
 
 
-  async count() {
+  async exists(id) {
 
-    return this.repository.count();
+    if (!id) {
+
+      return false;
+
+    }
+
+
+    const pesticide =
+      await this.repository.getById(id);
+
+
+    return Boolean(pesticide);
 
   }
 
 
-  async exists(id) {
+  async count() {
 
-    if (!id) {
-      throw new Error("Pesticide id is required");
-    }
+    const pesticides =
+      await this.repository.getAll();
 
 
-    return this.repository.exists(id);
+    return pesticides.length;
 
   }
 
@@ -123,7 +159,9 @@ class PesticideService {
 
 
     if (!keyword) {
+
       return pesticides;
+
     }
 
 
@@ -132,7 +170,9 @@ class PesticideService {
 
 
     return pesticides.filter(
+
       pesticide =>
+
         pesticide.name
           ?.toLowerCase()
           .includes(search)
@@ -148,24 +188,36 @@ class PesticideService {
         pesticide.crop
           ?.toLowerCase()
           .includes(search)
+
     );
 
   }
 
 
-  validatePesticide(data) {
+  validate(data) {
 
-    if (!data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
       throw new Error(
-        "Pesticide data is required"
+        "PESTICIDE_DATA_REQUIRED"
       );
+
     }
 
 
-    if (!data.name?.trim()) {
+    if (
+      !data.name ||
+      !data.name.trim()
+    ) {
+
       throw new Error(
-        "Pesticide name is required"
+        "PESTICIDE_NAME_REQUIRED"
       );
+
     }
 
 
@@ -173,13 +225,10 @@ class PesticideService {
 
   }
 
+
 }
 
 
-const pesticideService =
-new PesticideService();
-
-
 export default Object.freeze(
-  pesticideService
+  new PesticideService()
 );
