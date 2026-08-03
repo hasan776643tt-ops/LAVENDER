@@ -5,12 +5,12 @@
  * Crop Model
  * نموذج بيانات المحصول الذكي
  *
- * مسؤول عن:
- * - توحيد بيانات المحاصيل
- * - ربط المحصول بالمزرعة والحقل
- * - تجهيز البيانات للتحليلات الذكية
+ * المسؤوليات:
+ * - إدارة بيانات المحصول
+ * - الربط مع Farm و Field
+ * - دعم التحليلات الزراعية
+ * - قابل للتوسع مستقبلاً
  */
-
 
 
 export class CropModel {
@@ -38,7 +38,7 @@ export class CropModel {
 
 
 
-    // معلومات المحصول
+    // بيانات المحصول
 
     this.name =
       data.name ||
@@ -51,25 +51,52 @@ export class CropModel {
 
 
 
-    // التواريخ الزراعية
+    this.category =
+      data.category ||
+      "";
+
+
+
+    // الموسم الزراعي
+
+    this.season =
+      data.season ||
+      "";
+
+
+
+    // التواريخ
 
     this.plantingDate =
       data.plantingDate ||
       "";
 
 
-    this.harvestDate =
-      data.harvestDate ||
+    this.expectedHarvestDate =
+      data.expectedHarvestDate ||
+      "";
+
+
+    this.actualHarvestDate =
+      data.actualHarvestDate ||
       "";
 
 
 
-    // الكميات
+    // الموارد
 
     this.seedQuantity =
       Number(data.seedQuantity) || 0;
 
 
+
+    this.unit =
+      data.unit ||
+      "kg";
+
+
+
+    // الإنتاج
 
     this.expectedProduction =
       Number(data.expectedProduction) || 0;
@@ -81,19 +108,16 @@ export class CropModel {
 
 
 
-    // حالة المحصول
-
-    this.status =
-      data.status ||
-      "growing";
-
-
-
-    // مراحل النمو
+    // النمو والحالة
 
     this.growthStage =
       data.growthStage ||
       "";
+
+
+    this.status =
+      data.status ||
+      "growing";
 
 
 
@@ -112,10 +136,9 @@ export class CropModel {
       new Date().toISOString();
 
 
-
     this.updatedAt =
+      data.updatedAt ||
       new Date().toISOString();
-
 
 
   }
@@ -124,25 +147,18 @@ export class CropModel {
 
 
 
-
-
-  /**
-   * تحديث بيانات المحصول
-   */
-
-
   update(data = {}){
 
 
-    Object.keys(data).forEach(key=>{
+    Object.keys(data).forEach(key => {
 
 
-      if(
-        data[key] !== undefined
-      ){
+      if(data[key] !== undefined){
+
 
         this[key] =
           data[key];
+
 
       }
 
@@ -165,22 +181,16 @@ export class CropModel {
 
 
 
-
-
-
-  /**
-   * حساب نسبة الإنتاج
-   */
-
-
   getProductionRate(){
 
 
-    if(
-      !this.expectedProduction
-    )
+    if(!this.expectedProduction){
+
 
       return 0;
+
+
+    }
 
 
 
@@ -199,14 +209,6 @@ export class CropModel {
 
 
 
-
-
-
-  /**
-   * تحويل البيانات للحفظ
-   */
-
-
   toJSON(){
 
 
@@ -215,38 +217,57 @@ export class CropModel {
 
       id:this.id,
 
+
       farmId:this.farmId,
+
 
       fieldId:this.fieldId,
 
 
       name:this.name,
 
+
       variety:this.variety,
+
+
+      category:this.category,
+
+
+      season:this.season,
 
 
       plantingDate:this.plantingDate,
 
-      harvestDate:this.harvestDate,
+
+      expectedHarvestDate:this.expectedHarvestDate,
+
+
+      actualHarvestDate:this.actualHarvestDate,
 
 
       seedQuantity:this.seedQuantity,
 
 
+      unit:this.unit,
+
+
       expectedProduction:this.expectedProduction,
+
 
       actualProduction:this.actualProduction,
 
 
-      status:this.status,
-
       growthStage:this.growthStage,
+
+
+      status:this.status,
 
 
       notes:this.notes,
 
 
       createdAt:this.createdAt,
+
 
       updatedAt:this.updatedAt
 
@@ -257,22 +278,13 @@ export class CropModel {
   }
 
 
-
 }
 
 
 
 
 
-
-
-
-/**
- * إنشاء محصول جديد
- */
-
-
-export const createCrop = (data)=>{
+export const createCrop = (data = {}) => {
 
 
   return new CropModel(data);
