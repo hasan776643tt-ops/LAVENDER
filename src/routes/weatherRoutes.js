@@ -6,21 +6,34 @@ import {
 } from "react";
 
 
-const weatherRoutes = [
 
-  {
+const Weather = lazy(
+  () =>
+    import("../pages/Weather.jsx")
+);
+
+
+
+const weatherRoutes = Object.freeze([
+
+
+  Object.freeze({
+
+    id: "weather",
+
     path: "/weather",
 
-    element: lazy(
-      () =>
-        import("../pages/Weather.jsx")
-    )
+    element: Weather,
 
-  }
+    module: "weather",
 
-];
+    protected: true
+
+  })
 
 
-export default Object.freeze(
-  weatherRoutes
-);
+]);
+
+
+
+export default weatherRoutes;
