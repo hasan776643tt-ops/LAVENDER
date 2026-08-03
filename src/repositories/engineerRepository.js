@@ -1,84 +1,183 @@
 // src/repositories/engineerRepository.js
 
-import * as engineerApi from "../api/engineerService.js";
+
+import storageService
+  from "../services/storageService.js";
 
 
 class EngineerRepository {
 
-  async getAll() {
-    return await engineerApi.getAllEngineers();
+
+  constructor() {
+
+    this.key =
+      "engineers";
+
   }
+
+
+
+  async getAll() {
+
+    return (
+      storageService.load(
+        this.key
+      ) || []
+    );
+
+  }
+
 
 
   async getById(id) {
+
     if (!id) {
-      throw new Error("Engineer id is required.");
+
+      throw new Error(
+        "Engineer id is required."
+      );
+
     }
 
-    return await engineerApi.getEngineerById(id);
+
+    const engineers =
+      await this.getAll();
+
+
+    return (
+      engineers.find(
+        engineer =>
+          engineer.id === id
+      ) || null
+    );
+
   }
+
 
 
   async create(data) {
-    return await engineerApi.createEngineer(data);
+
+    const engineers =
+      await this.getAll();
+
+
+    const engineer = {
+
+      id:
+        crypto.randomUUID(),
+
+      ...data,
+
+      createdAt:
+        new Date().toISOString()
+
+    };
+
+
+    engineers.push(
+      engineer
+    );
+
+
+    storageService.save(
+      this.key,
+      engineers
+    );
+
+
+    return engineer;
+
   }
+
 
 
   async update(id, data) {
+
+
     if (!id) {
-      throw new Error("Engineer id is required.");
+
+      throw new Error(
+        "Engineer id is required."
+      );
+
     }
 
-    return await engineerApi.updateEngineer(id, data);
+
+    const engineers =
+      await this.getAll();
+
+
+    const index =
+      engineers.findIndex(
+        engineer =>
+          engineer.id === id
+      );
+
+
+    if (index === -1) {
+
+      return null;
+
+    }
+
+
+    engineers[index] = {
+
+      ...engineers[index],
+
+      ...data,
+
+      updatedAt:
+        new Date().toISOString()
+
+    };
+
+
+    storageService.save(
+      this.key,
+      engineers
+    );
+
+
+    return engineers[index];
+
   }
+
 
 
   async delete(id) {
+
+
     if (!id) {
-      throw new Error("Engineer id is required.");
-    }
 
-    await engineerApi.deleteEngineer(id);
+      throw new Error(
+        "Engineer id is required."
+      );
 
-    return true;
-  }
-
-
-  async search(keyword = "") {
-
-    const engineers = await this.getAll();
-
-    const value = keyword
-      .trim()
-      .toLowerCase();
-
-
-    if (!value) {
-      return engineers;
     }
 
 
-    return engineers.filter((engineer) =>
-      [
-        engineer.name,
-        engineer.specialization,
-        engineer.city,
-        engineer.phone,
-        engineer.email
-      ]
-      .filter(Boolean)
-      .some((item) =>
-        item
-          .toLowerCase()
-          .includes(value)
-      )
+    const engineers =
+      await this.getAll();
+
+
+    const filtered =
+      engineers.filter(
+        engineer =>
+          engineer.id !== id
+      );
+
+
+    storageService.save(
+      this.key,
+      filtered
     );
-  }
 
 
-  clearCache() {
     return true;
+
   }
+
 
 }
 
