@@ -1,145 +1,311 @@
 // src/config/menuConfig.js
 
 
+const createMenuItem = ({
+  id,
+  titleKey,
+  path,
+  icon,
+  module,
+  permission = null,
+  enabled = true
+}) =>
+  Object.freeze({
+
+    id,
+
+    titleKey,
+
+    path,
+
+    icon,
+
+    module,
+
+    permission,
+
+    enabled
+
+  });
+
+
+
 const menuConfig = Object.freeze([
 
-  {
+
+  createMenuItem({
+
     id: "dashboard",
-    title: "Dashboard",
+
+    titleKey: "menu.dashboard",
+
     path: "/dashboard",
+
     icon: "dashboard",
+
     module: "dashboard"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "farms",
-    title: "Farms",
+
+    titleKey: "menu.farms",
+
     path: "/farms",
+
     icon: "farm",
+
     module: "farms"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "fields",
-    title: "Fields",
+
+    titleKey: "menu.fields",
+
     path: "/fields",
+
     icon: "field",
+
     module: "fields"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "crops",
-    title: "Crops",
+
+    titleKey: "menu.crops",
+
     path: "/crops",
+
     icon: "crop",
+
     module: "crops"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "irrigation",
-    title: "Irrigation",
+
+    titleKey: "menu.irrigation",
+
     path: "/irrigation",
+
     icon: "water",
+
     module: "irrigation"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "fertilizers",
-    title: "Fertilizers",
+
+    titleKey: "menu.fertilizers",
+
     path: "/fertilizers",
+
     icon: "fertilizer",
+
     module: "fertilizers"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "pesticides",
-    title: "Pesticides",
+
+    titleKey: "menu.pesticides",
+
     path: "/pesticides",
+
     icon: "pesticide",
+
     module: "pesticides"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "diseases",
-    title: "Diseases",
+
+    titleKey: "menu.diseases",
+
     path: "/diseases",
+
     icon: "disease",
+
     module: "diseases"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "weather",
-    title: "Weather",
+
+    titleKey: "menu.weather",
+
     path: "/weather",
+
     icon: "weather",
+
     module: "weather"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "map",
-    title: "Map",
+
+    titleKey: "menu.map",
+
     path: "/map",
+
     icon: "map",
+
     module: "map"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "ai",
-    title: "AI Assistant",
+
+    titleKey: "menu.ai",
+
     path: "/ai",
+
     icon: "ai",
+
     module: "ai"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "engineer",
-    title: "Engineer",
+
+    titleKey: "menu.engineer",
+
     path: "/engineer",
+
     icon: "engineer",
+
     module: "engineer"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "reports",
-    title: "Reports",
+
+    titleKey: "menu.reports",
+
     path: "/reports",
+
     icon: "reports",
+
     module: "reports"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "harvest",
-    title: "Harvest",
+
+    titleKey: "menu.harvest",
+
     path: "/harvest",
+
     icon: "harvest",
+
     module: "harvest"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "inventory",
-    title: "Inventory",
+
+    titleKey: "menu.inventory",
+
     path: "/inventory",
+
     icon: "inventory",
+
     module: "inventory"
-  },
 
-  {
+  }),
+
+
+
+  createMenuItem({
+
     id: "expenses",
-    title: "Expenses",
-    path: "/expenses",
-    icon: "expenses",
-    module: "expenses"
-  },
 
-  {
+    titleKey: "menu.expenses",
+
+    path: "/expenses",
+
+    icon: "expenses",
+
+    module: "expenses"
+
+  }),
+
+
+
+  createMenuItem({
+
     id: "settings",
-    title: "Settings",
+
+    titleKey: "menu.settings",
+
     path: "/settings",
+
     icon: "settings",
+
     module: "settings"
-  }
+
+  })
+
 
 ]);
+
 
 
 export default menuConfig;
