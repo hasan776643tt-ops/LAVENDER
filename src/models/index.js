@@ -7,10 +7,12 @@ export {
 } from "./FarmModel.js";
 
 
+
 export {
   FieldModel,
   createField
 } from "./FieldModel.js";
+
 
 
 export {
@@ -19,45 +21,82 @@ export {
 } from "./CropModel.js";
 
 
+
 export {
   UserModel,
   createUser
 } from "./UserModel.js";
 
 
+
 export {
-  DiseaseModel
+  DiseaseModel,
+  createDisease
 } from "./DiseaseModel.js";
 
 
+
 export {
-  EngineerModel
+  EngineerModel,
+  createEngineer
 } from "./EngineerModel.js";
 
 
+
 export {
-  ExpenseModel
+  ExpenseModel,
+  createExpense
 } from "./ExpenseModel.js";
 
 
+
 export {
-  FertilizerModel
+  FertilizerModel,
+  createFertilizer
 } from "./FertilizerModel.js";
 
 
+
 export {
-  IrrigationModel
+  IrrigationModel,
+  createIrrigation
 } from "./IrrigationModel.js";
 
 
+
 export {
-  PesticideModel
+  PesticideModel,
+  createPesticide
 } from "./PesticideModel.js";
 
 
+
 export {
-  ReportModel
+  HarvestModel,
+  createHarvest
+} from "./HarvestModel.js";
+
+
+
+export {
+  InventoryModel,
+  createInventory
+} from "./InventoryModel.js";
+
+
+
+export {
+  ReportModel,
+  createReport
 } from "./ReportModel.js";
+
+
+
+export {
+  WeatherModel,
+  createWeather
+} from "./WeatherModel.js";
+
 
 
 export {
