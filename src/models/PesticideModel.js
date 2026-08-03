@@ -1,150 +1,296 @@
 // src/models/PesticideModel.js
 
 
-export const createPesticideModel = (data = {}) => {
+/**
+ * Pesticide Model
+ * نموذج بيانات المبيدات الذكي
+ *
+ * مسؤول عن:
+ * - إدارة عمليات مكافحة الآفات
+ * - ربط المبيد بالمزرعة والحقل والمحصول
+ * - دعم التحليلات والسلامة الزراعية
+ */
 
 
-  return {
+export class PesticideModel {
 
 
-    id:
+  constructor(data = {}) {
+
+
+    this.id =
       data.id ||
-      Date.now(),
+      Date.now();
 
 
 
-    farmId:
-      data.farmId || "",
+    // العلاقات
+
+    this.farmId =
+      data.farmId ||
+      "";
 
 
+    this.fieldId =
+      data.fieldId ||
+      "";
 
-    fieldId:
-      data.fieldId || "",
 
-
-
-    cropId:
-      data.cropId || "",
+    this.cropId =
+      data.cropId ||
+      "";
 
 
 
     // معلومات المبيد
 
-    name:
-      data.name || "",
+    this.name =
+      data.name ||
+      "";
 
 
+    this.active =
+      data.active ||
+      "";
 
-    active:
-      data.active || "",
 
-
-
-    target:
-      data.target || "",
+    this.target =
+      data.target ||
+      "";
 
 
 
     // الكمية
 
-    quantity:
-      Number(
-        data.quantity || 0
-      ),
+    this.quantity =
+      Number(data.quantity) || 0;
 
 
-
-    unit:
-      data.unit || "مل",
+    this.unit =
+      data.unit ||
+      "liter";
 
 
 
     // طريقة الاستخدام
 
-    method:
-      data.method || "رش",
+    this.method =
+      data.method ||
+      "spray";
 
 
 
     // الزمن
 
-    date:
-      data.date || "",
+    this.date =
+      data.date ||
+      "";
 
 
 
-    safetyDays:
-      Number(
-        data.safetyDays || 0
-      ),
+    // فترة الأمان قبل الحصاد
+
+    this.safetyDays =
+      Number(data.safetyDays) || 0;
 
 
 
-    // الإدارة والمتابعة
+    // الحالة والمتابعة
 
-    status:
-      data.status || "scheduled",
-
-
-
-    priority:
-      data.priority || "medium",
+    this.status =
+      data.status ||
+      "scheduled";
 
 
-
-    // المورد والتكلفة مستقبلاً
-
-    supplier:
-      data.supplier || "",
+    this.priority =
+      data.priority ||
+      "medium";
 
 
 
-    cost:
-      Number(
-        data.cost || 0
-      ),
+    // المورد والتكلفة
+
+    this.supplier =
+      data.supplier ||
+      "";
+
+
+    this.cost =
+      Number(data.cost) || 0;
+
+
+    this.currency =
+      data.currency ||
+      "USD";
 
 
 
-    currency:
-      data.currency || "ل.س",
+    // الذكاء الاصطناعي
+
+    this.aiAnalysis =
+      data.aiAnalysis ||
+      {
+
+
+        riskLevel:"low",
+
+
+        recommendation:"",
+
+
+        harvestWarning:""
+
+
+      };
 
 
 
     // ملاحظات
 
-    notes:
-      data.notes || "",
+    this.notes =
+      data.notes ||
+      "";
 
 
 
-    createdAt:
+    // النظام الزمني
+
+    this.createdAt =
       data.createdAt ||
-      new Date()
-      .toISOString(),
+      new Date().toISOString();
+
+
+    this.updatedAt =
+      data.updatedAt ||
+      new Date().toISOString();
+
+
+  }
 
 
 
-    // طبقة الذكاء الاصطناعي المستقبلية
-
-    aiAnalysis:
-      data.aiAnalysis || {
-
-        riskLevel:
-          "low",
 
 
-        recommendation:
-          "",
+  update(data = {}){
 
 
-        harvestWarning:
-          ""
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
 
       }
 
 
-  };
+    });
+
+
+
+    this.updatedAt =
+      new Date().toISOString();
+
+
+
+    return this;
+
+
+  }
+
+
+
+
+
+  toJSON(){
+
+
+    return {
+
+
+      id:this.id,
+
+
+      farmId:this.farmId,
+
+
+      fieldId:this.fieldId,
+
+
+      cropId:this.cropId,
+
+
+      name:this.name,
+
+
+      active:this.active,
+
+
+      target:this.target,
+
+
+      quantity:this.quantity,
+
+
+      unit:this.unit,
+
+
+      method:this.method,
+
+
+      date:this.date,
+
+
+      safetyDays:this.safetyDays,
+
+
+      status:this.status,
+
+
+      priority:this.priority,
+
+
+      supplier:this.supplier,
+
+
+      cost:this.cost,
+
+
+      currency:this.currency,
+
+
+      aiAnalysis:this.aiAnalysis,
+
+
+      notes:this.notes,
+
+
+      createdAt:this.createdAt,
+
+
+      updatedAt:this.updatedAt
+
+
+    };
+
+
+  }
+
+
+}
+
+
+
+
+
+export const createPesticide = (data = {}) => {
+
+
+  return new PesticideModel(data);
 
 
 };
@@ -153,39 +299,33 @@ export const createPesticideModel = (data = {}) => {
 
 
 
-// أنواع وحدات المبيدات
-
 export const pesticideUnits = [
 
-  "مل",
+  "ml",
 
-  "لتر",
+  "liter",
 
-  "كغ"
+  "kg"
 
 ];
 
 
 
 
-
-// طرق الاستخدام
 
 export const pesticideMethods = [
 
-  "رش",
+  "spray",
 
-  "مع الري",
+  "irrigation",
 
-  "تربة"
+  "soil"
 
 ];
 
 
 
 
-
-// حالات العملية
 
 export const pesticideStatus = [
 
@@ -200,8 +340,6 @@ export const pesticideStatus = [
 
 
 
-
-// مستويات الأولوية
 
 export const pesticidePriority = [
 
