@@ -1,261 +1,185 @@
-// src/services/cropService.js
+// src/api/cropApi.js
 
-import cropRepository
-  from "../repositories/cropRepository.js";
-
-
-class CropService {
+import storageService from "../services/storageService.js";
 
 
-  constructor() {
+const STORAGE_KEY = "crops";
 
-    this.repository =
-      cropRepository;
 
+const generateId = () =>
+  crypto?.randomUUID?.()
+  || Date.now().toString();
+
+
+const getAll = async () => {
+
+  return storageService.load(
+    STORAGE_KEY,
+    []
+  );
+
+};
+
+
+const getById = async (id) => {
+
+  if (!id) {
+    throw new Error(
+      "Crop id is required."
+    );
   }
 
+  const crops =
+    await getAll();
+
+  return (
+    crops.find(
+      (crop) =>
+        String(crop.id) ===
+        String(id)
+    ) || null
+  );
+
+};
 
 
+const create = async (data) => {
 
-  async getAll() {
-
-    return this.repository.getAll();
-
+  if (!data) {
+    throw new Error(
+      "Crop data is required."
+    );
   }
 
+  const crops =
+    await getAll();
+
+  const crop = {
+
+    id: generateId(),
+
+    ...data,
+
+    createdAt:
+      new Date().toISOString(),
+
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+  crops.push(crop);
+
+  storageService.save(
+    STORAGE_KEY,
+    crops
+  );
+
+  return crop;
+
+};
 
 
+const update = async (
+  id,
+  data
+) => {
 
-  async getById(id) {
-
-
-    if (!id) {
-
-      throw new Error(
-        "Crop id is required"
-      );
-
-    }
-
-
-    const crop =
-      await this.repository.getById(id);
-
-
-
-    if (!crop) {
-
-      throw new Error(
-        "Crop not found"
-      );
-
-    }
-
-
-    return crop;
-
+  if (!id) {
+    throw new Error(
+      "Crop id is required."
+    );
   }
 
+  const crops =
+    await getAll();
+
+  const index =
+    crops.findIndex(
+      (crop) =>
+        String(crop.id) ===
+        String(id)
+    );
+
+  if (index === -1) {
+    return null;
+  }
+
+  const updatedCrop = {
+
+    ...crops[index],
+
+    ...data,
+
+    id: crops[index].id,
+
+    updatedAt:
+      new Date().toISOString()
+
+  };
+
+  crops[index] =
+    updatedCrop;
+
+  storageService.save(
+    STORAGE_KEY,
+    crops
+  );
+
+  return updatedCrop;
+
+};
 
 
+const remove = async (id) => {
 
-  async create(data) {
+  if (!id) {
+    throw new Error(
+      "Crop id is required."
+    );
+  }
 
+  const crops =
+    await getAll();
 
-    this.validateCrop(data);
+  const filtered =
+    crops.filter(
+      (crop) =>
+        String(crop.id) !==
+        String(id)
+    );
 
+  const deleted =
+    filtered.length !==
+    crops.length;
 
+  if (deleted) {
 
-    return this.repository.create(
-      data
+    storageService.save(
+      STORAGE_KEY,
+      filtered
     );
 
   }
 
+  return deleted;
 
+};
 
 
-  async update(id,data) {
+const cropApi = Object.freeze({
 
+  getAll,
 
-    if (!id) {
+  getById,
 
-      throw new Error(
-        "Crop id is required"
-      );
+  create,
 
-    }
+  update,
 
+  delete: remove
 
+});
 
-    this.validateCrop(data);
 
-
-
-    const updatedCrop =
-      await this.repository.update(
-        id,
-        data
-      );
-
-
-
-    if (!updatedCrop) {
-
-      throw new Error(
-        "Crop not found"
-      );
-
-    }
-
-
-    return updatedCrop;
-
-  }
-
-
-
-
-  async delete(id) {
-
-
-    if (!id) {
-
-      throw new Error(
-        "Crop id is required"
-      );
-
-    }
-
-
-
-    const deleted =
-      await this.repository.delete(id);
-
-
-
-    if (!deleted) {
-
-      throw new Error(
-        "Crop not found"
-      );
-
-    }
-
-
-    return true;
-
-  }
-
-
-
-
-  async count() {
-
-    return this.repository.count();
-
-  }
-
-
-
-
-  async exists(id) {
-
-
-    if (!id) {
-
-      throw new Error(
-        "Crop id is required"
-      );
-
-    }
-
-
-    return this.repository.exists(id);
-
-  }
-
-
-
-
-  async search(keyword) {
-
-
-    const crops =
-      await this.repository.getAll();
-
-
-
-    if (!keyword) {
-
-      return crops;
-
-    }
-
-
-
-    const search =
-      keyword.toLowerCase();
-
-
-
-    return crops.filter(
-      crop =>
-
-        crop.name
-        ?.toLowerCase()
-        .includes(search)
-
-        ||
-
-        crop.type
-        ?.toLowerCase()
-        .includes(search)
-
-    );
-
-  }
-
-
-
-
-  validateCrop(data) {
-
-
-    if (!data) {
-
-      throw new Error(
-        "Crop data is required"
-      );
-
-    }
-
-
-
-    if (!data.name?.trim()) {
-
-      throw new Error(
-        "Crop name is required"
-      );
-
-    }
-
-
-
-    return true;
-
-  }
-
-
-}
-
-
-
-const cropService =
-new CropService();
-
-
-
-export default Object.freeze(
-  cropService
-);
+export default cropApi;
