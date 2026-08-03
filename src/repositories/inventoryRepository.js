@@ -1,296 +1,210 @@
-
 // src/repositories/inventoryRepository.js
 
-
-import storageService
-from "../services/storageService.js";
-
+import storageService from "../services/storageService.js";
 
 
 class InventoryRepository {
 
 
+  constructor() {
 
-constructor(){
-
-  this.key =
-  "inventory";
-
-}
-
-
-
-
-async getAll(){
-
-  return storageService.load(
-    this.key,
-    []
-  );
-
-}
-
-
-
-
-async getById(id){
-
-
-  if(!id){
-
-    return null;
+    this.key = "inventory";
 
   }
 
 
+  async getAll() {
 
-  const inventory =
-  await this.getAll();
-
-
-
-  return (
-    inventory.find(
-
-      item =>
-
-      String(item.id)
-      ===
-      String(id)
-
-    )
-    || null
-  );
-
-
-}
-
-
-
-
-async create(inventoryData){
-
-
-  if(!inventoryData){
-
-    throw new Error(
-      "Inventory data is required"
+    return storageService.load(
+      this.key,
+      []
     );
 
   }
 
 
+  async getById(id) {
 
-  const inventory =
-  await this.getAll();
-
-
-
-  const item = {
+    if (!id) {
+      return null;
+    }
 
 
-    id:
-    Date.now().toString(),
+    const items =
+      await this.getAll();
 
 
-    ...inventoryData,
-
-
-    createdAt:
-    new Date().toISOString(),
-
-
-    updatedAt:
-    new Date().toISOString()
-
-
-  };
-
-
-
-  inventory.push(item);
-
-
-
-  storageService.save(
-
-    this.key,
-
-    inventory
-
-  );
-
-
-
-  return item;
-
-
-}
-
-
-
-
-async update(id,data){
-
-
-  if(!id){
-
-    throw new Error(
-      "Inventory id is required"
+    return (
+      items.find(
+        item =>
+          String(item.id) === String(id)
+      )
+      || null
     );
 
   }
 
 
+  async create(data) {
 
-  const inventory =
-  await this.getAll();
+    if (!data) {
 
+      throw new Error(
+        "Inventory data is required"
+      );
 
-
-  const index =
-  inventory.findIndex(
-
-    item =>
-
-    String(item.id)
-    ===
-    String(id)
-
-  );
+    }
 
 
-
-  if(index === -1){
-
-    return null;
-
-  }
+    const items =
+      await this.getAll();
 
 
+    const item = {
+
+      id:
+        data.id ??
+        crypto.randomUUID(),
+
+      ...data,
+
+      createdAt:
+        new Date().toISOString(),
+
+      updatedAt:
+        new Date().toISOString()
+
+    };
 
 
-  const updatedItem = {
-
-
-    ...inventory[index],
-
-
-    ...data,
-
-
-    id:
-    inventory[index].id,
-
-
-    updatedAt:
-    new Date().toISOString()
-
-
-  };
-
-
-
-  inventory[index] =
-  updatedItem;
-
-
-
-  storageService.save(
-
-    this.key,
-
-    inventory
-
-  );
-
-
-
-  return updatedItem;
-
-
-}
-
-
-
-
-async delete(id){
-
-
-  const inventory =
-  await this.getAll();
-
-
-
-  const filtered =
-  inventory.filter(
-
-    item =>
-
-    String(item.id)
-    !==
-    String(id)
-
-  );
-
-
-
-  const deleted =
-  filtered.length !== inventory.length;
-
-
-
-  if(deleted){
+    items.push(item);
 
 
     storageService.save(
-
       this.key,
-
-      filtered
-
+      items
     );
 
+
+    return item;
 
   }
 
 
+  async update(id, changes) {
 
-  return deleted;
+    if (!id) {
+      return null;
+    }
+
+
+    const items =
+      await this.getAll();
+
+
+    const index =
+      items.findIndex(
+        item =>
+          String(item.id) === String(id)
+      );
+
+
+    if (index === -1) {
+      return null;
+    }
+
+
+    const updatedItem = {
+
+      ...items[index],
+
+      ...changes,
+
+      id:
+        items[index].id,
+
+      updatedAt:
+        new Date().toISOString()
+
+    };
+
+
+    items[index] =
+      updatedItem;
+
+
+    storageService.save(
+      this.key,
+      items
+    );
+
+
+    return updatedItem;
+
+  }
+
+
+  async delete(id) {
+
+    if (!id) {
+      return false;
+    }
+
+
+    const items =
+      await this.getAll();
+
+
+    const filtered =
+      items.filter(
+        item =>
+          String(item.id) !== String(id)
+      );
+
+
+    if (
+      filtered.length === items.length
+    ) {
+
+      return false;
+
+    }
+
+
+    storageService.save(
+      this.key,
+      filtered
+    );
+
+
+    return true;
+
+  }
+
+
+  async exists(id) {
+
+    const item =
+      await this.getById(id);
+
+
+    return Boolean(item);
+
+  }
+
+
+  async count() {
+
+    const items =
+      await this.getAll();
+
+
+    return items.length;
+
+  }
 
 
 }
-
-
-
-
-async exists(id){
-
-  return Boolean(
-    await this.getById(id)
-  );
-
-}
-
-
-
-
-async count(){
-
-
-  const inventory =
-  await this.getAll();
-
-
-  return inventory.length;
-
-
-}
-
-
-
-}
-
 
 
 export default Object.freeze(
