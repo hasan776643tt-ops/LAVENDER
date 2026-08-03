@@ -1,12 +1,11 @@
 // src/services/logService.js
 
-
 import storageService
   from "./storageService.js";
 
 
-
 class LogService {
+
 
 
   constructor(){
@@ -14,16 +13,7 @@ class LogService {
     this.storageKey =
       "system_logs";
 
-
-    this.logs =
-      storageService.load(
-        this.storageKey,
-        []
-      );
-
   }
-
-
 
 
 
@@ -33,36 +23,70 @@ class LogService {
     data = {}
   ){
 
+
+    if (!type) {
+
+      throw new Error(
+        "LOG_TYPE_REQUIRED"
+      );
+
+    }
+
+
+
+    if (!message) {
+
+      throw new Error(
+        "LOG_MESSAGE_REQUIRED"
+      );
+
+    }
+
+
+
+    const logs =
+      this.getLogs();
+
+
+
     const log = {
 
+
       id:
-        Date.now(),
+        crypto.randomUUID(),
+
 
       type,
 
+
       message,
+
 
       data,
 
-      time:
+
+      createdAt:
         new Date().toISOString()
 
     };
 
 
-    this.logs.push(
+
+    logs.push(
       log
     );
 
 
-    this.save();
+
+    this.save(
+      logs
+    );
+
 
 
     return log;
 
   }
-
-
 
 
 
@@ -81,8 +105,6 @@ class LogService {
 
 
 
-
-
   warning(
     message,
     data = {}
@@ -95,8 +117,6 @@ class LogService {
     );
 
   }
-
-
 
 
 
@@ -115,52 +135,75 @@ class LogService {
 
 
 
-
-
   getLogs(){
 
-    return [
-      ...this.logs
-    ];
 
-  }
+    return storageService.load(
 
+      this.storageKey,
 
+      []
 
-
-
-  getByType(type){
-
-    return this.logs.filter(
-      log =>
-        log.type === type
     );
 
   }
 
 
 
+  getByType(type){
 
 
-  clearLogs(){
+    if (!type) {
 
-    this.logs = [];
+      return [];
 
-    this.save();
+    }
 
-    return true;
+
+    return this.getLogs()
+
+      .filter(
+
+        log =>
+          log.type === type
+
+      );
 
   }
 
 
 
+  count(){
 
 
-  save(){
+    return this.getLogs().length;
 
-    storageService.save(
+  }
+
+
+
+  clear(){
+
+
+    return storageService.remove(
+
+      this.storageKey
+
+    );
+
+  }
+
+
+
+  save(data){
+
+
+    return storageService.save(
+
       this.storageKey,
-      this.logs
+
+      data
+
     );
 
   }
@@ -170,11 +213,6 @@ class LogService {
 
 
 
-
-
-export const logService =
-  new LogService();
-
-
-
-export default logService;
+export default Object.freeze(
+  new LogService()
+);
