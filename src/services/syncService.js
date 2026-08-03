@@ -1,9 +1,7 @@
 // src/services/syncService.js
 
-
 import storageService
   from "./storageService.js";
-
 
 
 class SyncService {
@@ -12,151 +10,101 @@ class SyncService {
   constructor() {
 
     this.lastSyncKey =
-      "last_sync";
+      "sync:last";
 
 
-    this.syncLogKey =
-      "sync_history";
+    this.historyKey =
+      "sync:history";
 
   }
-
 
 
 
   async upload(data) {
 
-    try {
 
-
-      if (data === undefined) {
-
-        throw new Error(
-          "Sync data is required"
-        );
-
-      }
-
-
-
-      const result = {
-
-        success: true,
-
-        data,
-
-        message:
-          "Upload completed."
-
-      };
-
-
-      this.saveSyncTime();
-
-
-      return result;
-
-
-
-    } catch (error) {
+    if (data === undefined) {
 
       throw new Error(
-        `Sync upload failed: ${error.message}`
+        "SYNC_DATA_REQUIRED"
       );
 
     }
 
-  }
 
+    this.saveSyncTime();
+
+
+
+    return {
+
+      success: true,
+
+      data,
+
+      syncedAt:
+        new Date().toISOString()
+
+    };
+
+  }
 
 
 
   async download() {
 
-    try {
 
+    return {
 
-      return {
+      success: true,
 
-        success: true,
+      data: null,
 
-        data: null,
+      syncedAt:
+        new Date().toISOString()
 
-        message:
-          "Download completed."
-
-      };
-
-
-    } catch (error) {
-
-      throw new Error(
-        `Sync download failed: ${error.message}`
-      );
-
-    }
+    };
 
   }
 
 
 
-
-  async sync(localData) {
-
-    try {
+  async sync(data) {
 
 
-      const result =
-        await this.upload(
-          localData
-        );
-
-
-      this.addLog({
-
-        type: "sync",
-
-        success:
-          result.success
-
-      });
-
-
-
-      return {
-
-        success: true,
-
-        data: localData,
-
-        syncedAt:
-          new Date().toISOString()
-
-      };
-
-
-
-    } catch (error) {
-
-      throw new Error(
-        `Sync failed: ${error.message}`
+    const result =
+      await this.upload(
+        data
       );
 
-    }
+
+    this.addHistory({
+
+      type:
+        "sync",
+
+      success:
+        result.success
+
+    });
+
+
+
+    return result;
 
   }
 
 
 
-
-  async status() {
+  status() {
 
 
     return {
 
       online:
         typeof navigator !== "undefined"
-        ? navigator.onLine
-        : false,
+          ? navigator.onLine
+          : false,
 
 
       lastSync:
@@ -168,7 +116,6 @@ class SyncService {
     };
 
   }
-
 
 
 
@@ -187,34 +134,39 @@ class SyncService {
 
 
 
+  addHistory(item) {
 
-  addLog(item) {
 
-
-    const logs =
+    const history =
       storageService.load(
-        this.syncLogKey,
+        this.historyKey,
         []
       );
 
 
-    logs.push({
+    history.push({
 
       ...item,
 
-      time:
+      id:
+        crypto.randomUUID(),
+
+
+      createdAt:
         new Date().toISOString()
 
     });
 
 
     storageService.save(
-      this.syncLogKey,
-      logs
+
+      this.historyKey,
+
+      history
+
     );
 
   }
-
 
 
 
@@ -222,15 +174,17 @@ class SyncService {
 
 
     return storageService.load(
-      this.syncLogKey,
+
+      this.historyKey,
+
       []
+
     );
 
   }
 
 
 }
-
 
 
 export default Object.freeze(
