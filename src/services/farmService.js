@@ -5,65 +5,103 @@ import farmRepository from "../repositories/farmRepository.js";
 
 class FarmService {
 
+
   constructor() {
+
     this.repository = farmRepository;
+
   }
 
 
   async getAll() {
+
     return this.repository.getAll();
+
   }
 
 
   async getById(id) {
 
     if (!id) {
-      throw new Error("Farm id is required");
+
+      throw new Error(
+        "FARM_ID_REQUIRED"
+      );
+
     }
 
-    return this.repository.getById(id);
+
+    const farm =
+      await this.repository.getById(id);
+
+
+    if (!farm) {
+
+      throw new Error(
+        "FARM_NOT_FOUND"
+      );
+
+    }
+
+
+    return farm;
+
   }
 
 
   async create(data) {
 
-    if (!data) {
-      throw new Error("Farm data is required");
-    }
+    this.validate(data);
+
 
     return this.repository.create(data);
+
   }
 
 
   async update(id, data) {
 
     if (!id) {
-      throw new Error("Farm id is required");
+
+      throw new Error(
+        "FARM_ID_REQUIRED"
+      );
+
     }
 
 
-    if (!data) {
-      throw new Error("Farm data is required");
+    this.validate(data);
+
+
+    const updated =
+      await this.repository.update(
+        id,
+        data
+      );
+
+
+    if (!updated) {
+
+      throw new Error(
+        "FARM_NOT_FOUND"
+      );
+
     }
 
 
-    const updatedFarm =
-      await this.repository.update(id, data);
+    return updated;
 
-
-    if (!updatedFarm) {
-      throw new Error("Farm not found");
-    }
-
-
-    return updatedFarm;
   }
 
 
   async delete(id) {
 
     if (!id) {
-      throw new Error("Farm id is required");
+
+      throw new Error(
+        "FARM_ID_REQUIRED"
+      );
+
     }
 
 
@@ -72,32 +110,82 @@ class FarmService {
 
 
     if (!deleted) {
-      throw new Error("Farm not found");
+
+      throw new Error(
+        "FARM_NOT_FOUND"
+      );
+
     }
 
 
     return true;
-  }
 
-
-  async count() {
-    return this.repository.count();
   }
 
 
   async exists(id) {
 
     if (!id) {
-      throw new Error("Farm id is required");
+
+      return false;
+
     }
 
-    return this.repository.exists(id);
+
+    const farm =
+      await this.repository.getById(id);
+
+
+    return Boolean(farm);
+
   }
+
+
+  async count() {
+
+    const farms =
+      await this.repository.getAll();
+
+
+    return farms.length;
+
+  }
+
+
+  validate(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
+      throw new Error(
+        "FARM_DATA_REQUIRED"
+      );
+
+    }
+
+
+    if (
+      !data.name ||
+      !data.name.trim()
+    ) {
+
+      throw new Error(
+        "FARM_NAME_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
 
 }
 
 
-const farmService = new FarmService();
-
-
-export default Object.freeze(farmService);
+export default Object.freeze(
+  new FarmService()
+);
