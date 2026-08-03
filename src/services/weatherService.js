@@ -1,13 +1,10 @@
 // src/services/weatherService.js
 
-
 import weatherRepository
   from "../repositories/weatherRepository.js";
 
 
-
 class WeatherService {
-
 
 
   constructor() {
@@ -18,113 +15,62 @@ class WeatherService {
   }
 
 
-
-
-
   async getCurrentWeather(location) {
 
-    try {
+
+    this.validateLocation(
+      location
+    );
 
 
-      if (!location) {
-
-        throw new Error(
-          "Location is required"
-        );
-
-      }
-
-
-
-      return await this.repository.getCurrentWeather(
-        location
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `WeatherService getCurrentWeather failed: ${error.message}`
-
-      );
-
-
-    }
+    return this.repository.getCurrentWeather(
+      location
+    );
 
   }
-
-
-
-
 
 
 
   async refreshWeather(location) {
 
-    try {
+
+    this.validateLocation(
+      location
+    );
 
 
-      if (!location) {
-
-        throw new Error(
-          "Location is required"
-        );
-
-      }
-
-
-
-      return await this.repository.refreshWeather(
-        location
-      );
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-
-        `WeatherService refreshWeather failed: ${error.message}`
-
-      );
-
-
-    }
+    return this.repository.refreshWeather(
+      location
+    );
 
   }
-
-
-
-
 
 
 
   validateLocation(location) {
 
 
-    if (!location) {
+    if (
+      !location ||
+      typeof location !== "object"
+    ) {
 
-      return false;
+      throw new Error(
+        "WEATHER_LOCATION_REQUIRED"
+      );
 
     }
 
 
 
     if (
-
-      typeof location !== "object" ||
-
       location.latitude == null ||
-
       location.longitude == null
-
     ) {
 
-      return false;
+      throw new Error(
+        "WEATHER_COORDINATES_REQUIRED"
+      );
 
     }
 
@@ -132,17 +78,12 @@ class WeatherService {
 
     return true;
 
-
   }
-
 
 
 }
 
 
-
 export default Object.freeze(
-
   new WeatherService()
-
 );
