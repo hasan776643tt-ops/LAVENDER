@@ -5,10 +5,11 @@
  * Field Model
  * نموذج بيانات الحقل الذكي
  *
- * مسؤول عن:
- * - توحيد بيانات الحقول
- * - ربط الحقل بالمزرعة
- * - دعم التوسع والتحليلات المستقبلية
+ * المسؤوليات:
+ * - إدارة بيانات الحقل الأساسية
+ * - الربط مع المزرعة
+ * - دعم GPS والموقع
+ * - جاهز للتوسع مع Crop / Irrigation
  */
 
 
@@ -32,58 +33,70 @@ export class FieldModel {
 
 
 
-    // معلومات الحقل الأساسية
+    // بيانات الحقل الأساسية
 
     this.name =
       data.name ||
       "";
 
 
-
     this.area =
       Number(data.area) || 0;
 
 
-
     this.unit =
       data.unit ||
-      "دونم";
+      "dunum";
 
 
+
+    // معلومات التربة والمياه
 
     this.soilType =
       data.soilType ||
       "";
 
 
-
-    this.location =
-      data.location ||
+    this.waterSource =
+      data.waterSource ||
       "";
 
 
 
-    // GPS
+    // الموقع الذكي GPS
 
-    this.latitude =
-      data.latitude ||
-      null;
+    this.location = {
 
 
+      latitude:
+        data.location?.latitude ??
+        data.latitude ??
+        null,
 
-    this.longitude =
-      data.longitude ||
-      null;
+
+      longitude:
+        data.location?.longitude ??
+        data.longitude ??
+        null,
+
+
+      address:
+        data.location?.address ||
+        ""
+
+    };
 
 
 
-    // المحصول الحالي
+    // العلاقات
 
-    this.currentCrop =
-      data.currentCrop ||
+    this.cropId =
+      data.cropId ||
       "";
 
 
+
+    // معلومات الزراعة
 
     this.plantingDate =
       data.plantingDate ||
@@ -114,14 +127,12 @@ export class FieldModel {
       new Date().toISOString();
 
 
-
     this.updatedAt =
+      data.updatedAt ||
       new Date().toISOString();
 
 
-
   }
-
 
 
 
@@ -131,19 +142,18 @@ export class FieldModel {
    * تحديث بيانات الحقل
    */
 
-
   update(data = {}){
 
 
-    Object.keys(data).forEach(key=>{
+    Object.keys(data).forEach(key => {
 
 
-      if(
-        data[key] !== undefined
-      ){
+      if(data[key] !== undefined){
+
 
         this[key] =
           data[key];
+
 
       }
 
@@ -166,23 +176,34 @@ export class FieldModel {
 
 
 
+  /**
+   * إرجاع الموقع
+   */
+
+  getLocation(){
+
+
+    return this.location;
+
+
+  }
+
+
+
 
 
   /**
-   * حساب مساحة الحقل
+   * حساب المساحة
    */
-
 
   getArea(){
 
 
     return {
 
-
       value:this.area,
 
       unit:this.unit
-
 
     };
 
@@ -193,12 +214,9 @@ export class FieldModel {
 
 
 
-
-
   /**
-   * تحويل البيانات للحفظ
+   * تجهيز البيانات للحفظ
    */
-
 
   toJSON(){
 
@@ -208,31 +226,42 @@ export class FieldModel {
 
       id:this.id,
 
+
       farmId:this.farmId,
+
 
       name:this.name,
 
+
       area:this.area,
+
 
       unit:this.unit,
 
+
       soilType:this.soilType,
+
+
+      waterSource:this.waterSource,
+
 
       location:this.location,
 
-      latitude:this.latitude,
 
-      longitude:this.longitude,
+      cropId:this.cropId,
 
-      currentCrop:this.currentCrop,
 
       plantingDate:this.plantingDate,
 
+
       status:this.status,
+
 
       notes:this.notes,
 
+
       createdAt:this.createdAt,
+
 
       updatedAt:this.updatedAt
 
@@ -243,11 +272,7 @@ export class FieldModel {
   }
 
 
-
 }
-
-
-
 
 
 
@@ -256,8 +281,7 @@ export class FieldModel {
  * إنشاء حقل جديد
  */
 
-
-export const createField = (data)=>{
+export const createField = (data = {}) => {
 
 
   return new FieldModel(data);
