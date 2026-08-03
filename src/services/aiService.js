@@ -1,9 +1,7 @@
 // src/services/aiService.js
 
-
 import storageService
   from "./storageService.js";
-
 
 
 class AIService {
@@ -15,15 +13,12 @@ class AIService {
 
     this.apiKey = "";
 
-    this.model =
-      "gpt-4.1";
-
+    this.model = "gpt-4.1";
 
     this.historyKey =
       "ai_history";
 
   }
-
 
 
 
@@ -33,14 +28,12 @@ class AIService {
     model
   } = {}) {
 
-
     if (baseUrl) {
 
       this.baseUrl =
         baseUrl;
 
     }
-
 
     if (apiKey) {
 
@@ -49,7 +42,6 @@ class AIService {
 
     }
 
-
     if (model) {
 
       this.model =
@@ -57,9 +49,7 @@ class AIService {
 
     }
 
-
   }
-
 
 
 
@@ -68,91 +58,66 @@ class AIService {
     options = {}
   ) {
 
-    try {
-
-
-      if (!prompt?.trim()) {
-
-        throw new Error(
-          "AI prompt is required"
-        );
-
-      }
-
-
-
-      if (!this.baseUrl) {
-
-        return {
-
-          success: false,
-
-          message:
-            "AI provider is not configured yet.",
-
-          prompt
-
-        };
-
-      }
-
-
-
-      const response = {
-
-        success: true,
-
-        model:
-          this.model,
-
-        answer:
-          "AI response will be connected here."
-
-      };
-
-
-
-      this.saveHistory({
-
-        type:
-          options.type || "general",
-
-        prompt,
-
-        response,
-
-        date:
-          new Date().toISOString()
-
-      });
-
-
-
-      return response;
-
-
-
-    } catch (error) {
+    if (
+      !prompt ||
+      !prompt.trim()
+    ) {
 
       throw new Error(
-        `AIService ask failed: ${error.message}`
+        "AI_PROMPT_REQUIRED"
       );
 
     }
+
+
+
+    const response =
+      this.baseUrl
+        ? {
+            success: true,
+            model: this.model,
+            answer:
+              "AI response will be connected here."
+          }
+        : {
+            success: false,
+            model: this.model,
+            message:
+              "AI_PROVIDER_NOT_CONFIGURED"
+          };
+
+
+
+    this.saveHistory({
+
+      id:
+        crypto.randomUUID(),
+
+      type:
+        options.type ||
+        "general",
+
+      prompt,
+
+      response,
+
+      createdAt:
+        new Date().toISOString()
+
+    });
+
+
+
+    return response;
 
   }
 
 
 
-
   saveHistory(item) {
 
-
     const history =
-      storageService.load(
-        this.historyKey,
-        []
-      );
+      this.getHistory();
 
 
     history.push(
@@ -165,14 +130,32 @@ class AIService {
       history
     );
 
+  }
+
+
+
+  getHistory() {
+
+    return storageService.load(
+      this.historyKey,
+      []
+    );
 
   }
 
 
 
+  clearHistory() {
+
+    return storageService.remove(
+      this.historyKey
+    );
+
+  }
+
+
 
   async analyzeCrop(data) {
-
 
     return this.ask(
 
@@ -190,9 +173,7 @@ ${JSON.stringify(data)}`,
 
 
 
-
   async detectDisease(data) {
-
 
     return this.ask(
 
@@ -210,9 +191,7 @@ ${JSON.stringify(data)}`,
 
 
 
-
   async irrigationAdvice(data) {
-
 
     return this.ask(
 
@@ -230,9 +209,7 @@ ${JSON.stringify(data)}`,
 
 
 
-
   async fertilizerAdvice(data) {
-
 
     return this.ask(
 
@@ -250,26 +227,20 @@ ${JSON.stringify(data)}`,
 
 
 
-
   async generalAdvice(question) {
 
-
     return this.ask(
-
       question,
-
       {
         type:
           "general"
       }
-
     );
 
   }
 
 
 }
-
 
 
 export default Object.freeze(
