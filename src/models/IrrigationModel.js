@@ -1,125 +1,243 @@
 // src/models/IrrigationModel.js
 
 
-export const createIrrigationModel = (data = {}) => {
+/**
+ * Irrigation Model
+ * نموذج بيانات الري الذكي
+ *
+ * مسؤول عن:
+ * - إدارة عمليات الري
+ * - ربط المزرعة والحقل والمحصول
+ * - دعم التحليلات الزراعية
+ */
 
 
-  return {
+export class IrrigationModel {
 
 
-    // المعرف
+  constructor(data = {}) {
 
-    id:
+
+    this.id =
       data.id ||
-      crypto.randomUUID(),
+      (
+        globalThis.crypto?.randomUUID?.()
+        ||
+        Date.now().toString()
+      );
 
 
 
-    // العلاقات الزراعية
+    // العلاقات
 
-    farmId:
-      data.farmId || "",
-
-
-    fieldId:
-      data.fieldId || "",
+    this.farmId =
+      data.farmId ||
+      "";
 
 
-    cropId:
-      data.cropId || "",
+    this.fieldId =
+      data.fieldId ||
+      "";
 
+
+    this.cropId =
+      data.cropId ||
+      "";
 
 
 
     // معلومات الري
 
-    method:
+    this.method =
       data.method ||
-      "تنقيط",
+      "drip";
 
 
-    waterAmount:
-      Number(
-        data.waterAmount || 0
-      ),
+    this.waterAmount =
+      Number(data.waterAmount) || 0;
 
 
-    waterUnit:
+    this.waterUnit =
       data.waterUnit ||
-      "liter",
+      "liter";
 
 
-
-    duration:
-      Number(
-        data.duration || 0
-      ),
+    this.duration =
+      Number(data.duration) || 0;
 
 
 
     // الجدولة
 
-    date:
-      data.date || "",
+    this.date =
+      data.date ||
+      "";
 
 
-    status:
+    this.status =
       data.status ||
-      "scheduled",
+      "scheduled";
 
 
 
+    // الأولوية
 
-    // مستوى الأهمية
-
-    priority:
+    this.priority =
       data.priority ||
-      "medium",
+      "medium";
 
 
 
+    // البيانات الذكية
 
-    // بيانات ذكية
-
-    weatherImpact:
+    this.weatherImpact =
       data.weatherImpact ||
-      "",
+      "";
 
 
-    soilMoisture:
-      Number(
-        data.soilMoisture || 0
-      ),
+    this.soilMoisture =
+      Number(data.soilMoisture) || 0;
 
 
-    efficiency:
-      Number(
-        data.efficiency || 0
-      ),
+    this.efficiency =
+      Number(data.efficiency) || 0;
 
 
 
+    // ملاحظات
 
-    // الملاحظات
-
-    notes:
-      data.notes || "",
-
-
+    this.notes =
+      data.notes ||
+      "";
 
 
-    // بيانات النظام
 
-    createdAt:
+    // النظام الزمني
+
+    this.createdAt =
       data.createdAt ||
-      new Date().toISOString(),
+      new Date().toISOString();
+
+
+    this.updatedAt =
+      data.updatedAt ||
+      new Date().toISOString();
+
+
+  }
 
 
 
-    updatedAt:
-      new Date().toISOString()
 
 
-  };
+  update(data = {}){
+
+
+    Object.keys(data)
+    .forEach(key => {
+
+
+      if(data[key] !== undefined){
+
+
+        this[key] =
+          data[key];
+
+
+      }
+
+
+    });
+
+
+
+    this.updatedAt =
+      new Date().toISOString();
+
+
+
+    return this;
+
+
+  }
+
+
+
+
+
+  toJSON(){
+
+
+    return {
+
+
+      id:this.id,
+
+
+      farmId:this.farmId,
+
+
+      fieldId:this.fieldId,
+
+
+      cropId:this.cropId,
+
+
+      method:this.method,
+
+
+      waterAmount:this.waterAmount,
+
+
+      waterUnit:this.waterUnit,
+
+
+      duration:this.duration,
+
+
+      date:this.date,
+
+
+      status:this.status,
+
+
+      priority:this.priority,
+
+
+      weatherImpact:this.weatherImpact,
+
+
+      soilMoisture:this.soilMoisture,
+
+
+      efficiency:this.efficiency,
+
+
+      notes:this.notes,
+
+
+      createdAt:this.createdAt,
+
+
+      updatedAt:this.updatedAt
+
+
+    };
+
+
+  }
+
+
+}
+
+
+
+
+
+export const createIrrigation = (data = {}) => {
+
+
+  return new IrrigationModel(data);
+
 
 };
