@@ -1,9 +1,7 @@
 // src/services/backupService.js
 
-
 import storageService
   from "./storageService.js";
-
 
 
 class BackupService {
@@ -22,122 +20,96 @@ class BackupService {
 
 
 
-
   createBackup(data) {
 
-    try {
 
-
-      if (data === undefined) {
-
-        throw new Error(
-          "Backup data is required"
-        );
-
-      }
-
-
-
-      const backup = {
-
-        id:
-          Date.now(),
-
-
-        version:
-          this.version,
-
-
-        createdAt:
-          new Date().toISOString(),
-
-
-        records:
-          this.countRecords(data),
-
-
-        data
-
-      };
-
-
-
-      const backups =
-        this.getAll();
-
-
-
-      backups.push(
-        backup
-      );
-
-
-
-      storageService.save(
-        this.key,
-        backups
-      );
-
-
-
-      return backup;
-
-
-
-    } catch (error) {
+    if (data === undefined) {
 
       throw new Error(
-        `BackupService create failed: ${error.message}`
+        "BACKUP_DATA_REQUIRED"
       );
 
     }
 
+
+    const backup = {
+
+
+      id:
+        crypto.randomUUID(),
+
+
+      version:
+        this.version,
+
+
+      createdAt:
+        new Date().toISOString(),
+
+
+      records:
+        this.countRecords(data),
+
+
+      data
+
+    };
+
+
+
+    const backups =
+      this.getAll();
+
+
+
+    backups.push(
+      backup
+    );
+
+
+
+    storageService.save(
+      this.key,
+      backups
+    );
+
+
+
+    return backup;
+
   }
-
-
 
 
 
   restore(id = null) {
 
-    try {
 
-
-      const backup =
-        id
-        ? this.getAll().find(
+    const backup =
+      id
+      ? this.getAll()
+          .find(
             item =>
-              item.id === id
+              String(item.id) === String(id)
           )
-        : this.getLast();
+      : this.getLast();
 
 
 
-      if (!this.validate(backup)) {
-
-        throw new Error(
-          "Invalid backup"
-        );
-
-      }
-
-
-
-      return backup.data;
-
-
-
-    } catch (error) {
+    if (
+      !this.validate(backup)
+    ) {
 
       throw new Error(
-        `BackupService restore failed: ${error.message}`
+        "BACKUP_NOT_FOUND"
       );
 
     }
 
+
+
+    return backup.data;
+
   }
-
-
 
 
 
@@ -149,10 +121,7 @@ class BackupService {
       []
     );
 
-
   }
-
-
 
 
 
@@ -167,13 +136,12 @@ class BackupService {
     return (
       backups[
         backups.length - 1
-      ] || null
+      ]
+      ||
+      null
     );
 
-
   }
-
-
 
 
 
@@ -182,9 +150,7 @@ class BackupService {
 
     if (!id) {
 
-      throw new Error(
-        "Backup ID is required"
-      );
+      return false;
 
     }
 
@@ -198,8 +164,18 @@ class BackupService {
     const filtered =
       backups.filter(
         item =>
-          item.id !== id
+          String(item.id) !== String(id)
       );
+
+
+
+    if (
+      filtered.length === backups.length
+    ) {
+
+      return false;
+
+    }
 
 
 
@@ -212,27 +188,18 @@ class BackupService {
 
     return true;
 
-
   }
-
-
 
 
 
   clear() {
 
 
-    storageService.remove(
+    return storageService.remove(
       this.key
     );
 
-
-    return true;
-
-
   }
-
-
 
 
 
@@ -253,17 +220,16 @@ class BackupService {
 
     );
 
-
   }
-
-
 
 
 
   countRecords(data) {
 
 
-    if (Array.isArray(data)) {
+    if (
+      Array.isArray(data)
+    ) {
 
       return data.length;
 
@@ -282,24 +248,18 @@ class BackupService {
 
     return 1;
 
-
   }
-
-
 
 
 
   getVersion() {
 
-
     return this.version;
-
 
   }
 
 
 }
-
 
 
 export default Object.freeze(
