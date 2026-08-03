@@ -7,32 +7,56 @@ import {
 
 
 
-const authRoutes = [
+const Login = lazy(
+  () =>
+    import("../pages/Login.jsx")
+);
 
-  {
+
+
+const Register = lazy(
+  () =>
+    import("../pages/Register.jsx")
+);
+
+
+
+const authRoutes = Object.freeze([
+
+
+  Object.freeze({
+
+    id: "login",
+
     path: "/login",
 
-    element: lazy(
-      () =>
-        import("../pages/Login.jsx")
-    )
+    element: Login,
 
-  },
+    module: "auth",
+
+    protected: false
+
+  }),
 
 
-  {
+
+  Object.freeze({
+
+    id: "register",
+
     path: "/register",
 
-    element: lazy(
-      () =>
-        import("../pages/Register.jsx")
-    )
+    element: Register,
 
-  }
+    module: "auth",
 
-];
+    protected: false
+
+  })
 
 
-export default Object.freeze(
-  authRoutes
-);
+]);
+
+
+
+export default authRoutes;
