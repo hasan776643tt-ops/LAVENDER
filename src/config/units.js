@@ -1,39 +1,68 @@
 // src/config/units.js
 
 
+const createUnit = ({
+  code,
+  name,
+  symbol = null
+}) =>
+  Object.freeze({
+
+    code,
+
+    name,
+
+    symbol
+
+  });
+
+
+
 const units = Object.freeze({
+
 
   area: Object.freeze([
 
-    Object.freeze({
+    createUnit({
 
       code: "dunum",
 
-      name: "دونم"
+      name: "دونم",
+
+      symbol: "د"
 
     }),
 
-    Object.freeze({
+
+    createUnit({
 
       code: "hectare",
 
-      name: "هكتار"
+      name: "هكتار",
+
+      symbol: "ha"
 
     }),
 
-    Object.freeze({
+
+    createUnit({
 
       code: "acre",
 
-      name: "فدان"
+      name: "فدان",
+
+      symbol: "ac"
 
     }),
 
-    Object.freeze({
+
+    createUnit({
 
       code: "sqm",
 
-      name: "متر مربع"
+      name: "متر مربع",
+
+      symbol: "m²"
 
     })
 
@@ -43,19 +72,24 @@ const units = Object.freeze({
 
   weight: Object.freeze([
 
-    Object.freeze({
+    createUnit({
 
       code: "kg",
 
-      name: "كيلوغرام"
+      name: "كيلوغرام",
+
+      symbol: "kg"
 
     }),
 
-    Object.freeze({
+
+    createUnit({
 
       code: "ton",
 
-      name: "طن"
+      name: "طن",
+
+      symbol: "t"
 
     })
 
@@ -65,19 +99,24 @@ const units = Object.freeze({
 
   water: Object.freeze([
 
-    Object.freeze({
+    createUnit({
 
       code: "liter",
 
-      name: "لتر"
+      name: "لتر",
+
+      symbol: "L"
 
     }),
 
-    Object.freeze({
+
+    createUnit({
 
       code: "cubic_meter",
 
-      name: "متر مكعب"
+      name: "متر مكعب",
+
+      symbol: "m³"
 
     })
 
@@ -87,17 +126,63 @@ const units = Object.freeze({
 
   volume: Object.freeze([
 
-    Object.freeze({
+    createUnit({
 
       code: "liter",
 
-      name: "لتر"
+      name: "لتر",
+
+      symbol: "L"
+
+    })
+
+  ]),
+
+
+
+  temperature: Object.freeze([
+
+    createUnit({
+
+      code: "celsius",
+
+      name: "مئوية",
+
+      symbol: "°C"
+
+    })
+
+  ]),
+
+
+
+  distance: Object.freeze([
+
+    createUnit({
+
+      code: "meter",
+
+      name: "متر",
+
+      symbol: "m"
+
+    }),
+
+    createUnit({
+
+      code: "kilometer",
+
+      name: "كيلومتر",
+
+      symbol: "km"
 
     })
 
   ])
 
+
 });
+
 
 
 export default units;
