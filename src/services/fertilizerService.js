@@ -1,6 +1,7 @@
 // src/services/fertilizerService.js
 
-import fertilizerRepository from "../repositories/fertilizerRepository.js";
+import fertilizerRepository
+  from "../repositories/fertilizerRepository.js";
 
 
 class FertilizerService {
@@ -8,9 +9,11 @@ class FertilizerService {
 
   constructor() {
 
-    this.repository = fertilizerRepository;
+    this.repository =
+      fertilizerRepository;
 
   }
+
 
 
   async getAll() {
@@ -20,15 +23,10 @@ class FertilizerService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "FERTILIZER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const fertilizer =
@@ -49,28 +47,26 @@ class FertilizerService {
   }
 
 
+
   async create(data) {
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
-    return this.repository.create(data);
+    return this.repository.create(
+      data
+    );
 
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
-
-      throw new Error(
-        "FERTILIZER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
-    this.validate(data);
+    this.validateUpdate(data);
 
 
     const updated =
@@ -94,19 +90,16 @@ class FertilizerService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "FERTILIZER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -123,6 +116,7 @@ class FertilizerService {
   }
 
 
+
   async exists(id) {
 
     if (!id) {
@@ -133,12 +127,15 @@ class FertilizerService {
 
 
     const fertilizer =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(fertilizer);
 
   }
+
 
 
   async count() {
@@ -152,18 +149,27 @@ class FertilizerService {
   }
 
 
-  validate(data) {
 
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
+  validateId(id) {
+
+    if (!id) {
 
       throw new Error(
-        "FERTILIZER_DATA_REQUIRED"
+        "FERTILIZER_ID_REQUIRED"
       );
 
     }
+
+
+    return true;
+
+  }
+
+
+
+  validateCreate(data) {
+
+    this.validateData(data);
 
 
     if (
@@ -183,7 +189,39 @@ class FertilizerService {
   }
 
 
+
+  validateUpdate(data) {
+
+    this.validateData(data);
+
+
+    return true;
+
+  }
+
+
+
+  validateData(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
+      throw new Error(
+        "FERTILIZER_DATA_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
