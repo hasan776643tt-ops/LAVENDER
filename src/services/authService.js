@@ -17,7 +17,7 @@ class AuthService {
       userRepository;
 
 
-    this.session =
+    this.currentSession =
       null;
 
   }
@@ -27,19 +27,14 @@ class AuthService {
   async login(credentials) {
 
 
-    this.validate(
+    this.validateCredentials(
       credentials
     );
 
 
-    const users =
-      await this.repository.getAll();
-
-
     const user =
-      users.find(
-        item =>
-          item.email === credentials.email
+      await this.repository.findByEmail(
+        credentials.email
       );
 
 
@@ -52,13 +47,14 @@ class AuthService {
     }
 
 
-    this.session = {
+
+    this.currentSession = {
 
       id:
         user.id,
 
-      name:
-        user.name,
+      username:
+        user.username,
 
       email:
         user.email,
@@ -75,7 +71,7 @@ class AuthService {
     };
 
 
-    return this.session;
+    return this.currentSession;
 
   }
 
@@ -84,7 +80,7 @@ class AuthService {
   async register(data) {
 
 
-    this.validate(
+    this.validateRegister(
       data
     );
 
@@ -100,7 +96,7 @@ class AuthService {
   async logout() {
 
 
-    this.session =
+    this.currentSession =
       null;
 
 
@@ -113,19 +109,11 @@ class AuthService {
   async updateProfile(data) {
 
 
-    if (
-      !this.session
-    ) {
-
-      throw new Error(
-        "AUTH_REQUIRED"
-      );
-
-    }
+    this.requireAuthentication();
 
 
     return this.repository.update(
-      this.session.id,
+      this.currentSession.id,
       data
     );
 
@@ -136,12 +124,15 @@ class AuthService {
   async changePassword(data) {
 
 
+    this.requireAuthentication();
+
+
     if (
-      !this.session
+      !data
     ) {
 
       throw new Error(
-        "AUTH_REQUIRED"
+        "PASSWORD_DATA_REQUIRED"
       );
 
     }
@@ -156,7 +147,9 @@ class AuthService {
   async forgotPassword(email) {
 
 
-    if (!email) {
+    if (
+      !email
+    ) {
 
       throw new Error(
         "EMAIL_REQUIRED"
@@ -173,7 +166,7 @@ class AuthService {
 
   getCurrentUser() {
 
-    return this.session;
+    return this.currentSession;
 
   }
 
@@ -182,7 +175,7 @@ class AuthService {
   isAuthenticated() {
 
     return Boolean(
-      this.session?.authenticated
+      this.currentSession?.authenticated
     );
 
   }
@@ -191,16 +184,36 @@ class AuthService {
 
   hasRole(role) {
 
-
     return (
-      this.session?.role === role
+      this.currentSession?.role === role
     );
 
   }
 
 
 
-  validate(data) {
+  validateCredentials(data) {
+
+
+    if (
+      !data ||
+      !data.email
+    ) {
+
+      throw new Error(
+        "AUTH_CREDENTIALS_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
+  validateRegister(data) {
 
 
     const result =
@@ -228,7 +241,28 @@ class AuthService {
   }
 
 
+
+  requireAuthentication() {
+
+
+    if (
+      !this.currentSession
+    ) {
+
+      throw new Error(
+        "AUTH_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
