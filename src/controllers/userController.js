@@ -6,240 +6,165 @@ import userService
 
 
 
-
-
 class UserController {
-
 
 
   constructor() {
 
-
     this.service =
       userService;
-
 
   }
 
 
 
+  async getAll() {
 
-
-
-
-  async getUsers(){
-
-
-    try{
-
+    try {
 
       return await this.service.getAll();
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `UserController getUsers failed: ${error.message}`
-
+        `USER_GET_ALL_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async getById(id) {
 
+    try {
 
-
-
-
-  async getUserById(id){
-
-
-    try{
-
-
-      return await this.service.getById(id);
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `UserController getUserById failed: ${error.message}`
-
+      return await this.service.getById(
+        id
       );
 
 
-    }
+    } catch(error) {
 
+      throw new Error(
+        `USER_GET_BY_ID_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
 
 
+  async create(data) {
 
-
-
-
-
-  async createUser(userData){
-
-
-    try{
-
+    try {
 
       return await this.service.create(
-
-        userData
-
+        data
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `UserController createUser failed: ${error.message}`
-
+        `USER_CREATE_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async update(id, data) {
 
-
-
-
-
-  async updateUser(
-    id,
-    userData
-  ){
-
-
-    try{
-
+    try {
 
       return await this.service.update(
-
         id,
-
-        userData
-
+        data
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `UserController updateUser failed: ${error.message}`
-
+        `USER_UPDATE_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async delete(id) {
 
-
-
-
-
-  async deleteUser(id){
-
-
-    try{
-
+    try {
 
       return await this.service.delete(
-
         id
-
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `UserController deleteUser failed: ${error.message}`
-
+        `USER_DELETE_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async exists(id) {
+
+    try {
+
+      return await this.service.exists(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `USER_EXISTS_FAILED:${error.message}`
+      );
+
+    }
+
+  }
 
 
 
+  async count() {
 
-
-  async countUsers(){
-
-
-    try{
-
+    try {
 
       return await this.service.count();
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `UserController countUsers failed: ${error.message}`
-
+        `USER_COUNT_FAILED:${error.message}`
       );
-
 
     }
 
-
   }
-
-
 
 
 }
 
 
 
-
-
 export default Object.freeze(
-
   new UserController()
-
 );
