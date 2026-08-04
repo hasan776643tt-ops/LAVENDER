@@ -3,7 +3,6 @@
 import userRepository
   from "../repositories/userRepository.js";
 
-
 import userValidator
   from "../validators/userValidator.js";
 
@@ -23,6 +22,7 @@ class UserService {
   }
 
 
+
   async getAll() {
 
     return this.repository.getAll();
@@ -30,15 +30,10 @@ class UserService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "USER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const user =
@@ -59,9 +54,10 @@ class UserService {
   }
 
 
+
   async create(data) {
 
-    this.validator.validate(
+    this.validator.validateCreate(
       data
     );
 
@@ -73,18 +69,13 @@ class UserService {
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
-
-      throw new Error(
-        "USER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
-    this.validator.validate(
+    this.validator.validateUpdate(
       data
     );
 
@@ -110,19 +101,16 @@ class UserService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "USER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -139,6 +127,7 @@ class UserService {
   }
 
 
+
   async exists(id) {
 
     if (!id) {
@@ -149,12 +138,15 @@ class UserService {
 
 
     const user =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(user);
 
   }
+
 
 
   async count() {
@@ -168,7 +160,25 @@ class UserService {
   }
 
 
+
+  validateId(id) {
+
+    if (!id) {
+
+      throw new Error(
+        "USER_ID_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
