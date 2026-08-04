@@ -1,7 +1,9 @@
 // src/services/backupService.js
 
+
 import storageService
   from "./storageService.js";
+
 
 
 class BackupService {
@@ -20,23 +22,18 @@ class BackupService {
 
 
 
-  createBackup(data) {
+  async createBackup(data) {
 
 
-    if (data === undefined) {
+    this.validateData(data);
 
-      throw new Error(
-        "BACKUP_DATA_REQUIRED"
-      );
-
-    }
 
 
     const backup = {
 
 
       id:
-        crypto.randomUUID(),
+        this.generateId(),
 
 
       version:
@@ -58,7 +55,7 @@ class BackupService {
 
 
     const backups =
-      this.getAll();
+      await this.getAll();
 
 
 
@@ -69,8 +66,11 @@ class BackupService {
 
 
     storageService.save(
+
       this.key,
+
       backups
+
     );
 
 
@@ -81,17 +81,27 @@ class BackupService {
 
 
 
-  restore(id = null) {
+  async restore(id = null) {
 
 
     const backup =
+
       id
-      ? this.getAll()
-          .find(
-            item =>
-              String(item.id) === String(id)
-          )
-      : this.getLast();
+
+      ?
+
+      (await this.getAll())
+        .find(
+
+          item =>
+
+          String(item.id) === String(id)
+
+        )
+
+      :
+
+      await this.getLast();
 
 
 
@@ -113,39 +123,46 @@ class BackupService {
 
 
 
-  getAll() {
+  async getAll() {
 
 
     return storageService.load(
+
       this.key,
+
       []
+
     );
 
   }
 
 
 
-  getLast() {
+  async getLast() {
 
 
     const backups =
-      this.getAll();
+      await this.getAll();
 
 
 
     return (
+
       backups[
         backups.length - 1
       ]
+
       ||
+
       null
+
     );
 
   }
 
 
 
-  delete(id) {
+  async delete(id) {
 
 
     if (!id) {
@@ -157,14 +174,17 @@ class BackupService {
 
 
     const backups =
-      this.getAll();
+      await this.getAll();
 
 
 
     const filtered =
       backups.filter(
+
         item =>
-          String(item.id) !== String(id)
+
+        String(item.id) !== String(id)
+
       );
 
 
@@ -180,8 +200,11 @@ class BackupService {
 
 
     storageService.save(
+
       this.key,
+
       filtered
+
     );
 
 
@@ -192,11 +215,13 @@ class BackupService {
 
 
 
-  clear() {
+  async clear() {
 
 
     return storageService.remove(
+
       this.key
+
     );
 
   }
@@ -224,6 +249,26 @@ class BackupService {
 
 
 
+  validateData(data) {
+
+
+    if (
+      data === undefined
+    ) {
+
+      throw new Error(
+        "BACKUP_DATA_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
   countRecords(data) {
 
 
@@ -236,6 +281,7 @@ class BackupService {
     }
 
 
+
     if (
       typeof data === "object" &&
       data !== null
@@ -246,7 +292,36 @@ class BackupService {
     }
 
 
+
     return 1;
+
+  }
+
+
+
+  generateId() {
+
+
+    if (
+      crypto?.randomUUID
+    ) {
+
+      return crypto.randomUUID();
+
+    }
+
+
+    return (
+
+      Date.now().toString()
+
+      +
+
+      Math.random()
+        .toString(36)
+        .substring(2)
+
+    );
 
   }
 
@@ -262,6 +337,9 @@ class BackupService {
 }
 
 
+
 export default Object.freeze(
+
   new BackupService()
+
 );
