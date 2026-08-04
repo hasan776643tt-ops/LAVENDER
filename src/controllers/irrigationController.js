@@ -1,16 +1,21 @@
 // src/controllers/irrigationController.js
 
-import irrigationService from "../services/irrigationService.js";
+
+import irrigationService
+  from "../services/irrigationService.js";
+
 
 
 class IrrigationController {
 
 
-  constructor() {
+  constructor(service) {
 
-    this.service = irrigationService;
+    this.service =
+      service;
 
   }
+
 
 
   async getAll() {
@@ -20,21 +25,31 @@ class IrrigationController {
   }
 
 
+
   async getById(id) {
 
-    return this.service.getById(id);
+    return this.service.getById(
+      id
+    );
 
   }
+
 
 
   async create(data) {
 
-    return this.service.create(data);
+    return this.service.create(
+      data
+    );
 
   }
 
 
-  async update(id, data) {
+
+  async update(
+    id,
+    data
+  ) {
 
     return this.service.update(
       id,
@@ -44,11 +59,15 @@ class IrrigationController {
   }
 
 
+
   async delete(id) {
 
-    return this.service.delete(id);
+    return this.service.delete(
+      id
+    );
 
   }
+
 
 
   async count() {
@@ -58,9 +77,12 @@ class IrrigationController {
   }
 
 
+
   async exists(id) {
 
-    return this.service.exists(id);
+    return this.service.exists(
+      id
+    );
 
   }
 
@@ -68,8 +90,12 @@ class IrrigationController {
 }
 
 
+
 const irrigationController =
-new IrrigationController();
+  new IrrigationController(
+    irrigationService
+  );
+
 
 
 export default Object.freeze(
