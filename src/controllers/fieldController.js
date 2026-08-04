@@ -1,6 +1,9 @@
 // src/controllers/fieldController.js
 
-import fieldService from "../services/fieldService.js";
+
+import fieldService
+  from "../services/fieldService.js";
+
 
 
 class FieldController {
@@ -8,59 +11,152 @@ class FieldController {
 
   constructor() {
 
-    this.service = fieldService;
+    this.service =
+      fieldService;
 
   }
+
 
 
   async getAll() {
 
-    return this.service.getAll();
+    try {
+
+      return await this.service.getAll();
+
+
+    } catch(error) {
+
+      throw new Error(
+        `FIELD_GET_ALL_FAILED:${error.message}`
+      );
+
+    }
 
   }
+
 
 
   async getById(id) {
 
-    return this.service.getById(id);
+    try {
+
+      return await this.service.getById(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `FIELD_GET_BY_ID_FAILED:${error.message}`
+      );
+
+    }
 
   }
+
 
 
   async create(data) {
 
-    return this.service.create(data);
+    try {
+
+      return await this.service.create(
+        data
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `FIELD_CREATE_FAILED:${error.message}`
+      );
+
+    }
 
   }
+
 
 
   async update(id, data) {
 
-    return this.service.update(
-      id,
-      data
-    );
+    try {
+
+      return await this.service.update(
+        id,
+        data
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `FIELD_UPDATE_FAILED:${error.message}`
+      );
+
+    }
 
   }
+
 
 
   async delete(id) {
 
-    return this.service.delete(id);
+    try {
+
+      return await this.service.delete(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `FIELD_DELETE_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
-
-  async count() {
-
-    return this.service.count();
-
-  }
 
 
   async exists(id) {
 
-    return this.service.exists(id);
+    try {
+
+      return await this.service.exists(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `FIELD_EXISTS_FAILED:${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+  async count() {
+
+    try {
+
+      return await this.service.count();
+
+
+    } catch(error) {
+
+      throw new Error(
+        `FIELD_COUNT_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -68,10 +164,7 @@ class FieldController {
 }
 
 
-const fieldController =
-new FieldController();
-
 
 export default Object.freeze(
-  fieldController
+  new FieldController()
 );
