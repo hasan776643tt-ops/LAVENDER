@@ -1,16 +1,21 @@
 // src/controllers/cropController.js
 
-import cropService from "../services/cropService.js";
+
+import cropService
+  from "../services/cropService.js";
+
 
 
 class CropController {
 
 
-  constructor() {
+  constructor(service) {
 
-    this.service = cropService;
+    this.service =
+      service;
 
   }
+
 
 
   async getAll() {
@@ -20,21 +25,31 @@ class CropController {
   }
 
 
+
   async getById(id) {
 
-    return this.service.getById(id);
+    return this.service.getById(
+      id
+    );
 
   }
+
 
 
   async create(data) {
 
-    return this.service.create(data);
+    return this.service.create(
+      data
+    );
 
   }
 
 
-  async update(id, data) {
+
+  async update(
+    id,
+    data
+  ) {
 
     return this.service.update(
       id,
@@ -44,11 +59,25 @@ class CropController {
   }
 
 
+
   async delete(id) {
 
-    return this.service.delete(id);
+    return this.service.delete(
+      id
+    );
 
   }
+
+
+
+  async exists(id) {
+
+    return this.service.exists(
+      id
+    );
+
+  }
+
 
 
   async count() {
@@ -58,18 +87,15 @@ class CropController {
   }
 
 
-  async exists(id) {
-
-    return this.service.exists(id);
-
-  }
-
-
 }
 
 
+
 const cropController =
-new CropController();
+  new CropController(
+    cropService
+  );
+
 
 
 export default Object.freeze(
