@@ -1,13 +1,17 @@
 // src/services/syncService.js
 
+
 import storageService
   from "./storageService.js";
+
 
 
 class SyncService {
 
 
+
   constructor() {
+
 
     this.lastSyncKey =
       "sync:last";
@@ -16,38 +20,61 @@ class SyncService {
     this.historyKey =
       "sync:history";
 
+
+    this.version =
+      "3.0.0";
+
+
   }
+
+
 
 
 
   async upload(data) {
 
 
-    if (data === undefined) {
-
-      throw new Error(
-        "SYNC_DATA_REQUIRED"
-      );
-
-    }
+    this.validateData(
+      data
+    );
 
 
-    this.saveSyncTime();
+
+    const syncTime =
+      new Date().toISOString();
+
+
+
+    this.saveSyncTime(
+      syncTime
+    );
 
 
 
     return {
 
-      success: true,
+
+      success:
+        true,
+
+
+      type:
+        "upload",
+
 
       data,
 
+
       syncedAt:
-        new Date().toISOString()
+        syncTime
+
 
     };
 
+
   }
+
+
 
 
 
@@ -56,16 +83,29 @@ class SyncService {
 
     return {
 
-      success: true,
 
-      data: null,
+      success:
+        true,
+
+
+      type:
+        "download",
+
+
+      data:
+        null,
+
 
       syncedAt:
         new Date().toISOString()
 
+
     };
 
+
   }
+
+
 
 
 
@@ -78,13 +118,21 @@ class SyncService {
       );
 
 
-    this.addHistory({
+
+    await this.addHistory({
+
 
       type:
         "sync",
 
+
       success:
-        result.success
+        result.success,
+
+
+      records:
+        this.countRecords(data)
+
 
     });
 
@@ -92,7 +140,10 @@ class SyncService {
 
     return result;
 
+
   }
+
+
 
 
 
@@ -101,61 +152,91 @@ class SyncService {
 
     return {
 
+
       online:
+
         typeof navigator !== "undefined"
-          ? navigator.onLine
-          : false,
+
+        ?
+
+        navigator.onLine
+
+        :
+
+        false,
+
 
 
       lastSync:
+
         storageService.load(
+
           this.lastSyncKey,
+
           null
+
         )
 
+
     };
+
 
   }
 
 
 
-  saveSyncTime() {
+
+
+  saveSyncTime(time) {
 
 
     storageService.save(
 
       this.lastSyncKey,
 
-      new Date().toISOString()
+      time
 
     );
+
 
   }
 
 
 
-  addHistory(item) {
+
+
+  async addHistory(item) {
 
 
     const history =
-      storageService.load(
-        this.historyKey,
-        []
-      );
+      this.getHistory();
+
 
 
     history.push({
 
-      ...item,
+
 
       id:
-        crypto.randomUUID(),
+        this.generateId(),
+
+
+
+      version:
+        this.version,
+
+
+
+      ...item,
+
 
 
       createdAt:
         new Date().toISOString()
 
+
     });
+
 
 
     storageService.save(
@@ -166,7 +247,10 @@ class SyncService {
 
     );
 
+
   }
+
+
 
 
 
@@ -181,12 +265,129 @@ class SyncService {
 
     );
 
+
   }
+
+
+
+
+
+  clearHistory() {
+
+
+    return storageService.remove(
+
+      this.historyKey
+
+    );
+
+
+  }
+
+
+
+
+
+  validateData(data) {
+
+
+    if (
+      data === undefined
+    ) {
+
+      throw new Error(
+
+        "SYNC_DATA_REQUIRED"
+
+      );
+
+    }
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  countRecords(data) {
+
+
+    if (
+      Array.isArray(data)
+    ) {
+
+      return data.length;
+
+    }
+
+
+
+    if (
+      typeof data === "object" &&
+      data !== null
+    ) {
+
+      return Object.keys(data).length;
+
+    }
+
+
+
+    return 1;
+
+
+  }
+
+
+
+
+
+  generateId() {
+
+
+    if (
+
+      globalThis.crypto?.randomUUID
+
+    ) {
+
+
+      return globalThis.crypto.randomUUID();
+
+
+    }
+
+
+
+    return (
+
+      Date.now().toString()
+
+      +
+
+      Math.random()
+
+      .toString(36)
+
+      .substring(2)
+
+    );
+
+
+  }
+
 
 
 }
 
 
+
 export default Object.freeze(
+
   new SyncService()
+
 );
