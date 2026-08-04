@@ -12,10 +12,8 @@ class EngineerService {
 
   constructor() {
 
-
     this.repository =
       engineerRepository;
-
 
   }
 
@@ -25,9 +23,7 @@ class EngineerService {
 
   async getAll() {
 
-
-    return this.repository.getAll();
-
+    return await this.repository.getAll();
 
   }
 
@@ -38,42 +34,32 @@ class EngineerService {
   async getById(id) {
 
 
-    if (!id) {
-
+    if(!id){
 
       throw new Error(
-
         "ENGINEER_ID_REQUIRED"
-
       );
-
 
     }
 
 
 
     const engineer =
-
       await this.repository.getById(id);
 
 
 
-    if (!engineer) {
-
+    if(!engineer){
 
       throw new Error(
-
         "ENGINEER_NOT_FOUND"
-
       );
-
 
     }
 
 
 
     return engineer;
-
 
   }
 
@@ -88,12 +74,9 @@ class EngineerService {
 
 
 
-    return this.repository.create(
-
+    return await this.repository.create(
       data
-
     );
-
 
   }
 
@@ -101,18 +84,14 @@ class EngineerService {
 
 
 
-  async update(id, data) {
+  async update(id,data) {
 
 
-    if (!id) {
-
+    if(!id){
 
       throw new Error(
-
         "ENGINEER_ID_REQUIRED"
-
       );
-
 
     }
 
@@ -123,33 +102,24 @@ class EngineerService {
 
 
     const updated =
-
       await this.repository.update(
-
         id,
-
         data
-
       );
 
 
 
-    if (!updated) {
-
+    if(!updated){
 
       throw new Error(
-
         "ENGINEER_NOT_FOUND"
-
       );
-
 
     }
 
 
 
     return updated;
-
 
   }
 
@@ -160,42 +130,32 @@ class EngineerService {
   async delete(id) {
 
 
-    if (!id) {
-
+    if(!id){
 
       throw new Error(
-
         "ENGINEER_ID_REQUIRED"
-
       );
-
 
     }
 
 
 
     const deleted =
-
       await this.repository.delete(id);
 
 
 
-    if (!deleted) {
-
+    if(!deleted){
 
       throw new Error(
-
         "ENGINEER_NOT_FOUND"
-
       );
-
 
     }
 
 
 
     return true;
-
 
   }
 
@@ -206,24 +166,19 @@ class EngineerService {
   async exists(id) {
 
 
-    if (!id) {
-
+    if(!id){
 
       return false;
-
 
     }
 
 
 
-    const engineer =
+    return Boolean(
 
-      await this.repository.getById(id);
+      await this.repository.getById(id)
 
-
-
-    return Boolean(engineer);
-
+    );
 
   }
 
@@ -235,13 +190,11 @@ class EngineerService {
 
 
     const engineers =
-
       await this.repository.getAll();
 
 
 
     return engineers.length;
-
 
   }
 
@@ -253,23 +206,19 @@ class EngineerService {
 
 
     const engineers =
-
       await this.repository.getAll();
 
 
 
-    if (!keyword) {
-
+    if(!keyword){
 
       return engineers;
-
 
     }
 
 
 
     const search =
-
       keyword.toLowerCase();
 
 
@@ -280,34 +229,27 @@ class EngineerService {
 
 
         engineer.name
-
-          ?.toLowerCase()
-
-          .includes(search)
+        ?.toLowerCase()
+        .includes(search)
 
 
         ||
 
 
-        engineer.specialty
-
-          ?.toLowerCase()
-
-          .includes(search)
+        engineer.specialization
+        ?.toLowerCase()
+        .includes(search)
 
 
         ||
 
 
-        engineer.location
-
-          ?.toLowerCase()
-
-          .includes(search)
+        engineer.city
+        ?.toLowerCase()
+        .includes(search)
 
 
     );
-
 
   }
 
@@ -315,24 +257,26 @@ class EngineerService {
 
 
 
-  async findBySpecialty(
-    specialty
+  async findBySpecialization(
+    specialization
   ) {
 
 
-    if (!specialty) {
-
+    if(!specialization){
 
       return [];
-
 
     }
 
 
 
     const engineers =
-
       await this.repository.getAll();
+
+
+
+    const search =
+      specialization.toLowerCase();
 
 
 
@@ -340,8 +284,9 @@ class EngineerService {
 
       engineer =>
 
-      engineer.specialty === specialty
-
+      engineer.specialization
+      ?.toLowerCase()
+      === search
 
     );
 
@@ -352,44 +297,68 @@ class EngineerService {
 
 
 
-  validate(data) {
+  async findByCity(city) {
 
 
-    if (
+    if(!city){
 
-      !data ||
-
-      typeof data !== "object"
-
-    ) {
-
-
-      throw new Error(
-
-        "ENGINEER_DATA_REQUIRED"
-
-      );
-
+      return [];
 
     }
 
 
 
-    if (
+    const engineers =
+      await this.repository.getAll();
 
-      !data.name ||
 
-      !data.name.trim()
 
-    ) {
+    const search =
+      city.toLowerCase();
 
+
+
+    return engineers.filter(
+
+      engineer =>
+
+      engineer.city
+      ?.toLowerCase()
+      === search
+
+    );
+
+
+  }
+
+
+
+
+
+  validate(data){
+
+
+    if(
+      !data ||
+      typeof data !== "object"
+    ){
 
       throw new Error(
-
-        "ENGINEER_NAME_REQUIRED"
-
+        "ENGINEER_DATA_REQUIRED"
       );
 
+    }
+
+
+
+    if(
+      !data.name ||
+      !data.name.trim()
+    ){
+
+      throw new Error(
+        "ENGINEER_NAME_REQUIRED"
+      );
 
     }
 
@@ -397,10 +366,7 @@ class EngineerService {
 
     return true;
 
-
   }
-
-
 
 
 
@@ -409,7 +375,5 @@ class EngineerService {
 
 
 export default Object.freeze(
-
   new EngineerService()
-
 );
