@@ -1,6 +1,7 @@
 // src/services/diseaseService.js
 
-import diseaseRepository from "../repositories/diseaseRepository.js";
+import diseaseRepository
+  from "../repositories/diseaseRepository.js";
 
 
 class DiseaseService {
@@ -8,9 +9,11 @@ class DiseaseService {
 
   constructor() {
 
-    this.repository = diseaseRepository;
+    this.repository =
+      diseaseRepository;
 
   }
+
 
 
   async getAll() {
@@ -20,15 +23,10 @@ class DiseaseService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "DISEASE_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const disease =
@@ -49,28 +47,26 @@ class DiseaseService {
   }
 
 
+
   async create(data) {
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
-    return this.repository.create(data);
+    return this.repository.create(
+      data
+    );
 
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
-
-      throw new Error(
-        "DISEASE_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
-    this.validate(data);
+    this.validateUpdate(data);
 
 
     const updated =
@@ -94,19 +90,16 @@ class DiseaseService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "DISEASE_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -123,6 +116,7 @@ class DiseaseService {
   }
 
 
+
   async exists(id) {
 
     if (!id) {
@@ -133,12 +127,15 @@ class DiseaseService {
 
 
     const disease =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(disease);
 
   }
+
 
 
   async count() {
@@ -150,6 +147,7 @@ class DiseaseService {
     return diseases.length;
 
   }
+
 
 
   async search(keyword) {
@@ -200,19 +198,27 @@ class DiseaseService {
   }
 
 
-  validate(data) {
 
+  validateId(id) {
 
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
+    if (!id) {
 
       throw new Error(
-        "DISEASE_DATA_REQUIRED"
+        "DISEASE_ID_REQUIRED"
       );
 
     }
+
+
+    return true;
+
+  }
+
+
+
+  validateCreate(data) {
+
+    this.validateData(data);
 
 
     if (
@@ -232,7 +238,39 @@ class DiseaseService {
   }
 
 
+
+  validateUpdate(data) {
+
+    this.validateData(data);
+
+
+    return true;
+
+  }
+
+
+
+  validateData(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
+      throw new Error(
+        "DISEASE_DATA_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
