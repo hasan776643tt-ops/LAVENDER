@@ -1,58 +1,86 @@
 // src/services/notificationService.js
 
+
 import storageService
   from "./storageService.js";
+
 
 
 class NotificationService {
 
 
+
   constructor() {
+
 
     this.storageKey =
       "notifications";
+
+
+    this.version =
+      "3.0.0";
+
 
   }
 
 
 
-  add(data) {
 
 
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
+  async add(data) {
 
-      throw new Error(
-        "NOTIFICATION_DATA_REQUIRED"
-      );
 
-    }
+
+    this.validateData(
+      data
+    );
 
 
 
     const notifications =
-      this.getAll();
+      await this.getAll();
 
 
 
     const notification = {
 
 
+
       id:
-        crypto.randomUUID(),
+        this.generateId(),
+
+
+
+      type:
+        data.type ||
+        "system",
+
+
+
+      priority:
+        data.priority ||
+        "normal",
+
 
 
       ...data,
+
 
 
       read:
         false,
 
 
+
+      version:
+        this.version,
+
+
+
       createdAt:
         new Date().toISOString()
+
+
 
     };
 
@@ -64,7 +92,7 @@ class NotificationService {
 
 
 
-    this.save(
+    await this.save(
       notifications
     );
 
@@ -72,11 +100,14 @@ class NotificationService {
 
     return notification;
 
+
   }
 
 
 
-  getAll() {
+
+
+  async getAll() {
 
 
     return storageService.load(
@@ -87,29 +118,42 @@ class NotificationService {
 
     );
 
-  }
-
-
-
-  getUnread() {
-
-
-    return this.getAll()
-
-      .filter(
-        item =>
-          !item.read
-      );
 
   }
 
 
 
-  markAsRead(id) {
+
+
+  async getUnread() {
 
 
     const notifications =
-      this.getAll();
+      await this.getAll();
+
+
+
+    return notifications.filter(
+
+      item =>
+
+      !item.read
+
+    );
+
+
+  }
+
+
+
+
+
+  async markAsRead(id) {
+
+
+
+    const notifications =
+      await this.getAll();
 
 
 
@@ -117,7 +161,8 @@ class NotificationService {
       notifications.findIndex(
 
         item =>
-          String(item.id) === String(id)
+
+        String(item.id) === String(id)
 
       );
 
@@ -135,16 +180,23 @@ class NotificationService {
 
     notifications[index] = {
 
+
       ...notifications[index],
 
+
       read:
-        true
+        true,
+
+
+      readAt:
+        new Date().toISOString()
+
 
     };
 
 
 
-    this.save(
+    await this.save(
       notifications
     );
 
@@ -152,15 +204,19 @@ class NotificationService {
 
     return notifications[index];
 
+
   }
 
 
 
-  remove(id) {
+
+
+  async remove(id) {
+
 
 
     const notifications =
-      this.getAll();
+      await this.getAll();
 
 
 
@@ -168,7 +224,8 @@ class NotificationService {
       notifications.filter(
 
         item =>
-          String(item.id) !== String(id)
+
+        String(item.id) !== String(id)
 
       );
 
@@ -184,38 +241,54 @@ class NotificationService {
 
 
 
-    this.save(
+    await this.save(
       filtered
     );
 
 
     return true;
 
+
   }
 
 
 
-  clear() {
+
+
+  async clear() {
 
 
     return storageService.remove(
+
       this.storageKey
+
     );
 
-  }
-
-
-
-  count() {
-
-
-    return this.getAll().length;
 
   }
 
 
 
-  save(data) {
+
+
+  async count() {
+
+
+    const notifications =
+      await this.getAll();
+
+
+
+    return notifications.length;
+
+
+  }
+
+
+
+
+
+  async save(data) {
 
 
     return storageService.save(
@@ -226,7 +299,78 @@ class NotificationService {
 
     );
 
+
   }
+
+
+
+
+
+  validateData(data) {
+
+
+    if (
+
+      !data ||
+
+      typeof data !== "object"
+
+    ) {
+
+
+      throw new Error(
+
+        "NOTIFICATION_DATA_REQUIRED"
+
+      );
+
+
+    }
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  generateId() {
+
+
+    if (
+
+      globalThis.crypto?.randomUUID
+
+    ) {
+
+
+      return globalThis.crypto.randomUUID();
+
+
+    }
+
+
+
+    return (
+
+      Date.now().toString()
+
+      +
+
+      Math.random()
+
+      .toString(36)
+
+      .substring(2)
+
+    );
+
+
+  }
+
 
 
 }
@@ -234,5 +378,7 @@ class NotificationService {
 
 
 export default Object.freeze(
+
   new NotificationService()
+
 );
