@@ -4,13 +4,27 @@
 class CacheService {
 
 
+  constructor() {
 
-  constructor(){
 
     this.cache =
       new Map();
 
+
+    this.stats = {
+
+      hits:
+        0,
+
+      misses:
+        0
+
+    };
+
+
   }
+
+
 
 
 
@@ -18,13 +32,21 @@ class CacheService {
     key,
     value,
     ttl = null
-  ){
+  ) {
 
 
-    if (!key) {
+    this.validateKey(
+      key
+    );
+
+
+    if (
+      ttl !== null &&
+      ttl < 0
+    ) {
 
       throw new Error(
-        "CACHE_KEY_REQUIRED"
+        "CACHE_TTL_INVALID"
       );
 
     }
@@ -54,11 +76,20 @@ class CacheService {
 
     return value;
 
+
   }
 
 
 
-  get(key){
+
+
+  get(key) {
+
+
+    this.validateKey(
+      key
+    );
+
 
 
     const item =
@@ -67,9 +98,15 @@ class CacheService {
       );
 
 
+
     if (!item) {
 
+
+      this.stats.misses++;
+
+
       return null;
+
 
     }
 
@@ -91,41 +128,56 @@ class CacheService {
       );
 
 
+      this.stats.misses++;
+
+
       return null;
+
 
     }
 
 
 
+    this.stats.hits++;
+
+
+
     return item.value;
 
-  }
-
-
-
-  has(key){
-
-
-    return (
-      this.get(key) !== null
-    );
 
   }
 
 
 
-  remove(key){
+
+
+  has(key) {
+
+
+    return this.get(key) !== null;
+
+
+  }
+
+
+
+
+
+  remove(key) {
 
 
     return this.cache.delete(
       key
     );
 
+
   }
 
 
 
-  clear(){
+
+
+  clear() {
 
 
     this.cache.clear();
@@ -133,22 +185,56 @@ class CacheService {
 
     return true;
 
+
   }
 
 
 
-  keys(){
+
+
+  cleanup() {
+
+
+    const keys =
+      this.keys();
+
+
+
+    keys.forEach(
+
+      key =>
+
+      this.get(key)
+
+    );
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  keys() {
 
 
     return [
+
       ...this.cache.keys()
+
     ];
+
 
   }
 
 
 
-  values(){
+
+
+  values() {
 
 
     return [
@@ -156,37 +242,80 @@ class CacheService {
       ...this.cache.values()
 
     ]
+
     .map(
+
       item =>
-        item.value
+
+      item.value
+
     );
+
 
   }
 
 
 
-  size(){
+
+
+  size() {
 
 
     return this.cache.size;
 
+
   }
 
 
 
-  getInfo(){
+
+
+  getInfo() {
 
 
     return {
+
 
       size:
         this.cache.size,
 
 
       keys:
-        this.keys()
+        this.keys(),
+
+
+      stats:
+        this.stats
+
 
     };
+
+
+  }
+
+
+
+
+
+  validateKey(key) {
+
+
+    if (
+      !key ||
+      typeof key !== "string"
+    ) {
+
+
+      throw new Error(
+        "CACHE_KEY_REQUIRED"
+      );
+
+
+    }
+
+
+    return true;
+
 
   }
 
@@ -196,5 +325,7 @@ class CacheService {
 
 
 export default Object.freeze(
+
   new CacheService()
+
 );
