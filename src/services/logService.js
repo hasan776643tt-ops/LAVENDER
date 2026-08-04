@@ -1,72 +1,83 @@
 // src/services/logService.js
 
+
 import storageService
   from "./storageService.js";
+
 
 
 class LogService {
 
 
 
-  constructor(){
+  constructor() {
+
 
     this.storageKey =
       "system_logs";
+
+
+    this.version =
+      "3.0.0";
+
 
   }
 
 
 
-  create(
+
+
+  async create(
     type,
     message,
     data = {}
-  ){
+  ) {
 
 
-    if (!type) {
+    this.validate(
 
-      throw new Error(
-        "LOG_TYPE_REQUIRED"
-      );
+      type,
 
-    }
+      message
 
-
-
-    if (!message) {
-
-      throw new Error(
-        "LOG_MESSAGE_REQUIRED"
-      );
-
-    }
+    );
 
 
 
     const logs =
-      this.getLogs();
+      await this.getLogs();
 
 
 
     const log = {
 
 
+
       id:
-        crypto.randomUUID(),
+        this.generateId(),
+
 
 
       type,
 
 
+
       message,
+
 
 
       data,
 
 
+
+      version:
+        this.version,
+
+
+
       createdAt:
         new Date().toISOString()
+
 
     };
 
@@ -78,7 +89,7 @@ class LogService {
 
 
 
-    this.save(
+    await this.save(
       logs
     );
 
@@ -86,56 +97,106 @@ class LogService {
 
     return log;
 
+
   }
 
 
 
-  info(
+
+
+  async info(
     message,
     data = {}
-  ){
+  ) {
+
 
     return this.create(
+
       "info",
+
       message,
+
       data
+
     );
+
 
   }
 
 
 
-  warning(
+
+
+  async warning(
     message,
     data = {}
-  ){
+  ) {
+
 
     return this.create(
+
       "warning",
+
       message,
+
       data
+
     );
+
 
   }
 
 
 
-  error(
+
+
+  async error(
     message,
     data = {}
-  ){
+  ) {
+
 
     return this.create(
+
       "error",
+
       message,
+
       data
+
     );
+
 
   }
 
 
 
-  getLogs(){
+
+
+  async debug(
+    message,
+    data = {}
+  ) {
+
+
+    return this.create(
+
+      "debug",
+
+      message,
+
+      data
+
+    );
+
+
+  }
+
+
+
+
+
+  async getLogs() {
 
 
     return storageService.load(
@@ -146,11 +207,14 @@ class LogService {
 
     );
 
+
   }
 
 
 
-  getByType(type){
+
+
+  async getByType(type) {
 
 
     if (!type) {
@@ -160,29 +224,45 @@ class LogService {
     }
 
 
-    return this.getLogs()
 
-      .filter(
+    const logs =
+      await this.getLogs();
 
-        log =>
-          log.type === type
 
-      );
+
+    return logs.filter(
+
+      log =>
+
+      log.type === type
+
+    );
+
 
   }
 
 
 
-  count(){
 
 
-    return this.getLogs().length;
+  async count() {
+
+
+    const logs =
+      await this.getLogs();
+
+
+
+    return logs.length;
+
 
   }
 
 
 
-  clear(){
+
+
+  async clear() {
 
 
     return storageService.remove(
@@ -191,11 +271,14 @@ class LogService {
 
     );
 
+
   }
 
 
 
-  save(data){
+
+
+  async save(data) {
 
 
     return storageService.save(
@@ -206,7 +289,90 @@ class LogService {
 
     );
 
+
   }
+
+
+
+
+
+  validate(
+    type,
+    message
+  ) {
+
+
+    if (!type) {
+
+
+      throw new Error(
+
+        "LOG_TYPE_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    if (!message) {
+
+
+      throw new Error(
+
+        "LOG_MESSAGE_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  generateId() {
+
+
+    if (
+
+      globalThis.crypto?.randomUUID
+
+    ) {
+
+
+      return globalThis.crypto.randomUUID();
+
+
+    }
+
+
+
+    return (
+
+      Date.now().toString()
+
+      +
+
+      Math.random()
+
+      .toString(36)
+
+      .substring(2)
+
+    );
+
+
+  }
+
 
 
 }
@@ -214,5 +380,7 @@ class LogService {
 
 
 export default Object.freeze(
+
   new LogService()
+
 );
