@@ -1,16 +1,21 @@
 // src/controllers/pesticideController.js
 
-import pesticideService from "../services/pesticideService.js";
+
+import pesticideService
+  from "../services/pesticideService.js";
+
 
 
 class PesticideController {
 
 
-  constructor() {
+  constructor(service) {
 
-    this.service = pesticideService;
+    this.service =
+      service;
 
   }
+
 
 
   async getAll() {
@@ -20,21 +25,31 @@ class PesticideController {
   }
 
 
+
   async getById(id) {
 
-    return this.service.getById(id);
+    return this.service.getById(
+      id
+    );
 
   }
+
 
 
   async create(data) {
 
-    return this.service.create(data);
+    return this.service.create(
+      data
+    );
 
   }
 
 
-  async update(id, data) {
+
+  async update(
+    id,
+    data
+  ) {
 
     return this.service.update(
       id,
@@ -44,11 +59,15 @@ class PesticideController {
   }
 
 
+
   async delete(id) {
 
-    return this.service.delete(id);
+    return this.service.delete(
+      id
+    );
 
   }
+
 
 
   async count() {
@@ -58,9 +77,12 @@ class PesticideController {
   }
 
 
+
   async exists(id) {
 
-    return this.service.exists(id);
+    return this.service.exists(
+      id
+    );
 
   }
 
@@ -68,8 +90,12 @@ class PesticideController {
 }
 
 
+
 const pesticideController =
-new PesticideController();
+  new PesticideController(
+    pesticideService
+  );
+
 
 
 export default Object.freeze(
