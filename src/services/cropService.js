@@ -1,6 +1,7 @@
 // src/services/cropService.js
 
-import cropRepository from "../repositories/cropRepository.js";
+import cropRepository
+  from "../repositories/cropRepository.js";
 
 
 class CropService {
@@ -8,9 +9,11 @@ class CropService {
 
   constructor() {
 
-    this.repository = cropRepository;
+    this.repository =
+      cropRepository;
 
   }
+
 
 
   async getAll() {
@@ -20,15 +23,10 @@ class CropService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "CROP_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const crop =
@@ -49,28 +47,25 @@ class CropService {
   }
 
 
+
   async create(data) {
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
-    return this.repository.create(data);
+    return this.repository.create(
+      data
+    );
 
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
+    this.validateId(id);
 
-      throw new Error(
-        "CROP_ID_REQUIRED"
-      );
-
-    }
-
-
-    this.validate(data);
+    this.validateUpdate(data);
 
 
     const updated =
@@ -94,19 +89,16 @@ class CropService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "CROP_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -123,6 +115,7 @@ class CropService {
   }
 
 
+
   async exists(id) {
 
     if (!id) {
@@ -133,12 +126,15 @@ class CropService {
 
 
     const crop =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(crop);
 
   }
+
 
 
   async count() {
@@ -152,7 +148,25 @@ class CropService {
   }
 
 
-  validate(data) {
+
+  validateId(id) {
+
+    if (!id) {
+
+      throw new Error(
+        "CROP_ID_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
+  validateCreate(data) {
 
     if (
       !data ||
@@ -183,7 +197,28 @@ class CropService {
   }
 
 
+
+  validateUpdate(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
+      throw new Error(
+        "CROP_DATA_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
