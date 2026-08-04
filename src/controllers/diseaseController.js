@@ -1,16 +1,21 @@
 // src/controllers/diseaseController.js
 
-import diseaseService from "../services/diseaseService.js";
+
+import diseaseService
+  from "../services/diseaseService.js";
+
 
 
 class DiseaseController {
 
 
-  constructor() {
+  constructor(service) {
 
-    this.service = diseaseService;
+    this.service =
+      service;
 
   }
+
 
 
   async getAll() {
@@ -20,21 +25,31 @@ class DiseaseController {
   }
 
 
+
   async getById(id) {
 
-    return this.service.getById(id);
+    return this.service.getById(
+      id
+    );
 
   }
+
 
 
   async create(data) {
 
-    return this.service.create(data);
+    return this.service.create(
+      data
+    );
 
   }
 
 
-  async update(id, data) {
+
+  async update(
+    id,
+    data
+  ) {
 
     return this.service.update(
       id,
@@ -44,11 +59,15 @@ class DiseaseController {
   }
 
 
+
   async delete(id) {
 
-    return this.service.delete(id);
+    return this.service.delete(
+      id
+    );
 
   }
+
 
 
   async count() {
@@ -58,16 +77,22 @@ class DiseaseController {
   }
 
 
+
   async exists(id) {
 
-    return this.service.exists(id);
+    return this.service.exists(
+      id
+    );
 
   }
 
 
+
   async search(keyword) {
 
-    return this.service.search(keyword);
+    return this.service.search(
+      keyword
+    );
 
   }
 
@@ -75,8 +100,12 @@ class DiseaseController {
 }
 
 
+
 const diseaseController =
-new DiseaseController();
+  new DiseaseController(
+    diseaseService
+  );
+
 
 
 export default Object.freeze(
