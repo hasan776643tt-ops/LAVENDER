@@ -6,105 +6,49 @@ import weatherService
 
 
 
-
-
 class WeatherController {
 
 
 
-  constructor(){
-
+  constructor(service) {
 
     this.service =
-      weatherService;
-
-
-  }
-
-
-
-
-
-
-
-
-  async getCurrentWeather(location){
-
-
-    try{
-
-
-      return await this.service.getCurrentWeather(
-
-        location
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `WeatherController getCurrentWeather failed: ${error.message}`
-
-      );
-
-
-    }
-
+      service;
 
   }
 
 
 
+  async getCurrentWeather(location) {
 
-
-
-
-
-  async refreshWeather(location){
-
-
-    try{
-
-
-      return await this.service.refreshWeather(
-
-        location
-
-      );
-
-
-
-    }catch(error){
-
-
-      throw new Error(
-
-        `WeatherController refreshWeather failed: ${error.message}`
-
-      );
-
-
-    }
-
+    return this.service.getCurrentWeather(
+      location
+    );
 
   }
 
 
 
+  async refreshWeather(location) {
+
+    return this.service.refreshWeather(
+      location
+    );
+
+  }
 
 
 }
 
 
 
+const weatherController =
+  new WeatherController(
+    weatherService
+  );
+
 
 
 export default Object.freeze(
-
-  new WeatherController()
-
+  weatherController
 );
