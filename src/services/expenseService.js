@@ -1,6 +1,7 @@
 // src/services/expenseService.js
 
-import expenseRepository from "../repositories/expenseRepository.js";
+import expenseRepository
+  from "../repositories/expenseRepository.js";
 
 
 class ExpenseService {
@@ -8,9 +9,11 @@ class ExpenseService {
 
   constructor() {
 
-    this.repository = expenseRepository;
+    this.repository =
+      expenseRepository;
 
   }
+
 
 
   async getAll() {
@@ -20,15 +23,10 @@ class ExpenseService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "EXPENSE_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const expense =
@@ -49,28 +47,26 @@ class ExpenseService {
   }
 
 
+
   async create(data) {
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
-    return this.repository.create(data);
+    return this.repository.create(
+      data
+    );
 
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
-
-      throw new Error(
-        "EXPENSE_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
-    this.validate(data);
+    this.validateUpdate(data);
 
 
     const updated =
@@ -94,19 +90,16 @@ class ExpenseService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "EXPENSE_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -123,6 +116,7 @@ class ExpenseService {
   }
 
 
+
   async exists(id) {
 
     if (!id) {
@@ -133,12 +127,15 @@ class ExpenseService {
 
 
     const expense =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(expense);
 
   }
+
 
 
   async count() {
@@ -152,19 +149,27 @@ class ExpenseService {
   }
 
 
-  validate(data) {
 
+  validateId(id) {
 
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
+    if (!id) {
 
       throw new Error(
-        "EXPENSE_DATA_REQUIRED"
+        "EXPENSE_ID_REQUIRED"
       );
 
     }
+
+
+    return true;
+
+  }
+
+
+
+  validateCreate(data) {
+
+    this.validateData(data);
 
 
     if (
@@ -184,7 +189,39 @@ class ExpenseService {
   }
 
 
+
+  validateUpdate(data) {
+
+    this.validateData(data);
+
+
+    return true;
+
+  }
+
+
+
+  validateData(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
+      throw new Error(
+        "EXPENSE_DATA_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
