@@ -1,7 +1,9 @@
 // src/services/aiService.js
 
+
 import storageService
   from "./storageService.js";
+
 
 
 class AIService {
@@ -9,24 +11,42 @@ class AIService {
 
   constructor() {
 
-    this.baseUrl = "";
 
-    this.apiKey = "";
+    this.baseUrl =
+      "";
 
-    this.model = "gpt-4.1";
+
+    this.apiKey =
+      "";
+
+
+    this.model =
+      "gpt-4.1";
+
 
     this.historyKey =
       "ai_history";
+
+
+    this.version =
+      "3.0.0";
+
 
   }
 
 
 
   configure({
+
     baseUrl,
+
     apiKey,
+
     model
+
   } = {}) {
+
+
 
     if (baseUrl) {
 
@@ -35,12 +55,16 @@ class AIService {
 
     }
 
+
+
     if (apiKey) {
 
       this.apiKey =
         apiKey;
 
     }
+
+
 
     if (model) {
 
@@ -49,7 +73,9 @@ class AIService {
 
     }
 
+
   }
+
 
 
 
@@ -58,104 +84,166 @@ class AIService {
     options = {}
   ) {
 
-    if (
-      !prompt ||
-      !prompt.trim()
-    ) {
 
-      throw new Error(
-        "AI_PROMPT_REQUIRED"
-      );
 
-    }
+    this.validatePrompt(
+      prompt
+    );
 
 
 
     const response =
+
+
       this.baseUrl
-        ? {
-            success: true,
-            model: this.model,
-            answer:
-              "AI response will be connected here."
-          }
-        : {
-            success: false,
-            model: this.model,
-            message:
-              "AI_PROVIDER_NOT_CONFIGURED"
-          };
+
+      ?
+
+      {
+
+        success:
+          true,
+
+
+        model:
+          this.model,
+
+
+        answer:
+          "AI provider connection ready."
+
+      }
+
+
+      :
+
+      {
+
+        success:
+          false,
+
+
+        model:
+          this.model,
+
+
+        message:
+          "AI_PROVIDER_NOT_CONFIGURED"
+
+      };
 
 
 
-    this.saveHistory({
+
+
+    await this.saveHistory({
+
 
       id:
-        crypto.randomUUID(),
+        this.generateId(),
+
 
       type:
         options.type ||
         "general",
 
+
       prompt,
+
 
       response,
 
+
+      model:
+        this.model,
+
+
+      version:
+        this.version,
+
+
       createdAt:
         new Date().toISOString()
+
 
     });
 
 
 
+
     return response;
+
 
   }
 
 
 
-  saveHistory(item) {
+
+
+  async saveHistory(item) {
+
+
 
     const history =
-      this.getHistory();
+      await this.getHistory();
 
 
-    history.push(
-      item
-    );
+
+    history.push(item);
+
 
 
     storageService.save(
+
       this.historyKey,
+
       history
+
     );
+
 
   }
 
 
 
-  getHistory() {
+
+
+  async getHistory() {
+
 
     return storageService.load(
+
       this.historyKey,
+
       []
+
     );
+
 
   }
 
 
 
-  clearHistory() {
+
+
+  async clearHistory() {
+
 
     return storageService.remove(
+
       this.historyKey
+
     );
 
+
   }
+
+
 
 
 
   async analyzeCrop(data) {
+
 
     return this.ask(
 
@@ -163,17 +251,23 @@ class AIService {
 ${JSON.stringify(data)}`,
 
       {
+
         type:
           "crop-analysis"
+
       }
 
     );
+
 
   }
 
 
 
+
+
   async detectDisease(data) {
+
 
     return this.ask(
 
@@ -181,17 +275,23 @@ ${JSON.stringify(data)}`,
 ${JSON.stringify(data)}`,
 
       {
+
         type:
           "disease-detection"
+
       }
 
     );
+
 
   }
 
 
 
+
+
   async irrigationAdvice(data) {
+
 
     return this.ask(
 
@@ -199,17 +299,23 @@ ${JSON.stringify(data)}`,
 ${JSON.stringify(data)}`,
 
       {
+
         type:
           "irrigation"
+
       }
 
     );
+
 
   }
 
 
 
+
+
   async fertilizerAdvice(data) {
+
 
     return this.ask(
 
@@ -217,32 +323,121 @@ ${JSON.stringify(data)}`,
 ${JSON.stringify(data)}`,
 
       {
+
         type:
           "fertilizer"
+
       }
 
     );
 
+
   }
+
+
 
 
 
   async generalAdvice(question) {
 
+
     return this.ask(
+
       question,
+
       {
+
         type:
           "general"
+
       }
+
     );
 
+
   }
+
+
+
+
+
+  validatePrompt(prompt) {
+
+
+    if (
+
+      !prompt ||
+
+      typeof prompt !== "string" ||
+
+      !prompt.trim()
+
+    ) {
+
+
+      throw new Error(
+
+        "AI_PROMPT_REQUIRED"
+
+      );
+
+
+    }
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  generateId() {
+
+
+    if (
+
+      globalThis.crypto?.randomUUID
+
+    ) {
+
+
+      return globalThis.crypto.randomUUID();
+
+
+    }
+
+
+
+
+    return (
+
+      Date.now().toString()
+
+      +
+
+      Math.random()
+
+      .toString(36)
+
+      .substring(2)
+
+    );
+
+
+  }
+
+
 
 
 }
 
 
+
 export default Object.freeze(
+
   new AIService()
+
 );
