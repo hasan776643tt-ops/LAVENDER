@@ -1,6 +1,7 @@
 // src/services/inventoryService.js
 
-import inventoryRepository from "../repositories/inventoryRepository.js";
+import inventoryRepository
+  from "../repositories/inventoryRepository.js";
 
 
 class InventoryService {
@@ -8,9 +9,11 @@ class InventoryService {
 
   constructor() {
 
-    this.repository = inventoryRepository;
+    this.repository =
+      inventoryRepository;
 
   }
+
 
 
   async getAll() {
@@ -20,15 +23,10 @@ class InventoryService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "INVENTORY_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const item =
@@ -49,28 +47,26 @@ class InventoryService {
   }
 
 
+
   async create(data) {
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
-    return this.repository.create(data);
+    return this.repository.create(
+      data
+    );
 
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
-
-      throw new Error(
-        "INVENTORY_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
-    this.validate(data);
+    this.validateUpdate(data);
 
 
     const updated =
@@ -94,19 +90,16 @@ class InventoryService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "INVENTORY_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -123,6 +116,7 @@ class InventoryService {
   }
 
 
+
   async exists(id) {
 
     if (!id) {
@@ -133,12 +127,15 @@ class InventoryService {
 
 
     const item =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(item);
 
   }
+
 
 
   async count() {
@@ -152,7 +149,47 @@ class InventoryService {
   }
 
 
-  validate(data) {
+
+  validateId(id) {
+
+    if (!id) {
+
+      throw new Error(
+        "INVENTORY_ID_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
+  validateCreate(data) {
+
+    this.validateData(data);
+
+
+    return true;
+
+  }
+
+
+
+  validateUpdate(data) {
+
+    this.validateData(data);
+
+
+    return true;
+
+  }
+
+
+
+  validateData(data) {
 
     if (
       !data ||
@@ -172,6 +209,7 @@ class InventoryService {
 
 
 }
+
 
 
 export default Object.freeze(
