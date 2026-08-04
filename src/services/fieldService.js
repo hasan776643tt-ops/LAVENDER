@@ -1,6 +1,7 @@
 // src/services/fieldService.js
 
-import fieldRepository from "../repositories/fieldRepository.js";
+import fieldRepository
+  from "../repositories/fieldRepository.js";
 
 
 class FieldService {
@@ -8,9 +9,11 @@ class FieldService {
 
   constructor() {
 
-    this.repository = fieldRepository;
+    this.repository =
+      fieldRepository;
 
   }
+
 
 
   async getAll() {
@@ -20,15 +23,10 @@ class FieldService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "FIELD_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const field =
@@ -49,28 +47,25 @@ class FieldService {
   }
 
 
+
   async create(data) {
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
-    return this.repository.create(data);
+    return this.repository.create(
+      data
+    );
 
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
+    this.validateId(id);
 
-      throw new Error(
-        "FIELD_ID_REQUIRED"
-      );
-
-    }
-
-
-    this.validate(data);
+    this.validateUpdate(data);
 
 
     const updated =
@@ -94,19 +89,16 @@ class FieldService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "FIELD_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -123,6 +115,7 @@ class FieldService {
   }
 
 
+
   async exists(id) {
 
     if (!id) {
@@ -133,12 +126,15 @@ class FieldService {
 
 
     const field =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(field);
 
   }
+
 
 
   async count() {
@@ -152,7 +148,25 @@ class FieldService {
   }
 
 
-  validate(data) {
+
+  validateId(id) {
+
+    if (!id) {
+
+      throw new Error(
+        "FIELD_ID_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
+  validateCreate(data) {
 
     if (
       !data ||
@@ -183,7 +197,28 @@ class FieldService {
   }
 
 
+
+  validateUpdate(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
+      throw new Error(
+        "FIELD_DATA_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
