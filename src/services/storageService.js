@@ -1,31 +1,53 @@
 // src/services/storageService.js
 
+
 class StorageService {
 
 
   constructor(prefix = "lavender") {
 
-    this.prefix = prefix;
+
+    this.prefix =
+      prefix;
+
+
+    this.version =
+      "3.0.0";
+
 
   }
+
+
 
 
 
   key(name) {
 
+
     return `${this.prefix}:${name}`;
+
 
   }
 
 
 
-  save(name, data) {
+
+
+  async save(name, data) {
+
 
     if (!name) {
 
-      return false;
+
+      throw new Error(
+
+        "STORAGE_KEY_REQUIRED"
+
+      );
+
 
     }
+
 
 
     try {
@@ -33,61 +55,103 @@ class StorageService {
 
       const payload = {
 
+
+
+        version:
+          this.version,
+
+
+
         data,
+
+
 
         updatedAt:
           new Date().toISOString()
 
+
+
       };
 
 
-      localStorage.setItem(
 
-        this.key(name),
+      this.getStorage()
 
-        JSON.stringify(payload)
+        .setItem(
 
-      );
+          this.key(name),
+
+          JSON.stringify(payload)
+
+        );
+
 
 
       return true;
 
 
+
     } catch(error) {
 
 
-      return false;
+      throw new Error(
+
+        `STORAGE_SAVE_FAILED: ${error.message}`
+
+      );
+
 
     }
+
 
   }
 
 
 
-  load(name, defaultValue = []) {
+
+
+  async load(
+    name,
+    defaultValue = []
+  ) {
 
 
     if (!name) {
 
+
       return defaultValue;
 
+
     }
+
 
 
     try {
 
 
+      const storage =
+        this.getStorage();
+
+
+
       const value =
-        localStorage.getItem(
+
+        storage.getItem(
+
           this.key(name)
+
         );
+
 
 
       if (!value) {
 
+
         return defaultValue;
 
+
       }
+
 
 
       const parsed =
@@ -96,9 +160,15 @@ class StorageService {
 
 
       return (
-        parsed?.data ??
+
+        parsed?.data
+
+        ??
+
         parsed
+
       );
+
 
 
     } catch(error) {
@@ -106,86 +176,78 @@ class StorageService {
 
       return defaultValue;
 
+
     }
+
 
   }
 
 
 
-  exists(name) {
+
+
+  async exists(name) {
 
 
     if (!name) {
 
+
       return false;
 
+
     }
+
 
 
     return (
-      localStorage.getItem(
+
+      this.getStorage()
+
+      .getItem(
+
         this.key(name)
-      ) !== null
+
+      )
+
+      !== null
+
     );
+
 
   }
 
 
 
-  remove(name) {
+
+
+  async remove(name) {
 
 
     if (!name) {
 
+
       return false;
 
+
     }
+
 
 
     try {
 
 
-      localStorage.removeItem(
-        this.key(name)
-      );
+      this.getStorage()
 
+        .removeItem(
 
-      return true;
+          this.key(name)
 
-
-    } catch(error) {
-
-
-      return false;
-
-    }
-
-  }
-
-
-
-  clear() {
-
-
-    try {
-
-
-      Object.keys(localStorage)
-
-        .filter(
-          key =>
-            key.startsWith(
-              `${this.prefix}:`
-            )
-        )
-
-        .forEach(
-          key =>
-            localStorage.removeItem(key)
         );
 
 
+
       return true;
+
 
 
     } catch(error) {
@@ -193,42 +255,156 @@ class StorageService {
 
       return false;
 
+
     }
+
 
   }
 
 
 
-  getStats() {
+
+
+  async clear() {
+
+
+    try {
+
+
+      const storage =
+        this.getStorage();
+
+
+
+      Object.keys(storage)
+
+        .filter(
+
+          key =>
+
+          key.startsWith(
+
+            `${this.prefix}:`
+
+          )
+
+        )
+
+        .forEach(
+
+          key =>
+
+          storage.removeItem(key)
+
+        );
+
+
+
+      return true;
+
+
+
+    } catch(error) {
+
+
+      return false;
+
+
+    }
+
+
+  }
+
+
+
+
+
+  async getStats() {
+
+
+    const storage =
+      this.getStorage();
+
 
 
     const keys =
 
-      Object.keys(localStorage)
 
-        .filter(
-          key =>
-            key.startsWith(
-              `${this.prefix}:`
-            )
-        );
+      Object.keys(storage)
+
+      .filter(
+
+        key =>
+
+        key.startsWith(
+
+          `${this.prefix}:`
+
+        )
+
+      );
+
 
 
     return {
 
+
+      version:
+        this.version,
+
+
+
       totalKeys:
         keys.length,
 
+
+
       keys
+
 
     };
 
+
   }
+
+
+
+
+
+  getStorage() {
+
+
+    if (
+
+      typeof localStorage === "undefined"
+
+    ) {
+
+
+      throw new Error(
+
+        "LOCAL_STORAGE_NOT_AVAILABLE"
+
+      );
+
+
+    }
+
+
+
+    return localStorage;
+
+
+  }
+
 
 
 }
 
 
+
 export default Object.freeze(
+
   new StorageService()
+
 );
