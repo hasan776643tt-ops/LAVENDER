@@ -9,7 +9,6 @@ import storageService
 class UserRepository {
 
 
-
   constructor() {
 
     this.key =
@@ -19,435 +18,297 @@ class UserRepository {
 
 
 
-
-
-
-
-  getAll() {
-
+  async getAll() {
 
     try {
-
 
       return storageService.load(
-
         this.key,
-
         []
-
       );
-
 
 
     } catch(error) {
 
-
       throw new Error(
-        `UserRepository getAll failed: ${error.message}`
+        `USER_GET_ALL_FAILED: ${error.message}`
       );
 
+    }
+
+  }
+
+
+
+  async getById(id) {
+
+
+    if (!id) {
+
+      return null;
 
     }
+
+
+    const users =
+      await this.getAll();
+
+
+    return users.find(
+
+      user =>
+
+      String(user.id) === String(id)
+
+    ) || null;
 
 
   }
 
 
 
+  async findByEmail(email) {
 
 
+    if (!email) {
 
-
-  getById(id) {
-
-
-    try {
-
-
-      if(!id){
-
-        return null;
-
-      }
-
-
-
-      return this.getAll().find(
-
-
-        user =>
-
-
-        String(user.id) === String(id)
-
-
-      ) || null;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `UserRepository getById failed: ${error.message}`
-      );
-
+      return null;
 
     }
+
+
+    const users =
+      await this.getAll();
+
+
+    return users.find(
+
+      user =>
+
+      user.email?.toLowerCase() ===
+      email.toLowerCase()
+
+    ) || null;
 
 
   }
 
 
 
+  async create(data) {
 
 
+    const users =
+      await this.getAll();
 
 
-  create(userData) {
 
+    const user = {
 
-    try {
 
+      id:
+        Date.now().toString(),
 
-      this.validate(userData);
 
+      ...data,
 
 
-      const users =
-        this.getAll();
+      createdAt:
+        new Date().toISOString(),
 
 
+      updatedAt:
+        new Date().toISOString()
 
 
-      const user = {
+    };
 
 
-        id:
-          Date.now().toString(),
 
+    users.push(user);
 
 
-        ...userData,
 
+    storageService.save(
 
+      this.key,
 
-        createdAt:
-          new Date().toISOString(),
-
-
-
-        updatedAt:
-          new Date().toISOString()
-
-
-      };
-
-
-
-
-
-      users.push(
-        user
-      );
-
-
-
-
-
-      storageService.save(
-
-        this.key,
-
-        users
-
-      );
-
-
-
-
-
-      return user;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `UserRepository create failed: ${error.message}`
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  update(id,data) {
-
-
-    try {
-
-
-      if(!id){
-
-        throw new Error(
-          "User ID is required"
-        );
-
-      }
-
-
-
-
-      this.validate(data);
-
-
-
-
-      const users =
-        this.getAll();
-
-
-
-
-      const index =
-
-        users.findIndex(
-
-          user =>
-
-          String(user.id) === String(id)
-
-        );
-
-
-
-
-      if(index === -1){
-
-        return null;
-
-      }
-
-
-
-
-      const updatedUser = {
-
-
-        ...users[index],
-
-
-        ...data,
-
-
-        id:
-          users[index].id,
-
-
-
-        updatedAt:
-          new Date().toISOString()
-
-
-      };
-
-
-
-
-      users[index] =
-        updatedUser;
-
-
-
-
-
-      storageService.save(
-
-        this.key,
-
-        users
-
-      );
-
-
-
-
-
-      return updatedUser;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `UserRepository update failed: ${error.message}`
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  delete(id) {
-
-
-    try {
-
-
-      const users =
-        this.getAll();
-
-
-
-
-      const filtered =
-
-        users.filter(
-
-          user =>
-
-          String(user.id) !== String(id)
-
-        );
-
-
-
-
-      const deleted =
-
-        filtered.length !== users.length;
-
-
-
-
-      if(deleted){
-
-
-        storageService.save(
-
-          this.key,
-
-          filtered
-
-        );
-
-
-      }
-
-
-
-
-      return deleted;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `UserRepository delete failed: ${error.message}`
-      );
-
-
-    }
-
-
-  }
-
-
-
-
-
-
-
-  exists(id){
-
-
-    return Boolean(
-
-      this.getById(id)
+      users
 
     );
 
 
-  }
 
-
-
-
-
-
-
-  count(){
-
-
-    return this.getAll().length;
+    return user;
 
 
   }
 
 
 
+  async update(id, data) {
 
 
-
-
-  validate(user){
-
-
-    if(!user){
-
+    if (!id) {
 
       throw new Error(
-        "User data is required"
+        "USER_ID_REQUIRED"
       );
-
 
     }
 
 
 
+    const users =
+      await this.getAll();
 
-    if(!user.name?.trim()){
 
 
-      throw new Error(
-        "User name is required"
+    const index =
+      users.findIndex(
+
+        user =>
+
+        String(user.id) === String(id)
+
       );
 
+
+
+    if (index === -1) {
+
+      return null;
 
     }
 
 
 
+    const updatedUser = {
 
-    return true;
+
+      ...users[index],
+
+
+      ...data,
+
+
+      id:
+        users[index].id,
+
+
+      updatedAt:
+        new Date().toISOString()
+
+
+    };
+
+
+
+    users[index] =
+      updatedUser;
+
+
+
+    storageService.save(
+
+      this.key,
+
+      users
+
+    );
+
+
+
+    return updatedUser;
 
 
   }
 
+
+
+  async delete(id) {
+
+
+    if (!id) {
+
+      return false;
+
+    }
+
+
+
+    const users =
+      await this.getAll();
+
+
+
+    const filtered =
+      users.filter(
+
+        user =>
+
+        String(user.id) !== String(id)
+
+      );
+
+
+
+    const deleted =
+      filtered.length !== users.length;
+
+
+
+    if (deleted) {
+
+      storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
+    }
+
+
+
+    return deleted;
+
+
+  }
+
+
+
+  async exists(id) {
+
+
+    const user =
+      await this.getById(id);
+
+
+
+    return Boolean(user);
+
+
+  }
+
+
+
+  async count() {
+
+
+    const users =
+      await this.getAll();
+
+
+
+    return users.length;
+
+
+  }
 
 
 }
-
-
 
 
 
