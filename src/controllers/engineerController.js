@@ -1,155 +1,114 @@
 // src/controllers/engineerController.js
 
-import * as engineerService from "../api/engineerService.js";
+
+import engineerService
+  from "../services/engineerService.js";
+
+
 
 class EngineerController {
-  async getAllEngineers() {
-    try {
-      const engineers = await engineerService.getAllEngineers();
 
-      return {
-        success: true,
-        data: engineers,
-        total: engineers.length,
-        message: "Engineers loaded successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+
+
+  constructor(service) {
+
+    this.service =
+      service;
+
   }
 
-  async getEngineerById(engineerId) {
-    try {
-      if (!engineerId) {
-        throw new Error("Engineer ID is required.");
-      }
 
-      const engineer = await engineerService.getEngineerById(engineerId);
 
-      if (!engineer) {
-        throw new Error("Engineer not found.");
-      }
+  async getAll() {
 
-      return {
-        success: true,
-        data: engineer,
-        message: "Engineer loaded successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.service.getAll();
+
   }
 
-  async createEngineer(engineerData) {
-    try {
-      this.validateEngineer(engineerData);
 
-      const engineer = await engineerService.createEngineer(engineerData);
 
-      return {
-        success: true,
-        data: engineer,
-        message: "Engineer created successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+  async getById(id) {
+
+    return this.service.getById(
+      id
+    );
+
   }
 
-  async updateEngineer(engineerId, engineerData) {
-    try {
-      if (!engineerId) {
-        throw new Error("Engineer ID is required.");
-      }
 
-      this.validateEngineer(engineerData);
 
-      const engineer = await engineerService.updateEngineer(
-        engineerId,
-        engineerData
-      );
+  async create(data) {
 
-      return {
-        success: true,
-        data: engineer,
-        message: "Engineer updated successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.service.create(
+      data
+    );
+
   }
 
-  async deleteEngineer(engineerId) {
-    try {
-      if (!engineerId) {
-        throw new Error("Engineer ID is required.");
-      }
 
-      await engineerService.deleteEngineer(engineerId);
 
-      return {
-        success: true,
-        message: "Engineer deleted successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+  async update(
+    id,
+    data
+  ) {
+
+    return this.service.update(
+      id,
+      data
+    );
+
   }
 
-  async searchEngineers(keyword) {
-    try {
-      const engineers = await engineerService.getAllEngineers();
 
-      const results = engineers.filter((engineer) => {
-        const search = keyword.toLowerCase();
 
-        return (
-          engineer.name?.toLowerCase().includes(search) ||
-          engineer.specialization?.toLowerCase().includes(search) ||
-          engineer.city?.toLowerCase().includes(search)
-        );
-      });
+  async delete(id) {
 
-      return {
-        success: true,
-        data: results,
-        total: results.length,
-        message: "Search completed successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+    return this.service.delete(
+      id
+    );
+
   }
 
-  validateEngineer(engineer) {
-    if (!engineer) {
-      throw new Error("Engineer data is required.");
-    }
 
-    if (!engineer.name?.trim()) {
-      throw new Error("Engineer name is required.");
-    }
 
-    if (!engineer.specialization?.trim()) {
-      throw new Error("Specialization is required.");
-    }
+  async exists(id) {
 
-    if (!engineer.phone?.trim()) {
-      throw new Error("Phone number is required.");
-    }
+    return this.service.exists(
+      id
+    );
 
-    return true;
   }
 
-  handleError(error) {
-    console.error("[EngineerController]", error);
 
-    return {
-      success: false,
-      data: null,
-      message: error.message || "Unexpected engineer error.",
-    };
+
+  async count() {
+
+    return this.service.count();
+
   }
+
+
+
+  async search(keyword) {
+
+    return this.service.search(
+      keyword
+    );
+
+  }
+
+
 }
 
-export default new EngineerController();
+
+
+const engineerController =
+  new EngineerController(
+    engineerService
+  );
+
+
+
+export default Object.freeze(
+  engineerController
+);
