@@ -1,7 +1,9 @@
 // src/services/analyticsService.js
 
+
 import storageService
   from "./storageService.js";
+
 
 
 class AnalyticsService {
@@ -12,28 +14,26 @@ class AnalyticsService {
     this.storageKey =
       "analytics_events";
 
+    this.version =
+      "3.0.0";
+
   }
 
 
 
-  track(
+  async track(
     event,
     data = {}
   ) {
 
 
-    if (!event) {
-
-      throw new Error(
-        "ANALYTICS_EVENT_REQUIRED"
-      );
-
-    }
-
+    this.validateEvent(
+      event
+    );
 
 
     const events =
-      this.getEvents();
+      await this.getEvents();
 
 
 
@@ -41,13 +41,17 @@ class AnalyticsService {
 
 
       id:
-        crypto.randomUUID(),
+        this.generateId(),
 
 
       event,
 
 
       data,
+
+
+      version:
+        this.version,
 
 
       createdAt:
@@ -63,7 +67,7 @@ class AnalyticsService {
 
 
 
-    this.saveEvents(
+    await this.saveEvents(
       events
     );
 
@@ -75,7 +79,7 @@ class AnalyticsService {
 
 
 
-  getEvents() {
+  async getEvents() {
 
 
     return storageService.load(
@@ -90,7 +94,7 @@ class AnalyticsService {
 
 
 
-  getEventsByType(type) {
+  async getEventsByType(type) {
 
 
     if (!type) {
@@ -100,40 +104,55 @@ class AnalyticsService {
     }
 
 
-    return this.getEvents()
 
-      .filter(
-
-        item =>
-          item.event === type
-
-      );
-
-  }
+    const events =
+      await this.getEvents();
 
 
 
-  count() {
+    return events.filter(
 
+      item =>
 
-    return this.getEvents().length;
+      item.event === type
+
+    );
 
   }
 
 
 
-  getStats() {
+  async count() {
 
 
     const events =
-      this.getEvents();
+      await this.getEvents();
+
+
+
+    return events.length;
+
+  }
+
+
+
+  async getStats() {
+
+
+    const events =
+      await this.getEvents();
 
 
 
     return {
 
+
       total:
         events.length,
+
+
+      version:
+        this.version,
 
 
       generatedAt:
@@ -145,7 +164,7 @@ class AnalyticsService {
 
 
 
-  clear() {
+  async clear() {
 
 
     return storageService.remove(
@@ -158,7 +177,7 @@ class AnalyticsService {
 
 
 
-  saveEvents(data) {
+  async saveEvents(data) {
 
 
     return storageService.save(
@@ -178,6 +197,7 @@ class AnalyticsService {
 
     return {
 
+
       totalFarms:
         farms.length,
 
@@ -196,6 +216,7 @@ class AnalyticsService {
 
     return {
 
+
       totalCrops:
         crops.length,
 
@@ -208,7 +229,58 @@ class AnalyticsService {
   }
 
 
+
+  validateEvent(event) {
+
+
+    if (
+      !event ||
+      typeof event !== "string"
+    ) {
+
+      throw new Error(
+        "ANALYTICS_EVENT_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
+  generateId() {
+
+
+    if (
+      globalThis.crypto?.randomUUID
+    ) {
+
+      return globalThis.crypto.randomUUID();
+
+    }
+
+
+
+    return (
+
+      Date.now().toString()
+
+      +
+
+      Math.random()
+        .toString(36)
+        .substring(2)
+
+    );
+
+  }
+
+
 }
+
 
 
 export default Object.freeze(
