@@ -6,309 +6,204 @@ import authService
 
 
 
-
-
 class AuthController {
-
 
 
   constructor() {
 
-
     this.service =
       authService;
 
-
   }
 
 
 
+  async login(credentials) {
 
-
-
-
-
-  async login(credentials){
-
-
-    try{
-
+    try {
 
       return await this.service.login(
-
         credentials
-
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController login failed: ${error.message}`
-
+        `AUTH_LOGIN_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async register(userData) {
 
-
-
-
-
-  async register(userData){
-
-
-    try{
-
+    try {
 
       return await this.service.register(
-
         userData
-
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController register failed: ${error.message}`
-
+        `AUTH_REGISTER_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async logout() {
 
-
-
-
-
-  async logout(){
-
-
-    try{
-
+    try {
 
       return await this.service.logout();
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController logout failed: ${error.message}`
-
+        `AUTH_LOGOUT_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async updateProfile(userData) {
 
-
-
-
-
-  async updateProfile(userData){
-
-
-    try{
-
+    try {
 
       return await this.service.updateProfile(
-
         userData
-
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController updateProfile failed: ${error.message}`
-
+        `AUTH_UPDATE_PROFILE_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async changePassword(passwordData) {
 
-
-
-
-
-  async changePassword(passwordData){
-
-
-    try{
-
+    try {
 
       return await this.service.changePassword(
-
         passwordData
-
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController changePassword failed: ${error.message}`
-
+        `AUTH_CHANGE_PASSWORD_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  async forgotPassword(email) {
 
-
-
-
-
-  async forgotPassword(email){
-
-
-    try{
-
+    try {
 
       return await this.service.forgotPassword(
-
         email
-
       );
 
 
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController forgotPassword failed: ${error.message}`
-
+        `AUTH_FORGOT_PASSWORD_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  getCurrentUser() {
+
+    try {
+
+      return this.service.getCurrentUser();
 
 
-
-
-
-  async isAuthenticated(){
-
-
-    try{
-
-
-      return await this.service.isAuthenticated();
-
-
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController isAuthenticated failed: ${error.message}`
-
+        `AUTH_CURRENT_USER_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  isAuthenticated() {
+
+    try {
+
+      return this.service.isAuthenticated();
 
 
-
-
-
-  async getCurrentUser(){
-
-
-    try{
-
-
-      return await this.service.getCurrentUser();
-
-
-
-    }catch(error){
-
+    } catch(error) {
 
       throw new Error(
-
-        `AuthController getCurrentUser failed: ${error.message}`
-
+        `AUTH_STATUS_FAILED:${error.message}`
       );
 
-
     }
-
 
   }
 
 
 
+  hasRole(role) {
+
+    try {
+
+      return this.service.hasRole(
+        role
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `AUTH_ROLE_CHECK_FAILED:${error.message}`
+      );
+
+    }
+
+  }
 
 
 }
 
 
 
-
-
 export default Object.freeze(
-
   new AuthController()
-
 );
