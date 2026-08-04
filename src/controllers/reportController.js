@@ -1,136 +1,179 @@
 // src/controllers/reportController.js
 
-import * as reportService from "../api/reportService.js";
+
+import reportService
+  from "../services/reportService.js";
+
+
 
 class ReportController {
-  async getAllReports() {
-    try {
-      const reports = await reportService.getAllReports();
 
-      return {
-        success: true,
-        data: reports,
-        total: reports.length,
-        message: "Reports loaded successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
+
+
+  constructor() {
+
+    this.service =
+      reportService;
+
   }
 
-  async getReportById(reportId) {
+
+
+  async getAll() {
+
     try {
-      if (!reportId) {
-        throw new Error("Report ID is required.");
-      }
 
-      const report = await reportService.getReportById(reportId);
+      return await this.service.getAll();
 
-      if (!report) {
-        throw new Error("Report not found.");
-      }
 
-      return {
-        success: true,
-        data: report,
-        message: "Report loaded successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
-  }
+    } catch(error) {
 
-  async createReport(reportData) {
-    try {
-      this.validateReport(reportData);
-
-      const report = await reportService.createReport(reportData);
-
-      return {
-        success: true,
-        data: report,
-        message: "Report created successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
-  }
-
-  async updateReport(reportId, reportData) {
-    try {
-      if (!reportId) {
-        throw new Error("Report ID is required.");
-      }
-
-      this.validateReport(reportData);
-
-      const report = await reportService.updateReport(
-        reportId,
-        reportData
+      throw new Error(
+        `REPORT_GET_ALL_FAILED:${error.message}`
       );
 
-      return {
-        success: true,
-        data: report,
-        message: "Report updated successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
     }
+
   }
 
-  async deleteReport(reportId) {
+
+
+
+  async getById(id) {
+
     try {
-      if (!reportId) {
-        throw new Error("Report ID is required.");
-      }
 
-      await reportService.deleteReport(reportId);
+      return await this.service.getById(
+        id
+      );
 
-      return {
-        success: true,
-        message: "Report deleted successfully.",
-      };
-    } catch (error) {
-      return this.handleError(error);
-    }
-  }
 
-  validateReport(report) {
-    if (!report) {
-      throw new Error("Report data is required.");
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_GET_BY_ID_FAILED:${error.message}`
+      );
+
     }
 
-    if (!report.title?.trim()) {
-      throw new Error("Report title is required.");
+  }
+
+
+
+
+  async create(data) {
+
+    try {
+
+      return await this.service.create(
+        data
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_CREATE_FAILED:${error.message}`
+      );
+
     }
 
-    if (!report.farmId) {
-      throw new Error("Farm ID is required.");
+  }
+
+
+
+
+  async update(id, data) {
+
+    try {
+
+      return await this.service.update(
+        id,
+        data
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_UPDATE_FAILED:${error.message}`
+      );
+
     }
 
-    return true;
   }
 
-  generateSummary(report) {
-    return {
-      id: report.id,
-      title: report.title,
-      farmId: report.farmId,
-      createdAt: report.createdAt,
-      status: report.status ?? "Draft",
-    };
+
+
+
+  async delete(id) {
+
+    try {
+
+      return await this.service.delete(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_DELETE_FAILED:${error.message}`
+      );
+
+    }
+
   }
 
-  handleError(error) {
-    console.error("[ReportController]", error);
 
-    return {
-      success: false,
-      data: null,
-      message: error.message || "Unexpected report error.",
-    };
+
+
+  async exists(id) {
+
+    try {
+
+      return await this.service.exists(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_EXISTS_FAILED:${error.message}`
+      );
+
+    }
+
   }
+
+
+
+
+  async count() {
+
+    try {
+
+      return await this.service.count();
+
+
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_COUNT_FAILED:${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+
 }
 
-export default new ReportController();
+
+
+export default Object.freeze(
+  new ReportController()
+);
