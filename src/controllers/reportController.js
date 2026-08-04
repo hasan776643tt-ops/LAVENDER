@@ -25,7 +25,6 @@ class ReportController {
 
       return await this.service.getAll();
 
-
     } catch(error) {
 
       throw new Error(
@@ -38,15 +37,11 @@ class ReportController {
 
 
 
-
   async getById(id) {
 
     try {
 
-      return await this.service.getById(
-        id
-      );
-
+      return await this.service.getById(id);
 
     } catch(error) {
 
@@ -60,15 +55,11 @@ class ReportController {
 
 
 
-
   async create(data) {
 
     try {
 
-      return await this.service.create(
-        data
-      );
-
+      return await this.service.create(data);
 
     } catch(error) {
 
@@ -82,7 +73,6 @@ class ReportController {
 
 
 
-
   async update(id, data) {
 
     try {
@@ -91,7 +81,6 @@ class ReportController {
         id,
         data
       );
-
 
     } catch(error) {
 
@@ -105,15 +94,11 @@ class ReportController {
 
 
 
-
   async delete(id) {
 
     try {
 
-      return await this.service.delete(
-        id
-      );
-
+      return await this.service.delete(id);
 
     } catch(error) {
 
@@ -127,15 +112,11 @@ class ReportController {
 
 
 
-
   async exists(id) {
 
     try {
 
-      return await this.service.exists(
-        id
-      );
-
+      return await this.service.exists(id);
 
     } catch(error) {
 
@@ -149,13 +130,11 @@ class ReportController {
 
 
 
-
   async count() {
 
     try {
 
       return await this.service.count();
-
 
     } catch(error) {
 
@@ -168,6 +147,45 @@ class ReportController {
   }
 
 
+
+  async search(keyword) {
+
+    try {
+
+      return await this.service.search(
+        keyword
+      );
+
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_SEARCH_FAILED:${error.message}`
+      );
+
+    }
+
+  }
+
+
+
+  async generate(type, data = {}) {
+
+    try {
+
+      return await this.service.generate(
+        type,
+        data
+      );
+
+    } catch(error) {
+
+      throw new Error(
+        `REPORT_GENERATE_FAILED:${error.message}`
+      );
+
+    }
+
+  }
 
 
 }
