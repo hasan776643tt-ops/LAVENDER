@@ -1,6 +1,7 @@
 // src/services/harvestService.js
 
-import harvestRepository from "../repositories/harvestRepository.js";
+import harvestRepository
+  from "../repositories/harvestRepository.js";
 
 
 class HarvestService {
@@ -8,9 +9,11 @@ class HarvestService {
 
   constructor() {
 
-    this.repository = harvestRepository;
+    this.repository =
+      harvestRepository;
 
   }
+
 
 
   async getAll() {
@@ -20,15 +23,10 @@ class HarvestService {
   }
 
 
+
   async getById(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "HARVEST_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const harvest =
@@ -49,28 +47,26 @@ class HarvestService {
   }
 
 
+
   async create(data) {
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
-    return this.repository.create(data);
+    return this.repository.create(
+      data
+    );
 
   }
 
 
+
   async update(id, data) {
 
-    if (!id) {
-
-      throw new Error(
-        "HARVEST_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
-    this.validate(data);
+    this.validateUpdate(data);
 
 
     const harvest =
@@ -94,19 +90,16 @@ class HarvestService {
   }
 
 
+
   async delete(id) {
 
-    if (!id) {
-
-      throw new Error(
-        "HARVEST_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
     const deleted =
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
     if (!deleted) {
@@ -123,15 +116,26 @@ class HarvestService {
   }
 
 
+
   async exists(id) {
 
+    if (!id) {
+
+      return false;
+
+    }
+
+
     const harvest =
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
     return Boolean(harvest);
 
   }
+
 
 
   async count() {
@@ -145,9 +149,52 @@ class HarvestService {
   }
 
 
-  validate(data) {
 
-    if (!data) {
+  validateId(id) {
+
+    if (!id) {
+
+      throw new Error(
+        "HARVEST_ID_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
+  validateCreate(data) {
+
+    this.validateData(data);
+
+
+    return true;
+
+  }
+
+
+
+  validateUpdate(data) {
+
+    this.validateData(data);
+
+
+    return true;
+
+  }
+
+
+
+  validateData(data) {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
 
       throw new Error(
         "HARVEST_DATA_REQUIRED"
@@ -162,6 +209,7 @@ class HarvestService {
 
 
 }
+
 
 
 export default Object.freeze(
