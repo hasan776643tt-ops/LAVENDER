@@ -10,10 +10,10 @@ class EngineerController {
 
 
 
-  constructor(service) {
+  constructor() {
 
     this.service =
-      service;
+      engineerService;
 
   }
 
@@ -21,7 +21,18 @@ class EngineerController {
 
   async getAll() {
 
-    return this.service.getAll();
+    try {
+
+      return await this.service.getAll();
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_GET_ALL_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -29,9 +40,20 @@ class EngineerController {
 
   async getById(id) {
 
-    return this.service.getById(
-      id
-    );
+    try {
+
+      return await this.service.getById(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_GET_BY_ID_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -39,23 +61,42 @@ class EngineerController {
 
   async create(data) {
 
-    return this.service.create(
-      data
-    );
+    try {
+
+      return await this.service.create(
+        data
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_CREATE_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
 
 
-  async update(
-    id,
-    data
-  ) {
+  async update(id, data) {
 
-    return this.service.update(
-      id,
-      data
-    );
+    try {
+
+      return await this.service.update(
+        id,
+        data
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_UPDATE_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -63,9 +104,20 @@ class EngineerController {
 
   async delete(id) {
 
-    return this.service.delete(
-      id
-    );
+    try {
+
+      return await this.service.delete(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_DELETE_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -73,9 +125,20 @@ class EngineerController {
 
   async exists(id) {
 
-    return this.service.exists(
-      id
-    );
+    try {
+
+      return await this.service.exists(
+        id
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_EXISTS_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -83,7 +146,18 @@ class EngineerController {
 
   async count() {
 
-    return this.service.count();
+    try {
+
+      return await this.service.count();
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_COUNT_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -91,9 +165,20 @@ class EngineerController {
 
   async search(keyword) {
 
-    return this.service.search(
-      keyword
-    );
+    try {
+
+      return await this.service.search(
+        keyword
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `ENGINEER_SEARCH_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -102,13 +187,6 @@ class EngineerController {
 
 
 
-const engineerController =
-  new EngineerController(
-    engineerService
-  );
-
-
-
 export default Object.freeze(
-  engineerController
+  new EngineerController()
 );
