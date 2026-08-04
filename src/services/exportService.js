@@ -4,17 +4,20 @@
 class ExportService {
 
 
+  constructor() {
+
+    this.version =
+      "3.0.0";
+
+  }
+
+
 
   exportJSON(data) {
 
 
-    if (data === undefined) {
+    this.validateData(data);
 
-      throw new Error(
-        "EXPORT_DATA_REQUIRED"
-      );
-
-    }
 
 
     return JSON.stringify(
@@ -22,7 +25,7 @@ class ExportService {
       {
 
         version:
-          "3.0.0",
+          this.version,
 
 
         exportedAt:
@@ -46,13 +49,17 @@ class ExportService {
   importJSON(json) {
 
 
-    if (!json) {
+    if (
+      !json ||
+      typeof json !== "string"
+    ) {
 
       throw new Error(
         "IMPORT_DATA_REQUIRED"
       );
 
     }
+
 
 
     try {
@@ -65,10 +72,14 @@ class ExportService {
 
       return (
 
-        parsed?.data ??
+        parsed?.data
+
+        ??
+
         parsed
 
       );
+
 
 
     } catch(error) {
@@ -105,10 +116,105 @@ class ExportService {
   }
 
 
+
+  exportCSV(data) {
+
+
+    this.validateData(data);
+
+
+
+    if (
+      !Array.isArray(data)
+    ) {
+
+      throw new Error(
+        "CSV_ARRAY_REQUIRED"
+      );
+
+    }
+
+
+
+    if (
+      data.length === 0
+    ) {
+
+      return "";
+
+    }
+
+
+
+    const headers =
+      Object.keys(data[0]);
+
+
+
+    const rows =
+      data.map(
+
+        item =>
+
+        headers.map(
+
+          key =>
+
+          item[key]
+
+        ).join(",")
+
+      );
+
+
+
+    return [
+
+      headers.join(","),
+
+      ...rows
+
+    ].join("\n");
+
+
+  }
+
+
+
+  validateData(data) {
+
+
+    if (
+      data === undefined ||
+      data === null
+    ) {
+
+      throw new Error(
+        "EXPORT_DATA_REQUIRED"
+      );
+
+    }
+
+
+    return true;
+
+  }
+
+
+
+  getVersion() {
+
+    return this.version;
+
+  }
+
+
 }
 
 
 
 export default Object.freeze(
+
   new ExportService()
+
 );
