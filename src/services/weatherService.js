@@ -15,8 +15,8 @@ class WeatherService {
   }
 
 
-  async getCurrentWeather(location) {
 
+  async getCurrentWeather(location) {
 
     this.validateLocation(
       location
@@ -33,13 +33,27 @@ class WeatherService {
 
   async refreshWeather(location) {
 
-
     this.validateLocation(
       location
     );
 
 
     return this.repository.refreshWeather(
+      location
+    );
+
+  }
+
+
+
+  async getForecast(location) {
+
+    this.validateLocation(
+      location
+    );
+
+
+    return this.repository.getForecast(
       location
     );
 
@@ -63,13 +77,46 @@ class WeatherService {
 
 
 
+    const {
+      latitude,
+      longitude
+    } = location;
+
+
+
     if (
-      location.latitude == null ||
-      location.longitude == null
+      latitude == null ||
+      longitude == null
     ) {
 
       throw new Error(
         "WEATHER_COORDINATES_REQUIRED"
+      );
+
+    }
+
+
+
+    if (
+      Number(latitude) < -90 ||
+      Number(latitude) > 90
+    ) {
+
+      throw new Error(
+        "INVALID_LATITUDE"
+      );
+
+    }
+
+
+
+    if (
+      Number(longitude) < -180 ||
+      Number(longitude) > 180
+    ) {
+
+      throw new Error(
+        "INVALID_LONGITUDE"
       );
 
     }
@@ -82,6 +129,7 @@ class WeatherService {
 
 
 }
+
 
 
 export default Object.freeze(
