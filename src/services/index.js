@@ -61,6 +61,18 @@ import inventoryService
 from "./inventoryService.js";
 
 
+import consultationService
+from "./consultationService.js";
+
+
+import reportService
+from "./reportService.js";
+
+
+import engineerService
+from "./engineerService.js";
+
+
 import aiService
 from "./aiService.js";
 
@@ -91,91 +103,129 @@ from "./logService.js";
 
 
 
+
 const services = {
+
 
 
   storage:
     storageService,
 
 
+
   cache:
     cacheService,
+
 
 
   auth:
     authService,
 
 
+
   user:
     userService,
+
 
 
   farm:
     farmService,
 
 
+
   field:
     fieldService,
+
 
 
   crop:
     cropService,
 
 
+
   irrigation:
     irrigationService,
+
 
 
   fertilizer:
     fertilizerService,
 
 
+
   pesticide:
     pesticideService,
+
 
 
   disease:
     diseaseService,
 
 
+
   weather:
     weatherService,
+
 
 
   expense:
     expenseService,
 
 
+
   harvest:
     harvestService,
+
 
 
   inventory:
     inventoryService,
 
 
+
+  consultation:
+    consultationService,
+
+
+
+  report:
+    reportService,
+
+
+
+  engineer:
+    engineerService,
+
+
+
   ai:
     aiService,
+
 
 
   analytics:
     analyticsService,
 
 
+
   backup:
     backupService,
+
 
 
   export:
     exportService,
 
 
+
   notification:
     notificationService,
 
 
+
   sync:
     syncService,
+
 
 
   log:
@@ -183,6 +233,8 @@ const services = {
 
 
 };
+
+
 
 
 
