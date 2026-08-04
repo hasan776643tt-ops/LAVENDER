@@ -1,16 +1,21 @@
 // src/controllers/fertilizerController.js
 
-import fertilizerService from "../services/fertilizerService.js";
+
+import fertilizerService
+  from "../services/fertilizerService.js";
+
 
 
 class FertilizerController {
 
 
-  constructor() {
+  constructor(service) {
 
-    this.service = fertilizerService;
+    this.service =
+      service;
 
   }
+
 
 
   async getAll() {
@@ -20,21 +25,31 @@ class FertilizerController {
   }
 
 
+
   async getById(id) {
 
-    return this.service.getById(id);
+    return this.service.getById(
+      id
+    );
 
   }
+
 
 
   async create(data) {
 
-    return this.service.create(data);
+    return this.service.create(
+      data
+    );
 
   }
 
 
-  async update(id, data) {
+
+  async update(
+    id,
+    data
+  ) {
 
     return this.service.update(
       id,
@@ -44,11 +59,15 @@ class FertilizerController {
   }
 
 
+
   async delete(id) {
 
-    return this.service.delete(id);
+    return this.service.delete(
+      id
+    );
 
   }
+
 
 
   async count() {
@@ -58,9 +77,12 @@ class FertilizerController {
   }
 
 
+
   async exists(id) {
 
-    return this.service.exists(id);
+    return this.service.exists(
+      id
+    );
 
   }
 
@@ -68,8 +90,12 @@ class FertilizerController {
 }
 
 
+
 const fertilizerController =
-new FertilizerController();
+  new FertilizerController(
+    fertilizerService
+  );
+
 
 
 export default Object.freeze(
