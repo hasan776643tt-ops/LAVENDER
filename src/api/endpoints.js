@@ -6,116 +6,68 @@
 // ===============================
 
 
-// Base Resources
-
 const endpoints = {
 
 
   // =============================
-  // Farm
+  // Core Resources
   // =============================
+
 
   farms:
     "/farms",
 
 
-
-  // =============================
-  // Field
-  // =============================
-
   fields:
     "/fields",
 
-
-
-  // =============================
-  // Crops
-  // =============================
 
   crops:
     "/crops",
 
 
+  irrigations:
+    "/irrigations",
 
-  // =============================
-  // Irrigation
-  // =============================
-
-  irrigation:
-    "/irrigation",
-
-
-
-  // =============================
-  // Fertilizer
-  // =============================
 
   fertilizers:
     "/fertilizers",
 
 
-
-  // =============================
-  // Pesticide
-  // =============================
-
   pesticides:
     "/pesticides",
 
-
-
-  // =============================
-  // Diseases
-  // =============================
 
   diseases:
     "/diseases",
 
 
-
-  // =============================
-  // Harvest
-  // =============================
-
   harvests:
     "/harvests",
 
 
-
-  // =============================
-  // Inventory
-  // =============================
-
   inventory:
     "/inventory",
 
-
-
-  // =============================
-  // Expenses
-  // =============================
 
   expenses:
     "/expenses",
 
 
 
+
   // =============================
-  // Users
+  // Users & Professionals
   // =============================
+
 
   users:
     "/users",
 
 
-
-  // =============================
-  // Engineers
-  // =============================
-
   engineers:
     "/engineers",
+
 
 
 
@@ -123,23 +75,34 @@ const endpoints = {
   // Reports
   // =============================
 
+
   reports:
     "/reports",
 
 
 
+
   // =============================
-  // Weather External API
+  // Weather
   // =============================
 
-  weather:
-    "/weather",
+
+  weather: {
+
+
+    current:
+      "/weather/current"
+
+
+  },
+
 
 
 
   // =============================
   // Authentication
   // =============================
+
 
   auth: {
 
@@ -168,8 +131,11 @@ const endpoints = {
 
 
 
+
 // Prevent accidental mutation
 
 export default Object.freeze(
+
   endpoints
+
 );
