@@ -21,7 +21,7 @@ const getAll = async () => {
 
   return apiClient.get(
 
-    endpoints.irrigation
+    endpoints.irrigations
 
   );
 
@@ -58,7 +58,7 @@ const getById = async (
 
   return apiClient.get(
 
-    `${endpoints.irrigation}/${id}`
+    `${endpoints.irrigations}/${id}`
 
   );
 
@@ -95,7 +95,7 @@ const create = async (
 
   return apiClient.post(
 
-    endpoints.irrigation,
+    endpoints.irrigations,
 
     data
 
@@ -152,7 +152,7 @@ const update = async (
 
   return apiClient.put(
 
-    `${endpoints.irrigation}/${id}`,
+    `${endpoints.irrigations}/${id}`,
 
     data
 
@@ -191,7 +191,7 @@ const remove = async (
 
   return apiClient.delete(
 
-    `${endpoints.irrigation}/${id}`
+    `${endpoints.irrigations}/${id}`
 
   );
 
