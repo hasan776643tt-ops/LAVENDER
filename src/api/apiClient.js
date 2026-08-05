@@ -11,6 +11,10 @@ import {
 from "../utils/errorHandler.js";
 
 
+import storageService
+from "../services/storageService.js";
+
+
 import appConfig
 from "../config/appConfig.js";
 
@@ -18,27 +22,44 @@ from "../config/appConfig.js";
 
 
 // ===============================
-// API Client Configuration
+// API Configuration
 // ===============================
 
 
-const BASE_URL =
-
-  appConfig?.api?.baseUrl
-
-  ||
-
-  "";
+const getBaseUrl = () => {
 
 
+  return (
 
-const DEFAULT_TIMEOUT =
+    appConfig?.api?.baseUrl
 
-  appConfig?.api?.timeout
+    ||
 
-  ||
+    ""
 
-  10000;
+  );
+
+
+};
+
+
+
+
+const getTimeout = () => {
+
+
+  return (
+
+    appConfig?.api?.timeout
+
+    ||
+
+    10000
+
+  );
+
+
+};
 
 
 
@@ -46,30 +67,77 @@ const DEFAULT_TIMEOUT =
 
 
 // ===============================
-// Get Authentication Token
+// Authentication
 // ===============================
 
 
 const getToken = () => {
 
 
-  if(
-    typeof localStorage === "undefined"
-  ) {
+  return storageService.load(
 
+    "lavender_token",
 
-    return null;
-
-
-  }
-
-
-
-  return localStorage.getItem(
-
-    "lavender_token"
+    null
 
   );
+
+
+};
+
+
+
+
+
+
+// ===============================
+// Build Headers
+// ===============================
+
+
+const buildHeaders = (
+
+  options = {}
+
+) => {
+
+
+  const token =
+    getToken();
+
+
+
+  return {
+
+
+    "Content-Type":
+
+      "application/json",
+
+
+
+    Accept:
+
+      "application/json",
+
+
+
+    ...(token && {
+
+
+      Authorization:
+
+        `Bearer ${token}`
+
+
+    }),
+
+
+
+    ...options.headers
+
+
+  };
 
 
 };
@@ -107,7 +175,7 @@ const request = async (
 
         controller.abort(),
 
-      DEFAULT_TIMEOUT
+      getTimeout()
 
     );
 
@@ -116,17 +184,11 @@ const request = async (
   try {
 
 
-    const token =
-
-      getToken();
-
-
-
     const response =
 
       await fetch(
 
-        `${BASE_URL}${endpoint}`,
+        `${getBaseUrl()}${endpoint}`,
 
         {
 
@@ -134,38 +196,11 @@ const request = async (
           ...options,
 
 
-          headers: {
+          headers:
 
-
-            "Content-Type":
-
-              "application/json",
-
-
-
-            Accept:
-
-              "application/json",
-
-
-
-            ...(token && {
-
-
-              Authorization:
-
-                `Bearer ${token}`
-
-
-            }),
-
-
-
-            ...options.headers
-
-
-          },
-
+            buildHeaders(
+              options
+            ),
 
 
           signal:
@@ -185,14 +220,48 @@ const request = async (
 
 
 
-    const data =
+    let data = null;
 
-      await response.json();
+
+
+    const contentType =
+
+      response.headers.get(
+
+        "content-type"
+
+      );
 
 
 
     if(
+
+      contentType
+
+      &&
+
+      contentType.includes(
+
+        "application/json"
+
+      )
+
+    ) {
+
+
+      data =
+
+        await response.json();
+
+
+    }
+
+
+
+    if(
+
       !response.ok
+
     ) {
 
 
@@ -202,7 +271,7 @@ const request = async (
 
         ||
 
-        `API Error ${response.status}`
+        `Request failed ${response.status}`
 
       );
 
@@ -232,9 +301,9 @@ const request = async (
 
 
 
-    logger.error(
+    logger.error?.(
 
-      "API Request Failed",
+      "API Request Error",
 
       formattedError
 
@@ -319,13 +388,11 @@ const post = (
         "POST",
 
 
-
       body:
 
         JSON.stringify(
           data
         ),
-
 
 
       ...options
@@ -366,13 +433,11 @@ const put = (
         "PUT",
 
 
-
       body:
 
         JSON.stringify(
           data
         ),
-
 
 
       ...options
@@ -413,13 +478,11 @@ const patch = (
         "PATCH",
 
 
-
       body:
 
         JSON.stringify(
           data
         ),
-
 
 
       ...options
@@ -473,11 +536,6 @@ const remove = (
 
 
 
-// ===============================
-// Export API Client
-// ===============================
-
-
 const apiClient = Object.freeze({
 
   get,
@@ -491,7 +549,6 @@ const apiClient = Object.freeze({
   delete:
 
     remove
-
 
 });
 
