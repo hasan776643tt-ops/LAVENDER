@@ -1,10 +1,19 @@
 // src/services/inventoryService.js
 
 import inventoryRepository
-  from "../repositories/inventoryRepository.js";
+from "../repositories/inventoryRepository.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
 
 
 class InventoryService {
+
 
 
   constructor() {
@@ -16,6 +25,8 @@ class InventoryService {
 
 
 
+
+
   async getAll() {
 
     return this.repository.getAll();
@@ -24,44 +35,65 @@ class InventoryService {
 
 
 
+
+
   async getById(id) {
 
+
     this.validateId(id);
+
 
 
     const item =
       await this.repository.getById(id);
 
 
+
     if (!item) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Inventory item not found",
+
         "INVENTORY_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return item;
+
 
   }
 
 
 
+
+
   async create(data) {
 
+
     this.validateCreate(data);
+
 
 
     return this.repository.create(
       data
     );
 
+
   }
 
 
 
+
+
   async update(id, data) {
+
 
     this.validateId(id);
 
@@ -69,31 +101,48 @@ class InventoryService {
     this.validateUpdate(data);
 
 
+
     const updated =
       await this.repository.update(
+
         id,
+
         data
+
       );
+
 
 
     if (!updated) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Inventory item not found",
+
         "INVENTORY_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return updated;
+
 
   }
 
 
 
+
+
   async delete(id) {
 
+
     this.validateId(id);
+
 
 
     const deleted =
@@ -102,22 +151,34 @@ class InventoryService {
       );
 
 
+
     if (!deleted) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Inventory item not found",
+
         "INVENTORY_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   async exists(id) {
+
 
     if (!id) {
 
@@ -126,92 +187,139 @@ class InventoryService {
     }
 
 
+
     const item =
       await this.repository.getById(
         id
       );
 
 
-    return Boolean(item);
+
+    return Boolean(
+      item
+    );
+
 
   }
+
+
 
 
 
   async count() {
 
+
     const items =
       await this.repository.getAll();
 
 
+
     return items.length;
 
+
   }
+
+
 
 
 
   validateId(id) {
 
+
     if (!id) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Inventory item id is required",
+
         "INVENTORY_ID_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
   validateCreate(data) {
 
+
     this.validateData(data);
+
 
 
     return true;
 
+
   }
+
+
 
 
 
   validateUpdate(data) {
 
+
     this.validateData(data);
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   validateData(data) {
+
 
     if (
       !data ||
       typeof data !== "object"
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Inventory data is required",
+
         "INVENTORY_DATA_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
 
 
 }
 
 
 
+
+
 export default Object.freeze(
+
   new InventoryService()
+
 );
