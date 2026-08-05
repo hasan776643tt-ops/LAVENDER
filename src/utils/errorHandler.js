@@ -1,12 +1,18 @@
 // src/utils/errorHandler.js
 
 
+import logger
+from "./logger.js";
+
+
+
 export class AppError extends Error {
 
 
   constructor(
     message,
     code = "UNKNOWN_ERROR",
+    statusCode = 500,
     details = null
   ) {
 
@@ -22,15 +28,52 @@ export class AppError extends Error {
       code;
 
 
+    this.statusCode =
+      statusCode;
+
+
     this.details =
       details;
 
+
+    Error.captureStackTrace(
+      this,
+      AppError
+    );
 
 
   }
 
 
 }
+
+
+
+
+
+export function createError(
+  message,
+  code = "UNKNOWN_ERROR",
+  statusCode = 500,
+  details = null
+) {
+
+
+  return new AppError(
+
+    message,
+
+    code,
+
+    statusCode,
+
+    details
+
+  );
+
+
+}
+
 
 
 
@@ -56,6 +99,10 @@ export function handleError(
         error.code,
 
 
+      statusCode:
+        error.statusCode,
+
+
       details:
         error.details
 
@@ -68,10 +115,12 @@ export function handleError(
 
 
 
+
   return {
 
 
     message:
+
       error?.message ||
 
       "Unexpected error occurred",
@@ -79,11 +128,19 @@ export function handleError(
 
 
     code:
+
       "UNKNOWN_ERROR",
 
 
 
+    statusCode:
+
+      500,
+
+
+
     details:
+
       null
 
 
@@ -95,28 +152,6 @@ export function handleError(
 
 
 
-export function createError(
-  message,
-  code,
-  details = null
-) {
-
-
-  return new AppError(
-
-    message,
-
-    code,
-
-    details
-
-  );
-
-
-}
-
-
-
 
 export function logError(
   error,
@@ -124,23 +159,25 @@ export function logError(
 ) {
 
 
-  console.error(
+  const formattedError =
 
-    {
+    handleError(
+      error
+    );
 
-      context,
 
-      error:
-        handleError(
-          error
-        )
 
-    }
+  logger.error(
+
+    context,
+
+    formattedError
 
   );
 
 
 }
+
 
 
 
@@ -150,9 +187,9 @@ export default {
 
   AppError,
 
-  handleError,
-
   createError,
+
+  handleError,
 
   logError
 
