@@ -1,21 +1,26 @@
 // src/hooks/useFarm.js
 
 
-import { useContext } from "react";
-
-import { FarmContext } from "../context/FarmContext";
-
-
-
-function useFarm() {
+import {
+  useContext
+} from "react";
 
 
-  const farmContext =
+import {
+  FarmContext
+} from "../context/FarmContext.js";
+
+
+
+export default function useFarm() {
+
+
+  const context =
     useContext(FarmContext);
 
 
 
-  if (!farmContext) {
+  if (!context) {
 
     throw new Error(
       "useFarm must be used within FarmProvider"
@@ -25,31 +30,7 @@ function useFarm() {
 
 
 
-  return {
-
-    farms:
-      farmContext.farms,
-
-    selectedFarm:
-      farmContext.selectedFarm,
-
-    createFarm:
-      farmContext.createFarm,
-
-    updateFarm:
-      farmContext.updateFarm,
-
-    deleteFarm:
-      farmContext.deleteFarm,
-
-    setSelectedFarm:
-      farmContext.setSelectedFarm
-
-  };
+  return context;
 
 
 }
-
-
-
-export default useFarm;
