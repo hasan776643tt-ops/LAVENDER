@@ -5,11 +5,19 @@ import storageService
   from "./storageService.js";
 
 
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
 
 class BackupService {
 
 
+
   constructor() {
+
 
     this.version =
       "3.0.0";
@@ -18,14 +26,19 @@ class BackupService {
     this.key =
       "lavender_backups";
 
+
   }
+
+
 
 
 
   async createBackup(data) {
 
 
-    this.validateData(data);
+    this.validateData(
+      data
+    );
 
 
 
@@ -45,10 +58,13 @@ class BackupService {
 
 
       records:
-        this.countRecords(data),
+        this.countRecords(
+          data
+        ),
 
 
       data
+
 
     };
 
@@ -65,7 +81,7 @@ class BackupService {
 
 
 
-    storageService.save(
+    await storageService.save(
 
       this.key,
 
@@ -77,7 +93,10 @@ class BackupService {
 
     return backup;
 
+
   }
+
+
 
 
 
@@ -86,18 +105,24 @@ class BackupService {
 
     const backup =
 
+
       id
 
       ?
 
-      (await this.getAll())
-        .find(
+      (
 
-          item =>
+        await this.getAll()
+
+      )
+
+      .find(
+
+        item =>
 
           String(item.id) === String(id)
 
-        )
+      )
 
       :
 
@@ -109,9 +134,15 @@ class BackupService {
       !this.validate(backup)
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Backup not found",
+
         "BACKUP_NOT_FOUND"
+
       );
+
 
     }
 
@@ -119,7 +150,10 @@ class BackupService {
 
     return backup.data;
 
+
   }
+
+
 
 
 
@@ -134,7 +168,10 @@ class BackupService {
 
     );
 
+
   }
+
+
 
 
 
@@ -149,7 +186,9 @@ class BackupService {
     return (
 
       backups[
+
         backups.length - 1
+
       ]
 
       ||
@@ -158,7 +197,10 @@ class BackupService {
 
     );
 
+
   }
+
+
 
 
 
@@ -167,7 +209,9 @@ class BackupService {
 
     if (!id) {
 
+
       return false;
+
 
     }
 
@@ -183,23 +227,29 @@ class BackupService {
 
         item =>
 
-        String(item.id) !== String(id)
+          String(item.id) !== String(id)
 
       );
 
 
 
     if (
-      filtered.length === backups.length
+
+      filtered.length ===
+
+      backups.length
+
     ) {
 
+
       return false;
+
 
     }
 
 
 
-    storageService.save(
+    await storageService.save(
 
       this.key,
 
@@ -211,7 +261,10 @@ class BackupService {
 
     return true;
 
+
   }
+
+
 
 
 
@@ -224,7 +277,10 @@ class BackupService {
 
     );
 
+
   }
+
+
 
 
 
@@ -245,7 +301,10 @@ class BackupService {
 
     );
 
+
   }
+
+
 
 
 
@@ -253,19 +312,33 @@ class BackupService {
 
 
     if (
-      data === undefined
+
+      data === undefined ||
+
+      data === null
+
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Backup data is required",
+
         "BACKUP_DATA_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
@@ -273,21 +346,30 @@ class BackupService {
 
 
     if (
+
       Array.isArray(data)
+
     ) {
 
+
       return data.length;
+
 
     }
 
 
 
     if (
+
       typeof data === "object" &&
+
       data !== null
+
     ) {
 
+
       return Object.keys(data).length;
+
 
     }
 
@@ -295,7 +377,10 @@ class BackupService {
 
     return 1;
 
+
   }
+
+
 
 
 
@@ -303,12 +388,17 @@ class BackupService {
 
 
     if (
-      crypto?.randomUUID
+
+      globalThis.crypto?.randomUUID
+
     ) {
 
-      return crypto.randomUUID();
+
+      return globalThis.crypto.randomUUID();
+
 
     }
+
 
 
     return (
@@ -318,20 +408,28 @@ class BackupService {
       +
 
       Math.random()
-        .toString(36)
-        .substring(2)
+
+      .toString(36)
+
+      .substring(2)
 
     );
 
+
   }
+
+
 
 
 
   getVersion() {
 
+
     return this.version;
 
+
   }
+
 
 
 }
