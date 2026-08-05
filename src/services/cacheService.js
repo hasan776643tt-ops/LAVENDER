@@ -1,7 +1,15 @@
 // src/services/cacheService.js
 
 
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
+
 class CacheService {
+
 
 
   constructor() {
@@ -13,11 +21,14 @@ class CacheService {
 
     this.stats = {
 
+
       hits:
         0,
 
+
       misses:
         0
+
 
     };
 
@@ -40,16 +51,9 @@ class CacheService {
     );
 
 
-    if (
-      ttl !== null &&
-      ttl < 0
-    ) {
-
-      throw new Error(
-        "CACHE_TTL_INVALID"
-      );
-
-    }
+    this.validateTTL(
+      ttl
+    );
 
 
 
@@ -62,11 +66,11 @@ class CacheService {
         value,
 
 
+        ttl,
+
+
         createdAt:
-          Date.now(),
-
-
-        ttl
+          Date.now()
 
       }
 
@@ -154,6 +158,12 @@ class CacheService {
   has(key) {
 
 
+    this.validateKey(
+      key
+    );
+
+
+
     return this.get(key) !== null;
 
 
@@ -164,6 +174,12 @@ class CacheService {
 
 
   remove(key) {
+
+
+    this.validateKey(
+      key
+    );
+
 
 
     return this.cache.delete(
@@ -183,6 +199,22 @@ class CacheService {
     this.cache.clear();
 
 
+
+    this.stats = {
+
+
+      hits:
+        0,
+
+
+      misses:
+        0
+
+
+    };
+
+
+
     return true;
 
 
@@ -195,18 +227,20 @@ class CacheService {
   cleanup() {
 
 
-    const keys =
-      this.keys();
+    for (
+
+      const key of this.keys()
+
+    ) {
 
 
+      this.get(
+        key
+      );
 
-    keys.forEach(
 
-      key =>
+    }
 
-      this.get(key)
-
-    );
 
 
     return true;
@@ -247,7 +281,7 @@ class CacheService {
 
       item =>
 
-      item.value
+        item.value
 
     );
 
@@ -285,10 +319,41 @@ class CacheService {
 
 
       stats:
-        this.stats
+        {
+
+          ...this.stats
+
+        }
 
 
     };
+
+
+  }
+
+
+
+
+
+  resetStats() {
+
+
+    this.stats = {
+
+
+      hits:
+        0,
+
+
+      misses:
+        0
+
+
+    };
+
+
+
+    return true;
 
 
   }
@@ -301,23 +366,72 @@ class CacheService {
 
 
     if (
+
       !key ||
+
       typeof key !== "string"
+
     ) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Cache key is required",
+
         "CACHE_KEY_REQUIRED"
+
       );
 
 
     }
 
 
+
     return true;
 
 
   }
+
+
+
+
+
+  validateTTL(ttl) {
+
+
+    if (
+
+      ttl !== null &&
+
+      (
+
+        typeof ttl !== "number" ||
+
+        ttl < 0
+
+      )
+
+    ) {
+
+
+      throw createError(
+
+        "Cache ttl is invalid",
+
+        "CACHE_TTL_INVALID"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
+
+  }
+
 
 
 }
