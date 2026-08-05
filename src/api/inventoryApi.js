@@ -1,282 +1,205 @@
 // src/api/inventoryApi.js
 
 
-import storageService
-  from "../services/storageService.js";
+import apiClient
+from "./apiClient.js";
+
+
+import endpoints
+from "./endpoints.js";
 
 
 
-const STORAGE_KEY =
-  "inventory";
 
-
-
-const generateId = () =>
-
-  crypto?.randomUUID?.()
-  ||
-  Date.now().toString();
-
+// ===============================
+// Inventory API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.inventory
+
   );
+
 
 };
 
 
 
-const getById = async (id) => {
 
 
-  if (!id) {
+
+const getById = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Inventory item id is required."
+
     );
+
 
   }
 
 
 
-  const inventory =
-    await getAll();
+  return apiClient.get(
 
-
-
-  return (
-
-    inventory.find(
-
-      item =>
-
-      String(item.id)
-      ===
-      String(id)
-
-    )
-
-    || null
+    `${endpoints.inventory}/${id}`
 
   );
+
 
 };
 
 
 
-const create = async (data) => {
 
 
-  if (!data) {
+
+const create = async (
+
+  data
+
+) => {
+
+
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Inventory data is required."
+
     );
+
 
   }
 
 
 
-  const inventory =
-    await getAll();
+  return apiClient.post(
 
+    endpoints.inventory,
 
-
-  const item = {
-
-
-    id:
-      generateId(),
-
-
-    ...data,
-
-
-    createdAt:
-      new Date().toISOString(),
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  inventory.push(
-    item
-  );
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    inventory
+    data
 
   );
 
-
-
-  return item;
 
 };
+
+
+
 
 
 
 const update = async (
+
   id,
+
   data
+
 ) => {
 
 
-  if (!id) {
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Inventory item id is required."
+
     );
+
 
   }
 
 
 
-  if (!data) {
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Inventory data is required."
+
     );
+
 
   }
 
 
 
-  const inventory =
-    await getAll();
+  return apiClient.put(
 
+    `${endpoints.inventory}/${id}`,
 
-
-  const index =
-    inventory.findIndex(
-
-      item =>
-
-      String(item.id)
-      ===
-      String(id)
-
-    );
-
-
-
-  if (index === -1) {
-
-    return null;
-
-  }
-
-
-
-  const updatedItem = {
-
-
-    ...inventory[index],
-
-
-    ...data,
-
-
-    id:
-      inventory[index].id,
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  inventory[index] =
-    updatedItem;
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    inventory
+    data
 
   );
 
 
-
-  return updatedItem;
-
 };
 
 
 
-const remove = async (id) => {
 
 
-  if (!id) {
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Inventory item id is required."
+
     );
+
 
   }
 
 
 
-  const inventory =
-    await getAll();
+  return apiClient.delete(
 
+    `${endpoints.inventory}/${id}`
 
+  );
 
-  const filtered =
-    inventory.filter(
-
-      item =>
-
-      String(item.id)
-      !==
-      String(id)
-
-    );
-
-
-
-  const deleted =
-    filtered.length !== inventory.length;
-
-
-
-  if (deleted) {
-
-    storageService.save(
-
-      STORAGE_KEY,
-
-      filtered
-
-    );
-
-  }
-
-
-
-  return deleted;
 
 };
+
+
+
 
 
 
@@ -291,7 +214,9 @@ const inventoryApi = Object.freeze({
   update,
 
   delete:
+
     remove
+
 
 });
 
