@@ -1,5 +1,6 @@
 // src/hooks/useFarms.js
 
+
 import {
   useContext,
   useMemo
@@ -8,7 +9,7 @@ import {
 
 import {
   FarmContext
-} from "../context/FarmContext";
+} from "../context/FarmContext.js";
 
 
 
@@ -40,40 +41,49 @@ export default function useFarms() {
 
 
 
+  const statistics =
+    useMemo(
 
-  const statistics = useMemo(() => {
-
-
-    return {
-
-      total:
-        farms.length,
+      () => ({
 
 
-      active:
-        farms.filter(
-          farm =>
-            farm.status === "active"
-        ).length,
-
-
-      inactive:
-        farms.filter(
-          farm =>
-            farm.status === "inactive"
-        ).length
-
-    };
-
-
-  }, [farms]);
+        total:
+          farms.length,
 
 
 
+        active:
+          farms.filter(
+
+            farm =>
+
+              farm.status === "active"
+
+          ).length,
 
 
 
-  const addFarm = async (data) => {
+        inactive:
+          farms.filter(
+
+            farm =>
+
+              farm.status === "inactive"
+
+          ).length
+
+
+      }),
+
+      [farms]
+
+    );
+
+
+
+  const addFarm = async (
+    data
+  ) => {
 
 
     return await farmActions.create(
@@ -82,10 +92,6 @@ export default function useFarms() {
 
 
   };
-
-
-
-
 
 
 
@@ -105,14 +111,12 @@ export default function useFarms() {
 
 
 
+  const deleteFarm = async (
+    id
+  ) => {
 
 
-
-
-  const deleteFarm = async (id) => {
-
-
-    return await farmActions.remove(
+    return await farmActions.delete(
       id
     );
 
@@ -121,21 +125,13 @@ export default function useFarms() {
 
 
 
-
-
-
-
-  const getFarms = async () => {
+  const loadFarms = async () => {
 
 
     return await farmActions.load();
 
 
   };
-
-
-
-
 
 
 
@@ -164,11 +160,8 @@ export default function useFarms() {
 
 
 
-
-
-
-
   return {
+
 
     farms,
 
@@ -178,11 +171,12 @@ export default function useFarms() {
 
     deleteFarm,
 
-    getFarms,
+    loadFarms,
 
     searchFarms,
 
     statistics
+
 
   };
 
