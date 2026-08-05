@@ -1,22 +1,35 @@
 // src/services/exportService.js
 
 
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
+
 class ExportService {
 
 
   constructor() {
 
+
     this.version =
       "3.0.0";
 
+
   }
+
+
 
 
 
   exportJSON(data) {
 
 
-    this.validateData(data);
+    this.validateData(
+      data
+    );
 
 
 
@@ -42,7 +55,10 @@ class ExportService {
 
     );
 
+
   }
+
+
 
 
 
@@ -50,13 +66,22 @@ class ExportService {
 
 
     if (
+
       !json ||
+
       typeof json !== "string"
+
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Import data is required",
+
         "IMPORT_DATA_REQUIRED"
+
       );
+
 
     }
 
@@ -85,13 +110,21 @@ class ExportService {
     } catch(error) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Invalid JSON data",
+
         "INVALID_JSON_DATA"
+
       );
+
 
     }
 
+
   }
+
+
 
 
 
@@ -102,7 +135,10 @@ class ExportService {
       data
     );
 
+
   }
+
+
 
 
 
@@ -113,32 +149,28 @@ class ExportService {
       data
     );
 
+
   }
+
+
 
 
 
   exportCSV(data) {
 
 
-    this.validateData(data);
+    this.validateArray(
+      data
+    );
 
 
 
     if (
-      !Array.isArray(data)
-    ) {
 
-      throw new Error(
-        "CSV_ARRAY_REQUIRED"
-      );
-
-    }
-
-
-
-    if (
       data.length === 0
+
     ) {
+
 
       return "";
 
@@ -147,11 +179,14 @@ class ExportService {
 
 
     const headers =
-      Object.keys(data[0]);
+      Object.keys(
+        data[0]
+      );
 
 
 
     const rows =
+
       data.map(
 
         item =>
@@ -160,7 +195,9 @@ class ExportService {
 
           key =>
 
-          item[key]
+          this.escapeCSV(
+            item[key]
+          )
 
         ).join(",")
 
@@ -181,35 +218,159 @@ class ExportService {
 
 
 
-  validateData(data) {
+
+
+  escapeCSV(value) {
 
 
     if (
-      data === undefined ||
-      data === null
+
+      value === null ||
+
+      value === undefined
+
     ) {
 
-      throw new Error(
-        "EXPORT_DATA_REQUIRED"
-      );
+
+      return "";
 
     }
 
 
-    return true;
+
+    const stringValue =
+      String(value);
+
+
+
+    if (
+
+      stringValue.includes(",")
+
+      ||
+
+      stringValue.includes('"')
+
+      ||
+
+      stringValue.includes("\n")
+
+    ) {
+
+
+      return (
+
+        '"' +
+
+        stringValue.replace(
+
+          /"/g,
+
+          '""'
+
+        )
+
+        +
+
+        '"'
+
+      );
+
+
+    }
+
+
+
+    return stringValue;
+
 
   }
+
+
+
+
+
+  validateData(data) {
+
+
+    if (
+
+      data === undefined
+
+      ||
+
+      data === null
+
+    ) {
+
+
+      throw createError(
+
+        "Export data is required",
+
+        "EXPORT_DATA_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateArray(data) {
+
+
+    if (
+
+      !Array.isArray(data)
+
+    ) {
+
+
+      throw createError(
+
+        "CSV data must be an array",
+
+        "CSV_ARRAY_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
+
+  }
+
+
 
 
 
   getVersion() {
 
+
     return this.version;
+
 
   }
 
 
+
 }
+
+
 
 
 
