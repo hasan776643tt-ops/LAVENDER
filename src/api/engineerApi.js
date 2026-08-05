@@ -1,282 +1,205 @@
 // src/api/engineerApi.js
 
 
-import storageService
-  from "../services/storageService.js";
+import apiClient
+from "./apiClient.js";
+
+
+import endpoints
+from "./endpoints.js";
 
 
 
-const STORAGE_KEY =
-  "engineers";
 
-
-
-const generateId = () =>
-
-  crypto?.randomUUID?.()
-  ||
-  Date.now().toString();
-
+// ===============================
+// Engineer API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.engineers
+
   );
+
 
 };
 
 
 
-const getById = async (id) => {
 
 
-  if (!id) {
+
+const getById = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Engineer id is required."
+
     );
+
 
   }
 
 
 
-  const engineers =
-    await getAll();
+  return apiClient.get(
 
-
-
-  return (
-
-    engineers.find(
-
-      engineer =>
-
-      String(engineer.id)
-      ===
-      String(id)
-
-    )
-
-    || null
+    `${endpoints.engineers}/${id}`
 
   );
+
 
 };
 
 
 
-const create = async (data) => {
 
 
-  if (!data) {
+
+const create = async (
+
+  data
+
+) => {
+
+
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Engineer data is required."
+
     );
+
 
   }
 
 
 
-  const engineers =
-    await getAll();
+  return apiClient.post(
 
+    endpoints.engineers,
 
-
-  const engineer = {
-
-
-    id:
-      generateId(),
-
-
-    ...data,
-
-
-    createdAt:
-      new Date().toISOString(),
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  engineers.push(
-    engineer
-  );
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    engineers
+    data
 
   );
 
-
-
-  return engineer;
 
 };
+
+
+
 
 
 
 const update = async (
+
   id,
+
   data
+
 ) => {
 
 
-  if (!id) {
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Engineer id is required."
+
     );
+
 
   }
 
 
 
-  if (!data) {
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Engineer data is required."
+
     );
+
 
   }
 
 
 
-  const engineers =
-    await getAll();
+  return apiClient.put(
 
+    `${endpoints.engineers}/${id}`,
 
-
-  const index =
-    engineers.findIndex(
-
-      engineer =>
-
-      String(engineer.id)
-      ===
-      String(id)
-
-    );
-
-
-
-  if (index === -1) {
-
-    return null;
-
-  }
-
-
-
-  const updatedEngineer = {
-
-
-    ...engineers[index],
-
-
-    ...data,
-
-
-    id:
-      engineers[index].id,
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  engineers[index] =
-    updatedEngineer;
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    engineers
+    data
 
   );
 
 
-
-  return updatedEngineer;
-
 };
 
 
 
-const remove = async (id) => {
 
 
-  if (!id) {
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Engineer id is required."
+
     );
+
 
   }
 
 
 
-  const engineers =
-    await getAll();
+  return apiClient.delete(
 
+    `${endpoints.engineers}/${id}`
 
+  );
 
-  const filtered =
-    engineers.filter(
-
-      engineer =>
-
-      String(engineer.id)
-      !==
-      String(id)
-
-    );
-
-
-
-  const deleted =
-    filtered.length !== engineers.length;
-
-
-
-  if (deleted) {
-
-    storageService.save(
-
-      STORAGE_KEY,
-
-      filtered
-
-    );
-
-  }
-
-
-
-  return deleted;
 
 };
+
+
+
 
 
 
@@ -291,7 +214,9 @@ const engineerApi = Object.freeze({
   update,
 
   delete:
+
     remove
+
 
 });
 
