@@ -1,14 +1,14 @@
 // src/repositories/reportRepository.js
 
-
 import storageService
   from "../services/storageService.js";
 
+import {
+  createError
+} from "../utils/errorHandler.js";
 
 
 class ReportRepository {
-
-
 
   constructor() {
 
@@ -18,207 +18,136 @@ class ReportRepository {
   }
 
 
-
   getAll() {
-
 
     try {
 
-
       return storageService.load(
-
         this.key,
-
         []
-
       );
 
+    } catch (error) {
 
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ReportRepository getAll failed:${error.message}`
-
+      throw createError(
+        error.message,
+        "REPORT_GET_ALL_FAILED"
       );
-
 
     }
 
   }
 
 
-
-
   getById(id) {
-
 
     try {
 
-
       if (!id) {
 
-        throw new Error(
+        throw createError(
+          "Report id is required",
           "REPORT_ID_REQUIRED"
         );
 
       }
 
-
-
       const reports =
         this.getAll();
 
-
-
       return (
-
         reports.find(
-
           report =>
-
-            String(report.id) === String(id)
-
-        )
-
-        ||
-
-        null
-
+            String(report.id) ===
+            String(id)
+        ) || null
       );
 
+    } catch (error) {
 
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ReportRepository getById failed:${error.message}`
-
+      throw createError(
+        error.message,
+        "REPORT_GET_BY_ID_FAILED"
       );
-
 
     }
 
   }
 
 
-
-
-
   create(data) {
-
 
     try {
 
-
       this.validate(data);
-
-
 
       const reports =
         this.getAll();
 
-
-
       const report = {
 
-
         id:
-          crypto.randomUUID(),
-
-
+          crypto?.randomUUID?.()
+          ||
+          String(Date.now()),
 
         ...data,
-
-
 
         createdAt:
           new Date().toISOString(),
 
-
-
         updatedAt:
           new Date().toISOString()
 
-
       };
-
-
 
       reports.push(
         report
       );
 
-
-
       storageService.save(
-
         this.key,
-
         reports
-
       );
-
-
 
       return report;
 
+    } catch (error) {
 
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ReportRepository create failed:${error.message}`
-
+      throw createError(
+        error.message,
+        "REPORT_CREATE_FAILED"
       );
-
 
     }
 
   }
 
 
-
-
-
   update(id, data) {
-
 
     try {
 
-
       if (!id) {
 
-        throw new Error(
+        throw createError(
+          "Report id is required",
           "REPORT_ID_REQUIRED"
         );
 
       }
 
-
-
       this.validate(data);
-
-
 
       const reports =
         this.getAll();
 
-
-
       const index =
         reports.findIndex(
-
           report =>
-
-            String(report.id) === String(id)
-
+            String(report.id) ===
+            String(id)
         );
-
-
 
       if (index === -1) {
 
@@ -226,205 +155,129 @@ class ReportRepository {
 
       }
 
-
-
       const updatedReport = {
-
 
         ...reports[index],
 
-
         ...data,
-
-
 
         id:
           reports[index].id,
 
-
-
         updatedAt:
           new Date().toISOString()
 
-
       };
-
-
 
       reports[index] =
         updatedReport;
 
-
-
       storageService.save(
-
         this.key,
-
         reports
-
       );
-
-
 
       return updatedReport;
 
+    } catch (error) {
 
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ReportRepository update failed:${error.message}`
-
+      throw createError(
+        error.message,
+        "REPORT_UPDATE_FAILED"
       );
-
 
     }
 
   }
 
 
-
-
-
   delete(id) {
-
 
     try {
 
-
       if (!id) {
 
-        throw new Error(
+        throw createError(
+          "Report id is required",
           "REPORT_ID_REQUIRED"
         );
 
       }
 
-
-
       const reports =
         this.getAll();
 
-
-
       const filtered =
         reports.filter(
-
           report =>
-
-            String(report.id) !== String(id)
-
+            String(report.id) !==
+            String(id)
         );
 
-
-
       const deleted =
-
-        filtered.length !== reports.length;
-
-
+        filtered.length !==
+        reports.length;
 
       if (deleted) {
 
-
         storageService.save(
-
           this.key,
-
           filtered
-
         );
-
 
       }
 
-
-
       return deleted;
 
+    } catch (error) {
 
-    } catch(error) {
-
-
-      throw new Error(
-
-        `ReportRepository delete failed:${error.message}`
-
+      throw createError(
+        error.message,
+        "REPORT_DELETE_FAILED"
       );
-
 
     }
 
   }
-
-
-
 
 
   exists(id) {
 
-
     return Boolean(
-
       this.getById(id)
-
     );
 
-
   }
-
-
-
 
 
   count() {
 
-
     return this.getAll().length;
 
-
   }
-
-
-
 
 
   validate(data) {
 
-
     if (
-
       !data ||
-
       typeof data !== "object"
-
     ) {
 
-
-      throw new Error(
-
+      throw createError(
+        "Report data is required",
         "REPORT_DATA_REQUIRED"
-
       );
 
     }
 
-
-
     return true;
 
-
   }
-
-
 
 }
 
 
-
 export default Object.freeze(
-
   new ReportRepository()
-
 );
