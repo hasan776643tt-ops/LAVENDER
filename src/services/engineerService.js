@@ -1,8 +1,14 @@
 // src/services/engineerService.js
 
-
 import engineerRepository
 from "../repositories/engineerRepository.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
 
 
 
@@ -23,7 +29,7 @@ class EngineerService {
 
   async getAll() {
 
-    return await this.repository.getAll();
+    return this.repository.getAll();
 
   }
 
@@ -34,13 +40,7 @@ class EngineerService {
   async getById(id) {
 
 
-    if(!id){
-
-      throw new Error(
-        "ENGINEER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
 
@@ -49,17 +49,24 @@ class EngineerService {
 
 
 
-    if(!engineer){
+    if (!engineer) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Engineer not found",
+
         "ENGINEER_NOT_FOUND"
+
       );
+
 
     }
 
 
 
     return engineer;
+
 
   }
 
@@ -70,13 +77,14 @@ class EngineerService {
   async create(data) {
 
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
 
-    return await this.repository.create(
+    return this.repository.create(
       data
     );
+
 
   }
 
@@ -84,42 +92,45 @@ class EngineerService {
 
 
 
-  async update(id,data) {
+  async update(id, data) {
 
 
-    if(!id){
-
-      throw new Error(
-        "ENGINEER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
-
-    this.validate(data);
+    this.validateUpdate(data);
 
 
 
     const updated =
       await this.repository.update(
+
         id,
+
         data
+
       );
 
 
 
-    if(!updated){
+    if (!updated) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Engineer not found",
+
         "ENGINEER_NOT_FOUND"
+
       );
+
 
     }
 
 
 
     return updated;
+
 
   }
 
@@ -130,32 +141,35 @@ class EngineerService {
   async delete(id) {
 
 
-    if(!id){
-
-      throw new Error(
-        "ENGINEER_ID_REQUIRED"
-      );
-
-    }
+    this.validateId(id);
 
 
 
     const deleted =
-      await this.repository.delete(id);
-
-
-
-    if(!deleted){
-
-      throw new Error(
-        "ENGINEER_NOT_FOUND"
+      await this.repository.delete(
+        id
       );
+
+
+
+    if (!deleted) {
+
+
+      throw createError(
+
+        "Engineer not found",
+
+        "ENGINEER_NOT_FOUND"
+
+      );
+
 
     }
 
 
 
     return true;
+
 
   }
 
@@ -166,7 +180,7 @@ class EngineerService {
   async exists(id) {
 
 
-    if(!id){
+    if (!id) {
 
       return false;
 
@@ -174,11 +188,15 @@ class EngineerService {
 
 
 
+    const engineer =
+      await this.repository.getById(id);
+
+
+
     return Boolean(
-
-      await this.repository.getById(id)
-
+      engineer
     );
+
 
   }
 
@@ -196,6 +214,7 @@ class EngineerService {
 
     return engineers.length;
 
+
   }
 
 
@@ -210,7 +229,7 @@ class EngineerService {
 
 
 
-    if(!keyword){
+    if (!keyword) {
 
       return engineers;
 
@@ -227,29 +246,24 @@ class EngineerService {
 
       engineer =>
 
-
         engineer.name
-        ?.toLowerCase()
-        .includes(search)
-
+          ?.toLowerCase()
+          .includes(search)
 
         ||
-
 
         engineer.specialization
-        ?.toLowerCase()
-        .includes(search)
-
+          ?.toLowerCase()
+          .includes(search)
 
         ||
 
-
         engineer.city
-        ?.toLowerCase()
-        .includes(search)
-
+          ?.toLowerCase()
+          .includes(search)
 
     );
+
 
   }
 
@@ -262,7 +276,7 @@ class EngineerService {
   ) {
 
 
-    if(!specialization){
+    if (!specialization) {
 
       return [];
 
@@ -284,9 +298,9 @@ class EngineerService {
 
       engineer =>
 
-      engineer.specialization
-      ?.toLowerCase()
-      === search
+        engineer.specialization
+          ?.toLowerCase()
+          === search
 
     );
 
@@ -300,7 +314,7 @@ class EngineerService {
   async findByCity(city) {
 
 
-    if(!city){
+    if (!city) {
 
       return [];
 
@@ -322,9 +336,9 @@ class EngineerService {
 
       engineer =>
 
-      engineer.city
-      ?.toLowerCase()
-      === search
+        engineer.city
+          ?.toLowerCase()
+          === search
 
     );
 
@@ -335,36 +349,109 @@ class EngineerService {
 
 
 
-  validate(data){
+  validateId(id) {
 
 
-    if(
-      !data ||
-      typeof data !== "object"
-    ){
+    if (!id) {
 
-      throw new Error(
-        "ENGINEER_DATA_REQUIRED"
+
+      throw createError(
+
+        "Engineer id is required",
+
+        "ENGINEER_ID_REQUIRED"
+
       );
 
-    }
-
-
-
-    if(
-      !data.name ||
-      !data.name.trim()
-    ){
-
-      throw new Error(
-        "ENGINEER_NAME_REQUIRED"
-      );
 
     }
 
 
 
     return true;
+
+
+  }
+
+
+
+
+
+  validateCreate(data) {
+
+
+    this.validateData(data);
+
+
+
+    if (
+      !data.name ||
+      !data.name.trim()
+    ) {
+
+
+      throw createError(
+
+        "Engineer name is required",
+
+        "ENGINEER_NAME_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateUpdate(data) {
+
+
+    this.validateData(data);
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateData(data) {
+
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+
+
+      throw createError(
+
+        "Engineer data is required",
+
+        "ENGINEER_DATA_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
 
   }
 
@@ -374,6 +461,10 @@ class EngineerService {
 
 
 
+
+
 export default Object.freeze(
+
   new EngineerService()
+
 );
