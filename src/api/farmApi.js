@@ -1,273 +1,127 @@
 // src/api/farmApi.js
 
 
-import storageService
-  from "../services/storageService.js";
+import apiClient
+from "./apiClient.js";
+
+
+import endpoints
+from "./endpoints.js";
 
 
 
-const STORAGE_KEY =
-  "farms";
 
-
-
-const generateId = () =>
-
-  crypto?.randomUUID?.()
-  ||
-  Date.now().toString();
-
+// ===============================
+// Farm API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.farms
+
   );
+
 
 };
 
 
 
-const getById = async (id) => {
 
 
-  if (!id) {
+
+const getById = async (
+  id
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Farm id is required."
+
     );
+
 
   }
 
 
 
-  const farms =
-    await getAll();
+  return apiClient.get(
 
-
-
-  return (
-
-    farms.find(
-
-      farm =>
-
-      String(farm.id)
-      ===
-      String(id)
-
-    )
-
-    || null
+    `${endpoints.farms}/${id}`
 
   );
+
 
 };
 
 
 
-const create = async (data) => {
-
-
-  if (!data) {
-
-    throw new Error(
-      "Farm data is required."
-    );
-
-  }
 
 
 
-  const farms =
-    await getAll();
-
-
-
-  const farm = {
-
-
-    id:
-      generateId(),
-
-
-    ...data,
-
-
-    createdAt:
-      new Date().toISOString(),
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  farms.push(
-    farm
-  );
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    farms
-
-  );
-
-
-
-  return farm;
-
-};
-
-
-
-const update = async (
-  id,
+const create = async (
   data
 ) => {
 
 
-  if (!id) {
+  if(
+    !data
+  ) {
+
 
     throw new Error(
-      "Farm id is required."
-    );
 
-  }
-
-
-
-  if (!data) {
-
-    throw new Error(
       "Farm data is required."
+
     );
+
 
   }
 
 
 
-  const farms =
-    await getAll();
+  return apiClient.post(
 
+    endpoints.farms,
 
-
-  const index =
-    farms.findIndex(
-
-      farm =>
-
-      String(farm.id)
-      ===
-      String(id)
-
-    );
-
-
-
-  if (index === -1) {
-
-    return null;
-
-  }
-
-
-
-  const updatedFarm = {
-
-
-    ...farms[index],
-
-
-    ...data,
-
-
-    id:
-      farms[index].id,
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  farms[index] =
-    updatedFarm;
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    farms
+    data
 
   );
 
 
-
-  return updatedFarm;
-
 };
 
 
 
-const remove = async (id) => {
 
 
-  if (!id) {
+
+const update = async (
+
+  id,
+
+  data
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Farm id is required."
-    );
-
-  }
-
-
-
-  const farms =
-    await getAll();
-
-
-
-  const filtered =
-    farms.filter(
-
-      farm =>
-
-      String(farm.id)
-      !==
-      String(id)
-
-    );
-
-
-
-  const deleted =
-    filtered.length !== farms.length;
-
-
-
-  if (deleted) {
-
-
-    storageService.save(
-
-      STORAGE_KEY,
-
-      filtered
 
     );
 
@@ -276,9 +130,72 @@ const remove = async (id) => {
 
 
 
-  return deleted;
+  if(
+    !data
+  ) {
+
+
+    throw new Error(
+
+      "Farm data is required."
+
+    );
+
+
+  }
+
+
+
+  return apiClient.put(
+
+    `${endpoints.farms}/${id}`,
+
+    data
+
+  );
+
 
 };
+
+
+
+
+
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
+
+    throw new Error(
+
+      "Farm id is required."
+
+    );
+
+
+  }
+
+
+
+  return apiClient.delete(
+
+    `${endpoints.farms}/${id}`
+
+  );
+
+
+};
+
+
+
 
 
 
@@ -293,7 +210,9 @@ const farmApi = Object.freeze({
   update,
 
   delete:
+
     remove
+
 
 });
 
