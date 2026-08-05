@@ -1,10 +1,19 @@
 // src/services/weatherService.js
 
 import weatherRepository
-  from "../repositories/weatherRepository.js";
+from "../repositories/weatherRepository.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
 
 
 class WeatherService {
+
 
 
   constructor() {
@@ -16,48 +25,65 @@ class WeatherService {
 
 
 
+
+
   async getCurrentWeather(location) {
+
 
     this.validateLocation(
       location
     );
+
 
 
     return this.repository.getCurrentWeather(
       location
     );
 
+
   }
+
+
 
 
 
   async refreshWeather(location) {
 
+
     this.validateLocation(
       location
     );
+
 
 
     return this.repository.refreshWeather(
       location
     );
 
+
   }
 
 
 
+
+
   async getForecast(location) {
+
 
     this.validateLocation(
       location
     );
 
 
+
     return this.repository.getForecast(
       location
     );
 
+
   }
+
+
 
 
 
@@ -69,9 +95,15 @@ class WeatherService {
       typeof location !== "object"
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Weather location is required",
+
         "WEATHER_LOCATION_REQUIRED"
+
       );
+
 
     }
 
@@ -89,11 +121,19 @@ class WeatherService {
       longitude == null
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Weather coordinates are required",
+
         "WEATHER_COORDINATES_REQUIRED"
+
       );
 
+
     }
+
+
 
 
 
@@ -102,11 +142,19 @@ class WeatherService {
       Number(latitude) > 90
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Invalid latitude",
+
         "INVALID_LATITUDE"
+
       );
 
+
     }
+
+
 
 
 
@@ -115,9 +163,15 @@ class WeatherService {
       Number(longitude) > 180
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Invalid longitude",
+
         "INVALID_LONGITUDE"
+
       );
+
 
     }
 
@@ -125,13 +179,19 @@ class WeatherService {
 
     return true;
 
+
   }
+
 
 
 }
 
 
 
+
+
 export default Object.freeze(
+
   new WeatherService()
+
 );
