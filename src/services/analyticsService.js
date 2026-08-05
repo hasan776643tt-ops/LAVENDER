@@ -5,19 +5,31 @@ import storageService
   from "./storageService.js";
 
 
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
 
 class AnalyticsService {
 
 
+
   constructor() {
+
 
     this.storageKey =
       "analytics_events";
 
+
     this.version =
       "3.0.0";
 
+
   }
+
+
 
 
 
@@ -57,6 +69,7 @@ class AnalyticsService {
       createdAt:
         new Date().toISOString()
 
+
     };
 
 
@@ -75,7 +88,10 @@ class AnalyticsService {
 
     return record;
 
+
   }
+
+
 
 
 
@@ -90,16 +106,21 @@ class AnalyticsService {
 
     );
 
+
   }
 
 
 
-  async getEventsByType(type) {
+
+
+  async getByType(type) {
 
 
     if (!type) {
 
+
       return [];
+
 
     }
 
@@ -114,11 +135,14 @@ class AnalyticsService {
 
       item =>
 
-      item.event === type
+        item.event === type
 
     );
 
+
   }
+
+
 
 
 
@@ -132,7 +156,10 @@ class AnalyticsService {
 
     return events.length;
 
+
   }
+
+
 
 
 
@@ -144,11 +171,46 @@ class AnalyticsService {
 
 
 
+    const types = {};
+
+
+
+    events.forEach(
+
+      item => {
+
+
+        types[item.event] =
+
+          (
+
+            types[item.event]
+
+            ||
+
+            0
+
+          )
+
+          +
+
+          1;
+
+
+      }
+
+    );
+
+
+
     return {
 
 
       total:
         events.length,
+
+
+      types,
 
 
       version:
@@ -158,9 +220,13 @@ class AnalyticsService {
       generatedAt:
         new Date().toISOString()
 
+
     };
 
+
   }
+
+
 
 
 
@@ -173,22 +239,28 @@ class AnalyticsService {
 
     );
 
+
   }
 
 
 
-  async saveEvents(data) {
+
+
+  async saveEvents(events) {
 
 
     return storageService.save(
 
       this.storageKey,
 
-      data
+      events
 
     );
 
+
   }
+
+
 
 
 
@@ -205,9 +277,13 @@ class AnalyticsService {
       generatedAt:
         new Date().toISOString()
 
+
     };
 
+
   }
+
+
 
 
 
@@ -224,9 +300,13 @@ class AnalyticsService {
       generatedAt:
         new Date().toISOString()
 
+
     };
 
+
   }
+
+
 
 
 
@@ -234,20 +314,35 @@ class AnalyticsService {
 
 
     if (
+
       !event ||
-      typeof event !== "string"
+
+      typeof event !== "string" ||
+
+      !event.trim()
+
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Analytics event is required",
+
         "ANALYTICS_EVENT_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
@@ -255,10 +350,14 @@ class AnalyticsService {
 
 
     if (
+
       globalThis.crypto?.randomUUID
+
     ) {
 
+
       return globalThis.crypto.randomUUID();
+
 
     }
 
@@ -271,12 +370,16 @@ class AnalyticsService {
       +
 
       Math.random()
-        .toString(36)
-        .substring(2)
+
+      .toString(36)
+
+      .substring(2)
 
     );
 
+
   }
+
 
 
 }
@@ -284,5 +387,7 @@ class AnalyticsService {
 
 
 export default Object.freeze(
+
   new AnalyticsService()
+
 );
