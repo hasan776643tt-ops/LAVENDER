@@ -1,282 +1,205 @@
 // src/api/harvestApi.js
 
 
-import storageService
-  from "../services/storageService.js";
+import apiClient
+from "./apiClient.js";
+
+
+import endpoints
+from "./endpoints.js";
 
 
 
-const STORAGE_KEY =
-  "harvests";
 
-
-
-const generateId = () =>
-
-  crypto?.randomUUID?.()
-  ||
-  Date.now().toString();
-
+// ===============================
+// Harvest API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.harvests
+
   );
+
 
 };
 
 
 
-const getById = async (id) => {
 
 
-  if (!id) {
+
+const getById = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Harvest id is required."
+
     );
+
 
   }
 
 
 
-  const harvests =
-    await getAll();
+  return apiClient.get(
 
-
-
-  return (
-
-    harvests.find(
-
-      harvest =>
-
-      String(harvest.id)
-      ===
-      String(id)
-
-    )
-
-    || null
+    `${endpoints.harvests}/${id}`
 
   );
+
 
 };
 
 
 
-const create = async (data) => {
 
 
-  if (!data) {
+
+const create = async (
+
+  data
+
+) => {
+
+
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Harvest data is required."
+
     );
+
 
   }
 
 
 
-  const harvests =
-    await getAll();
+  return apiClient.post(
 
+    endpoints.harvests,
 
-
-  const harvest = {
-
-
-    id:
-      generateId(),
-
-
-    ...data,
-
-
-    createdAt:
-      new Date().toISOString(),
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  harvests.push(
-    harvest
-  );
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    harvests
+    data
 
   );
 
-
-
-  return harvest;
 
 };
+
+
+
 
 
 
 const update = async (
+
   id,
+
   data
+
 ) => {
 
 
-  if (!id) {
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Harvest id is required."
+
     );
+
 
   }
 
 
 
-  if (!data) {
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Harvest data is required."
+
     );
+
 
   }
 
 
 
-  const harvests =
-    await getAll();
+  return apiClient.put(
 
+    `${endpoints.harvests}/${id}`,
 
-
-  const index =
-    harvests.findIndex(
-
-      harvest =>
-
-      String(harvest.id)
-      ===
-      String(id)
-
-    );
-
-
-
-  if (index === -1) {
-
-    return null;
-
-  }
-
-
-
-  const updatedHarvest = {
-
-
-    ...harvests[index],
-
-
-    ...data,
-
-
-    id:
-      harvests[index].id,
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  harvests[index] =
-    updatedHarvest;
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    harvests
+    data
 
   );
 
 
-
-  return updatedHarvest;
-
 };
 
 
 
-const remove = async (id) => {
 
 
-  if (!id) {
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Harvest id is required."
+
     );
+
 
   }
 
 
 
-  const harvests =
-    await getAll();
+  return apiClient.delete(
 
+    `${endpoints.harvests}/${id}`
 
+  );
 
-  const filtered =
-    harvests.filter(
-
-      harvest =>
-
-      String(harvest.id)
-      !==
-      String(id)
-
-    );
-
-
-
-  const deleted =
-    filtered.length !== harvests.length;
-
-
-
-  if (deleted) {
-
-    storageService.save(
-
-      STORAGE_KEY,
-
-      filtered
-
-    );
-
-  }
-
-
-
-  return deleted;
 
 };
+
+
+
 
 
 
@@ -291,7 +214,9 @@ const harvestApi = Object.freeze({
   update,
 
   delete:
+
     remove
+
 
 });
 
