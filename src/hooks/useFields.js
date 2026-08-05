@@ -1,5 +1,6 @@
 // src/hooks/useFields.js
 
+
 import {
   useContext,
   useMemo
@@ -8,7 +9,7 @@ import {
 
 import {
   FarmContext
-} from "../context/FarmContext";
+} from "../context/FarmContext.js";
 
 
 
@@ -40,8 +41,6 @@ export default function useFields() {
 
 
 
-
-
   const addField = async (
     data
   ) => {
@@ -53,10 +52,6 @@ export default function useFields() {
 
 
   };
-
-
-
-
 
 
 
@@ -76,25 +71,17 @@ export default function useFields() {
 
 
 
-
-
-
-
   const deleteField = async (
     id
   ) => {
 
 
-    return await fieldActions.remove(
+    return await fieldActions.delete(
       id
     );
 
 
   };
-
-
-
-
 
 
 
@@ -105,10 +92,6 @@ export default function useFields() {
 
 
   };
-
-
-
-
 
 
 
@@ -137,54 +120,53 @@ export default function useFields() {
 
 
 
+  const statistics =
+    useMemo(
+
+      () => ({
+
+
+        total:
+          fields.length,
 
 
 
+        totalArea:
+          fields.reduce(
 
-  const statistics = useMemo(
-    () => ({
+            (sum, field) =>
 
-      total:
-        fields.length,
+              sum +
+              Number(
+                field.area || 0
+              ),
 
+            0
 
-      totalArea:
-        fields.reduce(
-
-          (sum, field) =>
-
-            sum +
-            Number(
-              field.area || 0
-            ),
-
-          0
-
-        ),
-
-
-      active:
-        fields.filter(
-
-          field =>
-
-            field.status === "active"
-
-        ).length
-
-
-    }),
-
-    [fields]
-  );
+          ),
 
 
 
+        active:
+          fields.filter(
 
+            field =>
+
+              field.status === "active"
+
+          ).length
+
+
+      }),
+
+      [fields]
+
+    );
 
 
 
   return {
+
 
     fields,
 
@@ -199,6 +181,7 @@ export default function useFields() {
     searchFields,
 
     statistics
+
 
   };
 
