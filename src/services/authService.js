@@ -1,14 +1,22 @@
 // src/services/authService.js
 
 import userRepository
-  from "../repositories/userRepository.js";
+from "../repositories/userRepository.js";
 
 
 import userValidator
-  from "../validators/userValidator.js";
+from "../validators/userValidator.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
 
 
 class AuthService {
+
 
 
   constructor() {
@@ -24,6 +32,7 @@ class AuthService {
 
 
 
+
   async login(credentials) {
 
 
@@ -32,17 +41,25 @@ class AuthService {
     );
 
 
+
     const user =
       await this.repository.findByEmail(
         credentials.email
       );
 
 
+
     if (!user) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Invalid authentication credentials",
+
         "AUTH_INVALID_CREDENTIALS"
+
       );
+
 
     }
 
@@ -50,30 +67,41 @@ class AuthService {
 
     this.currentSession = {
 
+
       id:
         user.id,
+
 
       username:
         user.username,
 
+
       email:
         user.email,
+
 
       role:
         user.role,
 
+
       authenticated:
         true,
+
 
       loginAt:
         new Date().toISOString()
 
+
     };
+
 
 
     return this.currentSession;
 
+
   }
+
+
 
 
 
@@ -85,11 +113,15 @@ class AuthService {
     );
 
 
+
     return this.repository.create(
       data
     );
 
+
   }
+
+
 
 
 
@@ -100,9 +132,13 @@ class AuthService {
       null;
 
 
+
     return true;
 
+
   }
+
+
 
 
 
@@ -112,12 +148,35 @@ class AuthService {
     this.requireAuthentication();
 
 
+
+    if (!data) {
+
+
+      throw createError(
+
+        "Profile data is required",
+
+        "PROFILE_DATA_REQUIRED"
+
+      );
+
+
+    }
+
+
+
     return this.repository.update(
+
       this.currentSession.id,
+
       data
+
     );
 
+
   }
+
+
 
 
 
@@ -127,68 +186,101 @@ class AuthService {
     this.requireAuthentication();
 
 
-    if (
-      !data
-    ) {
 
-      throw new Error(
+    if (!data) {
+
+
+      throw createError(
+
+        "Password data is required",
+
         "PASSWORD_DATA_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
   async forgotPassword(email) {
 
 
-    if (
-      !email
-    ) {
+    if (!email) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Email is required",
+
         "EMAIL_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
   getCurrentUser() {
 
+
     return this.currentSession;
 
+
   }
+
+
 
 
 
   isAuthenticated() {
 
+
     return Boolean(
+
       this.currentSession?.authenticated
+
     );
 
+
   }
+
+
 
 
 
   hasRole(role) {
 
+
     return (
+
       this.currentSession?.role === role
+
     );
 
+
   }
+
+
 
 
 
@@ -196,20 +288,35 @@ class AuthService {
 
 
     if (
-      !data ||
+
+      !data
+
+      ||
+
       !data.email
+
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Authentication credentials are required",
+
         "AUTH_CREDENTIALS_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
@@ -217,28 +324,43 @@ class AuthService {
 
 
     const result =
+
       userValidator.validate(
         data
       );
 
 
+
     if (
+
       result &&
+
       result.valid === false
+
     ) {
 
-      throw new Error(
-        JSON.stringify(
-          result.errors
-        )
+
+      throw createError(
+
+        "User validation failed",
+
+        "USER_VALIDATION_FAILED",
+
+        result.errors
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
@@ -246,25 +368,39 @@ class AuthService {
 
 
     if (
+
       !this.currentSession
+
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Authentication required",
+
         "AUTH_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
 
 
 }
 
 
 
+
 export default Object.freeze(
+
   new AuthService()
+
 );
