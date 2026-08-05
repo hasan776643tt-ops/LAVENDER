@@ -2,230 +2,203 @@
 
 
 import storageService
-from "./storageService.js";
+  from "./storageService.js";
 
 
 import cacheService
-from "./cacheService.js";
+  from "./cacheService.js";
 
 
 import authService
-from "./authService.js";
+  from "./authService.js";
 
 
 import userService
-from "./userService.js";
+  from "./userService.js";
 
 
 import farmService
-from "./farmService.js";
+  from "./farmService.js";
 
 
 import fieldService
-from "./fieldService.js";
+  from "./fieldService.js";
 
 
 import cropService
-from "./cropService.js";
+  from "./cropService.js";
 
 
 import irrigationService
-from "./irrigationService.js";
+  from "./irrigationService.js";
 
 
 import fertilizerService
-from "./fertilizerService.js";
+  from "./fertilizerService.js";
 
 
 import pesticideService
-from "./pesticideService.js";
+  from "./pesticideService.js";
 
 
 import diseaseService
-from "./diseaseService.js";
+  from "./diseaseService.js";
 
 
 import weatherService
-from "./weatherService.js";
+  from "./weatherService.js";
 
 
 import expenseService
-from "./expenseService.js";
+  from "./expenseService.js";
 
 
 import harvestService
-from "./harvestService.js";
+  from "./harvestService.js";
 
 
 import inventoryService
-from "./inventoryService.js";
+  from "./inventoryService.js";
 
 
 import consultationService
-from "./consultationService.js";
+  from "./consultationService.js";
 
 
 import reportService
-from "./reportService.js";
+  from "./reportService.js";
 
 
 import engineerService
-from "./engineerService.js";
+  from "./engineerService.js";
 
 
 import aiService
-from "./aiService.js";
+  from "./aiService.js";
 
 
 import analyticsService
-from "./analyticsService.js";
+  from "./analyticsService.js";
 
 
 import backupService
-from "./backupService.js";
+  from "./backupService.js";
 
 
 import exportService
-from "./exportService.js";
+  from "./exportService.js";
 
 
 import notificationService
-from "./notificationService.js";
+  from "./notificationService.js";
 
 
 import syncService
-from "./syncService.js";
+  from "./syncService.js";
 
 
 import logService
-from "./logService.js";
-
-
+  from "./logService.js";
 
 
 
 const services = {
 
 
-
   storage:
     storageService,
-
 
 
   cache:
     cacheService,
 
 
-
   auth:
     authService,
-
 
 
   user:
     userService,
 
 
-
   farm:
     farmService,
-
 
 
   field:
     fieldService,
 
 
-
   crop:
     cropService,
-
 
 
   irrigation:
     irrigationService,
 
 
-
   fertilizer:
     fertilizerService,
-
 
 
   pesticide:
     pesticideService,
 
 
-
   disease:
     diseaseService,
-
 
 
   weather:
     weatherService,
 
 
-
   expense:
     expenseService,
-
 
 
   harvest:
     harvestService,
 
 
-
   inventory:
     inventoryService,
-
 
 
   consultation:
     consultationService,
 
 
-
   report:
     reportService,
-
 
 
   engineer:
     engineerService,
 
 
-
   ai:
     aiService,
-
 
 
   analytics:
     analyticsService,
 
 
-
   backup:
     backupService,
-
 
 
   export:
     exportService,
 
 
-
   notification:
     notificationService,
 
 
-
   sync:
     syncService,
-
 
 
   log:
@@ -235,6 +208,60 @@ const services = {
 };
 
 
+
+export {
+
+  storageService,
+
+  cacheService,
+
+  authService,
+
+  userService,
+
+  farmService,
+
+  fieldService,
+
+  cropService,
+
+  irrigationService,
+
+  fertilizerService,
+
+  pesticideService,
+
+  diseaseService,
+
+  weatherService,
+
+  expenseService,
+
+  harvestService,
+
+  inventoryService,
+
+  consultationService,
+
+  reportService,
+
+  engineerService,
+
+  aiService,
+
+  analyticsService,
+
+  backupService,
+
+  exportService,
+
+  notificationService,
+
+  syncService,
+
+  logService
+
+};
 
 
 
