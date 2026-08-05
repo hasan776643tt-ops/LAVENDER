@@ -1,170 +1,206 @@
 // src/api/cropApi.js
 
-import storageService from "../services/storageService.js";
+
+import apiClient
+from "./apiClient.js";
 
 
-const STORAGE_KEY = "crops";
+import endpoints
+from "./endpoints.js";
 
 
-const generateId = () =>
-  crypto?.randomUUID?.()
-  || Date.now().toString();
+
+
+// ===============================
+// Crop API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.crops
+
   );
+
 
 };
 
 
-const getById = async (id) => {
 
-  if (!id) {
+
+
+
+const getById = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
+
     throw new Error(
+
       "Crop id is required."
+
     );
+
+
   }
 
-  const crops =
-    await getAll();
 
-  return (
-    crops.find(
-      (crop) =>
-        String(crop.id) ===
-        String(id)
-    ) || null
+
+  return apiClient.get(
+
+    `${endpoints.crops}/${id}`
+
   );
+
 
 };
 
 
-const create = async (data) => {
 
-  if (!data) {
+
+
+
+const create = async (
+
+  data
+
+) => {
+
+
+  if(
+    !data
+  ) {
+
+
     throw new Error(
+
       "Crop data is required."
+
     );
+
+
   }
 
-  const crops =
-    await getAll();
 
-  const crop = {
 
-    id: generateId(),
+  return apiClient.post(
 
-    ...data,
+    endpoints.crops,
 
-    createdAt:
-      new Date().toISOString(),
+    data
 
-    updatedAt:
-      new Date().toISOString()
-
-  };
-
-  crops.push(crop);
-
-  storageService.save(
-    STORAGE_KEY,
-    crops
   );
 
-  return crop;
 
 };
+
+
+
+
 
 
 const update = async (
+
   id,
+
   data
+
 ) => {
 
-  if (!id) {
+
+  if(
+    !id
+  ) {
+
+
     throw new Error(
+
       "Crop id is required."
-    );
-  }
 
-  const crops =
-    await getAll();
-
-  const index =
-    crops.findIndex(
-      (crop) =>
-        String(crop.id) ===
-        String(id)
     );
 
-  if (index === -1) {
-    return null;
+
   }
 
-  const updatedCrop = {
 
-    ...crops[index],
 
-    ...data,
+  if(
+    !data
+  ) {
 
-    id: crops[index].id,
 
-    updatedAt:
-      new Date().toISOString()
+    throw new Error(
 
-  };
+      "Crop data is required."
 
-  crops[index] =
-    updatedCrop;
+    );
 
-  storageService.save(
-    STORAGE_KEY,
-    crops
+
+  }
+
+
+
+  return apiClient.put(
+
+    `${endpoints.crops}/${id}`,
+
+    data
+
   );
 
-  return updatedCrop;
 
 };
 
 
-const remove = async (id) => {
 
-  if (!id) {
+
+
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
+
     throw new Error(
+
       "Crop id is required."
-    );
-  }
 
-  const crops =
-    await getAll();
-
-  const filtered =
-    crops.filter(
-      (crop) =>
-        String(crop.id) !==
-        String(id)
     );
 
-  const deleted =
-    filtered.length !==
-    crops.length;
-
-  if (deleted) {
-
-    storageService.save(
-      STORAGE_KEY,
-      filtered
-    );
 
   }
 
-  return deleted;
+
+
+  return apiClient.delete(
+
+    `${endpoints.crops}/${id}`
+
+  );
+
 
 };
+
+
+
+
 
 
 const cropApi = Object.freeze({
@@ -177,9 +213,13 @@ const cropApi = Object.freeze({
 
   update,
 
-  delete: remove
+  delete:
+
+    remove
+
 
 });
+
 
 
 export default cropApi;
