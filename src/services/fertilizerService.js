@@ -1,11 +1,13 @@
 // src/services/fertilizerService.js
 
-import fertilizerRepository
-  from "../repositories/fertilizerRepository.js";
+import fertilizerRepository from "../repositories/fertilizerRepository.js";
+
+import {
+  createError
+} from "../utils/errorHandler.js";
 
 
 class FertilizerService {
-
 
   constructor() {
 
@@ -15,7 +17,6 @@ class FertilizerService {
   }
 
 
-
   async getAll() {
 
     return this.repository.getAll();
@@ -23,35 +24,30 @@ class FertilizerService {
   }
 
 
-
   async getById(id) {
 
     this.validateId(id);
 
-
     const fertilizer =
       await this.repository.getById(id);
 
-
     if (!fertilizer) {
 
-      throw new Error(
+      throw createError(
+        "Fertilizer not found",
         "FERTILIZER_NOT_FOUND"
       );
 
     }
-
 
     return fertilizer;
 
   }
 
 
-
   async create(data) {
 
     this.validateCreate(data);
-
 
     return this.repository.create(
       data
@@ -60,14 +56,14 @@ class FertilizerService {
   }
 
 
-
-  async update(id, data) {
+  async update(
+    id,
+    data
+  ) {
 
     this.validateId(id);
 
-
     this.validateUpdate(data);
-
 
     const updated =
       await this.repository.update(
@@ -75,46 +71,41 @@ class FertilizerService {
         data
       );
 
-
     if (!updated) {
 
-      throw new Error(
+      throw createError(
+        "Fertilizer not found",
         "FERTILIZER_NOT_FOUND"
       );
 
     }
-
 
     return updated;
 
   }
 
 
-
   async delete(id) {
 
     this.validateId(id);
-
 
     const deleted =
       await this.repository.delete(
         id
       );
 
-
     if (!deleted) {
 
-      throw new Error(
+      throw createError(
+        "Fertilizer not found",
         "FERTILIZER_NOT_FOUND"
       );
 
     }
 
-
     return true;
 
   }
-
 
 
   async exists(id) {
@@ -125,17 +116,16 @@ class FertilizerService {
 
     }
 
-
     const fertilizer =
       await this.repository.getById(
         id
       );
 
-
-    return Boolean(fertilizer);
+    return Boolean(
+      fertilizer
+    );
 
   }
-
 
 
   async count() {
@@ -143,62 +133,55 @@ class FertilizerService {
     const fertilizers =
       await this.repository.getAll();
 
-
     return fertilizers.length;
 
   }
-
 
 
   validateId(id) {
 
     if (!id) {
 
-      throw new Error(
+      throw createError(
+        "Fertilizer id is required",
         "FERTILIZER_ID_REQUIRED"
       );
 
     }
 
-
     return true;
 
   }
-
 
 
   validateCreate(data) {
 
     this.validateData(data);
 
-
     if (
       !data.name ||
       !data.name.trim()
     ) {
 
-      throw new Error(
+      throw createError(
+        "Fertilizer name is required",
         "FERTILIZER_NAME_REQUIRED"
       );
 
     }
 
-
     return true;
 
   }
-
 
 
   validateUpdate(data) {
 
     this.validateData(data);
 
-
     return true;
 
   }
-
 
 
   validateData(data) {
@@ -208,22 +191,22 @@ class FertilizerService {
       typeof data !== "object"
     ) {
 
-      throw new Error(
+      throw createError(
+        "Fertilizer data is required",
         "FERTILIZER_DATA_REQUIRED"
       );
 
     }
 
-
     return true;
 
   }
 
-
 }
 
 
-
 export default Object.freeze(
+
   new FertilizerService()
+
 );
