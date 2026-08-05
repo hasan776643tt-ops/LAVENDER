@@ -12,6 +12,11 @@ export {
 
 
 
+
+// ===============================
+// Farm Domain
+// ===============================
+
 export {
   default as farmApi
 } from "./farmApi.js";
@@ -26,6 +31,12 @@ export {
   default as cropApi
 } from "./cropApi.js";
 
+
+
+
+// ===============================
+// Agriculture Domain
+// ===============================
 
 export {
   default as irrigationApi
@@ -62,10 +73,11 @@ export {
 } from "./expenseApi.js";
 
 
-export {
-  default as userApi
-} from "./userApi.js";
 
+
+// ===============================
+// Professional Services
+// ===============================
 
 export {
   default as engineerApi
