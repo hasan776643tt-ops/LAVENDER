@@ -1,8 +1,14 @@
 // src/services/reportService.js
 
-
 import reportRepository
 from "../repositories/reportRepository.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
 
 
 
@@ -12,10 +18,8 @@ class ReportService {
 
   constructor() {
 
-
     this.repository =
       reportRepository;
-
 
   }
 
@@ -25,9 +29,7 @@ class ReportService {
 
   async getAll() {
 
-
     return this.repository.getAll();
-
 
   }
 
@@ -38,22 +40,11 @@ class ReportService {
   async getById(id) {
 
 
-    if (!id) {
-
-
-      throw new Error(
-
-        "REPORT_ID_REQUIRED"
-
-      );
-
-
-    }
+    this.validateId(id);
 
 
 
     const report =
-
       await this.repository.getById(id);
 
 
@@ -61,7 +52,9 @@ class ReportService {
     if (!report) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Report not found",
 
         "REPORT_NOT_FOUND"
 
@@ -84,14 +77,12 @@ class ReportService {
   async create(data) {
 
 
-    this.validate(data);
+    this.validateCreate(data);
 
 
 
     return this.repository.create(
-
       data
-
     );
 
 
@@ -104,26 +95,14 @@ class ReportService {
   async update(id, data) {
 
 
-    if (!id) {
+    this.validateId(id);
 
 
-      throw new Error(
-
-        "REPORT_ID_REQUIRED"
-
-      );
-
-
-    }
-
-
-
-    this.validate(data);
+    this.validateUpdate(data);
 
 
 
     const updated =
-
       await this.repository.update(
 
         id,
@@ -137,7 +116,9 @@ class ReportService {
     if (!updated) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Report not found",
 
         "REPORT_NOT_FOUND"
 
@@ -160,30 +141,23 @@ class ReportService {
   async delete(id) {
 
 
-    if (!id) {
-
-
-      throw new Error(
-
-        "REPORT_ID_REQUIRED"
-
-      );
-
-
-    }
+    this.validateId(id);
 
 
 
     const deleted =
-
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
 
     if (!deleted) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Report not found",
 
         "REPORT_NOT_FOUND"
 
@@ -208,21 +182,20 @@ class ReportService {
 
     if (!id) {
 
-
       return false;
-
 
     }
 
 
 
     const report =
-
       await this.repository.getById(id);
 
 
 
-    return Boolean(report);
+    return Boolean(
+      report
+    );
 
 
   }
@@ -235,7 +208,6 @@ class ReportService {
 
 
     const reports =
-
       await this.repository.getAll();
 
 
@@ -253,23 +225,19 @@ class ReportService {
 
 
     const reports =
-
       await this.repository.getAll();
 
 
 
     if (!keyword) {
 
-
       return reports;
-
 
     }
 
 
 
     const search =
-
       keyword.toLowerCase();
 
 
@@ -278,33 +246,21 @@ class ReportService {
 
       report =>
 
-
         report.title
-
           ?.toLowerCase()
-
           .includes(search)
 
-
         ||
-
 
         report.type
-
           ?.toLowerCase()
-
           .includes(search)
-
 
         ||
 
-
         report.category
-
           ?.toLowerCase()
-
           .includes(search)
-
 
     );
 
@@ -329,9 +285,7 @@ class ReportService {
       data,
 
       generatedAt:
-
         new Date().toISOString()
-
 
     });
 
@@ -342,19 +296,78 @@ class ReportService {
 
 
 
-  validate(data) {
+  validateId(id) {
+
+
+    if (!id) {
+
+
+      throw createError(
+
+        "Report id is required",
+
+        "REPORT_ID_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateCreate(data) {
+
+
+    this.validateData(data);
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateUpdate(data) {
+
+
+    this.validateData(data);
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateData(data) {
 
 
     if (
-
       !data ||
-
       typeof data !== "object"
-
     ) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Report data is required",
 
         "REPORT_DATA_REQUIRED"
 
@@ -380,7 +393,9 @@ class ReportService {
     if (!type) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Report type is required",
 
         "REPORT_TYPE_REQUIRED"
 
@@ -398,9 +413,9 @@ class ReportService {
 
 
 
-
-
 }
+
+
 
 
 
