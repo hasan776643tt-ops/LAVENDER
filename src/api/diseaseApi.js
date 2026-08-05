@@ -1,282 +1,205 @@
 // src/api/diseaseApi.js
 
 
-import storageService
-  from "../services/storageService.js";
+import apiClient
+from "./apiClient.js";
+
+
+import endpoints
+from "./endpoints.js";
 
 
 
-const STORAGE_KEY =
-  "diseases";
 
-
-
-const generateId = () =>
-
-  crypto?.randomUUID?.()
-  ||
-  Date.now().toString();
-
+// ===============================
+// Disease API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.diseases
+
   );
+
 
 };
 
 
 
-const getById = async (id) => {
 
 
-  if (!id) {
+
+const getById = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Disease id is required."
+
     );
+
 
   }
 
 
 
-  const diseases =
-    await getAll();
+  return apiClient.get(
 
-
-
-  return (
-
-    diseases.find(
-
-      disease =>
-
-      String(disease.id)
-      ===
-      String(id)
-
-    )
-
-    || null
+    `${endpoints.diseases}/${id}`
 
   );
+
 
 };
 
 
 
-const create = async (data) => {
 
 
-  if (!data) {
+
+const create = async (
+
+  data
+
+) => {
+
+
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Disease data is required."
+
     );
+
 
   }
 
 
 
-  const diseases =
-    await getAll();
+  return apiClient.post(
 
+    endpoints.diseases,
 
-
-  const disease = {
-
-
-    id:
-      generateId(),
-
-
-    ...data,
-
-
-    createdAt:
-      new Date().toISOString(),
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  diseases.push(
-    disease
-  );
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    diseases
+    data
 
   );
 
-
-
-  return disease;
 
 };
+
+
+
 
 
 
 const update = async (
+
   id,
+
   data
+
 ) => {
 
 
-  if (!id) {
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Disease id is required."
+
     );
+
 
   }
 
 
 
-  if (!data) {
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Disease data is required."
+
     );
+
 
   }
 
 
 
-  const diseases =
-    await getAll();
+  return apiClient.put(
 
+    `${endpoints.diseases}/${id}`,
 
-
-  const index =
-    diseases.findIndex(
-
-      disease =>
-
-      String(disease.id)
-      ===
-      String(id)
-
-    );
-
-
-
-  if (index === -1) {
-
-    return null;
-
-  }
-
-
-
-  const updatedDisease = {
-
-
-    ...diseases[index],
-
-
-    ...data,
-
-
-    id:
-      diseases[index].id,
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  diseases[index] =
-    updatedDisease;
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    diseases
+    data
 
   );
 
 
-
-  return updatedDisease;
-
 };
 
 
 
-const remove = async (id) => {
 
 
-  if (!id) {
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Disease id is required."
+
     );
+
 
   }
 
 
 
-  const diseases =
-    await getAll();
+  return apiClient.delete(
 
+    `${endpoints.diseases}/${id}`
 
+  );
 
-  const filtered =
-    diseases.filter(
-
-      disease =>
-
-      String(disease.id)
-      !==
-      String(id)
-
-    );
-
-
-
-  const deleted =
-    filtered.length !== diseases.length;
-
-
-
-  if (deleted) {
-
-    storageService.save(
-
-      STORAGE_KEY,
-
-      filtered
-
-    );
-
-  }
-
-
-
-  return deleted;
 
 };
+
+
+
 
 
 
@@ -291,7 +214,9 @@ const diseaseApi = Object.freeze({
   update,
 
   delete:
+
     remove
+
 
 });
 
