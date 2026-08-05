@@ -2,11 +2,18 @@
 
 
 import storageService
-  from "./storageService.js";
+from "./storageService.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
 
 
 
 class AIService {
+
 
 
   constructor() {
@@ -33,6 +40,8 @@ class AIService {
 
 
   }
+
+
 
 
 
@@ -74,7 +83,12 @@ class AIService {
     }
 
 
+
+    return true;
+
+
   }
+
 
 
 
@@ -92,52 +106,46 @@ class AIService {
 
 
 
-    const response =
+    const response = {
 
 
-      this.baseUrl
-
-      ?
-
-      {
-
-        success:
-          true,
+      success:
+        Boolean(this.baseUrl),
 
 
-        model:
-          this.model,
+      model:
+        this.model,
 
 
-        answer:
-          "AI provider connection ready."
+      answer:
+        this.baseUrl
 
-      }
+        ?
 
+        "AI provider connection ready."
 
-      :
+        :
 
-      {
-
-        success:
-          false,
+        null,
 
 
-        model:
-          this.model,
+      message:
+        this.baseUrl
+
+        ?
+
+        null
+
+        :
+
+        "AI_PROVIDER_NOT_CONFIGURED"
 
 
-        message:
-          "AI_PROVIDER_NOT_CONFIGURED"
-
-      };
-
-
+    };
 
 
 
     await this.saveHistory({
-
 
       id:
         this.generateId(),
@@ -170,7 +178,6 @@ class AIService {
 
 
 
-
     return response;
 
 
@@ -183,13 +190,36 @@ class AIService {
   async saveHistory(item) {
 
 
+    if (
+
+      !item ||
+
+      typeof item !== "object"
+
+    ) {
+
+
+      throw createError(
+
+        "AI history data is required",
+
+        "AI_HISTORY_DATA_REQUIRED"
+
+      );
+
+
+    }
+
+
 
     const history =
       await this.getHistory();
 
 
 
-    history.push(item);
+    history.push(
+      item
+    );
 
 
 
@@ -200,6 +230,10 @@ class AIService {
       history
 
     );
+
+
+
+    return true;
 
 
   }
@@ -375,7 +409,9 @@ ${JSON.stringify(data)}`,
     ) {
 
 
-      throw new Error(
+      throw createError(
+
+        "AI prompt is required",
 
         "AI_PROMPT_REQUIRED"
 
@@ -383,6 +419,7 @@ ${JSON.stringify(data)}`,
 
 
     }
+
 
 
     return true;
@@ -411,7 +448,6 @@ ${JSON.stringify(data)}`,
 
 
 
-
     return (
 
       Date.now().toString()
@@ -428,7 +464,6 @@ ${JSON.stringify(data)}`,
 
 
   }
-
 
 
 
