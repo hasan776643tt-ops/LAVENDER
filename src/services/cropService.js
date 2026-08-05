@@ -1,10 +1,20 @@
 // src/services/cropService.js
 
+
 import cropRepository
-  from "../repositories/cropRepository.js";
+from "../repositories/cropRepository.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
 
 
 class CropService {
+
 
 
   constructor() {
@@ -16,6 +26,8 @@ class CropService {
 
 
 
+
+
   async getAll() {
 
     return this.repository.getAll();
@@ -24,75 +36,114 @@ class CropService {
 
 
 
+
+
   async getById(id) {
 
+
     this.validateId(id);
+
 
 
     const crop =
       await this.repository.getById(id);
 
 
+
     if (!crop) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Crop not found",
+
         "CROP_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return crop;
+
 
   }
 
 
 
+
+
   async create(data) {
 
+
     this.validateCreate(data);
+
 
 
     return this.repository.create(
       data
     );
 
+
   }
+
+
 
 
 
   async update(id, data) {
 
+
     this.validateId(id);
+
 
     this.validateUpdate(data);
 
 
+
     const updated =
       await this.repository.update(
+
         id,
+
         data
+
       );
+
 
 
     if (!updated) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Crop not found",
+
         "CROP_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return updated;
+
 
   }
 
 
 
+
+
   async delete(id) {
 
+
     this.validateId(id);
+
 
 
     const deleted =
@@ -101,22 +152,34 @@ class CropService {
       );
 
 
+
     if (!deleted) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Crop not found",
+
         "CROP_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   async exists(id) {
+
 
     if (!id) {
 
@@ -125,59 +188,87 @@ class CropService {
     }
 
 
+
     const crop =
-      await this.repository.getById(
-        id
-      );
+      await this.repository.getById(id);
+
 
 
     return Boolean(crop);
 
+
   }
+
+
 
 
 
   async count() {
 
+
     const crops =
       await this.repository.getAll();
 
 
+
     return crops.length;
 
+
   }
+
+
 
 
 
   validateId(id) {
 
+
     if (!id) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Crop id is required",
+
         "CROP_ID_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   validateCreate(data) {
+
 
     if (
       !data ||
       typeof data !== "object"
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Crop data is required",
+
         "CROP_DATA_REQUIRED"
+
       );
 
+
     }
+
+
 
 
     if (
@@ -185,42 +276,66 @@ class CropService {
       !data.name.trim()
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Crop name is required",
+
         "CROP_NAME_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   validateUpdate(data) {
+
 
     if (
       !data ||
       typeof data !== "object"
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Crop data is required",
+
         "CROP_DATA_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
 
 
 }
 
 
 
+
+
 export default Object.freeze(
+
   new CropService()
+
 );
