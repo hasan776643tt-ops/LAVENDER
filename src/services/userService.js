@@ -1,13 +1,22 @@
 // src/services/userService.js
 
 import userRepository
-  from "../repositories/userRepository.js";
+from "../repositories/userRepository.js";
+
 
 import userValidator
-  from "../validators/userValidator.js";
+from "../validators/userValidator.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
 
 
 class UserService {
+
 
 
   constructor() {
@@ -23,6 +32,8 @@ class UserService {
 
 
 
+
+
   async getAll() {
 
     return this.repository.getAll();
@@ -31,48 +42,70 @@ class UserService {
 
 
 
+
+
   async getById(id) {
 
+
     this.validateId(id);
+
 
 
     const user =
       await this.repository.getById(id);
 
 
+
     if (!user) {
 
-      throw new Error(
+
+      throw createError(
+
+        "User not found",
+
         "USER_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return user;
+
 
   }
 
 
 
+
+
   async create(data) {
+
 
     this.validator.validateCreate(
       data
     );
 
 
+
     return this.repository.create(
       data
     );
+
 
   }
 
 
 
+
+
   async update(id, data) {
 
+
     this.validateId(id);
+
 
 
     this.validator.validateUpdate(
@@ -80,31 +113,48 @@ class UserService {
     );
 
 
+
     const updated =
       await this.repository.update(
+
         id,
+
         data
+
       );
+
 
 
     if (!updated) {
 
-      throw new Error(
+
+      throw createError(
+
+        "User not found",
+
         "USER_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return updated;
+
 
   }
 
 
 
+
+
   async delete(id) {
 
+
     this.validateId(id);
+
 
 
     const deleted =
@@ -113,22 +163,34 @@ class UserService {
       );
 
 
+
     if (!deleted) {
 
-      throw new Error(
+
+      throw createError(
+
+        "User not found",
+
         "USER_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   async exists(id) {
+
 
     if (!id) {
 
@@ -137,50 +199,72 @@ class UserService {
     }
 
 
+
     const user =
-      await this.repository.getById(
-        id
-      );
+      await this.repository.getById(id);
+
 
 
     return Boolean(user);
 
+
   }
+
+
 
 
 
   async count() {
 
+
     const users =
       await this.repository.getAll();
 
 
+
     return users.length;
 
+
   }
+
+
 
 
 
   validateId(id) {
 
+
     if (!id) {
 
-      throw new Error(
+
+      throw createError(
+
+        "User id is required",
+
         "USER_ID_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
 
 
 }
 
 
 
+
+
 export default Object.freeze(
+
   new UserService()
+
 );
