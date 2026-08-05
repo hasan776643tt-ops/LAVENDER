@@ -1,5 +1,6 @@
 // src/hooks/useWeather.js
 
+
 import {
   useState,
   useCallback
@@ -29,10 +30,6 @@ export default function useWeather() {
 
 
 
-
-
-
-
   const getWeather = useCallback(
 
     async (
@@ -51,13 +48,9 @@ export default function useWeather() {
 
 
         const data =
-
           await weatherService.getWeather(
-
             latitude,
-
             longitude
-
           );
 
 
@@ -70,15 +63,15 @@ export default function useWeather() {
 
 
 
-      } catch(error) {
+      } catch (err) {
 
 
         setError(
-          error.message
+          err.message
         );
 
 
-        throw error;
+        throw err;
 
 
 
@@ -99,10 +92,6 @@ export default function useWeather() {
 
 
 
-
-
-
-
   const farmAdvice = useCallback(
 
     () => {
@@ -116,12 +105,21 @@ export default function useWeather() {
 
 
 
+      const {
+
+        humidity,
+
+        rainChance
+
+      } = weather;
+
+
 
       if (
 
-        weather.humidity !== null &&
+        humidity !== null &&
 
-        weather.humidity < 30
+        humidity < 30
 
       ) {
 
@@ -133,13 +131,11 @@ export default function useWeather() {
 
 
 
-
-
       if (
 
-        weather.rainChance !== null &&
+        rainChance !== null &&
 
-        weather.rainChance > 70
+        rainChance > 70
 
       ) {
 
@@ -148,8 +144,6 @@ export default function useWeather() {
 
 
       }
-
-
 
 
 
@@ -164,24 +158,16 @@ export default function useWeather() {
 
 
 
-
-
-
-
   return {
 
 
     weather,
 
-
     loading,
-
 
     error,
 
-
     getWeather,
-
 
     farmAdvice
 
