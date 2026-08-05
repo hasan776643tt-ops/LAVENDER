@@ -1,282 +1,205 @@
 // src/api/irrigationApi.js
 
 
-import storageService
-  from "../services/storageService.js";
+import apiClient
+from "./apiClient.js";
+
+
+import endpoints
+from "./endpoints.js";
 
 
 
-const STORAGE_KEY =
-  "irrigations";
 
-
-
-const generateId = () =>
-
-  crypto?.randomUUID?.()
-  ||
-  Date.now().toString();
-
+// ===============================
+// Irrigation API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.irrigation
+
   );
+
 
 };
 
 
 
-const getById = async (id) => {
 
 
-  if (!id) {
+
+const getById = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Irrigation id is required."
+
     );
+
 
   }
 
 
 
-  const irrigations =
-    await getAll();
+  return apiClient.get(
 
-
-
-  return (
-
-    irrigations.find(
-
-      irrigation =>
-
-      String(irrigation.id)
-      ===
-      String(id)
-
-    )
-
-    || null
+    `${endpoints.irrigation}/${id}`
 
   );
+
 
 };
 
 
 
-const create = async (data) => {
 
 
-  if (!data) {
+
+const create = async (
+
+  data
+
+) => {
+
+
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Irrigation data is required."
+
     );
+
 
   }
 
 
 
-  const irrigations =
-    await getAll();
+  return apiClient.post(
 
+    endpoints.irrigation,
 
-
-  const irrigation = {
-
-
-    id:
-      generateId(),
-
-
-    ...data,
-
-
-    createdAt:
-      new Date().toISOString(),
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  irrigations.push(
-    irrigation
-  );
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    irrigations
+    data
 
   );
 
-
-
-  return irrigation;
 
 };
+
+
+
 
 
 
 const update = async (
+
   id,
+
   data
+
 ) => {
 
 
-  if (!id) {
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Irrigation id is required."
+
     );
+
 
   }
 
 
 
-  if (!data) {
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Irrigation data is required."
+
     );
+
 
   }
 
 
 
-  const irrigations =
-    await getAll();
+  return apiClient.put(
 
+    `${endpoints.irrigation}/${id}`,
 
-
-  const index =
-    irrigations.findIndex(
-
-      irrigation =>
-
-      String(irrigation.id)
-      ===
-      String(id)
-
-    );
-
-
-
-  if (index === -1) {
-
-    return null;
-
-  }
-
-
-
-  const updatedIrrigation = {
-
-
-    ...irrigations[index],
-
-
-    ...data,
-
-
-    id:
-      irrigations[index].id,
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  irrigations[index] =
-    updatedIrrigation;
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    irrigations
+    data
 
   );
 
 
-
-  return updatedIrrigation;
-
 };
 
 
 
-const remove = async (id) => {
 
 
-  if (!id) {
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Irrigation id is required."
+
     );
+
 
   }
 
 
 
-  const irrigations =
-    await getAll();
+  return apiClient.delete(
 
+    `${endpoints.irrigation}/${id}`
 
+  );
 
-  const filtered =
-    irrigations.filter(
-
-      irrigation =>
-
-      String(irrigation.id)
-      !==
-      String(id)
-
-    );
-
-
-
-  const deleted =
-    filtered.length !== irrigations.length;
-
-
-
-  if (deleted) {
-
-    storageService.save(
-
-      STORAGE_KEY,
-
-      filtered
-
-    );
-
-  }
-
-
-
-  return deleted;
 
 };
+
+
+
 
 
 
@@ -291,7 +214,9 @@ const irrigationApi = Object.freeze({
   update,
 
   delete:
+
     remove
+
 
 });
 
