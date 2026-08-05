@@ -2,7 +2,13 @@
 
 
 import consultationRepository
-from "../repositories/consultationRepository.js";
+  from "../repositories/consultationRepository.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
 
 
 
@@ -38,30 +44,26 @@ class ConsultationService {
   async getById(id) {
 
 
-    if (!id) {
-
-
-      throw new Error(
-
-        "CONSULTATION_ID_REQUIRED"
-
-      );
-
-
-    }
+    this.validateId(
+      id
+    );
 
 
 
     const consultation =
 
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
 
     if (!consultation) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Consultation not found",
 
         "CONSULTATION_NOT_FOUND"
 
@@ -84,7 +86,9 @@ class ConsultationService {
   async create(data) {
 
 
-    this.validate(data);
+    this.validateCreate(
+      data
+    );
 
 
 
@@ -95,30 +99,26 @@ class ConsultationService {
     );
 
 
-  }
+ 
 
 
 
 
 
-  async update(id, data) {
+  async update(
+    id,
+    data
+  ) {
 
 
-    if (!id) {
+    this.validateId(
+      id
+    );
 
 
-      throw new Error(
-
-        "CONSULTATION_ID_REQUIRED"
-
-      );
-
-
-    }
-
-
-
-    this.validate(data);
+    this.validateUpdate(
+      data
+    );
 
 
 
@@ -137,7 +137,9 @@ class ConsultationService {
     if (!updated) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Consultation not found",
 
         "CONSULTATION_NOT_FOUND"
 
@@ -160,30 +162,26 @@ class ConsultationService {
   async delete(id) {
 
 
-    if (!id) {
-
-
-      throw new Error(
-
-        "CONSULTATION_ID_REQUIRED"
-
-      );
-
-
-    }
+    this.validateId(
+      id
+    );
 
 
 
     const deleted =
 
-      await this.repository.delete(id);
+      await this.repository.delete(
+        id
+      );
 
 
 
     if (!deleted) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Consultation not found",
 
         "CONSULTATION_NOT_FOUND"
 
@@ -218,11 +216,15 @@ class ConsultationService {
 
     const consultation =
 
-      await this.repository.getById(id);
+      await this.repository.getById(
+        id
+      );
 
 
 
-    return Boolean(consultation);
+    return Boolean(
+      consultation
+    );
 
 
   }
@@ -315,26 +317,40 @@ class ConsultationService {
 
 
 
-  validate(data) {
+  validateId(id) {
 
 
-    if (
-
-      !data ||
-
-      typeof data !== "object"
-
-    ) {
+    if (!id) {
 
 
-      throw new Error(
+      throw createError(
 
-        "CONSULTATION_DATA_REQUIRED"
+        "Consultation id is required",
+
+        "CONSULTATION_ID_REQUIRED"
 
       );
 
 
     }
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateCreate(data) {
+
+
+    this.validateData(
+      data
+    );
 
 
 
@@ -347,7 +363,9 @@ class ConsultationService {
     ) {
 
 
-      throw new Error(
+      throw createError(
+
+        "Consultation content is required",
 
         "CONSULTATION_CONTENT_REQUIRED"
 
@@ -364,6 +382,56 @@ class ConsultationService {
   }
 
 
+
+
+
+  validateUpdate(data) {
+
+
+    this.validateData(
+      data
+    );
+
+
+
+    return true;
+
+
+  }
+
+
+
+
+
+  validateData(data) {
+
+
+    if (
+
+      !data ||
+
+      typeof data !== "object"
+
+    ) {
+
+
+      throw createError(
+
+        "Consultation data is required",
+
+        "CONSULTATION_DATA_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    return true;
+
+
+  }
 
 
 
