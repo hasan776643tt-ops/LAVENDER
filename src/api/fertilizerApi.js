@@ -1,282 +1,205 @@
 // src/api/fertilizerApi.js
 
 
-import storageService
-  from "../services/storageService.js";
+import apiClient
+from "./apiClient.js";
+
+
+import endpoints
+from "./endpoints.js";
 
 
 
-const STORAGE_KEY =
-  "fertilizers";
 
-
-
-const generateId = () =>
-
-  crypto?.randomUUID?.()
-  ||
-  Date.now().toString();
-
+// ===============================
+// Fertilizer API
+// ===============================
 
 
 const getAll = async () => {
 
-  return storageService.load(
-    STORAGE_KEY,
-    []
+
+  return apiClient.get(
+
+    endpoints.fertilizers
+
   );
+
 
 };
 
 
 
-const getById = async (id) => {
 
 
-  if (!id) {
+
+const getById = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Fertilizer id is required."
+
     );
+
 
   }
 
 
 
-  const fertilizers =
-    await getAll();
+  return apiClient.get(
 
-
-
-  return (
-
-    fertilizers.find(
-
-      fertilizer =>
-
-      String(fertilizer.id)
-      ===
-      String(id)
-
-    )
-
-    || null
+    `${endpoints.fertilizers}/${id}`
 
   );
+
 
 };
 
 
 
-const create = async (data) => {
 
 
-  if (!data) {
+
+const create = async (
+
+  data
+
+) => {
+
+
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Fertilizer data is required."
+
     );
+
 
   }
 
 
 
-  const fertilizers =
-    await getAll();
+  return apiClient.post(
 
+    endpoints.fertilizers,
 
-
-  const fertilizer = {
-
-
-    id:
-      generateId(),
-
-
-    ...data,
-
-
-    createdAt:
-      new Date().toISOString(),
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  fertilizers.push(
-    fertilizer
-  );
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    fertilizers
+    data
 
   );
 
-
-
-  return fertilizer;
 
 };
+
+
+
 
 
 
 const update = async (
+
   id,
+
   data
+
 ) => {
 
 
-  if (!id) {
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Fertilizer id is required."
+
     );
+
 
   }
 
 
 
-  if (!data) {
+  if(
+    !data
+  ) {
+
 
     throw new Error(
+
       "Fertilizer data is required."
+
     );
+
 
   }
 
 
 
-  const fertilizers =
-    await getAll();
+  return apiClient.put(
 
+    `${endpoints.fertilizers}/${id}`,
 
-
-  const index =
-    fertilizers.findIndex(
-
-      fertilizer =>
-
-      String(fertilizer.id)
-      ===
-      String(id)
-
-    );
-
-
-
-  if (index === -1) {
-
-    return null;
-
-  }
-
-
-
-  const updatedFertilizer = {
-
-
-    ...fertilizers[index],
-
-
-    ...data,
-
-
-    id:
-      fertilizers[index].id,
-
-
-    updatedAt:
-      new Date().toISOString()
-
-
-  };
-
-
-
-  fertilizers[index] =
-    updatedFertilizer;
-
-
-
-  storageService.save(
-
-    STORAGE_KEY,
-
-    fertilizers
+    data
 
   );
 
 
-
-  return updatedFertilizer;
-
 };
 
 
 
-const remove = async (id) => {
 
 
-  if (!id) {
+
+const remove = async (
+
+  id
+
+) => {
+
+
+  if(
+    !id
+  ) {
+
 
     throw new Error(
+
       "Fertilizer id is required."
+
     );
+
 
   }
 
 
 
-  const fertilizers =
-    await getAll();
+  return apiClient.delete(
 
+    `${endpoints.fertilizers}/${id}`
 
+  );
 
-  const filtered =
-    fertilizers.filter(
-
-      fertilizer =>
-
-      String(fertilizer.id)
-      !==
-      String(id)
-
-    );
-
-
-
-  const deleted =
-    filtered.length !== fertilizers.length;
-
-
-
-  if (deleted) {
-
-    storageService.save(
-
-      STORAGE_KEY,
-
-      filtered
-
-    );
-
-  }
-
-
-
-  return deleted;
 
 };
+
+
+
 
 
 
@@ -291,7 +214,9 @@ const fertilizerApi = Object.freeze({
   update,
 
   delete:
+
     remove
+
 
 });
 
