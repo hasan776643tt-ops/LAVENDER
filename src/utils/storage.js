@@ -1,6 +1,11 @@
 // src/utils/storage.js
 
 
+import logger
+from "./logger.js";
+
+
+
 // ===============================
 // LAVENDER Storage Manager
 // ===============================
@@ -12,41 +17,69 @@ const PREFIX =
 
 
 
-// ===============================
-// Create Storage Key
-// ===============================
 
-const createKey = (key) => {
-
-  return PREFIX + key;
-
-};
+function isStorageAvailable() {
 
 
+  return (
+
+    typeof window !== "undefined"
+
+    &&
+
+    typeof window.localStorage !== "undefined"
+
+  );
 
 
-// ===============================
-// Save Data
-// حفظ البيانات
-// ===============================
+}
 
-export const saveData = (
+
+
+
+
+function createKey(
+  key
+) {
+
+
+  return (
+
+    PREFIX +
+
+    key
+
+  );
+
+
+}
+
+
+
+
+
+export function saveData(
   key,
   data
-) => {
+) {
+
 
   try {
 
+
     if(
-      typeof localStorage === "undefined"
-    ){
+      !isStorageAvailable()
+    ) {
+
 
       return false;
+
 
     }
 
 
-    localStorage.setItem(
+
+    window.localStorage.setItem(
 
       createKey(key),
 
@@ -55,77 +88,109 @@ export const saveData = (
     );
 
 
+
     return true;
+
 
 
   } catch(error) {
 
 
-    console.error(
-      "LAVENDER Storage Save Error:",
-      error
+    logger.error(
+
+      "Storage save error",
+
+      {
+
+        key,
+
+        error
+
+      }
+
     );
+
 
 
     return false;
 
+
   }
 
-};
+
+}
 
 
 
 
-// ===============================
-// Get Data
-// قراءة البيانات
-// ===============================
 
-export const getData = (
 
+export function getData(
   key,
-
   defaultValue = null
-
-) => {
+) {
 
 
   try {
 
 
     if(
-      typeof localStorage === "undefined"
-    ){
+      !isStorageAvailable()
+    ) {
+
 
       return defaultValue;
+
 
     }
 
 
 
-    const data =
+    const storedData =
 
-      localStorage.getItem(
+      window.localStorage.getItem(
+
         createKey(key)
+
       );
 
 
 
-    return data
+    if(
+      storedData === null
+    ) {
 
-      ? JSON.parse(data)
 
-      : defaultValue;
+      return defaultValue;
+
+
+    }
+
+
+
+    return JSON.parse(
+      storedData
+    );
 
 
 
   } catch(error) {
 
 
-    console.error(
-      "LAVENDER Storage Read Error:",
-      error
+    logger.error(
+
+      "Storage read error",
+
+      {
+
+        key,
+
+        error
+
+      }
+
     );
+
 
 
     return defaultValue;
@@ -133,108 +198,197 @@ export const getData = (
 
   }
 
-};
+
+}
 
 
 
 
-// ===============================
-// Remove Data
-// حذف بيانات
-// ===============================
 
-export const removeData = (
+
+export function removeData(
   key
-) => {
+) {
 
 
   if(
-    typeof localStorage !== "undefined"
-  ){
+    !isStorageAvailable()
+  ) {
 
-    localStorage.removeItem(
-      createKey(key)
-    );
+
+    return false;
+
 
   }
 
-};
+
+
+  window.localStorage.removeItem(
+
+    createKey(key)
+
+  );
+
+
+
+  return true;
+
+
+}
 
 
 
 
-// ===============================
-// Clear LAVENDER Storage
-// مسح بيانات التطبيق فقط
-// ===============================
 
-export const clearStorage = () => {
+
+export function clearStorage() {
 
 
   if(
-    typeof localStorage === "undefined"
-  ){
+    !isStorageAvailable()
+  ) {
 
-    return;
+
+    return false;
+
 
   }
 
 
 
   Object.keys(
-    localStorage
+
+    window.localStorage
+
   )
+
   .filter(
+
     key =>
-    key.startsWith(PREFIX)
+
+      key.startsWith(
+        PREFIX
+      )
+
   )
+
   .forEach(
+
     key =>
-    localStorage.removeItem(key)
+
+      window.localStorage.removeItem(
+        key
+      )
+
   );
 
 
-};
+
+  return true;
+
+
+}
 
 
 
 
-// ===============================
-// Update Data
-// تحديث بيانات
-// ===============================
 
-export const updateData = (
 
+export function updateData(
   key,
-
   callback
+) {
 
-) => {
 
-
-  const oldData =
+  const currentData =
 
     getData(
+
       key,
+
       []
+
     );
 
 
 
-  const newData =
+  const updatedData =
 
-    callback(oldData);
+    callback(
+      currentData
+    );
 
 
 
   saveData(
+
     key,
-    newData
+
+    updatedData
+
   );
 
 
 
-  return newData;
+  return updatedData;
+
+
+}
+
+
+
+
+
+
+export function hasData(
+  key
+) {
+
+
+  if(
+    !isStorageAvailable()
+  ) {
+
+
+    return false;
+
+
+  }
+
+
+
+  return (
+
+    window.localStorage.getItem(
+
+      createKey(key)
+
+    ) !== null
+
+  );
+
+
+}
+
+
+
+
+
+
+export default {
+
+
+  saveData,
+
+  getData,
+
+  removeData,
+
+  clearStorage,
+
+  updateData,
+
+  hasData
+
 
 };
