@@ -15,6 +15,7 @@ from "../utils/errorHandler.js";
 
 
 
+
 class AuthService {
 
 
@@ -25,10 +26,15 @@ class AuthService {
       userRepository;
 
 
+    this.validator =
+      userValidator;
+
+
     this.currentSession =
       null;
 
   }
+
 
 
 
@@ -149,14 +155,31 @@ class AuthService {
 
 
 
-    if (!data) {
+    this.validator.validateUpdate(
+      data
+    );
+
+
+
+    const updated =
+      await this.repository.update(
+
+        this.currentSession.id,
+
+        data
+
+      );
+
+
+
+    if (!updated) {
 
 
       throw createError(
 
-        "Profile data is required",
+        "User not found",
 
-        "PROFILE_DATA_REQUIRED"
+        "USER_NOT_FOUND"
 
       );
 
@@ -165,13 +188,7 @@ class AuthService {
 
 
 
-    return this.repository.update(
-
-      this.currentSession.id,
-
-      data
-
-    );
+    return updated;
 
 
   }
@@ -187,7 +204,9 @@ class AuthService {
 
 
 
-    if (!data) {
+    if (
+      !data
+    ) {
 
 
       throw createError(
@@ -215,7 +234,9 @@ class AuthService {
   async forgotPassword(email) {
 
 
-    if (!email) {
+    if (
+      !email
+    ) {
 
 
       throw createError(
@@ -323,35 +344,9 @@ class AuthService {
   validateRegister(data) {
 
 
-    const result =
-
-      userValidator.validate(
-        data
-      );
-
-
-
-    if (
-
-      result &&
-
-      result.valid === false
-
-    ) {
-
-
-      throw createError(
-
-        "User validation failed",
-
-        "USER_VALIDATION_FAILED",
-
-        result.errors
-
-      );
-
-
-    }
+    this.validator.validateCreate(
+      data
+    );
 
 
 
@@ -368,9 +363,7 @@ class AuthService {
 
 
     if (
-
       !this.currentSession
-
     ) {
 
 
@@ -395,6 +388,7 @@ class AuthService {
 
 
 }
+
 
 
 
