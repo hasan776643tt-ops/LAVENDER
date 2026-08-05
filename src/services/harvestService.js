@@ -1,10 +1,19 @@
 // src/services/harvestService.js
 
 import harvestRepository
-  from "../repositories/harvestRepository.js";
+from "../repositories/harvestRepository.js";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
+
 
 
 class HarvestService {
+
 
 
   constructor() {
@@ -16,6 +25,8 @@ class HarvestService {
 
 
 
+
+
   async getAll() {
 
     return this.repository.getAll();
@@ -24,44 +35,65 @@ class HarvestService {
 
 
 
+
+
   async getById(id) {
 
+
     this.validateId(id);
+
 
 
     const harvest =
       await this.repository.getById(id);
 
 
+
     if (!harvest) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Harvest not found",
+
         "HARVEST_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return harvest;
+
 
   }
 
 
 
+
+
   async create(data) {
 
+
     this.validateCreate(data);
+
 
 
     return this.repository.create(
       data
     );
 
+
   }
 
 
 
+
+
   async update(id, data) {
+
 
     this.validateId(id);
 
@@ -69,31 +101,48 @@ class HarvestService {
     this.validateUpdate(data);
 
 
+
     const harvest =
       await this.repository.update(
+
         id,
+
         data
+
       );
+
 
 
     if (!harvest) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Harvest not found",
+
         "HARVEST_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return harvest;
+
 
   }
 
 
 
+
+
   async delete(id) {
 
+
     this.validateId(id);
+
 
 
     const deleted =
@@ -102,22 +151,34 @@ class HarvestService {
       );
 
 
+
     if (!deleted) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Harvest not found",
+
         "HARVEST_NOT_FOUND"
+
       );
+
 
     }
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   async exists(id) {
+
 
     if (!id) {
 
@@ -126,92 +187,139 @@ class HarvestService {
     }
 
 
+
     const harvest =
       await this.repository.getById(
         id
       );
 
 
-    return Boolean(harvest);
+
+    return Boolean(
+      harvest
+    );
+
 
   }
+
+
 
 
 
   async count() {
 
+
     const harvests =
       await this.repository.getAll();
 
 
+
     return harvests.length;
 
+
   }
+
+
 
 
 
   validateId(id) {
 
+
     if (!id) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Harvest id is required",
+
         "HARVEST_ID_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
+
 
 
 
   validateCreate(data) {
 
+
     this.validateData(data);
+
 
 
     return true;
 
+
   }
+
+
 
 
 
   validateUpdate(data) {
 
+
     this.validateData(data);
 
 
+
     return true;
+
 
   }
 
 
 
+
+
   validateData(data) {
+
 
     if (
       !data ||
       typeof data !== "object"
     ) {
 
-      throw new Error(
+
+      throw createError(
+
+        "Harvest data is required",
+
         "HARVEST_DATA_REQUIRED"
+
       );
+
 
     }
 
 
+
     return true;
 
+
   }
+
 
 
 }
 
 
 
+
+
 export default Object.freeze(
+
   new HarvestService()
+
 );
