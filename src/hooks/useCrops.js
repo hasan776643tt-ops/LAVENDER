@@ -1,5 +1,6 @@
 // src/hooks/useCrops.js
 
+
 import {
   useContext,
   useMemo
@@ -8,7 +9,7 @@ import {
 
 import {
   FarmContext
-} from "../context/FarmContext";
+} from "../context/FarmContext.js";
 
 
 
@@ -40,10 +41,6 @@ export default function useCrops() {
 
 
 
-
-
-
-
   const addCrop = async (
     data
   ) => {
@@ -55,10 +52,6 @@ export default function useCrops() {
 
 
   };
-
-
-
-
 
 
 
@@ -78,25 +71,17 @@ export default function useCrops() {
 
 
 
-
-
-
-
   const deleteCrop = async (
     id
   ) => {
 
 
-    return await cropActions.remove(
+    return await cropActions.delete(
       id
     );
 
 
   };
-
-
-
-
 
 
 
@@ -107,10 +92,6 @@ export default function useCrops() {
 
 
   };
-
-
-
-
 
 
 
@@ -139,54 +120,48 @@ export default function useCrops() {
 
 
 
+  const statistics =
+    useMemo(
+
+      () => ({
+
+
+        total:
+          crops.length,
 
 
 
+        active:
+          crops.filter(
 
-  const statistics = useMemo(
+            crop =>
 
-    () => ({
+              crop.status === "active"
 
-
-      total:
-        crops.length,
-
-
-
-      active:
-        crops.filter(
-
-          crop =>
-
-            crop.status === "active"
-
-        ).length,
+          ).length,
 
 
 
-      archived:
-        crops.filter(
+        archived:
+          crops.filter(
 
-          crop =>
+            crop =>
 
-            crop.status === "archived"
+              crop.status === "archived"
 
-        ).length
-
-
-    }),
-
-    [crops]
-
-  );
+          ).length
 
 
+      }),
 
+      [crops]
 
+    );
 
 
 
   return {
+
 
     crops,
 
@@ -201,6 +176,7 @@ export default function useCrops() {
     searchCrops,
 
     statistics
+
 
   };
 
