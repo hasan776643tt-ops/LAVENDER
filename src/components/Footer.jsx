@@ -1,12 +1,22 @@
+// src/components/Footer.jsx
+
+const currentYear = new Date().getFullYear();
+
+
 export default function Footer() {
+
+
   return (
+
     <footer className="app-footer">
+
 
       <div className="footer-brand">
 
         🌱 LAVENDER Smart Farm
 
       </div>
+
 
 
       <div className="footer-description">
@@ -20,12 +30,17 @@ export default function Footer() {
       </div>
 
 
+
       <div className="footer-copy">
 
-        © 2026 جميع الحقوق محفوظة
+        © {currentYear} جميع الحقوق محفوظة
 
       </div>
 
+
+
     </footer>
+
   );
+
 }
