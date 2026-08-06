@@ -1,19 +1,15 @@
 // src/controllers/engineerController.js
 
-
 import engineerService
   from "../services/engineerService.js";
-
 
 
 class EngineerController {
 
 
+  constructor(service) {
 
-  constructor() {
-
-    this.service =
-      engineerService;
+    this.service = service;
 
   }
 
@@ -24,7 +20,6 @@ class EngineerController {
     try {
 
       return await this.service.getAll();
-
 
     } catch(error) {
 
@@ -42,10 +37,7 @@ class EngineerController {
 
     try {
 
-      return await this.service.getById(
-        id
-      );
-
+      return await this.service.getById(id);
 
     } catch(error) {
 
@@ -63,10 +55,7 @@ class EngineerController {
 
     try {
 
-      return await this.service.create(
-        data
-      );
-
+      return await this.service.create(data);
 
     } catch(error) {
 
@@ -89,7 +78,6 @@ class EngineerController {
         data
       );
 
-
     } catch(error) {
 
       throw new Error(
@@ -106,10 +94,7 @@ class EngineerController {
 
     try {
 
-      return await this.service.delete(
-        id
-      );
-
+      return await this.service.delete(id);
 
     } catch(error) {
 
@@ -127,10 +112,7 @@ class EngineerController {
 
     try {
 
-      return await this.service.exists(
-        id
-      );
-
+      return await this.service.exists(id);
 
     } catch(error) {
 
@@ -150,7 +132,6 @@ class EngineerController {
 
       return await this.service.count();
 
-
     } catch(error) {
 
       throw new Error(
@@ -167,10 +148,7 @@ class EngineerController {
 
     try {
 
-      return await this.service.search(
-        keyword
-      );
-
+      return await this.service.search(keyword);
 
     } catch(error) {
 
@@ -187,6 +165,12 @@ class EngineerController {
 
 
 
+const engineerController =
+  new EngineerController(
+    engineerService
+  );
+
+
 export default Object.freeze(
-  new EngineerController()
+  engineerController
 );
