@@ -1,12 +1,33 @@
 // src/components/Header.jsx
 
-import {
-  Link
-} from "react-router-dom";
+import { Link } from "react-router-dom";
 
 
-export default function Header(){
+const menuItems = Object.freeze([
+  {
+    id: "dashboard",
+    path: "/dashboard",
+    label: "📊 لوحة التحكم",
+  },
+  {
+    id: "farms",
+    path: "/farms",
+    label: "🌾 المزارع",
+  },
+  {
+    id: "reports",
+    path: "/reports",
+    label: "📈 التقارير",
+  },
+  {
+    id: "login",
+    path: "/login",
+    label: "🔐 الدخول",
+  },
+]);
 
+
+export default function Header() {
 
   return (
 
@@ -14,7 +35,6 @@ export default function Header(){
 
 
       <div className="brand">
-
 
         <Link to="/">
 
@@ -30,47 +50,30 @@ export default function Header(){
 
         </Link>
 
-
       </div>
-
 
 
 
 
       <nav className="header-nav">
 
+        {
+          menuItems.map(item => (
 
-        <Link to="/dashboard">
+            <Link
 
-          📊 لوحة التحكم
+              key={item.id}
 
-        </Link>
+              to={item.path}
 
+            >
 
+              {item.label}
 
-        <Link to="/farms">
+            </Link>
 
-          🌾 المزارع
-
-        </Link>
-
-
-
-        <Link to="/reports">
-
-          📈 التقارير
-
-        </Link>
-
-
-
-        <Link to="/login">
-
-          🔐 الدخول
-
-        </Link>
-
-
+          ))
+        }
 
       </nav>
 
