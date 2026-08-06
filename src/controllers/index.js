@@ -25,9 +25,9 @@ from "./pesticideController.js";
 import diseaseController
 from "./diseaseController.js";
 
+
 import weatherController
 from "./weatherController.js";
-
 
 import reportController
 from "./reportController.js";
@@ -45,40 +45,32 @@ from "./harvestController.js";
 import inventoryController
 from "./inventoryController.js";
 
-import consultationController
-from "./consultationController.js";
-
 import authController
 from "./authController.js";
 
 
 
-const controllers = {
+const controllers = Object.freeze({
 
+  auth: authController,
 
-  crop: cropController,
+  user: userController,
+
 
   farm: farmController,
 
   field: fieldController,
 
-  user: userController,
+  crop: cropController,
 
-
-  fertilizer: fertilizerController,
 
   irrigation: irrigationController,
+
+  fertilizer: fertilizerController,
 
   pesticide: pesticideController,
 
   disease: diseaseController,
-
-
-  weather: weatherController,
-
-  report: reportController,
-
-  engineer: engineerController,
 
 
   expense: expenseController,
@@ -87,15 +79,15 @@ const controllers = {
 
   inventory: inventoryController,
 
-  consultation: consultationController,
 
-  auth: authController
+  weather: weatherController,
+
+  engineer: engineerController,
+
+  report: reportController
+
+});
 
 
-};
 
-
-
-export default Object.freeze(
-  controllers
-);
+export default controllers;
