@@ -10,10 +10,9 @@ class HarvestController {
 
 
 
-  constructor() {
+  constructor(service) {
 
-    this.service =
-      harvestService;
+    this.service = service;
 
   }
 
@@ -166,6 +165,13 @@ class HarvestController {
 
 
 
+const harvestController =
+  new HarvestController(
+    harvestService
+  );
+
+
+
 export default Object.freeze(
-  new HarvestController()
+  harvestController
 );
