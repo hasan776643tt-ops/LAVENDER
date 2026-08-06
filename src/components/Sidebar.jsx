@@ -1,16 +1,13 @@
 // src/components/Sidebar.jsx
 
-
 import {
   NavLink
 } from "react-router-dom";
 
-
 import menuConfig from "../config/menuConfig.js";
 
 
-
-export default function Sidebar(){
+export default function Sidebar() {
 
 
   return (
@@ -28,22 +25,16 @@ export default function Sidebar(){
 
 
         <h2>
-
           🌱 LAVENDER
-
         </h2>
 
 
         <p>
-
           Smart Farm
-
         </p>
 
 
       </div>
-
-
 
 
 
@@ -54,70 +45,64 @@ export default function Sidebar(){
 
 
           {
+            menuConfig.map((item)=>(
 
-            menuConfig.map(
+              <li
 
-              (item)=>(
+                key={item.id}
+
+              >
 
 
-                <li
+                <NavLink
 
-                  key={
-                    item.id
+                  to={item.path}
+
+                  className={({isActive}) =>
+
+                    isActive
+
+                    ?
+
+                    "sidebar-link active"
+
+                    :
+
+                    "sidebar-link"
+
                   }
 
                 >
 
 
-                  <NavLink
+                  {
+                    item.icon && (
 
-                    to={
-                      item.path
-                    }
+                      <span className="sidebar-icon">
 
-                    className={
+                        {item.icon}
 
-                      ({isActive}) =>
+                      </span>
 
-                      isActive
-
-                      ?
-
-                      "sidebar-link active"
-
-                      :
-
-                      "sidebar-link"
-
-                    }
-
-                  >
+                    )
+                  }
 
 
-                    <span className="sidebar-icon">
 
-                      {item.icon}
+                  <span>
 
-                    </span>
+                    {item.title}
 
-
-                    <span>
-
-                      {item.title}
-
-                    </span>
+                  </span>
 
 
-                  </NavLink>
+
+                </NavLink>
 
 
-                </li>
+              </li>
 
-
-              )
-
-            )
-
+            ))
           }
 
 
