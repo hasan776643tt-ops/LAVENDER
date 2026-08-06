@@ -9,11 +9,9 @@ import expenseService
 class ExpenseController {
 
 
+  constructor(service) {
 
-  constructor() {
-
-    this.service =
-      expenseService;
+    this.service = service;
 
   }
 
@@ -24,7 +22,6 @@ class ExpenseController {
     try {
 
       return await this.service.getAll();
-
 
     } catch(error) {
 
@@ -46,7 +43,6 @@ class ExpenseController {
         id
       );
 
-
     } catch(error) {
 
       throw new Error(
@@ -67,7 +63,6 @@ class ExpenseController {
         data
       );
 
-
     } catch(error) {
 
       throw new Error(
@@ -80,7 +75,10 @@ class ExpenseController {
 
 
 
-  async update(id, data) {
+  async update(
+    id,
+    data
+  ) {
 
     try {
 
@@ -88,7 +86,6 @@ class ExpenseController {
         id,
         data
       );
-
 
     } catch(error) {
 
@@ -110,7 +107,6 @@ class ExpenseController {
         id
       );
 
-
     } catch(error) {
 
       throw new Error(
@@ -131,7 +127,6 @@ class ExpenseController {
         id
       );
 
-
     } catch(error) {
 
       throw new Error(
@@ -150,7 +145,6 @@ class ExpenseController {
 
       return await this.service.count();
 
-
     } catch(error) {
 
       throw new Error(
@@ -166,6 +160,13 @@ class ExpenseController {
 
 
 
+const expenseController =
+  new ExpenseController(
+    expenseService
+  );
+
+
+
 export default Object.freeze(
-  new ExpenseController()
+  expenseController
 );
