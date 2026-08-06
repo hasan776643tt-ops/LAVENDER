@@ -15,12 +15,10 @@ class StorageService {
   constructor(prefix = "lavender") {
 
 
-    this.prefix =
-      prefix;
+    this.prefix = prefix;
 
 
-    this.version =
-      "3.0.0";
+    this.version = "3.0.0";
 
 
   }
@@ -28,8 +26,7 @@ class StorageService {
 
 
 
-
-  key(name) {
+  createKey(name) {
 
 
     if (!name) {
@@ -43,9 +40,7 @@ class StorageService {
 
       );
 
-
     }
-
 
 
     return `${this.prefix}:${name}`;
@@ -57,41 +52,70 @@ class StorageService {
 
 
 
-  async save(
-    name,
-    data
-  ) {
+  getStorage() {
 
 
-    const storage =
-      this.getStorage();
+    if (
+
+      typeof window === "undefined"
+
+      ||
+
+      !window.localStorage
+
+    ) {
+
+
+      throw createError(
+
+        "Local storage is unavailable",
+
+        "LOCAL_STORAGE_NOT_AVAILABLE"
+
+      );
+
+    }
+
+
+    return window.localStorage;
+
+
+  }
 
 
 
-    const payload = {
 
 
-      version:
-        this.version,
-
-
-      data,
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
+  async save(name, data) {
 
 
     try {
 
 
-      storage.setItem(
+      const payload = {
 
-        this.key(name),
+
+        version: this.version,
+
+
+        data,
+
+
+        createdAt:
+          new Date().toISOString(),
+
+
+        updatedAt:
+          new Date().toISOString()
+
+
+      };
+
+
+
+      this.getStorage().setItem(
+
+        this.createKey(name),
 
         JSON.stringify(payload)
 
@@ -130,32 +154,20 @@ class StorageService {
   ) {
 
 
-    if (!name) {
-
-
-      return defaultValue;
-
-
-    }
-
-
-
     try {
 
 
-      const value =
+      const item =
 
-        this.getStorage()
+        this.getStorage().getItem(
 
-        .getItem(
-
-          this.key(name)
+          this.createKey(name)
 
         );
 
 
 
-      if (!value) {
+      if (!item) {
 
 
         return defaultValue;
@@ -166,17 +178,18 @@ class StorageService {
 
 
       const parsed =
-        JSON.parse(value);
+
+        JSON.parse(item);
 
 
 
       return (
 
-        parsed?.data
+        parsed.data
 
         ??
 
-        parsed
+        defaultValue
 
       );
 
@@ -199,22 +212,22 @@ class StorageService {
 
   async update(
     name,
-    updater
+    callback
   ) {
 
 
     if (
 
-      typeof updater !== "function"
+      typeof callback !== "function"
 
     ) {
 
 
       throw createError(
 
-        "Storage updater is required",
+        "Update callback is required",
 
-        "STORAGE_UPDATER_REQUIRED"
+        "STORAGE_UPDATE_REQUIRED"
 
       );
 
@@ -237,11 +250,7 @@ class StorageService {
 
     const updated =
 
-      await updater(
-
-        current
-
-      );
+      await callback(current);
 
 
 
@@ -263,23 +272,13 @@ class StorageService {
   async exists(name) {
 
 
-    if (!name) {
-
-
-      return false;
-
-
-    }
-
-
-
     return (
 
       this.getStorage()
 
       .getItem(
 
-        this.key(name)
+        this.createKey(name)
 
       )
 
@@ -297,16 +296,6 @@ class StorageService {
   async remove(name) {
 
 
-    if (!name) {
-
-
-      return false;
-
-
-    }
-
-
-
     try {
 
 
@@ -314,10 +303,9 @@ class StorageService {
 
       .removeItem(
 
-        this.key(name)
+        this.createKey(name)
 
       );
-
 
 
       return true;
@@ -357,11 +345,11 @@ class StorageService {
 
         key =>
 
-          key.startsWith(
+        key.startsWith(
 
-            `${this.prefix}:`
+          `${this.prefix}:`
 
-          )
+        )
 
       )
 
@@ -369,11 +357,7 @@ class StorageService {
 
         key =>
 
-          storage.removeItem(
-
-            key
-
-          )
+        storage.removeItem(key)
 
       );
 
@@ -415,11 +399,11 @@ class StorageService {
 
         key =>
 
-          key.startsWith(
+        key.startsWith(
 
-            `${this.prefix}:`
+          `${this.prefix}:`
 
-          )
+        )
 
       );
 
@@ -440,40 +424,7 @@ class StorageService {
 
       keys
 
-
     };
-
-
-  }
-
-
-
-
-
-  getStorage() {
-
-
-    if (
-
-      typeof localStorage === "undefined"
-
-    ) {
-
-
-      throw createError(
-
-        "Local storage is not available",
-
-        "LOCAL_STORAGE_NOT_AVAILABLE"
-
-      );
-
-
-    }
-
-
-
-    return localStorage;
 
 
   }
