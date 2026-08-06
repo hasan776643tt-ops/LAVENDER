@@ -11,8 +11,7 @@ class FieldController {
 
   constructor(service) {
 
-    this.service =
-      service;
+    this.service = service;
 
   }
 
@@ -20,7 +19,7 @@ class FieldController {
 
   async getAll() {
 
-    return this.service.getAll();
+    return await this.service.getAll();
 
   }
 
@@ -28,7 +27,7 @@ class FieldController {
 
   async getById(id) {
 
-    return this.service.getById(
+    return await this.service.getById(
       id
     );
 
@@ -38,7 +37,7 @@ class FieldController {
 
   async create(data) {
 
-    return this.service.create(
+    return await this.service.create(
       data
     );
 
@@ -51,7 +50,7 @@ class FieldController {
     data
   ) {
 
-    return this.service.update(
+    return await this.service.update(
       id,
       data
     );
@@ -62,7 +61,7 @@ class FieldController {
 
   async delete(id) {
 
-    return this.service.delete(
+    return await this.service.delete(
       id
     );
 
@@ -72,7 +71,7 @@ class FieldController {
 
   async exists(id) {
 
-    return this.service.exists(
+    return await this.service.exists(
       id
     );
 
@@ -82,7 +81,7 @@ class FieldController {
 
   async count() {
 
-    return this.service.count();
+    return await this.service.count();
 
   }
 
