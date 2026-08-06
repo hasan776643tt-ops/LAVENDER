@@ -1,7 +1,9 @@
 // src/controllers/inventoryController.js
 
+
 import inventoryService
   from "../services/inventoryService.js";
+
 
 
 class InventoryController {
@@ -14,50 +16,57 @@ class InventoryController {
   }
 
 
+
   async getAll() {
 
     try {
 
       return await this.service.getAll();
 
-    } catch (error) {
+    } catch(error) {
 
       throw new Error(
-        `InventoryController getAll failed: ${error.message}`
+        `INVENTORY_GET_ALL_FAILED:${error.message}`
       );
 
     }
 
   }
+
 
 
   async getById(id) {
 
     try {
 
-      return await this.service.getById(id);
+      return await this.service.getById(
+        id
+      );
 
-    } catch (error) {
+    } catch(error) {
 
       throw new Error(
-        `InventoryController getById failed: ${error.message}`
+        `INVENTORY_GET_BY_ID_FAILED:${error.message}`
       );
 
     }
 
   }
+
 
 
   async create(data) {
 
     try {
 
-      return await this.service.create(data);
+      return await this.service.create(
+        data
+      );
 
-    } catch (error) {
+    } catch(error) {
 
       throw new Error(
-        `InventoryController create failed: ${error.message}`
+        `INVENTORY_CREATE_FAILED:${error.message}`
       );
 
     }
@@ -65,7 +74,11 @@ class InventoryController {
   }
 
 
-  async update(id, data) {
+
+  async update(
+    id,
+    data
+  ) {
 
     try {
 
@@ -74,32 +87,36 @@ class InventoryController {
         data
       );
 
-    } catch (error) {
+    } catch(error) {
 
       throw new Error(
-        `InventoryController update failed: ${error.message}`
+        `INVENTORY_UPDATE_FAILED:${error.message}`
       );
 
     }
 
   }
+
 
 
   async delete(id) {
 
     try {
 
-      return await this.service.delete(id);
+      return await this.service.delete(
+        id
+      );
 
-    } catch (error) {
+    } catch(error) {
 
       throw new Error(
-        `InventoryController delete failed: ${error.message}`
+        `INVENTORY_DELETE_FAILED:${error.message}`
       );
 
     }
 
   }
+
 
 
   async count() {
@@ -108,10 +125,10 @@ class InventoryController {
 
       return await this.service.count();
 
-    } catch (error) {
+    } catch(error) {
 
       throw new Error(
-        `InventoryController count failed: ${error.message}`
+        `INVENTORY_COUNT_FAILED:${error.message}`
       );
 
     }
@@ -119,16 +136,19 @@ class InventoryController {
   }
 
 
+
   async exists(id) {
 
     try {
 
-      return await this.service.exists(id);
+      return await this.service.exists(
+        id
+      );
 
-    } catch (error) {
+    } catch(error) {
 
       throw new Error(
-        `InventoryController exists failed: ${error.message}`
+        `INVENTORY_EXISTS_FAILED:${error.message}`
       );
 
     }
@@ -139,10 +159,12 @@ class InventoryController {
 }
 
 
+
 const inventoryController =
   new InventoryController(
     inventoryService
   );
+
 
 
 export default Object.freeze(
