@@ -1,4 +1,4 @@
-// src/services/storageService.js
+// src/storage/storageService.js
 
 
 import {
@@ -204,7 +204,9 @@ class StorageService {
 
 
     if (
+
       typeof updater !== "function"
+
     ) {
 
 
@@ -222,23 +224,33 @@ class StorageService {
 
 
     const current =
+
       await this.load(
+
         name,
+
         []
+
       );
 
 
 
     const updated =
+
       await updater(
+
         current
+
       );
 
 
 
     return this.save(
+
       name,
+
       updated
+
     );
 
 
@@ -334,6 +346,7 @@ class StorageService {
 
 
       const storage =
+
         this.getStorage();
 
 
@@ -357,7 +370,9 @@ class StorageService {
         key =>
 
           storage.removeItem(
+
             key
+
           )
 
       );
@@ -387,6 +402,7 @@ class StorageService {
 
 
     const storage =
+
       this.getStorage();
 
 
@@ -413,10 +429,12 @@ class StorageService {
 
 
       version:
+
         this.version,
 
 
       totalKeys:
+
         keys.length,
 
 
@@ -466,8 +484,14 @@ class StorageService {
 
 
 
+const storageService =
+
+  new StorageService();
+
+
+
 export default Object.freeze(
 
-  new StorageService()
+  storageService
 
 );
