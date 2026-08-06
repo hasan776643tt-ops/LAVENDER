@@ -9,11 +9,9 @@ import weatherService
 class WeatherController {
 
 
-
   constructor(service) {
 
-    this.service =
-      service;
+    this.service = service;
 
   }
 
@@ -21,9 +19,20 @@ class WeatherController {
 
   async getCurrentWeather(location) {
 
-    return this.service.getCurrentWeather(
-      location
-    );
+    try {
+
+      return await this.service.getCurrentWeather(
+        location
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `WEATHER_GET_CURRENT_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
@@ -31,9 +40,20 @@ class WeatherController {
 
   async refreshWeather(location) {
 
-    return this.service.refreshWeather(
-      location
-    );
+    try {
+
+      return await this.service.refreshWeather(
+        location
+      );
+
+
+    } catch(error) {
+
+      throw new Error(
+        `WEATHER_REFRESH_FAILED:${error.message}`
+      );
+
+    }
 
   }
 
