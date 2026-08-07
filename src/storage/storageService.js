@@ -11,7 +11,6 @@ from "../utils/errorHandler.js";
 class StorageService {
 
 
-
   constructor(prefix = "lavender") {
 
 
@@ -20,7 +19,7 @@ class StorageService {
 
 
     this.version =
-      "3.0.0";
+      "4.0.0";
 
 
   }
@@ -29,7 +28,7 @@ class StorageService {
 
 
 
-  key(name) {
+  createKey(name) {
 
 
     if (!name) {
@@ -47,8 +46,42 @@ class StorageService {
     }
 
 
-
     return `${this.prefix}:${name}`;
+
+
+  }
+
+
+
+
+
+  getStorage() {
+
+
+    if (
+
+      typeof window === "undefined"
+
+      ||
+
+      !window.localStorage
+
+    ) {
+
+
+      throw createError(
+
+        "Local storage is unavailable",
+
+        "LOCAL_STORAGE_NOT_AVAILABLE"
+
+      );
+
+
+    }
+
+
+    return window.localStorage;
 
 
   }
@@ -63,35 +96,49 @@ class StorageService {
   ) {
 
 
-    const storage =
-      this.getStorage();
-
-
-
-    const payload = {
-
-
-      version:
-        this.version,
-
-
-      data,
-
-
-      updatedAt:
-        new Date().toISOString()
-
-
-    };
-
-
-
     try {
+
+
+      const storage =
+        this.getStorage();
+
+
+
+      const existing =
+        await this.load(
+          name,
+          null
+        );
+
+
+
+      const payload = {
+
+
+        version:
+          this.version,
+
+
+        data,
+
+
+        createdAt:
+          existing?.createdAt
+          ??
+          new Date().toISOString(),
+
+
+        updatedAt:
+          new Date().toISOString()
+
+
+      };
+
 
 
       storage.setItem(
 
-        this.key(name),
+        this.createKey(name),
 
         JSON.stringify(payload)
 
@@ -126,7 +173,7 @@ class StorageService {
 
   async load(
     name,
-    defaultValue = []
+    defaultValue = null
   ) {
 
 
@@ -143,13 +190,15 @@ class StorageService {
     try {
 
 
+      const storage =
+        this.getStorage();
+
+
+
       const value =
+        storage.getItem(
 
-        this.getStorage()
-
-        .getItem(
-
-          this.key(name)
+          this.createKey(name)
 
         );
 
@@ -176,7 +225,7 @@ class StorageService {
 
         ??
 
-        parsed
+        defaultValue
 
       );
 
@@ -212,7 +261,7 @@ class StorageService {
 
       throw createError(
 
-        "Storage updater is required",
+        "Storage updater must be a function",
 
         "STORAGE_UPDATER_REQUIRED"
 
@@ -224,19 +273,17 @@ class StorageService {
 
 
     const current =
-
       await this.load(
 
         name,
 
-        []
+        null
 
       );
 
 
 
     const updated =
-
       await updater(
 
         current
@@ -279,7 +326,7 @@ class StorageService {
 
       .getItem(
 
-        this.key(name)
+        this.createKey(name)
 
       )
 
@@ -314,7 +361,7 @@ class StorageService {
 
       .removeItem(
 
-        this.key(name)
+        this.createKey(name)
 
       );
 
@@ -346,7 +393,6 @@ class StorageService {
 
 
       const storage =
-
         this.getStorage();
 
 
@@ -402,7 +448,6 @@ class StorageService {
 
 
     const storage =
-
       this.getStorage();
 
 
@@ -429,12 +474,14 @@ class StorageService {
 
 
       version:
-
         this.version,
 
 
-      totalKeys:
+      prefix:
+        this.prefix,
 
+
+      totalKeys:
         keys.length,
 
 
@@ -447,40 +494,9 @@ class StorageService {
   }
 
 
-
-
-
-  getStorage() {
-
-
-    if (
-
-      typeof localStorage === "undefined"
-
-    ) {
-
-
-      throw createError(
-
-        "Local storage is not available",
-
-        "LOCAL_STORAGE_NOT_AVAILABLE"
-
-      );
-
-
-    }
-
-
-
-    return localStorage;
-
-
-  }
-
-
-
 }
+
+
 
 
 
