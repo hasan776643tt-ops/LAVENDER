@@ -1,170 +1,362 @@
 // src/repositories/harvestRepository.js
 
-import storageService from "../services/storageService.js";
+
+import {
+  storageService
+}
+from "../storage";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
 
 
 class HarvestRepository {
 
+
   constructor() {
 
-    this.key = "harvests";
+    this.key =
+      "harvests";
 
   }
+
+
+
 
 
   async getAll() {
 
+
     return storageService.load(
+
       this.key,
+
       []
+
     );
 
+
   }
+
+
+
 
 
   async getById(id) {
 
-    if (!id) return null;
+
+    if (!id) {
 
 
-    const items = await this.getAll();
+      return null;
+
+
+    }
+
+
+
+    const harvests =
+
+      await this.getAll();
+
 
 
     return (
-      items.find(
-        item => String(item.id) === String(id)
-      ) || null
+
+      harvests.find(
+
+        harvest =>
+
+          String(harvest.id) === String(id)
+
+      )
+
+      ??
+
+      null
+
     );
+
 
   }
 
 
-  async create(entity) {
 
-    if (!entity) {
-      throw new Error(
-        "Harvest data is required"
+
+
+  async create(data) {
+
+
+    if (!data) {
+
+
+      throw createError(
+
+        "Harvest data is required",
+
+        "HARVEST_DATA_REQUIRED"
+
       );
+
+
     }
 
 
-    const items = await this.getAll();
+
+    const harvests =
+
+      await this.getAll();
 
 
-    const newItem = {
+
+    const now =
+
+      new Date().toISOString();
+
+
+
+    const harvest = {
+
 
       id:
-        entity.id ??
+
         crypto.randomUUID(),
 
+
+      ...data,
+
+
       createdAt:
-        entity.createdAt ??
-        new Date().toISOString(),
+
+        now,
+
 
       updatedAt:
-        new Date().toISOString(),
 
-      ...entity
+        now
+
 
     };
 
 
-    items.push(newItem);
 
+    harvests.push(
 
-    storageService.save(
-      this.key,
-      items
+      harvest
+
     );
 
 
-    return newItem;
+
+    await storageService.save(
+
+      this.key,
+
+      harvests
+
+    );
+
+
+
+    return harvest;
+
 
   }
 
 
-  async update(id, changes) {
 
-    if (!id || !changes) {
+
+
+  async update(
+    id,
+    changes
+  ) {
+
+
+    if (!id) {
+
+
       return null;
+
+
     }
 
 
-    const items = await this.getAll();
+
+    const harvests =
+
+      await this.getAll();
+
 
 
     const index =
-      items.findIndex(
-        item =>
-          String(item.id) === String(id)
+
+      harvests.findIndex(
+
+        harvest =>
+
+          String(harvest.id) === String(id)
+
       );
 
 
+
     if (index === -1) {
+
+
       return null;
+
+
     }
 
 
-    const updatedItem = {
 
-      ...items[index],
+    const updatedHarvest = {
+
+
+      ...harvests[index],
+
 
       ...changes,
 
+
       id:
-        items[index].id,
+
+        harvests[index].id,
+
+
+      createdAt:
+
+        harvests[index].createdAt,
+
 
       updatedAt:
+
         new Date().toISOString()
+
 
     };
 
 
-    items[index] = updatedItem;
+
+    harvests[index] =
+
+      updatedHarvest;
 
 
-    storageService.save(
+
+    await storageService.save(
+
       this.key,
-      items
+
+      harvests
+
     );
 
 
-    return updatedItem;
+
+    return updatedHarvest;
+
 
   }
+
+
+
 
 
   async delete(id) {
 
+
     if (!id) {
+
+
       return false;
+
+
     }
 
 
-    const items = await getAll();
+
+    const harvests =
+
+      await this.getAll();
 
 
-    const remaining =
-      items.filter(
-        item =>
-          String(item.id) !== String(id)
+
+    const filtered =
+
+      harvests.filter(
+
+        harvest =>
+
+          String(harvest.id) !== String(id)
+
       );
 
 
-    if (
-      remaining.length === items.length
-    ) {
-      return false;
+
+    const deleted =
+
+      filtered.length !== harvests.length;
+
+
+
+    if (deleted) {
+
+
+      await storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
+
     }
 
 
-    storageService.save(
-      this.key,
-      remaining
+
+    return deleted;
+
+
+  }
+
+
+
+
+
+  async exists(id) {
+
+
+    return Boolean(
+
+      await this.getById(id)
+
     );
 
 
-    return true;
+  }
+
+
+
+
+
+  async count() {
+
+
+    const harvests =
+
+      await this.getAll();
+
+
+
+    return harvests.length;
+
 
   }
 
@@ -172,6 +364,17 @@ class HarvestRepository {
 }
 
 
+
+
+
+const harvestRepository =
+
+  new HarvestRepository();
+
+
+
 export default Object.freeze(
-  new HarvestRepository()
+
+  harvestRepository
+
 );
