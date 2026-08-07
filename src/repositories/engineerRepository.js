@@ -1,16 +1,23 @@
 // src/repositories/engineerRepository.js
 
 
-import storageService
-from "../services/storageService.js";
+import {
+  storageService
+}
+from "../storage";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
 
 
 
 class EngineerRepository {
 
 
-
-  constructor() {
+  constructor(){
 
     this.key =
       "engineers";
@@ -19,143 +26,56 @@ class EngineerRepository {
 
 
 
-  async getAll() {
-
-    try {
-
-      return storageService.load(
-        this.key,
-        []
-      );
 
 
-    } catch(error) {
+  async getAll(){
 
-      throw new Error(
-        `EngineerRepository getAll failed: ${error.message}`
-      );
+    return storageService.load(
 
-    }
+      this.key,
+
+      []
+
+    );
 
   }
 
 
 
 
-  async getById(id) {
 
-    try {
-
-
-      if(!id){
-
-        return null;
-
-      }
+  async getById(id){
 
 
-      const engineers =
-        await this.getAll();
+    if(!id){
+
+      return null;
+
+    }
+
+
+    const engineers =
+
+      await this.getAll();
 
 
 
-      return (
+    return (
 
-        engineers.find(
+      engineers.find(
 
-          engineer =>
+        engineer =>
 
           String(engineer.id) === String(id)
 
-        )
-        ||
-        null
+      )
 
-      );
+      ??
 
+      null
 
-    } catch(error) {
+    );
 
-
-      throw new Error(
-        `EngineerRepository getById failed: ${error.message}`
-      );
-
-    }
-
-  }
-
-
-
-
-  async create(data) {
-
-
-    try {
-
-
-      this.validate(data);
-
-
-
-      const engineers =
-        await this.getAll();
-
-
-
-      const engineer = {
-
-
-        id:
-          crypto.randomUUID(),
-
-
-
-        ...data,
-
-
-
-        createdAt:
-          new Date().toISOString(),
-
-
-
-        updatedAt:
-          new Date().toISOString()
-
-
-      };
-
-
-
-      engineers.push(
-        engineer
-      );
-
-
-
-      storageService.save(
-
-        this.key,
-
-        engineers
-
-      );
-
-
-
-      return engineer;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `EngineerRepository create failed: ${error.message}`
-      );
-
-    }
 
   }
 
@@ -163,95 +83,173 @@ class EngineerRepository {
 
 
 
-  async update(id,data) {
+  async create(data){
 
 
-    try {
-
-
-      if(!id){
-
-        throw new Error(
-          "Engineer ID is required"
-        );
-
-      }
+    this.validate(data);
 
 
 
-      this.validate(data);
+    const engineers =
+
+      await this.getAll();
 
 
 
-      const engineers =
-        await this.getAll();
+    const now =
+
+      new Date().toISOString();
 
 
 
-      const index =
+    const engineer = {
 
-        engineers.findIndex(
 
-          engineer =>
+      id:
+
+        crypto.randomUUID(),
+
+
+      ...data,
+
+
+      createdAt:
+
+        now,
+
+
+      updatedAt:
+
+        now
+
+
+    };
+
+
+
+    engineers.push(
+
+      engineer
+
+    );
+
+
+
+    await storageService.save(
+
+      this.key,
+
+      engineers
+
+    );
+
+
+
+    return engineer;
+
+
+  }
+
+
+
+
+
+  async update(
+    id,
+    data
+  ){
+
+
+    if(!id){
+
+      throw createError(
+
+        "Engineer id is required",
+
+        "ENGINEER_ID_REQUIRED"
+
+      );
+
+    }
+
+
+
+    this.validate(data);
+
+
+
+    const engineers =
+
+      await this.getAll();
+
+
+
+    const index =
+
+      engineers.findIndex(
+
+        engineer =>
 
           String(engineer.id) === String(id)
 
-        );
-
-
-
-      if(index === -1){
-
-        return null;
-
-      }
-
-
-
-      engineers[index] = {
-
-
-        ...engineers[index],
-
-
-        ...data,
-
-
-        id:
-          engineers[index].id,
-
-
-
-        updatedAt:
-          new Date().toISOString()
-
-
-      };
-
-
-
-      storageService.save(
-
-        this.key,
-
-        engineers
-
       );
 
 
 
-      return engineers[index];
+    if(index === -1){
 
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `EngineerRepository update failed: ${error.message}`
-      );
+      return null;
 
     }
+
+
+
+    const updated = {
+
+
+      ...engineers[index],
+
+
+      ...data,
+
+
+      id:
+
+        engineers[index].id,
+
+
+      createdAt:
+
+        engineers[index].createdAt,
+
+
+      updatedAt:
+
+        new Date().toISOString()
+
+
+    };
+
+
+
+    engineers[index] =
+
+      updated;
+
+
+
+    await storageService.save(
+
+      this.key,
+
+      engineers
+
+    );
+
+
+
+    return updated;
+
 
   }
 
@@ -259,71 +257,59 @@ class EngineerRepository {
 
 
 
-  async delete(id) {
+  async delete(id){
 
 
-    try {
+    if(!id){
 
+      return false;
 
-      if(!id){
-
-        return false;
-
-      }
+    }
 
 
 
-      const engineers =
-        await this.getAll();
+    const engineers =
+
+      await this.getAll();
 
 
 
-      const filtered =
+    const filtered =
 
-        engineers.filter(
+      engineers.filter(
 
-          engineer =>
+        engineer =>
 
           String(engineer.id) !== String(id)
 
-        );
-
-
-
-      const deleted =
-
-        filtered.length !== engineers.length;
-
-
-
-      if(deleted){
-
-
-        storageService.save(
-
-          this.key,
-
-          filtered
-
-        );
-
-
-      }
-
-
-
-      return deleted;
-
-
-
-    } catch(error) {
-
-
-      throw new Error(
-        `EngineerRepository delete failed: ${error.message}`
       );
 
+
+
+    const deleted =
+
+      filtered.length !== engineers.length;
+
+
+
+    if(deleted){
+
+
+      await storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
+
     }
+
+
+
+    return deleted;
+
 
   }
 
@@ -331,7 +317,7 @@ class EngineerRepository {
 
 
 
-  async exists(id) {
+  async exists(id){
 
 
     return Boolean(
@@ -347,10 +333,11 @@ class EngineerRepository {
 
 
 
-  async count() {
+  async count(){
 
 
     const engineers =
+
       await this.getAll();
 
 
@@ -368,12 +355,20 @@ class EngineerRepository {
 
 
     if(
+
       !data ||
+
       typeof data !== "object"
+
     ){
 
-      throw new Error(
+
+      throw createError(
+
+        "Engineer data is required",
+
         "ENGINEER_DATA_REQUIRED"
+
       );
 
     }
@@ -381,12 +376,20 @@ class EngineerRepository {
 
 
     if(
+
       !data.name ||
+
       !data.name.trim()
+
     ){
 
-      throw new Error(
+
+      throw createError(
+
+        "Engineer name is required",
+
         "ENGINEER_NAME_REQUIRED"
+
       );
 
     }
@@ -399,11 +402,20 @@ class EngineerRepository {
   }
 
 
-
 }
 
 
 
+
+
+const engineerRepository =
+
+  new EngineerRepository();
+
+
+
 export default Object.freeze(
-  new EngineerRepository()
+
+  engineerRepository
+
 );
