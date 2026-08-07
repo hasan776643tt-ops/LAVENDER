@@ -1,6 +1,17 @@
 // src/repositories/expenseRepository.js
 
-import storageService from "../services/storageService.js";
+
+import {
+  storageService
+}
+from "../storage";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
 
 
 class ExpenseRepository {
@@ -8,176 +19,344 @@ class ExpenseRepository {
 
   constructor() {
 
-    this.key = "expenses";
+    this.key =
+      "expenses";
 
   }
+
+
+
 
 
   async getAll() {
 
+
     return storageService.load(
+
       this.key,
+
       []
+
     );
 
+
   }
+
+
+
 
 
   async getById(id) {
 
+
     if (!id) {
+
+
       return null;
+
+
     }
 
 
-    const items =
+
+    const expenses =
+
       await this.getAll();
 
 
+
     return (
-      items.find(
-        item =>
-          String(item.id) === String(id)
+
+      expenses.find(
+
+        expense =>
+
+          String(expense.id) === String(id)
+
       )
-      || null
+
+      ??
+
+      null
+
     );
 
+
   }
+
+
+
 
 
   async create(data) {
 
+
     if (!data) {
 
-      throw new Error(
-        "Expense data is required"
+
+      throw createError(
+
+        "Expense data is required",
+
+        "EXPENSE_DATA_REQUIRED"
+
       );
+
 
     }
 
 
-    const items =
+
+    const expenses =
+
       await this.getAll();
 
 
-    const item = {
+
+    const now =
+
+      new Date().toISOString();
+
+
+
+    const expense = {
+
 
       id:
-        data.id ??
+
         crypto.randomUUID(),
+
 
       ...data,
 
+
       createdAt:
-        new Date().toISOString(),
+
+        now,
+
 
       updatedAt:
-        new Date().toISOString()
+
+        now
+
 
     };
 
 
-    items.push(item);
 
+    expenses.push(
 
-    storageService.save(
-      this.key,
-      items
+      expense
+
     );
 
 
-    return item;
+
+    await storageService.save(
+
+      this.key,
+
+      expenses
+
+    );
+
+
+
+    return expense;
+
 
   }
 
 
-  async update(id, changes) {
+
+
+
+  async update(
+    id,
+    changes
+  ) {
+
 
     if (!id) {
+
+
       return null;
+
+
     }
 
 
-    const items =
+
+    const expenses =
+
       await this.getAll();
 
 
+
     const index =
-      items.findIndex(
-        item =>
-          String(item.id) === String(id)
+
+      expenses.findIndex(
+
+        expense =>
+
+          String(expense.id) === String(id)
+
       );
 
 
+
     if (index === -1) {
+
+
       return null;
+
+
     }
 
 
-    const updatedItem = {
 
-      ...items[index],
+    const updatedExpense = {
+
+
+      ...expenses[index],
+
 
       ...changes,
 
+
       id:
-        items[index].id,
+
+        expenses[index].id,
+
+
+      createdAt:
+
+        expenses[index].createdAt,
+
 
       updatedAt:
+
         new Date().toISOString()
+
 
     };
 
 
-    items[index] =
-      updatedItem;
+
+    expenses[index] =
+
+      updatedExpense;
 
 
-    storageService.save(
+
+    await storageService.save(
+
       this.key,
-      items
+
+      expenses
+
     );
 
 
-    return updatedItem;
+
+    return updatedExpense;
+
 
   }
+
+
+
 
 
   async delete(id) {
 
+
     if (!id) {
+
+
       return false;
+
+
     }
 
 
-    const items =
+
+    const expenses =
+
       await this.getAll();
 
 
+
     const filtered =
-      items.filter(
-        item =>
-          String(item.id) !== String(id)
+
+      expenses.filter(
+
+        expense =>
+
+          String(expense.id) !== String(id)
+
       );
 
 
-    if (
-      filtered.length === items.length
-    ) {
 
-      return false;
+    const deleted =
+
+      filtered.length !== expenses.length;
+
+
+
+    if (deleted) {
+
+
+      await storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
 
     }
 
 
-    storageService.save(
-      this.key,
-      filtered
+
+    return deleted;
+
+
+  }
+
+
+
+
+
+  async exists(id) {
+
+
+    return Boolean(
+
+      await this.getById(id)
+
     );
 
 
-    return true;
+  }
+
+
+
+
+
+  async count() {
+
+
+    const expenses =
+
+      await this.getAll();
+
+
+
+    return expenses.length;
+
 
   }
 
@@ -185,6 +364,17 @@ class ExpenseRepository {
 }
 
 
+
+
+
+const expenseRepository =
+
+  new ExpenseRepository();
+
+
+
 export default Object.freeze(
-  new ExpenseRepository()
+
+  expenseRepository
+
 );
