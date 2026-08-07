@@ -1,15 +1,15 @@
 // src/storage/index.js
 
 
-import storageService
-from "./storageService.js";
-
+/**
+ * Storage Layer Public API
+ *
+ * Central export point for all storage services.
+ * This file contains no business logic.
+ */
 
 
 export {
-  storageService
-};
-
-
-
-export default storageService;
+  default as storageService
+}
+from "./storageService.js";
