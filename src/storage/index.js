@@ -4,8 +4,8 @@
 /**
  * Storage Layer Public API
  *
- * Central export point for all storage services.
- * This file contains no business logic.
+ * Central export point for storage services.
+ * No business logic exists here.
  */
 
 
