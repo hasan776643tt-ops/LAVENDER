@@ -1,15 +1,23 @@
 // src/repositories/userRepository.js
 
 
-import storageService
-  from "../services/storageService.js";
+import {
+  storageService
+}
+from "../storage";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
 
 
 
 class UserRepository {
 
 
-  constructor() {
+  constructor(){
 
     this.key =
       "users";
@@ -18,88 +26,138 @@ class UserRepository {
 
 
 
-  async getAll() {
-
-    try {
-
-      return storageService.load(
-        this.key,
-        []
-      );
 
 
-    } catch(error) {
+  async getAll(){
 
-      throw new Error(
-        `USER_GET_ALL_FAILED: ${error.message}`
-      );
 
-    }
+    return storageService.load(
+
+      this.key,
+
+      []
+
+    );
+
 
   }
 
 
 
-  async getById(id) {
 
 
-    if (!id) {
+  async getById(id){
+
+
+    if(!id){
 
       return null;
 
     }
 
 
+
     const users =
+
       await this.getAll();
 
 
-    return users.find(
 
-      user =>
+    return (
 
-      String(user.id) === String(id)
+      users.find(
 
-    ) || null;
+        user =>
+
+          String(user.id) === String(id)
+
+      )
+
+      ??
+
+      null
+
+    );
 
 
   }
 
 
 
-  async findByEmail(email) {
 
 
-    if (!email) {
+  async findByEmail(email){
+
+
+    if(!email){
 
       return null;
 
     }
 
 
+
     const users =
+
       await this.getAll();
 
 
-    return users.find(
 
-      user =>
+    return (
 
-      user.email?.toLowerCase() ===
-      email.toLowerCase()
+      users.find(
 
-    ) || null;
+        user =>
+
+          user.email?.toLowerCase()
+
+          ===
+
+          email.toLowerCase()
+
+      )
+
+      ??
+
+      null
+
+    );
 
 
   }
 
 
 
-  async create(data) {
+
+
+  async create(data){
+
+
+    if(!data){
+
+
+      throw createError(
+
+        "User data is required",
+
+        "USER_DATA_REQUIRED"
+
+      );
+
+
+    }
+
 
 
     const users =
+
       await this.getAll();
+
+
+
+    const now =
+
+      new Date().toISOString();
 
 
 
@@ -107,18 +165,21 @@ class UserRepository {
 
 
       id:
-        Date.now().toString(),
+
+        crypto.randomUUID(),
 
 
       ...data,
 
 
       createdAt:
-        new Date().toISOString(),
+
+        now,
 
 
       updatedAt:
-        new Date().toISOString()
+
+        now
 
 
     };
@@ -129,7 +190,7 @@ class UserRepository {
 
 
 
-    storageService.save(
+    await storageService.save(
 
       this.key,
 
@@ -146,13 +207,22 @@ class UserRepository {
 
 
 
-  async update(id, data) {
 
 
-    if (!id) {
+  async update(
+    id,
+    data
+  ){
 
-      throw new Error(
+
+    if(!id){
+
+      throw createError(
+
+        "User id is required",
+
         "USER_ID_REQUIRED"
+
       );
 
     }
@@ -160,22 +230,24 @@ class UserRepository {
 
 
     const users =
+
       await this.getAll();
 
 
 
     const index =
+
       users.findIndex(
 
         user =>
 
-        String(user.id) === String(id)
+          String(user.id) === String(id)
 
       );
 
 
 
-    if (index === -1) {
+    if(index === -1){
 
       return null;
 
@@ -193,10 +265,17 @@ class UserRepository {
 
 
       id:
+
         users[index].id,
 
 
+      createdAt:
+
+        users[index].createdAt,
+
+
       updatedAt:
+
         new Date().toISOString()
 
 
@@ -205,11 +284,12 @@ class UserRepository {
 
 
     users[index] =
+
       updatedUser;
 
 
 
-    storageService.save(
+    await storageService.save(
 
       this.key,
 
@@ -226,10 +306,12 @@ class UserRepository {
 
 
 
-  async delete(id) {
 
 
-    if (!id) {
+  async delete(id){
+
+
+    if(!id){
 
       return false;
 
@@ -238,35 +320,40 @@ class UserRepository {
 
 
     const users =
+
       await this.getAll();
 
 
 
     const filtered =
+
       users.filter(
 
         user =>
 
-        String(user.id) !== String(id)
+          String(user.id) !== String(id)
 
       );
 
 
 
     const deleted =
+
       filtered.length !== users.length;
 
 
 
-    if (deleted) {
+    if(deleted){
 
-      storageService.save(
+
+      await storageService.save(
 
         this.key,
 
         filtered
 
       );
+
 
     }
 
@@ -279,25 +366,29 @@ class UserRepository {
 
 
 
-  async exists(id) {
 
 
-    const user =
-      await this.getById(id);
+  async exists(id){
 
 
+    return Boolean(
 
-    return Boolean(user);
+      await this.getById(id)
+
+    );
 
 
   }
 
 
 
-  async count() {
+
+
+  async count(){
 
 
     const users =
+
       await this.getAll();
 
 
@@ -312,8 +403,16 @@ class UserRepository {
 
 
 
+
+
+const userRepository =
+
+  new UserRepository();
+
+
+
 export default Object.freeze(
 
-  new UserRepository()
+  userRepository
 
 );
