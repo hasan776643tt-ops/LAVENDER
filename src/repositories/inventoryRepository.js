@@ -1,6 +1,17 @@
 // src/repositories/inventoryRepository.js
 
-import storageService from "../services/storageService.js";
+
+import {
+  storageService
+}
+from "../storage";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
+
 
 
 class InventoryRepository {
@@ -8,198 +19,340 @@ class InventoryRepository {
 
   constructor() {
 
-    this.key = "inventory";
+    this.key =
+      "inventory";
 
   }
+
+
+
 
 
   async getAll() {
 
+
     return storageService.load(
+
       this.key,
+
       []
+
     );
 
+
   }
+
+
+
 
 
   async getById(id) {
 
+
     if (!id) {
+
+
       return null;
+
+
     }
 
 
+
     const items =
+
       await this.getAll();
 
 
+
     return (
+
       items.find(
+
         item =>
+
           String(item.id) === String(id)
+
       )
-      || null
+
+      ??
+
+      null
+
     );
+
 
   }
 
 
+
+
+
   async create(data) {
+
 
     if (!data) {
 
-      throw new Error(
-        "Inventory data is required"
+
+      throw createError(
+
+        "Inventory data is required",
+
+        "INVENTORY_DATA_REQUIRED"
+
       );
+
 
     }
 
 
+
     const items =
+
       await this.getAll();
+
+
+
+    const now =
+
+      new Date().toISOString();
+
 
 
     const item = {
 
+
       id:
-        data.id ??
+
         crypto.randomUUID(),
+
 
       ...data,
 
+
       createdAt:
-        new Date().toISOString(),
+
+        now,
+
 
       updatedAt:
-        new Date().toISOString()
+
+        now
+
 
     };
+
 
 
     items.push(item);
 
 
-    storageService.save(
+
+    await storageService.save(
+
       this.key,
+
       items
+
     );
+
 
 
     return item;
 
+
   }
 
 
-  async update(id, changes) {
+
+
+
+  async update(
+    id,
+    changes
+  ) {
+
 
     if (!id) {
+
+
       return null;
+
+
     }
+
 
 
     const items =
+
       await this.getAll();
 
 
+
     const index =
+
       items.findIndex(
+
         item =>
+
           String(item.id) === String(id)
+
       );
 
 
+
     if (index === -1) {
+
+
       return null;
+
+
     }
+
 
 
     const updatedItem = {
 
+
       ...items[index],
+
 
       ...changes,
 
+
       id:
+
         items[index].id,
 
+
+      createdAt:
+
+        items[index].createdAt,
+
+
       updatedAt:
+
         new Date().toISOString()
+
 
     };
 
 
+
     items[index] =
+
       updatedItem;
 
 
-    storageService.save(
+
+    await storageService.save(
+
       this.key,
+
       items
+
     );
+
 
 
     return updatedItem;
 
+
   }
+
+
+
 
 
   async delete(id) {
 
+
     if (!id) {
+
+
       return false;
+
+
     }
+
 
 
     const items =
+
       await this.getAll();
 
 
+
     const filtered =
+
       items.filter(
+
         item =>
+
           String(item.id) !== String(id)
+
       );
 
 
-    if (
-      filtered.length === items.length
-    ) {
 
-      return false;
+    const deleted =
+
+      filtered.length !== items.length;
+
+
+
+    if (deleted) {
+
+
+      await storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
 
     }
 
 
-    storageService.save(
-      this.key,
-      filtered
-    );
 
+    return deleted;
 
-    return true;
 
   }
+
+
+
 
 
   async exists(id) {
 
-    const item =
-      await this.getById(id);
 
+    return Boolean(
 
-    return Boolean(item);
+      await this.getById(id)
+
+    );
+
 
   }
 
 
+
+
+
   async count() {
 
+
     const items =
+
       await this.getAll();
 
 
+
     return items.length;
+
 
   }
 
@@ -207,6 +360,17 @@ class InventoryRepository {
 }
 
 
+
+
+
+const inventoryRepository =
+
+  new InventoryRepository();
+
+
+
 export default Object.freeze(
-  new InventoryRepository()
+
+  inventoryRepository
+
 );
