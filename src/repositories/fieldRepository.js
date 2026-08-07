@@ -1,102 +1,121 @@
 // src/repositories/fieldRepository.js
 
 
-import storageService
-from "../services/storageService.js";
+import {
+  storageService
+}
+from "../storage";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
 
 
 
 class FieldRepository {
 
 
+  constructor() {
 
-constructor(){
-
-  this.key =
-  "fields";
-
-}
-
-
-
-
-async getAll(){
-
-  try{
-
-    return storageService.load(
-      this.key,
-      []
-    );
-
-  }catch(error){
-
-    throw new Error(
-      `FieldRepository getAll failed: ${error.message}`
-    );
+    this.key =
+      "fields";
 
   }
 
-}
 
 
 
 
-async getById(id){
+  async getAll() {
 
 
-  try{
+    return storageService.load(
+
+      this.key,
+
+      []
+
+    );
 
 
-    if(!id){
+  }
+
+
+
+
+
+  async getById(id) {
+
+
+    if (!id) {
+
 
       return null;
+
 
     }
 
 
+
     const fields =
-    await this.getAll();
+
+      await this.getAll();
 
 
 
     return (
+
       fields.find(
+
         field =>
-        String(field.id) === String(id)
+
+          String(field.id) === String(id)
+
       )
-      || null
-    );
 
+      ??
 
-  }catch(error){
+      null
 
-
-    throw new Error(
-      `FieldRepository getById failed: ${error.message}`
     );
 
 
   }
 
 
-}
 
 
 
-
-async create(fieldData){
-
-
-  try{
+  async create(fieldData) {
 
 
-    this.validate(fieldData);
+    if (!fieldData) {
+
+
+      throw createError(
+
+        "Field data is required",
+
+        "FIELD_DATA_REQUIRED"
+
+      );
+
+
+    }
 
 
 
     const fields =
-    await this.getAll();
+
+      await this.getAll();
+
+
+
+    const now =
+
+      new Date().toISOString();
 
 
 
@@ -104,18 +123,21 @@ async create(fieldData){
 
 
       id:
-      Date.now().toString(),
+
+        crypto.randomUUID(),
 
 
       ...fieldData,
 
 
       createdAt:
-      new Date().toISOString(),
+
+        now,
 
 
       updatedAt:
-      new Date().toISOString()
+
+        now
 
 
     };
@@ -126,7 +148,7 @@ async create(fieldData){
 
 
 
-    storageService.save(
+    await storageService.save(
 
       this.key,
 
@@ -139,61 +161,51 @@ async create(fieldData){
     return field;
 
 
-
-  }catch(error){
-
-
-    throw new Error(
-      `FieldRepository create failed: ${error.message}`
-    );
-
-
   }
 
 
-}
 
 
 
+  async update(
+    id,
+    data
+  ) {
 
-async update(id,data){
+
+    if (!id) {
 
 
-  try{
+      return null;
 
-
-    if(!id){
-
-      throw new Error(
-        "Field ID is required"
-      );
 
     }
 
 
 
-    this.validate(data);
-
-
-
     const fields =
-    await this.getAll();
+
+      await this.getAll();
 
 
 
     const index =
-    fields.findIndex(
 
-      field =>
-      String(field.id) === String(id)
+      fields.findIndex(
 
-    );
+        field =>
+
+          String(field.id) === String(id)
+
+      );
 
 
 
-    if(index === -1){
+    if (index === -1) {
+
 
       return null;
+
 
     }
 
@@ -209,11 +221,18 @@ async update(id,data){
 
 
       id:
-      fields[index].id,
+
+        fields[index].id,
+
+
+      createdAt:
+
+        fields[index].createdAt,
 
 
       updatedAt:
-      new Date().toISOString()
+
+        new Date().toISOString()
 
 
     };
@@ -221,11 +240,12 @@ async update(id,data){
 
 
     fields[index] =
-    updatedField;
+
+      updatedField;
 
 
 
-    storageService.save(
+    await storageService.save(
 
       this.key,
 
@@ -238,61 +258,53 @@ async update(id,data){
     return updatedField;
 
 
-
-  }catch(error){
-
-
-    throw new Error(
-      `FieldRepository update failed: ${error.message}`
-    );
-
-
   }
 
 
-}
 
 
 
-
-async delete(id){
-
-
-  try{
+  async delete(id) {
 
 
-    if(!id){
+    if (!id) {
+
 
       return false;
+
 
     }
 
 
 
     const fields =
-    await this.getAll();
+
+      await this.getAll();
 
 
 
     const filtered =
-    fields.filter(
 
-      field =>
-      String(field.id) !== String(id)
+      fields.filter(
 
-    );
+        field =>
+
+          String(field.id) !== String(id)
+
+      );
 
 
 
     const deleted =
-    filtered.length !== fields.length;
+
+      filtered.length !== fields.length;
 
 
 
-    if(deleted){
+    if (deleted) {
 
 
-      storageService.save(
+      await storageService.save(
 
         this.key,
 
@@ -308,13 +320,38 @@ async delete(id){
     return deleted;
 
 
+  }
 
-  }catch(error){
 
 
-    throw new Error(
-      `FieldRepository delete failed: ${error.message}`
+
+
+  async exists(id) {
+
+
+    return Boolean(
+
+      await this.getById(id)
+
     );
+
+
+  }
+
+
+
+
+
+  async count() {
+
+
+    const fields =
+
+      await this.getAll();
+
+
+
+    return fields.length;
 
 
   }
@@ -325,74 +362,15 @@ async delete(id){
 
 
 
-async exists(id){
 
+const fieldRepository =
 
-  return Boolean(
-
-    await this.getById(id)
-
-  );
-
-
-}
-
-
-
-
-async count(){
-
-
-  const fields =
-  await this.getAll();
-
-
-  return fields.length;
-
-
-}
-
-
-
-
-validate(field){
-
-
-  if(!field){
-
-    throw new Error(
-      "Field data is required"
-    );
-
-  }
-
-
-
-  if(
-    !field.name ||
-    !field.name.trim()
-  ){
-
-    throw new Error(
-      "Field name is required"
-    );
-
-  }
-
-
-
-  return true;
-
-
-}
-
-
-
-}
-
+  new FieldRepository();
 
 
 
 export default Object.freeze(
-  new FieldRepository()
+
+  fieldRepository
+
 );
