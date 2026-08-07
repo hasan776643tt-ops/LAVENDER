@@ -1,241 +1,41 @@
-
 // src/repositories/cropRepository.js
 
 
-import storageService
-from "../services/storageService.js";
+import {
+  storageService
+}
+from "../storage";
+
+
+import {
+  createError
+}
+from "../utils/errorHandler.js";
 
 
 
 class CropRepository {
 
 
+  constructor() {
 
-constructor(){
-
-  this.key =
-  "crops";
-
-}
-
-
-
-
-async getAll(){
-
-  return storageService.load(
-    this.key,
-    []
-  );
-
-}
-
-
-
-
-async getById(id){
-
-
-  if(!id){
-
-    return null;
-
-  }
-
-
-  const crops =
-  await this.getAll();
-
-
-
-  return (
-    crops.find(
-      crop =>
-      String(crop.id) === String(id)
-    )
-    || null
-  );
-
-
-}
-
-
-
-
-async create(cropData){
-
-
-  if(!cropData){
-
-    throw new Error(
-      "Crop data is required"
-    );
+    this.key =
+      "crops";
 
   }
 
 
 
-  const crops =
-  await this.getAll();
 
 
+  async getAll() {
 
-  const crop = {
 
-
-    id:
-    Date.now().toString(),
-
-
-    ...cropData,
-
-
-    createdAt:
-    new Date().toISOString(),
-
-
-    updatedAt:
-    new Date().toISOString()
-
-
-  };
-
-
-
-  crops.push(crop);
-
-
-
-  storageService.save(
-
-    this.key,
-
-    crops
-
-  );
-
-
-
-  return crop;
-
-
-}
-
-
-
-
-async update(id,data){
-
-
-  if(!id){
-
-    throw new Error(
-      "Crop id is required"
-    );
-
-  }
-
-
-
-  const crops =
-  await this.getAll();
-
-
-
-  const index =
-  crops.findIndex(
-
-    crop =>
-    String(crop.id) === String(id)
-
-  );
-
-
-
-  if(index === -1){
-
-    return null;
-
-  }
-
-
-
-
-  const updatedCrop = {
-
-
-    ...crops[index],
-
-
-    ...data,
-
-
-    id:
-    crops[index].id,
-
-
-    updatedAt:
-    new Date().toISOString()
-
-
-  };
-
-
-
-  crops[index] =
-  updatedCrop;
-
-
-
-  storageService.save(
-
-    this.key,
-
-    crops
-
-  );
-
-
-
-  return updatedCrop;
-
-
-}
-
-
-
-
-async delete(id){
-
-
-  const crops =
-  await this.getAll();
-
-
-
-  const filtered =
-  crops.filter(
-
-    crop =>
-    String(crop.id) !== String(id)
-
-  );
-
-
-
-  const deleted =
-  filtered.length !== crops.length;
-
-
-
-  if(deleted){
-
-
-    storageService.save(
+    return storageService.load(
 
       this.key,
 
-      filtered
+      []
 
     );
 
@@ -244,7 +44,317 @@ async delete(id){
 
 
 
-  return deleted;
+
+
+  async getById(id) {
+
+
+    if (!id) {
+
+
+      return null;
+
+
+    }
+
+
+
+    const crops =
+
+      await this.getAll();
+
+
+
+    return (
+
+      crops.find(
+
+        crop =>
+
+          String(crop.id) === String(id)
+
+      )
+
+      ??
+
+      null
+
+    );
+
+
+  }
+
+
+
+
+
+  async create(cropData) {
+
+
+    if (!cropData) {
+
+
+      throw createError(
+
+        "Crop data is required",
+
+        "CROP_DATA_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    const crops =
+
+      await this.getAll();
+
+
+
+    const now =
+
+      new Date().toISOString();
+
+
+
+    const crop = {
+
+
+      id:
+
+        crypto.randomUUID(),
+
+
+      ...cropData,
+
+
+      createdAt:
+
+        now,
+
+
+      updatedAt:
+
+        now
+
+
+    };
+
+
+
+    crops.push(crop);
+
+
+
+    await storageService.save(
+
+      this.key,
+
+      crops
+
+    );
+
+
+
+    return crop;
+
+
+  }
+
+
+
+
+
+  async update(
+    id,
+    data
+  ) {
+
+
+    if (!id) {
+
+
+      return null;
+
+
+    }
+
+
+
+    const crops =
+
+      await this.getAll();
+
+
+
+    const index =
+
+      crops.findIndex(
+
+        crop =>
+
+          String(crop.id) === String(id)
+
+      );
+
+
+
+    if (index === -1) {
+
+
+      return null;
+
+
+    }
+
+
+
+    const updatedCrop = {
+
+
+      ...crops[index],
+
+
+      ...data,
+
+
+      id:
+
+        crops[index].id,
+
+
+      createdAt:
+
+        crops[index].createdAt,
+
+
+      updatedAt:
+
+        new Date().toISOString()
+
+
+    };
+
+
+
+    crops[index] =
+
+      updatedCrop;
+
+
+
+    await storageService.save(
+
+      this.key,
+
+      crops
+
+    );
+
+
+
+    return updatedCrop;
+
+
+  }
+
+
+
+
+
+  async delete(id) {
+
+
+    if (!id) {
+
+
+      return false;
+
+
+    }
+
+
+
+    const crops =
+
+      await this.getAll();
+
+
+
+    const filtered =
+
+      crops.filter(
+
+        crop =>
+
+          String(crop.id) !== String(id)
+
+      );
+
+
+
+    const deleted =
+
+      filtered.length !== crops.length;
+
+
+
+    if (deleted) {
+
+
+      await storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
+
+    }
+
+
+
+    return deleted;
+
+
+  }
+
+
+
+
+
+  async exists(id) {
+
+
+    return Boolean(
+
+      await this.getById(id)
+
+    );
+
+
+  }
+
+
+
+
+
+  async count() {
+
+
+    const crops =
+
+      await this.getAll();
+
+
+
+    return crops.length;
+
+
+  }
 
 
 }
@@ -252,36 +362,15 @@ async delete(id){
 
 
 
-async exists(id){
 
-  return Boolean(
-    await this.getById(id)
-  );
+const cropRepository =
 
-}
-
-
-
-
-async count(){
-
-
-  const crops =
-  await this.getAll();
-
-
-  return crops.length;
-
-
-}
-
-
-
-}
-
+  new CropRepository();
 
 
 
 export default Object.freeze(
-  new CropRepository()
+
+  cropRepository
+
 );
