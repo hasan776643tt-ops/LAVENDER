@@ -13,6 +13,7 @@ const languages = Object.freeze([
 
   }),
 
+
   Object.freeze({
 
     code: "en",
@@ -22,6 +23,7 @@ const languages = Object.freeze([
     direction: "ltr"
 
   }),
+
 
   Object.freeze({
 
@@ -34,6 +36,11 @@ const languages = Object.freeze([
   })
 
 ]);
+
+
+export {
+  languages
+};
 
 
 export default languages;
