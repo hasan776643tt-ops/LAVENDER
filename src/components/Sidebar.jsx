@@ -3,8 +3,17 @@
 import { NavLink } from "react-router-dom";
 
 import menuConfig from "../config/menuConfig.js";
+import { translate } from "../utils/translation.js";
+import { useSettings } from "../context/SettingsContext.jsx";
+
 
 export default function Sidebar() {
+  const { settings } = useSettings();
+
+  const language =
+    settings?.language || "ar";
+
+
   return (
     <aside
       className="sidebar"
@@ -15,6 +24,7 @@ export default function Sidebar() {
 
         <p>المزرعة الذكية</p>
       </div>
+
 
       <nav aria-label="التنقل الرئيسي">
         <ul>
@@ -29,7 +39,9 @@ export default function Sidebar() {
                       ? "sidebar-link active"
                       : "sidebar-link"
                   }
-                  end={item.path === "/dashboard"}
+                  end={
+                    item.path === "/dashboard"
+                  }
                 >
                   {item.icon && (
                     <span
@@ -41,7 +53,10 @@ export default function Sidebar() {
                   )}
 
                   <span>
-                    {item.titleKey}
+                    {translate(
+                      item.titleKey,
+                      language
+                    )}
                   </span>
                 </NavLink>
               </li>
