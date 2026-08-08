@@ -1,8 +1,9 @@
 // src/routes/index.js
 
-
 import authRoutes from "./authRoutes.js";
 import userRoutes from "./userRoutes.js";
+
+import dashboardRoutes from "./dashboardRoutes.js";
 
 import farmRoutes from "./farmRoutes.js";
 import fieldRoutes from "./fieldRoutes.js";
@@ -17,104 +18,76 @@ import expenseRoutes from "./expenseRoutes.js";
 import harvestRoutes from "./harvestRoutes.js";
 import inventoryRoutes from "./inventoryRoutes.js";
 
+import mapRoutes from "./mapRoutes.js";
+import aiRoutes from "./aiRoutes.js";
+
 import reportRoutes from "./reportRoutes.js";
 import engineerRoutes from "./engineerRoutes.js";
 import weatherRoutes from "./weatherRoutes.js";
 
+import settingsRoutes from "./settingsRoutes.js";
 
 
 const routeGroups = Object.freeze([
-
   authRoutes,
 
   userRoutes,
 
+  dashboardRoutes,
 
   farmRoutes,
-
   fieldRoutes,
-
   cropRoutes,
 
-
   irrigationRoutes,
-
   fertilizerRoutes,
-
   pesticideRoutes,
-
   diseaseRoutes,
 
-
   expenseRoutes,
-
   harvestRoutes,
-
   inventoryRoutes,
 
+  mapRoutes,
+  aiRoutes,
 
   reportRoutes,
-
   engineerRoutes,
+  weatherRoutes,
 
-  weatherRoutes
-
+  settingsRoutes
 ]);
 
 
-
 const routes = Object.freeze(
-
   routeGroups.flat()
-
 );
-
 
 
 export const publicRoutes = Object.freeze(
-
   routes.filter(
-
-    route => !route.protected
-
+    (route) => !route.protected
   )
-
 );
-
 
 
 export const protectedRoutes = Object.freeze(
-
   routes.filter(
-
-    route => route.protected
-
+    (route) => route.protected
   )
-
 );
-
 
 
 export const routeMap = Object.freeze(
-
   Object.fromEntries(
-
     routes.map(
-
-      route => [
-
+      (route) => [
         route.id,
-
         route
-
       ]
-
     )
-
   )
-
 );
-
 
 
 export default routes;
