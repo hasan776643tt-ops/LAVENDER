@@ -66,4 +66,8 @@ const currencies = Object.freeze([
 ]);
 
 
+export {
+  currencies
+};
+
 export default currencies;
