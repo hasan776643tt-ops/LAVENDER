@@ -78,4 +78,8 @@ const countries = Object.freeze([
 ]);
 
 
+export {
+countries
+};
+
 export default countries;
