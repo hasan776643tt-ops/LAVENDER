@@ -1,119 +1,53 @@
 // src/components/Sidebar.jsx
 
-import {
-  NavLink
-} from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 import menuConfig from "../config/menuConfig.js";
 
-
 export default function Sidebar() {
-
-
   return (
-
     <aside
-
       className="sidebar"
-
       aria-label="القائمة الرئيسية"
-
     >
-
-
       <div className="sidebar-brand">
+        <h2>🌱 LAVENDER</h2>
 
-
-        <h2>
-          🌱 LAVENDER
-        </h2>
-
-
-        <p>
-          Smart Farm
-        </p>
-
-
+        <p>المزرعة الذكية</p>
       </div>
 
-
-
-      <nav>
-
-
+      <nav aria-label="التنقل الرئيسي">
         <ul>
-
-
-          {
-            menuConfig.map((item)=>(
-
-              <li
-
-                key={item.id}
-
-              >
-
-
+          {menuConfig
+            .filter((item) => item.enabled)
+            .map((item) => (
+              <li key={item.id}>
                 <NavLink
-
                   to={item.path}
-
-                  className={({isActive}) =>
-
+                  className={({ isActive }) =>
                     isActive
-
-                    ?
-
-                    "sidebar-link active"
-
-                    :
-
-                    "sidebar-link"
-
+                      ? "sidebar-link active"
+                      : "sidebar-link"
                   }
-
+                  end={item.path === "/dashboard"}
                 >
-
-
-                  {
-                    item.icon && (
-
-                      <span className="sidebar-icon">
-
-                        {item.icon}
-
-                      </span>
-
-                    )
-                  }
-
-
+                  {item.icon && (
+                    <span
+                      className="sidebar-icon"
+                      aria-hidden="true"
+                    >
+                      {item.icon}
+                    </span>
+                  )}
 
                   <span>
-
-                    {item.title}
-
+                    {item.titleKey}
                   </span>
-
-
-
                 </NavLink>
-
-
               </li>
-
-            ))
-          }
-
-
+            ))}
         </ul>
-
-
       </nav>
-
-
     </aside>
-
   );
-
 }
