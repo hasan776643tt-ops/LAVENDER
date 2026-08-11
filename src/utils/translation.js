@@ -20,6 +20,15 @@ const translations = Object.freeze({
       inventory: "المخزون",
       expenses: "المصروفات",
       settings: "الإعدادات"
+    }),
+
+    home: Object.freeze({
+      title: "إدارة المزارع الذكية",
+      description:
+        "نظام ذكي لإدارة المزارع والمحاصيل والري والأسمدة.",
+      start: "ابدأ الآن",
+      login: "تسجيل دخول",
+      services: "الخدمات"
     })
   })
 });
