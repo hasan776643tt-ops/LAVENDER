@@ -16,34 +16,69 @@ const SettingsContext =
   createContext(null);
 
 
-
 // =========================
 // Default Settings
 // =========================
 
 const defaultSettings =
-Object.freeze({
+  Object.freeze({
 
-  language: "ar",
+    language: "ar",
 
-  country: "SY",
+    country: "SY",
 
-  currency: "SYP",
+    currency: "SYP",
 
-  areaUnit: "دونم",
+    areaUnit: "dunum",
 
-  weightUnit: "كغ",
+    weightUnit: "kg",
 
-  waterUnit: "لتر",
+    waterUnit: "liter",
 
-  theme: "light",
+    theme: "light",
 
-  notifications: true,
+    notifications: true,
 
-  gps: true
+    gps: true
 
-});
+  });
 
+
+// =========================
+// Normalize Saved Settings
+// =========================
+
+const normalizeSettings = (saved) => {
+
+  if (!saved || typeof saved !== "object") {
+    return defaultSettings;
+  }
+
+  return {
+
+    ...defaultSettings,
+
+    ...saved,
+
+    // دعم القيم القديمة
+    areaUnit:
+      saved.areaUnit === "دونم"
+        ? "dunum"
+        : saved.areaUnit || defaultSettings.areaUnit,
+
+    weightUnit:
+      saved.weightUnit === "كغ"
+        ? "kg"
+        : saved.weightUnit || defaultSettings.weightUnit,
+
+    waterUnit:
+      saved.waterUnit === "لتر"
+        ? "liter"
+        : saved.waterUnit || defaultSettings.waterUnit
+
+  };
+
+};
 
 
 // =========================
@@ -54,200 +89,161 @@ export function SettingsProvider({
   children
 }) {
 
+  const [settings, setSettings] =
+    useState(() => {
 
-const [settings,setSettings] =
-useState(()=>{
+      try {
+
+        const saved =
+          localStorage.getItem(
+            "lavender-settings"
+          );
+
+        if (!saved) {
+          return defaultSettings;
+        }
+
+        const parsed =
+          JSON.parse(saved);
+
+        return normalizeSettings(parsed);
+
+      } catch (error) {
+
+        console.error(
+          "Settings loading failed:",
+          error
+        );
+
+        return defaultSettings;
+
+      }
+
+    });
 
 
-  try {
+  // =========================
+  // Save Settings
+  // =========================
 
+  useEffect(() => {
 
-    const saved =
-      localStorage.getItem(
-        "lavender-settings"
+    try {
+
+      localStorage.setItem(
+        "lavender-settings",
+        JSON.stringify(settings)
       );
 
+    } catch (error) {
 
-    return saved
-      ? JSON.parse(saved)
-      : defaultSettings;
+      console.error(
+        "Settings storage failed:",
+        error
+      );
 
+    }
 
-  } catch(error) {
-
-
-    return defaultSettings;
-
-
-  }
+  }, [settings]);
 
 
-});
+  // =========================
+  // Actions
+  // =========================
+
+  const updateSetting =
+    (key, value) => {
+
+      setSettings(
+        previous => ({
+
+          ...previous,
+
+          [key]: value
+
+        })
+      );
+
+    };
 
 
+  const updateSettings =
+    (newSettings) => {
+
+      setSettings(
+        previous => ({
+
+          ...previous,
+
+          ...newSettings
+
+        })
+      );
+
+    };
 
 
-// =========================
-// Save Settings
-// =========================
+  const resetSettings =
+    () => {
 
-useEffect(()=>{
+      setSettings(
+        defaultSettings
+      );
+
+    };
 
 
- try {
+  // =========================
+  // Context Value
+  // =========================
+
+  const value = {
+
+    settings,
+
+    updateSetting,
+
+    updateSettings,
+
+    resetSettings
+
+  };
 
 
-  localStorage.setItem(
+  return (
 
-    "lavender-settings",
+    <SettingsContext.Provider
+      value={value}
+    >
 
-    JSON.stringify(settings)
+      {children}
+
+    </SettingsContext.Provider>
 
   );
-
-
- } catch(error) {
-
-
-  console.error(
-    "Settings storage failed:",
-    error
-  );
-
-
- }
-
-
-},[settings]);
-
-
-
-
-// =========================
-// Actions
-// =========================
-
-
-const updateSetting =
-(
- key,
- value
-)=>{
-
-
- setSettings(
-  previous => ({
-
-    ...previous,
-
-    [key]: value
-
-  })
- );
-
-
-};
-
-
-
-
-const updateSettings =
-(newSettings)=>{
-
-
- setSettings(
-  previous => ({
-
-    ...previous,
-
-    ...newSettings
-
-  })
- );
-
-
-};
-
-
-
-
-
-const resetSettings =
-()=>{
-
-
- setSettings(
-  defaultSettings
- );
-
-
-};
-
-
-
-
-// =========================
-// Context Value
-// =========================
-
-const value = {
-
- settings,
-
- updateSetting,
-
- updateSettings,
-
- resetSettings
-
-};
-
-
-
-
-
-return (
-
-<SettingsContext.Provider
- value={value}
->
-
-{children}
-
-</SettingsContext.Provider>
-
-);
-
 
 }
-
 
 
 // =========================
 // Hook
 // =========================
 
-export function useSettings(){
+export function useSettings() {
+
+  const context =
+    useContext(SettingsContext);
 
 
-const context =
-useContext(SettingsContext);
+  if (!context) {
+
+    throw new Error(
+      "useSettings must be used inside SettingsProvider"
+    );
+
+  }
 
 
-
-if(!context){
-
-
- throw new Error(
-  "useSettings must be used inside SettingsProvider"
- );
-
-
-}
-
-
-
-return context;
-
+  return context;
 
 }
