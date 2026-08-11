@@ -30,13 +30,22 @@ export default function Settings() {
 
     <div>
 
+      {/* =========================
+          Title
+      ========================= */}
+
       <h1>
-        ⚙️ {translate(
+        ⚙️{" "}
+        {translate(
           "settings.title",
           language
         )}
       </h1>
 
+
+      {/* =========================
+          Global Settings
+      ========================= */}
 
       <Card
         title={`🌍 ${translate(
@@ -44,6 +53,8 @@ export default function Settings() {
           language
         )}`}
       >
+
+        {/* Language */}
 
         <select
           value={settings.language}
@@ -61,7 +72,10 @@ export default function Settings() {
               key={lang.code}
               value={lang.code}
             >
-              {lang.name}
+              {translate(
+                `language.${lang.code}`,
+                language
+              )}
             </option>
 
           ))}
@@ -72,6 +86,8 @@ export default function Settings() {
         <br />
         <br />
 
+
+        {/* Country */}
 
         <select
           value={settings.country}
@@ -104,6 +120,8 @@ export default function Settings() {
         <br />
 
 
+        {/* Currency */}
+
         <select
           value={settings.currency}
           onChange={(e) =>
@@ -133,12 +151,18 @@ export default function Settings() {
       </Card>
 
 
+      {/* =========================
+          Measurement Units
+      ========================= */}
+
       <Card
         title={`📏 ${translate(
           "settings.measurement",
           language
         )}`}
       >
+
+        {/* Area */}
 
         <select
           value={settings.areaUnit}
@@ -171,6 +195,8 @@ export default function Settings() {
         <br />
 
 
+        {/* Weight */}
+
         <select
           value={settings.weightUnit}
           onChange={(e) =>
@@ -202,6 +228,8 @@ export default function Settings() {
         <br />
 
 
+        {/* Water */}
+
         <select
           value={settings.waterUnit}
           onChange={(e) =>
@@ -231,12 +259,18 @@ export default function Settings() {
       </Card>
 
 
+      {/* =========================
+          System & Location
+      ========================= */}
+
       <Card
         title={`🔔 ${translate(
           "settings.systemLocation",
           language
         )}`}
       >
+
+        {/* Notifications */}
 
         <label>
 
@@ -265,6 +299,8 @@ export default function Settings() {
         <br />
 
 
+        {/* GPS */}
+
         <label>
 
           <input
@@ -290,6 +326,10 @@ export default function Settings() {
       </Card>
 
 
+      {/* =========================
+          LAVENDER Information
+      ========================= */}
+
       <Card
         title={`🌱 ${translate(
           "settings.information",
@@ -311,6 +351,10 @@ export default function Settings() {
       </Card>
 
 
+      {/* =========================
+          Reset
+      ========================= */}
+
       <Button
         onClick={resetSettings}
       >
@@ -321,6 +365,7 @@ export default function Settings() {
         )}
 
       </Button>
+
 
     </div>
 
