@@ -1,23 +1,42 @@
 import { useEffect, useState } from "react";
+
 import mapService from "../services/mapService.js";
 import farmService from "../services/farmService.js";
 
+import { translate } from "../utils/translation";
+import { useSettings } from "../contexts/SettingsContext";
+
 export default function useMap() {
+  const { language } = useSettings();
+
+  const t = (key) =>
+    translate(`map.${key}`, language);
+
   const [farms, setFarms] = useState([]);
   const [locations, setLocations] = useState([]);
 
   const [farmId, setFarmId] = useState("");
-  const [locationType, setLocationType] = useState("مزرعة");
 
-  const [latitude, setLatitude] = useState("");
-  const [longitude, setLongitude] = useState("");
+  const [locationType, setLocationType] =
+    useState("مزرعة");
 
-  const [accuracy, setAccuracy] = useState("");
-  const [locationTime, setLocationTime] = useState("");
+  const [latitude, setLatitude] =
+    useState("");
 
-  const [notes, setNotes] = useState("");
+  const [longitude, setLongitude] =
+    useState("");
 
-  const [loading, setLoading] = useState(false);
+  const [accuracy, setAccuracy] =
+    useState("");
+
+  const [locationTime, setLocationTime] =
+    useState("");
+
+  const [notes, setNotes] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -62,7 +81,7 @@ export default function useMap() {
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
-      alert("GPS غير مدعوم في هذا الجهاز");
+      alert(t("gpsNotSupported"));
       return;
     }
 
@@ -79,19 +98,29 @@ export default function useMap() {
         );
 
         setAccuracy(
-          Math.round(position.coords.accuracy)
+          Math.round(
+            position.coords.accuracy
+          )
         );
 
         setLocationTime(
-          new Date().toLocaleString("ar-SY")
+          new Date().toLocaleString(
+            language === "tr"
+              ? "tr-TR"
+              : language === "en"
+              ? "en-US"
+              : "ar-SY"
+          )
         );
 
         setLoading(false);
       },
+
       () => {
-        alert("يرجى السماح باستخدام الموقع");
+        alert(t("allowLocation"));
         setLoading(false);
       },
+
       {
         enableHighAccuracy: true,
         timeout: 15000,
@@ -101,26 +130,44 @@ export default function useMap() {
   };
 
   const addLocation = async () => {
-    if (!farmId || !latitude || !longitude) {
-      alert("اختر المزرعة وحدد الموقع أولاً");
+    if (
+      !farmId ||
+      !latitude ||
+      !longitude
+    ) {
+      alert(
+        t("selectFarmAndLocation")
+      );
+
       return;
     }
 
     const farm = farms.find(
       (item) =>
-        String(item.id) === String(farmId)
+        String(item.id) ===
+        String(farmId)
     );
 
     const locationData = {
       farmId,
-      farmName: farm?.name || "غير محدد",
+
+      farmName:
+        farm?.name ||
+        t("unknownFarm"),
+
       type: locationType,
+
       latitude,
+
       longitude,
+
       accuracy,
+
       notes,
+
       createdAt: locationTime,
-      status: "نشط",
+
+      status: t("active"),
     };
 
     try {
@@ -137,14 +184,20 @@ export default function useMap() {
       ]);
 
       setFarmId("");
+
       setLocationType("مزرعة");
+
       setLatitude("");
+
       setLongitude("");
+
       setAccuracy("");
+
       setLocationTime("");
+
       setNotes("");
 
-      alert("تم حفظ الموقع بنجاح");
+      alert(t("saveSuccess"));
     } catch (error) {
       console.error(
         "Failed to create location:",
@@ -153,7 +206,7 @@ export default function useMap() {
 
       alert(
         error?.message ||
-          "حدث خطأ أثناء حفظ الموقع"
+          t("saveError")
       );
     } finally {
       setLoading(false);
@@ -165,17 +218,21 @@ export default function useMap() {
       setLoading(true);
 
       const deleted =
-        await mapService.deleteLocation(id);
+        await mapService.deleteLocation(
+          id
+        );
 
       if (!deleted) {
-        alert("الموقع غير موجود");
+        alert(t("locationNotFound"));
+
         return;
       }
 
       setLocations((current) =>
         current.filter(
           (item) =>
-            String(item.id) !== String(id)
+            String(item.id) !==
+            String(id)
         )
       );
     } catch (error) {
@@ -186,7 +243,7 @@ export default function useMap() {
 
       alert(
         error?.message ||
-          "حدث خطأ أثناء حذف الموقع"
+          t("deleteError")
       );
     } finally {
       setLoading(false);
