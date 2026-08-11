@@ -1,15 +1,25 @@
 // src/components/Footer.jsx
 
-const currentYear = new Date().getFullYear();
+import { useSettings } from "../context/SettingsContext";
+import { translate } from "../utils/translation";
+
+
+const currentYear =
+  new Date().getFullYear();
 
 
 export default function Footer() {
+
+  const { settings } =
+    useSettings();
+
+  const language =
+    settings?.language || "ar";
 
 
   return (
 
     <footer className="app-footer">
-
 
       <div className="footer-brand">
 
@@ -18,25 +28,33 @@ export default function Footer() {
       </div>
 
 
-
       <div className="footer-description">
 
-        نظام إدارة المزارع الذكية
+        {translate(
+          "footer.description",
+          language
+        )}
 
         <br />
 
-        إدارة المحاصيل والري والتقارير الزراعية
+        {translate(
+          "footer.management",
+          language
+        )}
 
       </div>
-
 
 
       <div className="footer-copy">
 
-        © {currentYear} جميع الحقوق محفوظة
+        © {currentYear}{" "}
+
+        {translate(
+          "footer.rights",
+          language
+        )}
 
       </div>
-
 
 
     </footer>
