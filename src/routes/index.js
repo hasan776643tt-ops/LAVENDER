@@ -4,6 +4,7 @@ import authRoutes from "./authRoutes.js";
 import userRoutes from "./userRoutes.js";
 
 import dashboardRoutes from "./dashboardRoutes.js";
+import contactRoutes from "./contactRoutes.js";
 
 import farmRoutes from "./farmRoutes.js";
 import fieldRoutes from "./fieldRoutes.js";
@@ -30,10 +31,10 @@ import settingsRoutes from "./settingsRoutes.js";
 
 const routeGroups = Object.freeze([
   authRoutes,
-
   userRoutes,
 
   dashboardRoutes,
+  contactRoutes,
 
   farmRoutes,
   fieldRoutes,
@@ -66,14 +67,14 @@ const routes = Object.freeze(
 
 export const publicRoutes = Object.freeze(
   routes.filter(
-    (route) => !route.protected
+    (route) => route.protected !== true
   )
 );
 
 
 export const protectedRoutes = Object.freeze(
   routes.filter(
-    (route) => route.protected
+    (route) => route.protected === true
   )
 );
 
