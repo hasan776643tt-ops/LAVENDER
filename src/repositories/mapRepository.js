@@ -34,7 +34,7 @@ class MapRepository {
   async create(data) {
     if (!data || typeof data !== "object") {
       throw new Error(
-        "بيانات الموقع مطلوبة"
+        "MAP_DATA_REQUIRED"
       );
     }
 
