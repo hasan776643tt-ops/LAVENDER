@@ -1,12 +1,13 @@
 // src/pages/Home.jsx
 
 import { Link } from "react-router-dom";
-import { useContext } from "react";
-import SettingsContext from "../contexts/SettingsContext.jsx";
+import { useSettings } from "../context/SettingsContext.jsx";
 import { translate } from "../utils/translation.js";
 
 export default function Home() {
-  const { language } = useContext(SettingsContext);
+  const { settings } = useSettings();
+
+  const language = settings?.language || "ar";
 
   return (
     <div>
