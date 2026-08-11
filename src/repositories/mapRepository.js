@@ -1,19 +1,32 @@
-import DataModel from "../models/DataModel.js";
+// src/repositories/mapRepository.js
+
+import { storageService } from "../storage";
 
 class MapRepository {
+  constructor() {
+    this.key = "locations";
+  }
+
   async getAll() {
-    return Array.isArray(DataModel.locations)
-      ? [...DataModel.locations]
-      : [];
+    return storageService.load(
+      this.key,
+      []
+    );
   }
 
   async getById(id) {
-    const locations = await this.getAll();
+    if (!id) {
+      return null;
+    }
+
+    const locations =
+      await this.getAll();
 
     return (
       locations.find(
         (location) =>
-          String(location.id) === String(id)
+          String(location.id) ===
+          String(id)
       ) || null
     );
   }
@@ -21,32 +34,42 @@ class MapRepository {
   async create(data) {
     if (!data || typeof data !== "object") {
       throw new Error(
-        "Location data is required"
+        "بيانات الموقع مطلوبة"
       );
     }
 
-    const locations = await this.getAll();
+    const locations =
+      await this.getAll();
 
     const newLocation = {
-      id: Date.now(),
+      id: crypto.randomUUID(),
       ...data,
     };
 
-    DataModel.locations = [
-      ...locations,
-      newLocation,
-    ];
+    locations.push(newLocation);
+
+    await storageService.save(
+      this.key,
+      locations
+    );
 
     return newLocation;
   }
 
   async update(id, data) {
-    const locations = await this.getAll();
+    if (!id) {
+      return null;
+    }
 
-    const index = locations.findIndex(
-      (location) =>
-        String(location.id) === String(id)
-    );
+    const locations =
+      await this.getAll();
+
+    const index =
+      locations.findIndex(
+        (location) =>
+          String(location.id) ===
+          String(id)
+      );
 
     if (index === -1) {
       return null;
@@ -58,20 +81,30 @@ class MapRepository {
       id: locations[index].id,
     };
 
-    locations[index] = updatedLocation;
+    locations[index] =
+      updatedLocation;
 
-    DataModel.locations = locations;
+    await storageService.save(
+      this.key,
+      locations
+    );
 
     return updatedLocation;
   }
 
   async delete(id) {
-    const locations = await this.getAll();
+    if (!id) {
+      return false;
+    }
+
+    const locations =
+      await this.getAll();
 
     const filteredLocations =
       locations.filter(
         (location) =>
-          String(location.id) !== String(id)
+          String(location.id) !==
+          String(id)
       );
 
     if (
@@ -81,17 +114,18 @@ class MapRepository {
       return false;
     }
 
-    DataModel.locations =
-      filteredLocations;
+    await storageService.save(
+      this.key,
+      filteredLocations
+    );
 
     return true;
   }
 
   async exists(id) {
-    const location =
-      await this.getById(id);
-
-    return Boolean(location);
+    return Boolean(
+      await this.getById(id)
+    );
   }
 
   async count() {
