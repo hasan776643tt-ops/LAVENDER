@@ -1,87 +1,53 @@
-// src/repositories/mapRepository.js
+// src/services/farmService.js
 
-import DataModel from "../models/DataModel.js";
+import farmRepository from "../repositories/farmRepository.js";
 
-class MapRepository {
-  async getAll() {
-    return DataModel.locations || [];
+class FarmService {
+  async getAllFarms() {
+    return farmRepository.getAll();
   }
 
-  async getById(id) {
-    const locations =
-      DataModel.locations || [];
-
-    return locations.find(
-      (item) => item.id === id
-    );
-  }
-
-  async create(data) {
-    const locations =
-      DataModel.locations || [];
-
-    const newLocation = {
-      id: Date.now(),
-      ...data,
-    };
-
-    DataModel.locations = [
-      ...locations,
-      newLocation,
-    ];
-
-    return newLocation;
-  }
-
-  async update(id, data) {
-    const locations =
-      DataModel.locations || [];
-
-    const index = locations.findIndex(
-      (item) => item.id === id
-    );
-
-    if (index === -1) {
-      return null;
+  async getFarmById(id) {
+    if (!id) {
+      throw new Error("معرف المزرعة مطلوب");
     }
 
-    const updatedLocation = {
-      ...locations[index],
-      ...data,
-      id,
-    };
-
-    DataModel.locations = locations.map(
-      (item, itemIndex) =>
-        itemIndex === index
-          ? updatedLocation
-          : item
-    );
-
-    return updatedLocation;
+    return farmRepository.getById(id);
   }
 
-  async delete(id) {
-    const locations =
-      DataModel.locations || [];
-
-    const exists = locations.some(
-      (item) => item.id === id
-    );
-
-    if (!exists) {
-      return false;
+  async createFarm(data) {
+    if (!data || typeof data !== "object") {
+      throw new Error("بيانات المزرعة مطلوبة");
     }
 
-    DataModel.locations =
-      locations.filter(
-        (item) => item.id !== id
-      );
+    if (!data.name || !String(data.name).trim()) {
+      throw new Error("اسم المزرعة مطلوب");
+    }
 
-    return true;
+    return farmRepository.create(data);
+  }
+
+  async updateFarm(id, data) {
+    if (!id) {
+      throw new Error("معرف المزرعة مطلوب");
+    }
+
+    if (!data || typeof data !== "object") {
+      throw new Error("بيانات التحديث مطلوبة");
+    }
+
+    return farmRepository.update(id, data);
+  }
+
+  async deleteFarm(id) {
+    if (!id) {
+      throw new Error("معرف المزرعة مطلوب");
+    }
+
+    return farmRepository.delete(id);
   }
 }
 
-export default Object.freeze(
-  new MapRepository()
-);
+const farmService = new FarmService();
+
+export default Object.freeze(farmService);
