@@ -8,6 +8,12 @@ const translations = Object.freeze({
 
   ar: Object.freeze({
 
+    language: Object.freeze({
+      ar: "العربية",
+      en: "الإنجليزية",
+      tr: "التركية"
+    }),
+
     menu: Object.freeze({
       dashboard: "لوحة التحكم",
       farms: "المزارع",
@@ -80,10 +86,12 @@ const translations = Object.freeze({
     }),
 
     footer: Object.freeze({
-      description: "نظام إدارة المزارع الذكية",
+      description:
+        "نظام إدارة المزارع الذكية",
       management:
         "إدارة المحاصيل والري والتقارير الزراعية",
-      rights: "جميع الحقوق محفوظة"
+      rights:
+        "جميع الحقوق محفوظة"
     })
 
   }),
@@ -94,6 +102,12 @@ const translations = Object.freeze({
   // =========================
 
   en: Object.freeze({
+
+    language: Object.freeze({
+      ar: "Arabic",
+      en: "English",
+      tr: "Turkish"
+    }),
 
     menu: Object.freeze({
       dashboard: "Dashboard",
@@ -171,7 +185,8 @@ const translations = Object.freeze({
         "Smart Farm Management System",
       management:
         "Crop, irrigation, and agricultural report management",
-      rights: "All rights reserved"
+      rights:
+        "All rights reserved"
     })
 
   }),
@@ -182,6 +197,12 @@ const translations = Object.freeze({
   // =========================
 
   tr: Object.freeze({
+
+    language: Object.freeze({
+      ar: "Arapça",
+      en: "İngilizce",
+      tr: "Türkçe"
+    }),
 
     menu: Object.freeze({
       dashboard: "Kontrol Paneli",
@@ -259,7 +280,8 @@ const translations = Object.freeze({
         "Akıllı Çiftlik Yönetim Sistemi",
       management:
         "Ürün, sulama ve tarımsal rapor yönetimi",
-      rights: "Tüm hakları saklıdır"
+      rights:
+        "Tüm hakları saklıdır"
     })
 
   })
