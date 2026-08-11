@@ -11,15 +11,20 @@ class MapService {
 
   async createLocation(data) {
     if (!data || typeof data !== "object") {
-      throw new Error("بيانات الموقع مطلوبة");
+      throw new Error("MAP_DATA_REQUIRED");
     }
 
     if (!data.farmId) {
-      throw new Error("المزرعة مطلوبة");
+      throw new Error("MAP_FARM_REQUIRED");
     }
 
-    if (!data.latitude || !data.longitude) {
-      throw new Error("إحداثيات الموقع مطلوبة");
+    if (
+      !data.latitude ||
+      !data.longitude
+    ) {
+      throw new Error(
+        "MAP_COORDINATES_REQUIRED"
+      );
     }
 
     return mapRepository.create(data);
@@ -27,15 +32,18 @@ class MapService {
 
   async updateLocation(id, data) {
     if (!id) {
-      throw new Error("معرف الموقع مطلوب");
+      throw new Error("MAP_ID_REQUIRED");
     }
 
-    return mapRepository.update(id, data);
+    return mapRepository.update(
+      id,
+      data
+    );
   }
 
   async deleteLocation(id) {
     if (!id) {
-      throw new Error("معرف الموقع مطلوب");
+      throw new Error("MAP_ID_REQUIRED");
     }
 
     return mapRepository.delete(id);
@@ -52,4 +60,6 @@ class MapService {
 
 const mapService = new MapService();
 
-export default Object.freeze(mapService);
+export default Object.freeze(
+  mapService
+);
