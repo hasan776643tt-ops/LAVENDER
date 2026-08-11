@@ -1,203 +1,87 @@
-// src/services/farmService.js
+// src/repositories/mapRepository.js
 
-import farmRepository from "../repositories/farmRepository.js";
+import DataModel from "../models/DataModel.js";
 
-import {
-  createError
-} from "../utils/errorHandler.js";
-
-
-class FarmService {
-
-  constructor() {
-
-    this.repository =
-      farmRepository;
-
-  }
-
-
+class MapRepository {
   async getAll() {
-
-    return this.repository.getAll();
-
+    return DataModel.locations || [];
   }
-
 
   async getById(id) {
+    const locations =
+      DataModel.locations || [];
 
-    this.validateId(id);
-
-    const farm =
-      await this.repository.getById(id);
-
-    if (!farm) {
-
-      throw createError(
-        "Farm not found",
-        "FARM_NOT_FOUND"
-      );
-
-    }
-
-    return farm;
-
+    return locations.find(
+      (item) => item.id === id
+    );
   }
-
 
   async create(data) {
+    const locations =
+      DataModel.locations || [];
 
-    this.validateCreate(data);
+    const newLocation = {
+      id: Date.now(),
+      ...data,
+    };
 
-    return this.repository.create(data);
+    DataModel.locations = [
+      ...locations,
+      newLocation,
+    ];
 
+    return newLocation;
   }
 
+  async update(id, data) {
+    const locations =
+      DataModel.locations || [];
 
-  async update(
-    id,
-    data
-  ) {
+    const index = locations.findIndex(
+      (item) => item.id === id
+    );
 
-    this.validateId(id);
-
-    this.validateUpdate(data);
-
-    const updated =
-      await this.repository.update(
-        id,
-        data
-      );
-
-    if (!updated) {
-
-      throw createError(
-        "Farm not found",
-        "FARM_NOT_FOUND"
-      );
-
+    if (index === -1) {
+      return null;
     }
 
-    return updated;
+    const updatedLocation = {
+      ...locations[index],
+      ...data,
+      id,
+    };
 
+    DataModel.locations = locations.map(
+      (item, itemIndex) =>
+        itemIndex === index
+          ? updatedLocation
+          : item
+    );
+
+    return updatedLocation;
   }
-
 
   async delete(id) {
+    const locations =
+      DataModel.locations || [];
 
-    this.validateId(id);
+    const exists = locations.some(
+      (item) => item.id === id
+    );
 
-    const deleted =
-      await this.repository.delete(id);
-
-    if (!deleted) {
-
-      throw createError(
-        "Farm not found",
-        "FARM_NOT_FOUND"
-      );
-
-    }
-
-    return true;
-
-  }
-
-
-  async exists(id) {
-
-    if (!id) {
-
+    if (!exists) {
       return false;
-
     }
 
-    const farm =
-      await this.repository.getById(id);
-
-    return Boolean(farm);
-
-  }
-
-
-  async count() {
-
-    const farms =
-      await this.repository.getAll();
-
-    return farms.length;
-
-  }
-
-
-  validateId(id) {
-
-    if (!id) {
-
-      throw createError(
-        "Farm id is required",
-        "FARM_ID_REQUIRED"
+    DataModel.locations =
+      locations.filter(
+        (item) => item.id !== id
       );
-
-    }
 
     return true;
-
   }
-
-
-  validateCreate(data) {
-
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
-
-      throw createError(
-        "Farm data is required",
-        "FARM_DATA_REQUIRED"
-      );
-
-    }
-
-    if (
-      !data.name ||
-      !data.name.trim()
-    ) {
-
-      throw createError(
-        "Farm name is required",
-        "FARM_NAME_REQUIRED"
-      );
-
-    }
-
-    return true;
-
-  }
-
-
-  validateUpdate(data) {
-
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
-
-      throw createError(
-        "Farm data is required",
-        "FARM_DATA_REQUIRED"
-      );
-
-    }
-
-    return true;
-
-  }
-
 }
 
-
 export default Object.freeze(
-  new FarmService()
+  new MapRepository()
 );
