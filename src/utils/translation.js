@@ -37,6 +37,48 @@ const translations = Object.freeze({
       services: "الخدمات"
     }),
 
+    settings: Object.freeze({
+      title: "إعدادات النظام",
+      global: "الإعدادات العالمية",
+      measurement: "وحدات القياس",
+      systemLocation: "النظام والموقع",
+      information: "معلومات LAVENDER",
+      description:
+        "نظام إدارة زراعي ذكي عالمي",
+      notifications: "تفعيل الإشعارات",
+      gps: "تفعيل GPS",
+      reset: "إعادة الإعدادات الافتراضية"
+    }),
+
+    country: Object.freeze({
+      SY: "سوريا",
+      TR: "تركيا",
+      SA: "السعودية",
+      AE: "الإمارات",
+      US: "الولايات المتحدة",
+      FR: "فرنسا"
+    }),
+
+    currency: Object.freeze({
+      SYP: "الليرة السورية",
+      TRY: "الليرة التركية",
+      SAR: "الريال السعودي",
+      AED: "الدرهم الإماراتي",
+      USD: "الدولار الأمريكي",
+      EUR: "اليورو"
+    }),
+
+    unit: Object.freeze({
+      dunum: "دونم",
+      hectare: "هكتار",
+      acre: "فدان",
+      sqm: "متر مربع",
+      kg: "كيلوغرام",
+      ton: "طن",
+      liter: "لتر",
+      cubic_meter: "متر مكعب"
+    }),
+
     footer: Object.freeze({
       description: "نظام إدارة المزارع الذكية",
       management:
@@ -80,6 +122,48 @@ const translations = Object.freeze({
       start: "Get Started",
       login: "Login",
       services: "Services"
+    }),
+
+    settings: Object.freeze({
+      title: "System Settings",
+      global: "Global Settings",
+      measurement: "Measurement Units",
+      systemLocation: "System & Location",
+      information: "LAVENDER Information",
+      description:
+        "A global smart agricultural management system",
+      notifications: "Enable Notifications",
+      gps: "Enable GPS",
+      reset: "Reset Default Settings"
+    }),
+
+    country: Object.freeze({
+      SY: "Syria",
+      TR: "Turkey",
+      SA: "Saudi Arabia",
+      AE: "United Arab Emirates",
+      US: "United States",
+      FR: "France"
+    }),
+
+    currency: Object.freeze({
+      SYP: "Syrian Pound",
+      TRY: "Turkish Lira",
+      SAR: "Saudi Riyal",
+      AED: "UAE Dirham",
+      USD: "US Dollar",
+      EUR: "Euro"
+    }),
+
+    unit: Object.freeze({
+      dunum: "Dunum",
+      hectare: "Hectare",
+      acre: "Acre",
+      sqm: "Square Meter",
+      kg: "Kilogram",
+      ton: "Ton",
+      liter: "Liter",
+      cubic_meter: "Cubic Meter"
     }),
 
     footer: Object.freeze({
@@ -127,8 +211,51 @@ const translations = Object.freeze({
       services: "Hizmetler"
     }),
 
+    settings: Object.freeze({
+      title: "Sistem Ayarları",
+      global: "Genel Ayarlar",
+      measurement: "Ölçü Birimleri",
+      systemLocation: "Sistem ve Konum",
+      information: "LAVENDER Bilgileri",
+      description:
+        "Küresel akıllı tarım yönetim sistemi",
+      notifications: "Bildirimleri Etkinleştir",
+      gps: "GPS'yi Etkinleştir",
+      reset: "Varsayılan Ayarları Sıfırla"
+    }),
+
+    country: Object.freeze({
+      SY: "Suriye",
+      TR: "Türkiye",
+      SA: "Suudi Arabistan",
+      AE: "Birleşik Arap Emirlikleri",
+      US: "Amerika Birleşik Devletleri",
+      FR: "Fransa"
+    }),
+
+    currency: Object.freeze({
+      SYP: "Suriye Lirası",
+      TRY: "Türk Lirası",
+      SAR: "Suudi Riyali",
+      AED: "BAE Dirhemi",
+      USD: "ABD Doları",
+      EUR: "Euro"
+    }),
+
+    unit: Object.freeze({
+      dunum: "Dönüm",
+      hectare: "Hektar",
+      acre: "Akre",
+      sqm: "Metrekare",
+      kg: "Kilogram",
+      ton: "Ton",
+      liter: "Litre",
+      cubic_meter: "Metreküp"
+    }),
+
     footer: Object.freeze({
-      description: "Akıllı Çiftlik Yönetim Sistemi",
+      description:
+        "Akıllı Çiftlik Yönetim Sistemi",
       management:
         "Ürün, sulama ve tarımsal rapor yönetimi",
       rights: "Tüm hakları saklıdır"
@@ -140,7 +267,7 @@ const translations = Object.freeze({
 
 
 // =========================
-// Get Nested Translation
+// Nested Translation
 // =========================
 
 const getNestedValue = (source, key) => {
@@ -148,7 +275,8 @@ const getNestedValue = (source, key) => {
   return key
     .split(".")
     .reduce(
-      (value, part) => value?.[part],
+      (value, part) =>
+        value?.[part],
       source
     );
 
