@@ -167,7 +167,8 @@ const translations = Object.freeze({
     }),
 
     footer: Object.freeze({
-      description: "Smart Farm Management System",
+      description:
+        "Smart Farm Management System",
       management:
         "Crop, irrigation, and agricultural report management",
       rights: "All rights reserved"
