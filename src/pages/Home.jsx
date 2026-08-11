@@ -1,44 +1,48 @@
+// src/pages/Home.jsx
+
 import { Link } from "react-router-dom";
+import { useContext } from "react";
+import SettingsContext from "../contexts/SettingsContext.jsx";
+import { translate } from "../utils/translation.js";
 
 export default function Home() {
+  const { language } = useContext(SettingsContext);
+
   return (
     <div>
-
-      <h1>🌱 إدارة المزارع الذكية</h1>
+      <h1>
+        🌱 {translate("home.title", language)}
+      </h1>
 
       <p>
-        نظام ذكي لإدارة المزارع والمحاصيل والري والأسمدة.
+        {translate("home.description", language)}
       </p>
 
       <div>
-
         <Link to="/register">
-          <button>
-            ابدأ الآن
+          <button type="button">
+            {translate("home.start", language)}
           </button>
         </Link>
 
         <Link to="/login">
-          <button>
-            تسجيل دخول
+          <button type="button">
+            {translate("home.login", language)}
           </button>
         </Link>
 
         <Link to="/dashboard">
-          <button>
-            لوحة التحكم
+          <button type="button">
+            {translate("menu.dashboard", language)}
           </button>
         </Link>
 
         <Link to="/services">
-          <button>
-            الخدمات
+          <button type="button">
+            {translate("home.services", language)}
           </button>
         </Link>
-
       </div>
-
     </div>
   );
 }
-// Update for Vercel deployment
