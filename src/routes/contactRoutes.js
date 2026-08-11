@@ -11,7 +11,6 @@ const contactRoutes = Object.freeze([
     id: "contact",
     path: "/contact",
     element: Contact,
-    module: "contact",
     protected: false
   })
 ]);
