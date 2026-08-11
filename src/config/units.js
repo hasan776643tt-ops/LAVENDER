@@ -184,5 +184,5 @@ const units = Object.freeze({
 });
 
 
+export { units };
 
-export default units;
