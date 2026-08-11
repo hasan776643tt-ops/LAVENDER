@@ -1,3 +1,5 @@
+// src/pages/Settings.jsx
+
 import Card from "../components/Card";
 import Button from "../components/Button";
 
@@ -7,6 +9,8 @@ import { languages } from "../config/languages";
 import { currencies } from "../config/currencies";
 import { units } from "../config/units";
 import { countries } from "../config/countries";
+
+import { translate } from "../utils/translation";
 
 
 export default function Settings() {
@@ -18,17 +22,28 @@ export default function Settings() {
   } = useSettings();
 
 
+  const language =
+    settings?.language || "ar";
+
+
   return (
 
     <div>
 
       <h1>
-        ⚙️ إعدادات النظام
+        ⚙️ {translate(
+          "settings.title",
+          language
+        )}
       </h1>
 
 
-      <Card title="🌍 الإعدادات العالمية">
-
+      <Card
+        title={`🌍 ${translate(
+          "settings.global",
+          language
+        )}`}
+      >
 
         <select
           value={settings.language}
@@ -54,7 +69,8 @@ export default function Settings() {
         </select>
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
         <select
@@ -73,7 +89,10 @@ export default function Settings() {
               key={country.code}
               value={country.code}
             >
-              {country.name}
+              {translate(
+                `country.${country.code}`,
+                language
+              )}
             </option>
 
           ))}
@@ -81,7 +100,8 @@ export default function Settings() {
         </select>
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
         <select
@@ -100,20 +120,25 @@ export default function Settings() {
               key={currency.code}
               value={currency.code}
             >
-              {currency.name}
+              {translate(
+                `currency.${currency.code}`,
+                language
+              )}
             </option>
 
           ))}
 
         </select>
 
-
       </Card>
 
 
-
-      <Card title="📏 وحدات القياس">
-
+      <Card
+        title={`📏 ${translate(
+          "settings.measurement",
+          language
+        )}`}
+      >
 
         <select
           value={settings.areaUnit}
@@ -131,7 +156,10 @@ export default function Settings() {
               key={unit.code}
               value={unit.code}
             >
-              {unit.name}
+              {translate(
+                `unit.${unit.code}`,
+                language
+              )}
             </option>
 
           ))}
@@ -139,7 +167,8 @@ export default function Settings() {
         </select>
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
         <select
@@ -158,7 +187,10 @@ export default function Settings() {
               key={unit.code}
               value={unit.code}
             >
-              {unit.name}
+              {translate(
+                `unit.${unit.code}`,
+                language
+              )}
             </option>
 
           ))}
@@ -166,7 +198,8 @@ export default function Settings() {
         </select>
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
         <select
@@ -185,20 +218,25 @@ export default function Settings() {
               key={unit.code}
               value={unit.code}
             >
-              {unit.name}
+              {translate(
+                `unit.${unit.code}`,
+                language
+              )}
             </option>
 
           ))}
 
         </select>
 
-
       </Card>
 
 
-
-      <Card title="🔔 النظام والموقع">
-
+      <Card
+        title={`🔔 ${translate(
+          "settings.systemLocation",
+          language
+        )}`}
+      >
 
         <label>
 
@@ -213,12 +251,18 @@ export default function Settings() {
             }
           />
 
-          تفعيل الإشعارات
+          {" "}
+
+          {translate(
+            "settings.notifications",
+            language
+          )}
 
         </label>
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
         <label>
@@ -234,35 +278,49 @@ export default function Settings() {
             }
           />
 
-          تفعيل GPS
+          {" "}
+
+          {translate(
+            "settings.gps",
+            language
+          )}
 
         </label>
-
 
       </Card>
 
 
-
-      <Card title="🌱 معلومات LAVENDER">
+      <Card
+        title={`🌱 ${translate(
+          "settings.information",
+          language
+        )}`}
+      >
 
         <p>
           LAVENDER Smart Farm
         </p>
 
         <p>
-          نظام إدارة زراعي ذكي عالمي
+          {translate(
+            "settings.description",
+            language
+          )}
         </p>
 
       </Card>
 
 
-
       <Button
         onClick={resetSettings}
       >
-        إعادة الإعدادات الافتراضية
-      </Button>
 
+        {translate(
+          "settings.reset",
+          language
+        )}
+
+      </Button>
 
     </div>
 
