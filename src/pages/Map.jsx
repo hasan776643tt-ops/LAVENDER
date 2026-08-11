@@ -1,9 +1,16 @@
+// src/pages/Map.jsx
+
+import { useSettings } from "../context/SettingsContext";
+import { translate } from "../utils/translation";
 import useMap from "../hooks/useMap";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
 export default function Map() {
+  const { settings } = useSettings();
+  const language = settings?.language || "ar";
+
   const {
     farms,
     locations,
@@ -33,16 +40,26 @@ export default function Map() {
   return (
     <div>
       <h1>
-        📍 نظام المواقع الذكي
+        📍 {translate("map.title", language)}
       </h1>
 
-      <Card title="تسجيل موقع جديد">
+      <Card
+        title={translate(
+          "map.addLocation",
+          language
+        )}
+      >
         <select
           value={farmId}
-          onChange={(e) => setFarmId(e.target.value)}
+          onChange={(event) =>
+            setFarmId(event.target.value)
+          }
         >
           <option value="">
-            اختر المزرعة
+            {translate(
+              "map.selectFarm",
+              language
+            )}
           </option>
 
           {farms.map((farm) => (
@@ -60,20 +77,29 @@ export default function Map() {
 
         <select
           value={locationType}
-          onChange={(e) =>
-            setLocationType(e.target.value)
+          onChange={(event) =>
+            setLocationType(event.target.value)
           }
         >
-          <option>
-            مزرعة
+          <option value="مزرعة">
+            {translate(
+              "map.farm",
+              language
+            )}
           </option>
 
-          <option>
-            حقل
+          <option value="حقل">
+            {translate(
+              "map.field",
+              language
+            )}
           </option>
 
-          <option>
-            مصدر مياه
+          <option value="مصدر مياه">
+            {translate(
+              "map.waterSource",
+              language
+            )}
           </option>
         </select>
 
@@ -82,10 +108,17 @@ export default function Map() {
 
         <Button
           onClick={getCurrentLocation}
+          disabled={loading}
         >
           {loading
-            ? "⏳ جاري تحديد الموقع..."
-            : "📡 تحديد GPS"}
+            ? `⏳ ${translate(
+                "map.locating",
+                language
+              )}`
+            : `📡 ${translate(
+                "map.getGPS",
+                language
+              )}`}
         </Button>
 
         <br />
@@ -94,7 +127,14 @@ export default function Map() {
         <input
           value={latitude}
           readOnly
-          placeholder="Latitude"
+          placeholder={translate(
+            "map.latitude",
+            language
+          )}
+          aria-label={translate(
+            "map.latitude",
+            language
+          )}
         />
 
         <br />
@@ -103,7 +143,14 @@ export default function Map() {
         <input
           value={longitude}
           readOnly
-          placeholder="Longitude"
+          placeholder={translate(
+            "map.longitude",
+            language
+          )}
+          aria-label={translate(
+            "map.longitude",
+            language
+          )}
         />
 
         <br />
@@ -112,11 +159,21 @@ export default function Map() {
         <input
           value={
             accuracy
-              ? `${accuracy} متر`
+              ? `${accuracy} ${translate(
+                  "map.meters",
+                  language
+                )}`
               : ""
           }
           readOnly
-          placeholder="Accuracy"
+          placeholder={translate(
+            "map.accuracy",
+            language
+          )}
+          aria-label={translate(
+            "map.accuracy",
+            language
+          )}
         />
 
         <br />
@@ -125,7 +182,14 @@ export default function Map() {
         <input
           value={locationTime}
           readOnly
-          placeholder="وقت التسجيل"
+          placeholder={translate(
+            "map.locationTime",
+            language
+          )}
+          aria-label={translate(
+            "map.locationTime",
+            language
+          )}
         />
 
         <br />
@@ -133,22 +197,38 @@ export default function Map() {
 
         <textarea
           value={notes}
-          onChange={(e) =>
-            setNotes(e.target.value)
+          onChange={(event) =>
+            setNotes(event.target.value)
           }
-          placeholder="ملاحظات الموقع"
+          placeholder={translate(
+            "map.notesPlaceholder",
+            language
+          )}
+          aria-label={translate(
+            "map.notes",
+            language
+          )}
         />
 
         <br />
         <br />
 
-        <Button onClick={addLocation}>
-          💾 حفظ الموقع
+        <Button
+          onClick={addLocation}
+          disabled={loading}
+        >
+          💾 {translate(
+            "map.save",
+            language
+          )}
         </Button>
       </Card>
 
       <h2>
-        🗺️ المواقع المحفوظة
+        🗺️ {translate(
+          "map.savedLocations",
+          language
+        )}
       </h2>
 
       {locations.map((item) => (
@@ -157,31 +237,71 @@ export default function Map() {
           title={item.farmName}
         >
           <p>
-            📌 النوع: {item.type}
+            📌{" "}
+            {translate(
+              "map.type",
+              language
+            )}
+            : {translate(
+              item.type === "مزرعة"
+                ? "map.farm"
+                : item.type === "حقل"
+                ? "map.field"
+                : "map.waterSource",
+              language
+            )}
           </p>
 
           <p>
-            🌍 Latitude: {item.latitude}
+            🌍{" "}
+            {translate(
+              "map.latitude",
+              language
+            )}
+            : {item.latitude}
           </p>
 
           <p>
-            🌍 Longitude: {item.longitude}
+            🌍{" "}
+            {translate(
+              "map.longitude",
+              language
+            )}
+            : {item.longitude}
           </p>
 
           <p>
-            🎯 الدقة: {item.accuracy} متر
+            🎯{" "}
+            {translate(
+              "map.accuracy",
+              language
+            )}
+            : {item.accuracy}{" "}
+            {translate(
+              "map.meters",
+              language
+            )}
           </p>
 
           <p>
-            📝 الملاحظات: {item.notes}
+            📝{" "}
+            {translate(
+              "map.notes",
+              language
+            )}
+            : {item.notes}
           </p>
 
           <a
             href={`https://maps.google.com/?q=${item.latitude},${item.longitude}`}
             target="_blank"
-            rel="noreferrer"
+            rel="noopener noreferrer"
           >
-            🗺️ فتح في Google Maps
+            🗺️{" "}
+            {translate(
+              "map.openGoogleMaps",
+              language
+            )}
           </a>
 
           <br />
@@ -191,8 +311,12 @@ export default function Map() {
             onClick={() =>
               deleteLocation(item.id)
             }
+            disabled={loading}
           >
-            حذف
+            {translate(
+              "map.delete",
+              language
+            )}
           </Button>
         </Card>
       ))}
