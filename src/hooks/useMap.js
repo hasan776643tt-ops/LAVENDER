@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import mapService from "../services/mapService.js";
+import farmService from "../services/farmService.js";
 
 export default function useMap() {
   const [farms, setFarms] = useState([]);
@@ -21,24 +22,38 @@ export default function useMap() {
   useEffect(() => {
     let mounted = true;
 
-    const loadLocations = async () => {
+    const loadData = async () => {
       try {
-        const data = await mapService.getAllLocations();
+        const [farmsData, locationsData] =
+          await Promise.all([
+            farmService.getAllFarms(),
+            mapService.getAllLocations(),
+          ]);
 
-        if (mounted) {
-          setLocations(
-            Array.isArray(data) ? data : []
-          );
+        if (!mounted) {
+          return;
         }
+
+        setFarms(
+          Array.isArray(farmsData)
+            ? farmsData
+            : []
+        );
+
+        setLocations(
+          Array.isArray(locationsData)
+            ? locationsData
+            : []
+        );
       } catch (error) {
         console.error(
-          "Failed to load map locations:",
+          "Failed to load map data:",
           error
         );
       }
     };
 
-    loadLocations();
+    loadData();
 
     return () => {
       mounted = false;
@@ -73,12 +88,10 @@ export default function useMap() {
 
         setLoading(false);
       },
-
       () => {
         alert("يرجى السماح باستخدام الموقع");
         setLoading(false);
       },
-
       {
         enableHighAccuracy: true,
         timeout: 15000,
@@ -94,7 +107,8 @@ export default function useMap() {
     }
 
     const farm = farms.find(
-      (item) => String(item.id) === String(farmId)
+      (item) =>
+        String(item.id) === String(farmId)
     );
 
     const locationData = {
