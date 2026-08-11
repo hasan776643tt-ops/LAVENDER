@@ -2,9 +2,9 @@
 
 const translations = Object.freeze({
 
-  // =========================
+  // =========================================================
   // العربية
-  // =========================
+  // =========================================================
 
   ar: Object.freeze({
 
@@ -37,6 +37,21 @@ const translations = Object.freeze({
       services: "الخدمات"
     }),
 
+    contact: Object.freeze({
+      title: "تواصل معنا",
+      name: "الاسم",
+      namePlaceholder: "اكتب اسمك",
+      email: "البريد الإلكتروني",
+      emailPlaceholder: "example@email.com",
+      message: "الرسالة",
+      messagePlaceholder: "اكتب رسالتك هنا",
+      send: "إرسال",
+      required: "يرجى تعبئة جميع الحقول.",
+      invalidEmail: "يرجى إدخال بريد إلكتروني صحيح.",
+      success: "تم إرسال رسالتك وحفظها بنجاح.",
+      saveError: "تعذر حفظ الرسالة. حاول مرة أخرى."
+    }),
+
     settings: Object.freeze({
       title: "إعدادات النظام",
       global: "الإعدادات العالمية",
@@ -50,22 +65,10 @@ const translations = Object.freeze({
       reset: "إعادة الإعدادات الافتراضية"
     }),
 
-    contact: Object.freeze({
-      title: "تواصل معنا",
-      name: "الاسم",
-      namePlaceholder: "اكتب اسمك",
-      email: "البريد الإلكتروني",
-      emailPlaceholder: "example@email.com",
-      message: "الرسالة",
-      messagePlaceholder: "اكتب رسالتك هنا",
-      send: "إرسال",
-      required: "يرجى تعبئة جميع الحقول.",
-      invalidEmail:
-        "يرجى إدخال بريد إلكتروني صحيح.",
-      success:
-        "تم إرسال رسالتك وحفظها بنجاح.",
-      saveError:
-        "تعذر حفظ الرسالة. حاول مرة أخرى."
+    language: Object.freeze({
+      ar: "العربية",
+      en: "الإنجليزية",
+      tr: "التركية"
     }),
 
     country: Object.freeze({
@@ -98,20 +101,18 @@ const translations = Object.freeze({
     }),
 
     footer: Object.freeze({
-      description:
-        "نظام إدارة المزارع الذكية",
+      description: "نظام إدارة المزارع الذكية",
       management:
         "إدارة المحاصيل والري والتقارير الزراعية",
-      rights:
-        "جميع الحقوق محفوظة"
+      rights: "جميع الحقوق محفوظة"
     })
 
   }),
 
 
-  // =========================
+  // =========================================================
   // English
-  // =========================
+  // =========================================================
 
   en: Object.freeze({
 
@@ -144,42 +145,40 @@ const translations = Object.freeze({
       services: "Services"
     }),
 
-    settings: Object.freeze({
-      title: "System Settings",
-      global: "Global Settings",
-      measurement: "Measurement Units",
-      systemLocation:
-        "System & Location",
-      information:
-        "LAVENDER Information",
-      description:
-        "A global smart agricultural management system",
-      notifications:
-        "Enable Notifications",
-      gps: "Enable GPS",
-      reset:
-        "Reset Default Settings"
-    }),
-
     contact: Object.freeze({
       title: "Contact Us",
       name: "Name",
       namePlaceholder: "Enter your name",
       email: "Email",
-      emailPlaceholder:
-        "example@email.com",
+      emailPlaceholder: "example@email.com",
       message: "Message",
-      messagePlaceholder:
-        "Write your message here",
+      messagePlaceholder: "Write your message here",
       send: "Send",
-      required:
-        "Please fill in all fields.",
-      invalidEmail:
-        "Please enter a valid email address.",
+      required: "Please fill in all fields.",
+      invalidEmail: "Please enter a valid email address.",
       success:
         "Your message was sent and saved successfully.",
       saveError:
         "Unable to save the message. Please try again."
+    }),
+
+    settings: Object.freeze({
+      title: "System Settings",
+      global: "Global Settings",
+      measurement: "Measurement Units",
+      systemLocation: "System & Location",
+      information: "LAVENDER Information",
+      description:
+        "A global smart agricultural management system",
+      notifications: "Enable Notifications",
+      gps: "Enable GPS",
+      reset: "Reset Default Settings"
+    }),
+
+    language: Object.freeze({
+      ar: "Arabic",
+      en: "English",
+      tr: "Turkish"
     }),
 
     country: Object.freeze({
@@ -208,8 +207,7 @@ const translations = Object.freeze({
       kg: "Kilogram",
       ton: "Ton",
       liter: "Liter",
-      cubic_meter:
-        "Cubic Meter"
+      cubic_meter: "Cubic Meter"
     }),
 
     footer: Object.freeze({
@@ -217,16 +215,15 @@ const translations = Object.freeze({
         "Smart Farm Management System",
       management:
         "Crop, irrigation, and agricultural report management",
-      rights:
-        "All rights reserved"
+      rights: "All rights reserved"
     })
 
   }),
 
 
-  // =========================
+  // =========================================================
   // Türkçe
-  // =========================
+  // =========================================================
 
   tr: Object.freeze({
 
@@ -242,8 +239,7 @@ const translations = Object.freeze({
       weather: "Hava Durumu",
       map: "Harita",
       ai: "Yapay Zeka",
-      engineer:
-        "Ziraat Mühendisi",
+      engineer: "Ziraat Mühendisi",
       reports: "Raporlar",
       harvest: "Hasat",
       inventory: "Stok",
@@ -252,8 +248,7 @@ const translations = Object.freeze({
     }),
 
     home: Object.freeze({
-      title:
-        "Akıllı Çiftlik Yönetimi",
+      title: "Akıllı Çiftlik Yönetimi",
       description:
         "Çiftlikleri, ürünleri, sulamayı ve gübreleri yönetmek için akıllı sistem.",
       start: "Başla",
@@ -261,38 +256,16 @@ const translations = Object.freeze({
       services: "Hizmetler"
     }),
 
-    settings: Object.freeze({
-      title: "Sistem Ayarları",
-      global: "Genel Ayarlar",
-      measurement:
-        "Ölçü Birimleri",
-      systemLocation:
-        "Sistem ve Konum",
-      information:
-        "LAVENDER Bilgileri",
-      description:
-        "Küresel akıllı tarım yönetim sistemi",
-      notifications:
-        "Bildirimleri Etkinleştir",
-      gps: "GPS'yi Etkinleştir",
-      reset:
-        "Varsayılan Ayarları Sıfırla"
-    }),
-
     contact: Object.freeze({
       title: "Bize Ulaşın",
       name: "Ad",
-      namePlaceholder:
-        "Adınızı yazın",
+      namePlaceholder: "Adınızı yazın",
       email: "E-posta",
-      emailPlaceholder:
-        "example@email.com",
+      emailPlaceholder: "example@email.com",
       message: "Mesaj",
-      messagePlaceholder:
-        "Mesajınızı buraya yazın",
+      messagePlaceholder: "Mesajınızı buraya yazın",
       send: "Gönder",
-      required:
-        "Lütfen tüm alanları doldurun.",
+      required: "Lütfen tüm alanları doldurun.",
       invalidEmail:
         "Lütfen geçerli bir e-posta adresi girin.",
       success:
@@ -301,14 +274,31 @@ const translations = Object.freeze({
         "Mesaj kaydedilemedi. Lütfen tekrar deneyin."
     }),
 
+    settings: Object.freeze({
+      title: "Sistem Ayarları",
+      global: "Genel Ayarlar",
+      measurement: "Ölçü Birimleri",
+      systemLocation: "Sistem ve Konum",
+      information: "LAVENDER Bilgileri",
+      description:
+        "Küresel akıllı tarım yönetim sistemi",
+      notifications: "Bildirimleri Etkinleştir",
+      gps: "GPS'yi Etkinleştir",
+      reset: "Varsayılan Ayarları Sıfırla"
+    }),
+
+    language: Object.freeze({
+      ar: "Arapça",
+      en: "İngilizce",
+      tr: "Türkçe"
+    }),
+
     country: Object.freeze({
       SY: "Suriye",
       TR: "Türkiye",
       SA: "Suudi Arabistan",
-      AE:
-        "Birleşik Arap Emirlikleri",
-      US:
-        "Amerika Birleşik Devletleri",
+      AE: "Birleşik Arap Emirlikleri",
+      US: "Amerika Birleşik Devletleri",
       FR: "Fransa"
     }),
 
@@ -329,8 +319,7 @@ const translations = Object.freeze({
       kg: "Kilogram",
       ton: "Ton",
       liter: "Litre",
-      cubic_meter:
-        "Metreküp"
+      cubic_meter: "Metreküp"
     }),
 
     footer: Object.freeze({
@@ -338,8 +327,7 @@ const translations = Object.freeze({
         "Akıllı Çiftlik Yönetim Sistemi",
       management:
         "Ürün, sulama ve tarımsal rapor yönetimi",
-      rights:
-        "Tüm hakları saklıdır"
+      rights: "Tüm hakları saklıdır"
     })
 
   })
@@ -347,29 +335,25 @@ const translations = Object.freeze({
 });
 
 
-// =========================
+// =========================================================
 // Nested Translation
-// =========================
+// =========================================================
 
-const getNestedValue = (
-  source,
-  key
-) => {
+const getNestedValue = (source, key) => {
 
   return key
     .split(".")
     .reduce(
-      (value, part) =>
-        value?.[part],
+      (value, part) => value?.[part],
       source
     );
 
 };
 
 
-// =========================
+// =========================================================
 // Translate
-// =========================
+// =========================================================
 
 export function translate(
   key,
