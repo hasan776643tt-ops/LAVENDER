@@ -12,6 +12,25 @@ export default function useMap() {
   const t = (key) =>
     translate(`map.${key}`, language);
 
+  const getMapErrorMessage = (error) => {
+    switch (error?.message) {
+      case "MAP_DATA_REQUIRED":
+        return t("saveError");
+
+      case "MAP_FARM_REQUIRED":
+        return t("selectFarmAndLocation");
+
+      case "MAP_COORDINATES_REQUIRED":
+        return t("selectFarmAndLocation");
+
+      case "MAP_ID_REQUIRED":
+        return t("locationNotFound");
+
+      default:
+        return t("saveError");
+    }
+  };
+
   const [farms, setFarms] = useState([]);
   const [locations, setLocations] = useState([]);
 
@@ -205,8 +224,7 @@ export default function useMap() {
       );
 
       alert(
-        error?.message ||
-          t("saveError")
+        getMapErrorMessage(error)
       );
     } finally {
       setLoading(false);
@@ -224,7 +242,6 @@ export default function useMap() {
 
       if (!deleted) {
         alert(t("locationNotFound"));
-
         return;
       }
 
@@ -242,8 +259,7 @@ export default function useMap() {
       );
 
       alert(
-        error?.message ||
-          t("deleteError")
+        getMapErrorMessage(error)
       );
     } finally {
       setLoading(false);
