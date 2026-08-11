@@ -1,474 +1,579 @@
+// src/pages/Dashboard.jsx
+
 import {
-  useContext,
+  useEffect,
   useMemo,
+  useState
 } from "react";
-
-
-import {
-  FarmContext
-} from "../context/FarmContext";
-
 
 import Card from "../components/Card";
 
-
-
-export default function Dashboard(){
-
-
-
-const {
-
- farms = [],
- fields = [],
- crops = [],
-
- irrigations = [],
- fertilizers = [],
- pesticides = [],
-
- diseases = [],
-
- expenses = [],
-
- harvests = [],
-
- inventory = [],
-
-
-} = useContext(FarmContext);
-
-
-
+import farmService from "../services/farmService.js";
+import fieldService from "../services/fieldService.js";
+import cropService from "../services/cropService.js";
+import expenseService from "../services/expenseService.js";
+import harvestService from "../services/harvestService.js";
+import inventoryService from "../services/inventoryService.js";
 
 
 // =========================
-// KPI Statistics
+// Dashboard
 // =========================
 
+export default function Dashboard() {
 
-const statistics = useMemo(()=>[
+  const [farms, setFarms] = useState([]);
+  const [fields, setFields] = useState([]);
+  const [crops, setCrops] = useState([]);
+  const [expenses, setExpenses] = useState([]);
+  const [harvests, setHarvests] = useState([]);
+  const [inventory, setInventory] = useState([]);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-{
-title:"🌾 المزارع",
-value:farms.length,
-info:"إجمالي المزارع"
-},
 
+  // =========================
+  // Load Dashboard Data
+  // =========================
 
-{
-title:"🌱 الحقول",
-value:fields.length,
-info:"الحقول المسجلة"
-},
+  useEffect(() => {
 
+    let mounted = true;
 
-{
-title:"🌿 المحاصيل",
-value:crops.length,
-info:"المحاصيل الحالية"
-},
+    const loadDashboard = async () => {
 
+      try {
 
-{
-title:"💧 الري",
-value:irrigations.length,
-info:"عمليات الري"
-},
+        setLoading(true);
+        setError("");
 
+        const [
+          farmsData,
+          fieldsData,
+          cropsData,
+          expensesData,
+          harvestsData,
+          inventoryData
+        ] = await Promise.all([
 
-{
-title:"🌾 التسميد",
-value:fertilizers.length,
-info:"عمليات التسميد"
-},
+          farmService.getAllFarms(),
 
+          fieldService.getAll(),
 
-{
-title:"🧪 المبيدات",
-value:pesticides.length,
-info:"عمليات المكافحة"
-},
+          cropService.getAll(),
 
+          expenseService.getAll(),
 
-{
-title:"🦠 الأمراض",
-value:diseases.length,
-info:"الحالات المرضية"
-},
+          harvestService.getAll(),
 
+          inventoryService.getAll()
 
-{
-title:"🚜 الحصاد",
-value:harvests.length,
-info:"عمليات الحصاد"
-},
+        ]);
 
 
-{
-title:"📦 المخزون",
-value:inventory.length,
-info:"مواد المخزون"
-},
+        if (!mounted) {
+          return;
+        }
 
 
-],[
-farms,
-fields,
-crops,
-irrigations,
-fertilizers,
-pesticides,
-diseases,
-harvests,
-inventory
-]);
+        setFarms(
+          Array.isArray(farmsData)
+            ? farmsData
+            : []
+        );
 
 
+        setFields(
+          Array.isArray(fieldsData)
+            ? fieldsData
+            : []
+        );
 
 
+        setCrops(
+          Array.isArray(cropsData)
+            ? cropsData
+            : []
+        );
 
 
-// =========================
-// Financial
-// =========================
+        setExpenses(
+          Array.isArray(expensesData)
+            ? expensesData
+            : []
+        );
 
 
-const financial = useMemo(()=>{
+        setHarvests(
+          Array.isArray(harvestsData)
+            ? harvestsData
+            : []
+        );
 
 
-const total = expenses.reduce(
+        setInventory(
+          Array.isArray(inventoryData)
+            ? inventoryData
+            : []
+        );
 
-(sum,item)=>
 
-sum + Number(item.amount || 0),
+      } catch (err) {
 
-0
+        console.error(
+          "Dashboard data loading failed:",
+          err
+        );
 
-);
+        if (mounted) {
 
+          setError(
+            err?.message ||
+            "حدث خطأ أثناء تحميل بيانات لوحة التحكم"
+          );
 
+        }
 
-return {
+      } finally {
 
-total,
+        if (mounted) {
+          setLoading(false);
+        }
 
-records:
-expenses.length
+      }
 
-};
+    };
 
 
-},[expenses]);
+    loadDashboard();
 
 
+    return () => {
+      mounted = false;
+    };
 
+  }, []);
 
 
+  // =========================
+  // KPI Statistics
+  // =========================
 
-// =========================
-// Smart Health
-// =========================
+  const statistics = useMemo(() => [
 
+    {
+      title: "🌾 المزارع",
+      value: farms.length,
+      info: "إجمالي المزارع"
+    },
 
-const farmHealth = useMemo(()=>{
+    {
+      title: "🌱 الحقول",
+      value: fields.length,
+      info: "الحقول المسجلة"
+    },
 
+    {
+      title: "🌿 المحاصيل",
+      value: crops.length,
+      info: "المحاصيل الحالية"
+    },
 
-let score = 100;
+    {
+      title: "💰 المصروفات",
+      value: expenses.length,
+      info: "سجلات المصروفات"
+    },
 
+    {
+      title: "🚜 الحصاد",
+      value: harvests.length,
+      info: "عمليات الحصاد"
+    },
 
+    {
+      title: "📦 المخزون",
+      value: inventory.length,
+      info: "مواد المخزون"
+    }
 
-if(diseases.length)
+  ], [
 
-score -= 20;
+    farms,
+    fields,
+    crops,
+    expenses,
+    harvests,
+    inventory
 
+  ]);
 
 
-if(irrigations.length < fields.length)
+  // =========================
+  // Financial Analysis
+  // =========================
 
-score -= 15;
+  const financial = useMemo(() => {
 
+    const total = expenses.reduce(
 
+      (sum, item) => {
 
-if(fertilizers.length === 0)
+        const amount =
+          Number(item?.amount || 0);
 
-score -= 10;
+        return sum + (
+          Number.isFinite(amount)
+            ? amount
+            : 0
+        );
 
+      },
 
+      0
 
-if(score < 0)
+    );
 
-score = 0;
 
+    return {
 
+      total,
 
-return score;
+      records:
+        expenses.length
 
+    };
 
-},[
+  }, [expenses]);
 
-diseases,
 
-irrigations,
+  // =========================
+  // Smart Farm Health
+  // =========================
 
-fields,
+  const farmHealth = useMemo(() => {
 
-fertilizers
+    let score = 100;
 
-]);
 
+    if (inventory.length === 0) {
+      score -= 10;
+    }
 
 
+    if (fields.length === 0) {
+      score -= 10;
+    }
 
 
+    if (crops.length === 0) {
+      score -= 10;
+    }
 
 
+    if (expenses.length > 0) {
+      score -= 5;
+    }
 
-// =========================
-// Smart Alerts
-// =========================
 
+    if (score < 0) {
+      score = 0;
+    }
 
-const alerts = useMemo(()=>{
 
+    return score;
 
-const result=[];
+  }, [
 
+    inventory,
+    fields,
+    crops,
+    expenses
 
+  ]);
 
-if(diseases.length > 0)
 
-result.push(
-"🦠 توجد أمراض تحتاج متابعة."
-);
+  // =========================
+  // Smart Alerts
+  // =========================
 
+  const alerts = useMemo(() => {
 
+    const result = [];
 
-if(inventory.length === 0)
 
-result.push(
-"📦 المخزون فارغ، أضف المواد الزراعية."
-);
+    if (farms.length === 0) {
 
+      result.push(
+        "🌾 لم تتم إضافة أي مزرعة بعد."
+      );
 
+    }
 
-if(fields.length > irrigations.length)
 
-result.push(
-"💧 بعض الحقول تحتاج خطة ري."
-);
+    if (fields.length === 0) {
 
+      result.push(
+        "🌱 لم تتم إضافة أي حقل بعد."
+      );
 
+    }
 
-if(result.length===0)
 
-result.push(
-"✅ جميع الأنظمة تعمل بشكل جيد."
-);
+    if (crops.length === 0) {
 
+      result.push(
+        "🌿 لم تتم إضافة أي محصول بعد."
+      );
 
+    }
 
-return result;
 
+    if (inventory.length === 0) {
 
-},[
+      result.push(
+        "📦 المخزون فارغ، أضف المواد الزراعية."
+      );
 
-diseases,
+    }
 
-inventory,
 
-fields,
+    if (expenses.length === 0) {
 
-irrigations
+      result.push(
+        "💰 لا توجد سجلات مصروفات."
+      );
 
-]);
+    }
 
 
+    if (result.length === 0) {
 
+      result.push(
+        "✅ جميع البيانات الأساسية متوفرة."
+      );
 
+    }
 
 
-return (
+    return result;
 
-<div>
+  }, [
 
+    farms,
+    fields,
+    crops,
+    inventory,
+    expenses
 
+  ]);
 
-<h1>
-📊 لوحة التحكم الذكية
-</h1>
 
+  // =========================
+  // Loading
+  // =========================
 
-<p>
-🌱 LAVENDER Smart Farm
-<br/>
-نظام إدارة ومراقبة المزرعة
-</p>
+  if (loading) {
 
+    return (
 
+      <div>
 
+        <h1>
+          📊 لوحة التحكم الذكية
+        </h1>
 
+        <Card title="⏳ جاري التحميل">
 
+          <p>
+            جاري تحميل بيانات المزرعة...
+          </p>
 
-<Card title="🚀 صحة المزرعة">
+        </Card>
 
+      </div>
 
-<h2>
-{farmHealth}%
-</h2>
+    );
 
+  }
 
-<p>
-مؤشر الحالة الزراعية
-</p>
 
+  // =========================
+  // Error
+  // =========================
 
-</Card>
+  if (error) {
 
+    return (
 
+      <div>
 
+        <h1>
+          📊 لوحة التحكم الذكية
+        </h1>
 
+        <Card title="⚠️ خطأ">
 
+          <p>
+            {error}
+          </p>
 
+          <p>
+            حاول تحديث الصفحة مرة أخرى.
+          </p>
 
-<Card title="💰 التحليل المالي">
+        </Card>
 
+      </div>
 
-<p>
-إجمالي المصاريف:
-</p>
+    );
 
+  }
 
-<h2>
-{financial.total}
-</h2>
 
+  // =========================
+  // Render
+  // =========================
 
-<p>
-عدد السجلات:
-{" "}
-{financial.records}
-</p>
+  return (
 
+    <div>
 
-</Card>
+      <h1>
+        📊 لوحة التحكم الذكية
+      </h1>
 
 
+      <p>
+        🌱 LAVENDER Smart Farm
+        <br />
+        نظام إدارة ومراقبة المزرعة
+      </p>
 
 
+      {/* =========================
+          Farm Health
+      ========================= */}
 
+      <Card title="🚀 صحة المزرعة">
 
+        <h2>
+          {farmHealth}%
+        </h2>
 
-<Card title="🤖 التنبيهات الذكية">
+        <p>
+          مؤشر الحالة الزراعية
+        </p>
 
+      </Card>
 
-{
 
-alerts.map(
+      {/* =========================
+          Financial
+      ========================= */}
 
-(alert,index)=>(
+      <Card title="💰 التحليل المالي">
 
-<p key={index}>
-{alert}
-</p>
+        <p>
+          إجمالي المصاريف:
+        </p>
 
-)
+        <h2>
+          {financial.total}
+        </h2>
 
-)
+        <p>
+          عدد السجلات:{" "}
+          {financial.records}
+        </p>
 
-}
+      </Card>
 
 
-</Card>
+      {/* =========================
+          Smart Alerts
+      ========================= */}
 
+      <Card title="🤖 التنبيهات الذكية">
 
+        {alerts.map(
+          (alert, index) => (
 
+            <p key={index}>
+              {alert}
+            </p>
 
+          )
+        )}
 
+      </Card>
 
 
-<Card title="📈 مؤشرات النظام">
+      {/* =========================
+          Statistics
+      ========================= */}
 
+      <Card title="📈 مؤشرات النظام">
 
-{
+        {statistics.map(
+          (item) => (
 
-statistics.map(item=>(
+            <Card
+              key={item.title}
+              title={item.title}
+            >
 
+              <h2>
+                {item.value}
+              </h2>
 
-<Card
+              <p>
+                {item.info}
+              </p>
 
-key={item.title}
+            </Card>
 
-title={item.title}
+          )
+        )}
 
->
+      </Card>
 
 
-<h2>
-{item.value}
-</h2>
+      {/* =========================
+          System Status
+      ========================= */}
 
+      <Card title="🌱 حالة LAVENDER">
 
-<p>
-{item.info}
-</p>
+        <p>
+          ✅ نظام CRUD الزراعي فعال
+        </p>
 
+        <p>
+          ✅ البيانات محفوظة محلياً
+        </p>
 
-</Card>
+        <p>
+          ✅ Harvest متصل بالخدمة
+        </p>
 
+        <p>
+          ✅ Inventory متصل بالخدمة
+        </p>
 
-))
+        <p>
+          ✅ Dashboard يستخدم Services
+        </p>
 
-}
+        <p>
+          ✅ البنية جاهزة للتطوير السحابي
+        </p>
 
+      </Card>
 
-</Card>
+    </div>
 
-
-
-
-
-
-
-
-<Card title="🌱 حالة LAVENDER">
-
-
-<p>
-✅ نظام CRUD الزراعي فعال
-</p>
-
-
-<p>
-✅ البيانات محفوظة محلياً
-</p>
-
-
-<p>
-✅ Harvest جاهز
-</p>
-
-
-<p>
-✅ Inventory جاهز
-</p>
-
-
-<p>
-✅ جاهز للمرحلة السحابية
-</p>
-
-
-</Card>
-
-
-
-
-
-</div>
-
-);
-
+  );
 
 }
