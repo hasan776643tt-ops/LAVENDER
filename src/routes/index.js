@@ -1,5 +1,7 @@
 // src/routes/index.js
 
+import homeRoutes from "./homeRoutes.js";
+
 import authRoutes from "./authRoutes.js";
 import userRoutes from "./userRoutes.js";
 
@@ -30,6 +32,8 @@ import settingsRoutes from "./settingsRoutes.js";
 
 
 const routeGroups = Object.freeze([
+  homeRoutes,
+
   authRoutes,
   userRoutes,
 
