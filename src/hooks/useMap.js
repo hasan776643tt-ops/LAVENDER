@@ -1,12 +1,9 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+import { useEffect, useState } from "react";
+import mapService from "../services/mapService.js";
 
 export default function useMap() {
-  const {
-    farms,
-    locations,
-    setLocations,
-  } = useContext(FarmContext);
+  const [farms, setFarms] = useState([]);
+  const [locations, setLocations] = useState([]);
 
   const [farmId, setFarmId] = useState("");
   const [locationType, setLocationType] = useState("مزرعة");
@@ -20,6 +17,33 @@ export default function useMap() {
   const [notes, setNotes] = useState("");
 
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadLocations = async () => {
+      try {
+        const data = await mapService.getAllLocations();
+
+        if (mounted) {
+          setLocations(
+            Array.isArray(data) ? data : []
+          );
+        }
+      } catch (error) {
+        console.error(
+          "Failed to load map locations:",
+          error
+        );
+      }
+    };
+
+    loadLocations();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   const getCurrentLocation = () => {
     if (!navigator.geolocation) {
@@ -63,18 +87,17 @@ export default function useMap() {
     );
   };
 
-  const addLocation = () => {
+  const addLocation = async () => {
     if (!farmId || !latitude || !longitude) {
       alert("اختر المزرعة وحدد الموقع أولاً");
       return;
     }
 
     const farm = farms.find(
-      (item) => item.id === farmId
+      (item) => String(item.id) === String(farmId)
     );
 
-    const newLocation = {
-      id: Date.now(),
+    const locationData = {
       farmId,
       farmName: farm?.name || "غير محدد",
       type: locationType,
@@ -86,28 +109,74 @@ export default function useMap() {
       status: "نشط",
     };
 
-    setLocations([
-      ...locations,
-      newLocation,
-    ]);
+    try {
+      setLoading(true);
 
-    setFarmId("");
-    setLocationType("مزرعة");
-    setLatitude("");
-    setLongitude("");
-    setAccuracy("");
-    setLocationTime("");
-    setNotes("");
+      const newLocation =
+        await mapService.createLocation(
+          locationData
+        );
 
-    alert("تم حفظ الموقع بنجاح");
+      setLocations((current) => [
+        ...current,
+        newLocation,
+      ]);
+
+      setFarmId("");
+      setLocationType("مزرعة");
+      setLatitude("");
+      setLongitude("");
+      setAccuracy("");
+      setLocationTime("");
+      setNotes("");
+
+      alert("تم حفظ الموقع بنجاح");
+    } catch (error) {
+      console.error(
+        "Failed to create location:",
+        error
+      );
+
+      alert(
+        error?.message ||
+          "حدث خطأ أثناء حفظ الموقع"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const deleteLocation = (id) => {
-    setLocations(
-      locations.filter(
-        (item) => item.id !== id
-      )
-    );
+  const deleteLocation = async (id) => {
+    try {
+      setLoading(true);
+
+      const deleted =
+        await mapService.deleteLocation(id);
+
+      if (!deleted) {
+        alert("الموقع غير موجود");
+        return;
+      }
+
+      setLocations((current) =>
+        current.filter(
+          (item) =>
+            String(item.id) !== String(id)
+        )
+      );
+    } catch (error) {
+      console.error(
+        "Failed to delete location:",
+        error
+      );
+
+      alert(
+        error?.message ||
+          "حدث خطأ أثناء حذف الموقع"
+      );
+    } finally {
+      setLoading(false);
+    }
   };
 
   return {
@@ -121,7 +190,10 @@ export default function useMap() {
     setLocationType,
 
     latitude,
+    setLatitude,
+
     longitude,
+    setLongitude,
 
     accuracy,
     locationTime,
