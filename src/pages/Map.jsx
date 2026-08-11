@@ -1,16 +1,12 @@
-// src/pages/Map.jsx
-
-import { useSettings } from "../context/SettingsContext";
-import { translate } from "../utils/translation";
 import useMap from "../hooks/useMap";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
-export default function Map() {
-  const { settings } = useSettings();
-  const language = settings?.language || "ar";
+import { translate } from "../utils/translation";
+import { useSettings } from "../contexts/SettingsContext";
 
+export default function Map() {
   const {
     farms,
     locations,
@@ -37,29 +33,21 @@ export default function Map() {
     deleteLocation,
   } = useMap();
 
+  const { language } = useSettings();
+
+  const t = (key) => translate(`map.${key}`, language);
+
   return (
     <div>
-      <h1>
-        📍 {translate("map.title", language)}
-      </h1>
+      <h1>📍 {t("title")}</h1>
 
-      <Card
-        title={translate(
-          "map.addLocation",
-          language
-        )}
-      >
+      <Card title={t("addLocation")}>
         <select
           value={farmId}
-          onChange={(event) =>
-            setFarmId(event.target.value)
-          }
+          onChange={(e) => setFarmId(e.target.value)}
         >
           <option value="">
-            {translate(
-              "map.selectFarm",
-              language
-            )}
+            {t("selectFarm")}
           </option>
 
           {farms.map((farm) => (
@@ -77,48 +65,30 @@ export default function Map() {
 
         <select
           value={locationType}
-          onChange={(event) =>
-            setLocationType(event.target.value)
+          onChange={(e) =>
+            setLocationType(e.target.value)
           }
         >
           <option value="مزرعة">
-            {translate(
-              "map.farm",
-              language
-            )}
+            {t("farm")}
           </option>
 
           <option value="حقل">
-            {translate(
-              "map.field",
-              language
-            )}
+            {t("field")}
           </option>
 
           <option value="مصدر مياه">
-            {translate(
-              "map.waterSource",
-              language
-            )}
+            {t("waterSource")}
           </option>
         </select>
 
         <br />
         <br />
 
-        <Button
-          onClick={getCurrentLocation}
-          disabled={loading}
-        >
+        <Button onClick={getCurrentLocation}>
           {loading
-            ? `⏳ ${translate(
-                "map.locating",
-                language
-              )}`
-            : `📡 ${translate(
-                "map.getGPS",
-                language
-              )}`}
+            ? `⏳ ${t("locating")}`
+            : `📡 ${t("getGPS")}`}
         </Button>
 
         <br />
@@ -127,14 +97,7 @@ export default function Map() {
         <input
           value={latitude}
           readOnly
-          placeholder={translate(
-            "map.latitude",
-            language
-          )}
-          aria-label={translate(
-            "map.latitude",
-            language
-          )}
+          placeholder={t("latitude")}
         />
 
         <br />
@@ -143,14 +106,7 @@ export default function Map() {
         <input
           value={longitude}
           readOnly
-          placeholder={translate(
-            "map.longitude",
-            language
-          )}
-          aria-label={translate(
-            "map.longitude",
-            language
-          )}
+          placeholder={t("longitude")}
         />
 
         <br />
@@ -159,21 +115,11 @@ export default function Map() {
         <input
           value={
             accuracy
-              ? `${accuracy} ${translate(
-                  "map.meters",
-                  language
-                )}`
+              ? `${accuracy} ${t("meters")}`
               : ""
           }
           readOnly
-          placeholder={translate(
-            "map.accuracy",
-            language
-          )}
-          aria-label={translate(
-            "map.accuracy",
-            language
-          )}
+          placeholder={t("accuracy")}
         />
 
         <br />
@@ -182,14 +128,7 @@ export default function Map() {
         <input
           value={locationTime}
           readOnly
-          placeholder={translate(
-            "map.locationTime",
-            language
-          )}
-          aria-label={translate(
-            "map.locationTime",
-            language
-          )}
+          placeholder={t("locationTime")}
         />
 
         <br />
@@ -197,38 +136,22 @@ export default function Map() {
 
         <textarea
           value={notes}
-          onChange={(event) =>
-            setNotes(event.target.value)
+          onChange={(e) =>
+            setNotes(e.target.value)
           }
-          placeholder={translate(
-            "map.notesPlaceholder",
-            language
-          )}
-          aria-label={translate(
-            "map.notes",
-            language
-          )}
+          placeholder={t("notesPlaceholder")}
         />
 
         <br />
         <br />
 
-        <Button
-          onClick={addLocation}
-          disabled={loading}
-        >
-          💾 {translate(
-            "map.save",
-            language
-          )}
+        <Button onClick={addLocation}>
+          💾 {t("save")}
         </Button>
       </Card>
 
       <h2>
-        🗺️ {translate(
-          "map.savedLocations",
-          language
-        )}
+        🗺️ {t("savedLocations")}
       </h2>
 
       {locations.map((item) => (
@@ -237,71 +160,32 @@ export default function Map() {
           title={item.farmName}
         >
           <p>
-            📌{" "}
-            {translate(
-              "map.type",
-              language
-            )}
-            : {translate(
-              item.type === "مزرعة"
-                ? "map.farm"
-                : item.type === "حقل"
-                ? "map.field"
-                : "map.waterSource",
-              language
-            )}
+            📌 {t("type")}: {item.type}
           </p>
 
           <p>
-            🌍{" "}
-            {translate(
-              "map.latitude",
-              language
-            )}
-            : {item.latitude}
+            🌍 {t("latitude")}: {item.latitude}
           </p>
 
           <p>
-            🌍{" "}
-            {translate(
-              "map.longitude",
-              language
-            )}
-            : {item.longitude}
+            🌍 {t("longitude")}: {item.longitude}
           </p>
 
           <p>
-            🎯{" "}
-            {translate(
-              "map.accuracy",
-              language
-            )}
-            : {item.accuracy}{" "}
-            {translate(
-              "map.meters",
-              language
-            )}
+            🎯 {t("accuracy")}: {item.accuracy}{" "}
+            {t("meters")}
           </p>
 
           <p>
-            📝{" "}
-            {translate(
-              "map.notes",
-              language
-            )}
-            : {item.notes}
+            📝 {t("notes")}: {item.notes}
           </p>
 
           <a
             href={`https://maps.google.com/?q=${item.latitude},${item.longitude}`}
             target="_blank"
-            rel="noopener noreferrer"
+            rel="noreferrer"
           >
-            🗺️{" "}
-            {translate(
-              "map.openGoogleMaps",
-              language
-            )}
+            🗺️ {t("openGoogleMaps")}
           </a>
 
           <br />
@@ -311,12 +195,8 @@ export default function Map() {
             onClick={() =>
               deleteLocation(item.id)
             }
-            disabled={loading}
           >
-            {translate(
-              "map.delete",
-              language
-            )}
+            {t("delete")}
           </Button>
         </Card>
       ))}
