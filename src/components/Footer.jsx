@@ -3,7 +3,6 @@
 import { useSettings } from "../context/SettingsContext";
 import { translate } from "../utils/translation";
 
-
 const currentYear =
   new Date().getFullYear();
 
@@ -55,7 +54,6 @@ export default function Footer() {
         )}
 
       </div>
-
 
     </footer>
 
