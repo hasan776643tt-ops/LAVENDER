@@ -2,37 +2,46 @@
 
 import { Link } from "react-router-dom";
 
+import { translate } from "../utils/translation.js";
+import { useSettings } from "../context/SettingsContext.jsx";
+
 
 const menuItems = Object.freeze([
   {
     id: "dashboard",
     path: "/dashboard",
-    label: "📊 لوحة التحكم",
+    titleKey: "menu.dashboard",
   },
   {
     id: "farms",
     path: "/farms",
-    label: "🌾 المزارع",
+    titleKey: "menu.farms",
   },
   {
     id: "reports",
     path: "/reports",
-    label: "📈 التقارير",
+    titleKey: "menu.reports",
   },
   {
     id: "login",
     path: "/login",
-    label: "🔐 الدخول",
+    titleKey: "home.login",
   },
 ]);
 
 
 export default function Header() {
 
+  const { settings } =
+    useSettings();
+
+  const language =
+    settings?.language || "ar";
+
+
   return (
 
     <header className="app-header">
-
 
       <div className="brand">
 
@@ -42,41 +51,39 @@ export default function Header() {
             🌱
           </span>
 
-
           <span>
             LAVENDER Smart Farm
           </span>
-
 
         </Link>
 
       </div>
 
 
-
-
       <nav className="header-nav">
 
-        {
-          menuItems.map(item => (
+        {menuItems.map(item => (
 
-            <Link
+          <Link
+            key={item.id}
+            to={item.path}
+          >
 
-              key={item.id}
+            {item.id === "login"
+              ? `🔐 ${translate(
+                  item.titleKey,
+                  language
+                )}`
+              : translate(
+                  item.titleKey,
+                  language
+                )}
 
-              to={item.path}
+          </Link>
 
-            >
-
-              {item.label}
-
-            </Link>
-
-          ))
-        }
+        ))}
 
       </nav>
-
 
     </header>
 
