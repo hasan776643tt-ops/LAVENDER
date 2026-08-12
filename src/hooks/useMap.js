@@ -37,7 +37,7 @@ export default function useMap() {
   const [farmId, setFarmId] = useState("");
 
   const [locationType, setLocationType] =
-    useState("مزرعة");
+    useState("farm");
 
   const [latitude, setLatitude] =
     useState("");
@@ -186,7 +186,7 @@ export default function useMap() {
 
       createdAt: locationTime,
 
-      status: t("active"),
+      status: "active",
     };
 
     try {
@@ -204,7 +204,7 @@ export default function useMap() {
 
       setFarmId("");
 
-      setLocationType("مزرعة");
+      setLocationType("farm");
 
       setLatitude("");
 
