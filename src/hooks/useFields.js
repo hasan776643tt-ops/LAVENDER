@@ -1,189 +1,131 @@
 // src/hooks/useFields.js
 
-
 import {
+  useCallback,
   useContext,
-  useMemo
+  useMemo,
 } from "react";
 
-
 import {
-  FarmContext
+  FarmContext,
 } from "../context/FarmContext.js";
 
-
-
 export default function useFields() {
-
-
   const context =
     useContext(FarmContext);
 
-
-
   if (!context) {
-
     throw new Error(
       "useFields must be used inside FarmProvider"
     );
-
   }
 
-
-
   const {
-
     fields = [],
-
-    fieldActions
-
+    fieldActions,
   } = context;
 
-
-
-  const addField = async (
-    data
-  ) => {
-
-
-    return await fieldActions.create(
-      data
-    );
-
-
-  };
-
-
-
-  const updateField = async (
-    id,
-    data
-  ) => {
-
-
-    return await fieldActions.update(
-      id,
-      data
-    );
-
-
-  };
-
-
-
-  const deleteField = async (
-    id
-  ) => {
-
-
-    return await fieldActions.delete(
-      id
-    );
-
-
-  };
-
-
-
-  const loadFields = async () => {
-
-
-    return await fieldActions.load();
-
-
-  };
-
-
-
-  const searchFields = (
-    text = ""
-  ) => {
-
-
-    const value =
-      text.toLowerCase();
-
-
-
-    return fields.filter(
-
-      field =>
-
-        field.name
-        ?.toLowerCase()
-        .includes(value)
-
-    );
-
-
-  };
-
-
-
-  const statistics =
-    useMemo(
-
-      () => ({
-
-
-        total:
-          fields.length,
-
-
-
-        totalArea:
-          fields.reduce(
-
-            (sum, field) =>
-
-              sum +
-              Number(
-                field.area || 0
-              ),
-
-            0
-
-          ),
-
-
-
-        active:
-          fields.filter(
-
-            field =>
-
-              field.status === "active"
-
-          ).length
-
-
-      }),
-
-      [fields]
-
-    );
-
-
+  const addField = useCallback(
+    async (data) => {
+      if (!fieldActions?.create) {
+        throw new Error(
+          "Field create action is not available"
+        );
+      }
+
+      return fieldActions.create(data);
+    },
+    [fieldActions]
+  );
+
+  const updateField = useCallback(
+    async (id, data) => {
+      if (!fieldActions?.update) {
+        throw new Error(
+          "Field update action is not available"
+        );
+      }
+
+      return fieldActions.update(id, data);
+    },
+    [fieldActions]
+  );
+
+  const deleteField = useCallback(
+    async (id) => {
+      if (!fieldActions?.delete) {
+        throw new Error(
+          "Field delete action is not available"
+        );
+      }
+
+      return fieldActions.delete(id);
+    },
+    [fieldActions]
+  );
+
+  const loadFields = useCallback(
+    async () => {
+      if (!fieldActions?.load) {
+        throw new Error(
+          "Field load action is not available"
+        );
+      }
+
+      return fieldActions.load();
+    },
+    [fieldActions]
+  );
+
+  const searchFields = useCallback(
+    (text = "") => {
+      const value =
+        String(text)
+          .toLowerCase()
+          .trim();
+
+      if (!value) {
+        return fields;
+      }
+
+      return fields.filter(
+        (field) =>
+          String(field?.name ?? "")
+            .toLowerCase()
+            .includes(value)
+      );
+    },
+    [fields]
+  );
+
+  const statistics = useMemo(
+    () => ({
+      total: fields.length,
+
+      totalArea: fields.reduce(
+        (sum, field) =>
+          sum +
+          Number(field?.area || 0),
+        0
+      ),
+
+      active: fields.filter(
+        (field) =>
+          field?.status === "active"
+      ).length,
+    }),
+    [fields]
+  );
 
   return {
-
-
     fields,
 
     addField,
-
     updateField,
-
     deleteField,
-
     loadFields,
 
     searchFields,
-
-    statistics
-
-
+    statistics,
   };
-
-
 }
