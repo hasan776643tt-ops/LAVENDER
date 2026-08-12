@@ -1,130 +1,95 @@
 // src/hooks/useFetch.js
 
-
 import {
-  useState,
+  useCallback,
   useEffect,
-  useCallback
+  useState,
 } from "react";
-
-
 
 export default function useFetch(
   fetchFunction,
   dependencies = []
 ) {
+  const [data, setData] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
+  const fetchData = useCallback(
+    async () => {
+      if (typeof fetchFunction !== "function") {
+        const validationError = new Error(
+          "useFetch requires a fetch function"
+        );
 
-  const [data, setData] =
-    useState(null);
+        setError(validationError);
+        throw validationError;
+      }
 
+      try {
+        setLoading(true);
+        setError(null);
 
-  const [loading, setLoading] =
-    useState(false);
+        const result = await fetchFunction();
 
+        setData(result);
 
-  const [error, setError] =
-    useState(null);
+        return result;
+      } catch (err) {
+        const normalizedError =
+          err instanceof Error
+            ? err
+            : new Error(
+                String(err || "حدث خطأ أثناء جلب البيانات")
+              );
 
+        setError(normalizedError);
 
-
-
-  const fetchData =
-    useCallback(
-
-      async () => {
-
-
-        try {
-
-
-          setLoading(true);
-
-          setError(null);
-
-
-
-          const result =
-            await fetchFunction();
-
-
-
-          setData(
-            result
-          );
-
-
-
-          return result;
-
-
-        } catch (err) {
-
-
-          setError(
-            err.message
-          );
-
-
-          throw err;
-
-
-        } finally {
-
-
-          setLoading(false);
-
-
-        }
-
-
-      },
-
-      dependencies
-
-    );
-
-
-
+        throw normalizedError;
+      } finally {
+        setLoading(false);
+      }
+    },
+    [fetchFunction, ...dependencies]
+  );
 
   useEffect(() => {
+    let mounted = true;
 
-
-    fetchData();
-
-
-  }, [fetchData]);
-
-
-
-
-  const refresh =
-    async () => {
-
-
-      return await fetchData();
-
-
+    const load = async () => {
+      try {
+        await fetchData();
+      } catch {
+        if (!mounted) {
+          return;
+        }
+      }
     };
 
+    load();
 
+    return () => {
+      mounted = false;
+    };
+  }, [fetchData]);
 
+  const refresh = useCallback(
+    async () => {
+      return fetchData();
+    },
+    [fetchData]
+  );
+
+  const reset = useCallback(() => {
+    setData(null);
+    setError(null);
+    setLoading(false);
+  }, []);
 
   return {
-
-
     data,
-
     loading,
-
     error,
-
-
-
-    refresh
-
-
+    refresh,
+    reset,
   };
-
-
 }
