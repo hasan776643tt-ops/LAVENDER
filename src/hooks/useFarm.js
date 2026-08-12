@@ -94,13 +94,10 @@ export default function useFarm(id = null) {
         setError(null);
 
         const deleted =
-          await farmService.deleteFarm(
-            farmId
-          );
+          await farmService.deleteFarm(farmId);
 
         if (
-          String(farmId) ===
-          String(id)
+          String(farmId) === String(id)
         ) {
           setFarm(null);
         }
@@ -141,7 +138,6 @@ export default function useFarm(id = null) {
     farm,
     loading,
     error,
-
     loadFarm,
     createFarm,
     updateFarm,
