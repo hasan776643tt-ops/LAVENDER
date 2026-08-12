@@ -3,11 +3,19 @@
 import farmRepository from "../repositories/farmRepository.js";
 
 class FarmService {
-  async getAllFarms() {
+  // =========================
+  // Read
+  // =========================
+
+  async getAll() {
     return farmRepository.getAll();
   }
 
-  async getFarmById(id) {
+  async getAllFarms() {
+    return this.getAll();
+  }
+
+  async getById(id) {
     if (!id) {
       throw new Error("معرف المزرعة مطلوب");
     }
@@ -15,7 +23,15 @@ class FarmService {
     return farmRepository.getById(id);
   }
 
-  async createFarm(data) {
+  async getFarmById(id) {
+    return this.getById(id);
+  }
+
+  // =========================
+  // Create
+  // =========================
+
+  async create(data) {
     if (!data || typeof data !== "object") {
       throw new Error("بيانات المزرعة مطلوبة");
     }
@@ -27,7 +43,15 @@ class FarmService {
     return farmRepository.create(data);
   }
 
-  async updateFarm(id, data) {
+  async createFarm(data) {
+    return this.create(data);
+  }
+
+  // =========================
+  // Update
+  // =========================
+
+  async update(id, data) {
     if (!id) {
       throw new Error("معرف المزرعة مطلوب");
     }
@@ -39,12 +63,40 @@ class FarmService {
     return farmRepository.update(id, data);
   }
 
-  async deleteFarm(id) {
+  async updateFarm(id, data) {
+    return this.update(id, data);
+  }
+
+  // =========================
+  // Delete
+  // =========================
+
+  async delete(id) {
     if (!id) {
       throw new Error("معرف المزرعة مطلوب");
     }
 
     return farmRepository.delete(id);
+  }
+
+  async deleteFarm(id) {
+    return this.delete(id);
+  }
+
+  // =========================
+  // Utility
+  // =========================
+
+  async count() {
+    return farmRepository.count();
+  }
+
+  async exists(id) {
+    if (!id) {
+      throw new Error("معرف المزرعة مطلوب");
+    }
+
+    return farmRepository.exists(id);
   }
 }
 
