@@ -2,87 +2,48 @@
 
 import {
   useCallback,
-  useContext,
   useMemo,
 } from "react";
 
-import {
-  FarmContext,
-} from "../context/FarmContext.js";
+import farmService from "../services/farmService.js";
 
 export default function useFarms() {
-  const context =
-    useContext(FarmContext);
-
-  if (!context) {
-    throw new Error(
-      "useFarms must be used inside FarmProvider"
-    );
-  }
-
-  const {
-    farms = [],
-    farmActions,
-  } = context;
+  const loadFarms = useCallback(
+    async () => {
+      return await farmService.getAllFarms();
+    },
+    []
+  );
 
   const addFarm = useCallback(
     async (data) => {
-      if (!farmActions?.create) {
-        throw new Error(
-          "Farm create action is not available"
-        );
-      }
-
-      return farmActions.create(data);
+      return await farmService.createFarm(data);
     },
-    [farmActions]
+    []
   );
 
   const updateFarm = useCallback(
     async (id, data) => {
-      if (!farmActions?.update) {
-        throw new Error(
-          "Farm update action is not available"
-        );
-      }
-
-      return farmActions.update(id, data);
+      return await farmService.updateFarm(
+        id,
+        data
+      );
     },
-    [farmActions]
+    []
   );
 
   const deleteFarm = useCallback(
     async (id) => {
-      if (!farmActions?.delete) {
-        throw new Error(
-          "Farm delete action is not available"
-        );
-      }
-
-      return farmActions.delete(id);
+      return await farmService.deleteFarm(id);
     },
-    [farmActions]
-  );
-
-  const loadFarms = useCallback(
-    async () => {
-      if (!farmActions?.load) {
-        throw new Error(
-          "Farm load action is not available"
-        );
-      }
-
-      return farmActions.load();
-    },
-    [farmActions]
+    []
   );
 
   const searchFarms = useCallback(
-    (text = "") => {
-      const value =
-        String(text)
-          .toLowerCase()
-          .trim();
+    (farms = [], text = "") => {
+      const value = String(text)
+        .toLowerCase()
+        .trim();
 
       if (!value) {
         return farms;
@@ -95,11 +56,11 @@ export default function useFarms() {
             .includes(value)
       );
     },
-    [farms]
+    []
   );
 
-  const statistics = useMemo(
-    () => ({
+  const getStatistics = useCallback(
+    (farms = []) => ({
       total: farms.length,
 
       active: farms.filter(
@@ -112,18 +73,25 @@ export default function useFarms() {
           farm?.status === "inactive"
       ).length,
     }),
-    [farms]
+    []
+  );
+
+  const statistics = useMemo(
+    () => ({
+      total: 0,
+      active: 0,
+      inactive: 0,
+    }),
+    []
   );
 
   return {
-    farms,
-
+    loadFarms,
     addFarm,
     updateFarm,
     deleteFarm,
-    loadFarms,
-
     searchFarms,
+    getStatistics,
     statistics,
   };
 }
