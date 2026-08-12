@@ -69,15 +69,15 @@ export default function Map() {
             setLocationType(e.target.value)
           }
         >
-          <option value="مزرعة">
+          <option value="farm">
             {t("farm")}
           </option>
 
-          <option value="حقل">
+          <option value="field">
             {t("field")}
           </option>
 
-          <option value="مصدر مياه">
+          <option value="waterSource">
             {t("waterSource")}
           </option>
         </select>
