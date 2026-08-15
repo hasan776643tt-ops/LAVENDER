@@ -4,8 +4,17 @@ import {
   createContext,
   useContext,
   useEffect,
+  useMemo,
   useState
 } from "react";
+
+
+// =========================
+// Constants
+// =========================
+
+const STORAGE_KEY =
+  "lavender-settings";
 
 
 // =========================
@@ -48,10 +57,10 @@ const defaultSettings =
 // Normalize Saved Settings
 // =========================
 
-const normalizeSettings = (saved) => {
+function normalizeSettings(saved) {
 
   if (!saved || typeof saved !== "object") {
-    return defaultSettings;
+    return { ...defaultSettings };
   }
 
   return {
@@ -60,7 +69,6 @@ const normalizeSettings = (saved) => {
 
     ...saved,
 
-    // دعم القيم القديمة
     areaUnit:
       saved.areaUnit === "دونم"
         ? "dunum"
@@ -78,7 +86,42 @@ const normalizeSettings = (saved) => {
 
   };
 
-};
+}
+
+
+// =========================
+// Load Settings
+// =========================
+
+function loadSettings() {
+
+  try {
+
+    const saved =
+      localStorage.getItem(
+        STORAGE_KEY
+      );
+
+    if (!saved) {
+      return { ...defaultSettings };
+    }
+
+    return normalizeSettings(
+      JSON.parse(saved)
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Settings loading failed:",
+      error
+    );
+
+    return { ...defaultSettings };
+
+  }
+
+}
 
 
 // =========================
@@ -90,40 +133,11 @@ export function SettingsProvider({
 }) {
 
   const [settings, setSettings] =
-    useState(() => {
-
-      try {
-
-        const saved =
-          localStorage.getItem(
-            "lavender-settings"
-          );
-
-        if (!saved) {
-          return defaultSettings;
-        }
-
-        const parsed =
-          JSON.parse(saved);
-
-        return normalizeSettings(parsed);
-
-      } catch (error) {
-
-        console.error(
-          "Settings loading failed:",
-          error
-        );
-
-        return defaultSettings;
-
-      }
-
-    });
+    useState(loadSettings);
 
 
   // =========================
-  // Save Settings
+  // Persist Settings
   // =========================
 
   useEffect(() => {
@@ -131,7 +145,7 @@ export function SettingsProvider({
     try {
 
       localStorage.setItem(
-        "lavender-settings",
+        STORAGE_KEY,
         JSON.stringify(settings)
       );
 
@@ -186,9 +200,9 @@ export function SettingsProvider({
   const resetSettings =
     () => {
 
-      setSettings(
-        defaultSettings
-      );
+      setSettings({
+        ...defaultSettings
+      });
 
     };
 
@@ -197,17 +211,20 @@ export function SettingsProvider({
   // Context Value
   // =========================
 
-  const value = {
+  const value = useMemo(
+    () => ({
 
-    settings,
+      settings,
 
-    updateSetting,
+      updateSetting,
 
-    updateSettings,
+      updateSettings,
 
-    resetSettings
+      resetSettings
 
-  };
+    }),
+    [settings]
+  );
 
 
   return (
@@ -232,8 +249,9 @@ export function SettingsProvider({
 export function useSettings() {
 
   const context =
-    useContext(SettingsContext);
-
+    useContext(
+      SettingsContext
+    );
 
   if (!context) {
 
@@ -243,7 +261,16 @@ export function useSettings() {
 
   }
 
-
   return context;
 
 }
+
+
+// =========================
+// Exports
+// =========================
+
+export {
+  SettingsContext,
+  defaultSettings
+};
