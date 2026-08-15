@@ -574,7 +574,11 @@ advice.map(
 
 
 <p>
-✅ جاهز لتصدير PDF
+✅ جاهز لتصدير JSON
+</p>
+
+<p>
+✅ جاهز لتصدير CSV
 </p>
 
 
@@ -596,11 +600,7 @@ advice.map(
 
 
 
-<Button>
 
-إنشاء تقرير PDF
-
-</Button>
 
 
 
