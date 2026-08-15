@@ -20,11 +20,7 @@ const {
 
 farms,
 
-addFarm,
-
-updateFarm,
-
-deleteFarm
+farmActions
 
 }=useContext(FarmContext);
 
@@ -188,26 +184,19 @@ return;
 if(editId){
 
 
-updateFarm(
-
-editId,
-
-form
-
+farmActions.update(
+  editId,
+  form
 );
 
 
 }else{
 
 
-addFarm({
-
-...form,
-
-created:
-new Date()
-.toISOString()
-
+farmActions.create({
+  ...form,
+  created:
+  new Date().toISOString()
 });
 
 
@@ -608,7 +597,9 @@ onClick={()=>editFarm(farm)}
 
 <Button
 
-onClick={()=>deleteFarm(farm.id)}
+onClick={() =>
+  farmActions.delete(farm.id)
+}
 
 >
 
