@@ -20,9 +20,7 @@ const {
 
 farms,
 fields,
-addField,
-updateField,
-deleteField
+fieldActions
 
 }=useContext(FarmContext);
 
@@ -122,7 +120,7 @@ new Date().toISOString()
 
 if(editId){
 
-updateField(
+fieldActions.update(
 
 editId,
 
@@ -134,7 +132,7 @@ fieldData
 }else{
 
 
-addField({
+fieldActions.create({
 
 ...fieldData,
 
@@ -594,7 +592,9 @@ onClick={()=>editField(field)}
 
 <Button
 
-onClick={()=>deleteField(field.id)}
+onClick={()=>
+fieldActions.delete(field.id)
+}
 
 >
 
