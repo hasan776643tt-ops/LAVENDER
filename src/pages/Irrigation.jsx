@@ -19,17 +19,15 @@ export default function Irrigation() {
 
   const {
 
-    farms = [],
-    fields = [],
-    crops = [],
+  farms = [],
+  fields = [],
+  crops = [],
 
-    irrigations = [],
+  irrigations = [],
 
-    addIrrigation,
-    updateIrrigation,
-    deleteIrrigation,
+  irrigationActions,
 
-  } = useContext(FarmContext);
+} = useContext(FarmContext);
 
 
 
@@ -200,20 +198,13 @@ export default function Irrigation() {
       !form.waterAmount
     )
 
-      return;
+      irrigationActions.update(
 
+  editId,
 
+  form
 
-    if(editId){
-
-
-      updateIrrigation(
-
-        editId,
-
-        form
-
-      );
+);
 
 
     }
@@ -221,12 +212,12 @@ export default function Irrigation() {
     else{
 
 
-      addIrrigation(
+      
+irrigationActions.create(
 
-        form
+  form
 
-      );
-
+);
 
     }
 
@@ -775,7 +766,9 @@ onClick={()=>edit(item)}
 
 <Button
 
-onClick={()=>deleteIrrigation(item.id)}
+onClick={()=>
+  irrigationActions.delete(item.id)
+}
 
 >
 
