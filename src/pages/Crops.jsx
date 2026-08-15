@@ -22,8 +22,8 @@ import Button from "../components/Button";
 export default function Crops(){
 
 
-const {
 
+const {
 
 farms,
 
@@ -31,16 +31,9 @@ fields,
 
 crops,
 
-
-addCrop,
-
-updateCrop,
-
-deleteCrop
-
+cropActions
 
 }=useContext(FarmContext);
-
 
 
 
@@ -159,7 +152,7 @@ return;
 if(editId){
 
 
-updateCrop(
+cropActions.update(
 
 editId,
 
@@ -171,8 +164,7 @@ form
 
 }else{
 
-
-addCrop({
+ cropActions.create({
 
 ...form,
 
@@ -799,7 +791,9 @@ onClick={()=>editCrop(crop)}
 
 <Button
 
-onClick={()=>deleteCrop(crop.id)}
+onClick={()=>
+cropActions.delete(crop.id)
+}
 
 >
 
