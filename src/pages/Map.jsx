@@ -4,7 +4,7 @@ import Card from "../components/Card";
 import Button from "../components/Button";
 
 import { translate } from "../utils/translation";
-import { useSettings } from "../contexts/SettingsContext";
+import { useSettings } from "../context/SettingsContext";
 
 export default function Map() {
   const {
@@ -33,9 +33,12 @@ export default function Map() {
     deleteLocation,
   } = useMap();
 
-  const { language } = useSettings();
+  const { settings } = useSettings();
 
-  const t = (key) => translate(`map.${key}`, language);
+  const language = settings.language;
+
+  const t = (key) =>
+    translate(`map.${key}`, language);
 
   return (
     <div>
