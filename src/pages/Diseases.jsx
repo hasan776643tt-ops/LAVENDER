@@ -25,9 +25,7 @@ export default function Diseases() {
 
     diseases = [],
 
-    addDisease,
-    updateDisease,
-    deleteDisease,
+    diseaseActions,
 
   } = useContext(FarmContext);
 
@@ -283,14 +281,15 @@ export default function Diseases() {
 
     if(editId){
 
+  diseaseActions.update(
 
-      updateDisease(
+    editId,
 
-        editId,
+    form
 
-        form
+  );
 
-      );
+}
 
 
     }
@@ -298,11 +297,11 @@ export default function Diseases() {
     else{
 
 
-      addDisease(
+      diseaseActions.create(
 
-        form
+  form
 
-      );
+);
 
 
     }
