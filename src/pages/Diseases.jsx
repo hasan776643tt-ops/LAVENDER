@@ -548,19 +548,19 @@ export default function Diseases() {
 
   if(editId){
 
-    diseaseActions.update(
-      editId,
-      form
-    );
+  diseaseActions.update(
+    editId,
+    form
+  );
 
-  }
-  else{
+}
+else{
 
-    diseaseActions.create(
-      form
-    );
+  diseaseActions.create(
+    form
+  );
 
-  }
+}
 
   setForm(
     initialForm
