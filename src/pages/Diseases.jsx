@@ -279,25 +279,38 @@ export default function Diseases() {
 
 
 
-    if(editId){
+   const save = ()=>{
 
-  diseaseActions.update(
+  if(
+    !form.farmId ||
+    !form.fieldId ||
+    !form.diseaseName
+  )
+    return;
 
-    editId,
+  if(editId){
 
-    form
+    diseaseActions.update(
+      editId,
+      form
+    );
 
+  }
+  else{
+
+    diseaseActions.create(
+      form
+    );
+
+  }
+
+  setForm(
+    initialForm
   );
 
-}
+  setEditId(null);
 
-else{
-
-  diseaseActions.create(
-
-    form
-
-  );
+}; 
 
 }
 
