@@ -25,9 +25,7 @@ export default function Pesticides() {
 
     pesticides = [],
 
-    addPesticide,
-    updatePesticide,
-    deletePesticide,
+    pesticideActions,
 
   } = useContext(FarmContext);
 
@@ -288,25 +286,20 @@ export default function Pesticides() {
     if(editId){
 
 
-      updatePesticide(
-
-        editId,
-
-        form
-
-      );
-
+      
+pesticideActions.update(
+  editId,
+  form
+);
 
     }
 
     else{
 
 
-      addPesticide(
-
-        form
-
-      );
+     pesticideActions.create(
+  form
+); 
 
 
     }
@@ -1043,8 +1036,8 @@ onClick={()=>edit(item)}
 
 <Button
 
-onClick={()=>deletePesticide(item.id)}
-
+onClick={()=}>
+pesticideActions.delete(item.id)
 >
 
 حذف
