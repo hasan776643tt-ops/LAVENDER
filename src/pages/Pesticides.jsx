@@ -1035,10 +1035,12 @@ onClick={()=>edit(item)}
 
 
 <Button
-
-onClick={()=}>
-pesticideActions.delete(item.id)
+  onClick={() =>
+    pesticideActions.delete(item.id)
+  }
 >
+  حذف
+</Button>
 
 حذف
 
