@@ -987,28 +987,10 @@ onClick={()=>edit(item)}
 
 تعديل
 
-</Button>
-
-
-
-
-
 <Button
-
-<Button
-
   onClick={()=>diseaseActions.delete(item.id)}
-
 >
-
-حذف
-
-</Button>
-
->
-
-حذف
-
+  حذف
 </Button>
 
 
