@@ -291,10 +291,15 @@ export default function Diseases() {
 
 }
 
+else{
 
-    }
+  diseaseActions.create(
 
-    else{
+    form
+
+  );
+
+}
 
 
       diseaseActions.create(
@@ -977,7 +982,15 @@ onClick={()=>edit(item)}
 
 <Button
 
-onClick={()=>deleteDisease(item.id)}
+<Button
+
+  onClick={()=>diseaseActions.delete(item.id)}
+
+>
+
+حذف
+
+</Button>
 
 >
 
