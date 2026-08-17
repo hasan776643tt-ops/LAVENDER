@@ -214,10 +214,7 @@ export default function Irrigation() {
 
   }
 
-  setForm(initialForm);
-  setEditId(null);
-
-};
+  
 
 
 
