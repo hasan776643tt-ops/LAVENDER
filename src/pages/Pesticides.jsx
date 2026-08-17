@@ -1042,9 +1042,7 @@ onClick={()=>edit(item)}
   حذف
 </Button>
 
-حذف
 
-</Button>
 
 
 
