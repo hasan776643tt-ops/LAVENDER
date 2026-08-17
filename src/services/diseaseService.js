@@ -1,19 +1,14 @@
 // src/services/diseaseService.js
 
 import diseaseRepository
-from "../repositories/diseaseRepository.js";
-
+  from "../repositories/diseaseRepository.js";
 
 import {
   createError
-}
-from "../utils/errorHandler.js";
-
-
+} from "../utils/errorHandler.js";
 
 
 class DiseaseService {
-
 
 
   constructor() {
@@ -24,9 +19,6 @@ class DiseaseService {
   }
 
 
-
-
-
   async getAll() {
 
     return this.repository.getAll();
@@ -34,151 +26,88 @@ class DiseaseService {
   }
 
 
-
-
-
   async getById(id) {
 
-
     this.validateId(id);
-
-
 
     const disease =
       await this.repository.getById(id);
 
-
-
     if (!disease) {
 
-
       throw createError(
-
         "Disease not found",
-
         "DISEASE_NOT_FOUND"
-
       );
-
 
     }
 
-
-
     return disease;
-
 
   }
 
 
-
-
-
   async create(data) {
 
-
     this.validateCreate(data);
-
-
 
     return this.repository.create(
       data
     );
 
-
   }
-
-
-
 
 
   async update(id, data) {
 
-
     this.validateId(id);
-
 
     this.validateUpdate(data);
 
-
-
     const updated =
       await this.repository.update(
-
         id,
-
         data
-
       );
-
-
 
     if (!updated) {
 
-
       throw createError(
-
         "Disease not found",
-
         "DISEASE_NOT_FOUND"
-
       );
-
 
     }
 
-
-
     return updated;
-
 
   }
 
 
-
-
-
   async delete(id) {
 
-
     this.validateId(id);
-
-
 
     const deleted =
       await this.repository.delete(
         id
       );
 
-
-
     if (!deleted) {
 
-
       throw createError(
-
         "Disease not found",
-
         "DISEASE_NOT_FOUND"
-
       );
-
 
     }
 
-
-
     return true;
-
 
   }
 
 
-
-
-
   async exists(id) {
-
 
     if (!id) {
 
@@ -186,50 +115,32 @@ class DiseaseService {
 
     }
 
-
-
     const disease =
       await this.repository.getById(
         id
       );
 
-
-
     return Boolean(
       disease
     );
 
-
   }
-
-
-
 
 
   async count() {
 
-
     const diseases =
       await this.repository.getAll();
 
-
-
     return diseases.length;
-
 
   }
 
 
-
-
-
   async search(keyword) {
-
 
     const diseases =
       await this.repository.getAll();
-
-
 
     if (!keyword) {
 
@@ -237,23 +148,16 @@ class DiseaseService {
 
     }
 
-
-
     const search =
       keyword.toLowerCase();
-
-
 
     return diseases.filter(
 
       disease =>
 
-
-        disease.name
+        disease.diseaseName
           ?.toLowerCase()
           .includes(search)
-
-
 
         ||
 
@@ -261,15 +165,11 @@ class DiseaseService {
           ?.toLowerCase()
           .includes(search)
 
-
-
         ||
 
         disease.category
           ?.toLowerCase()
           .includes(search)
-
-
 
         ||
 
@@ -279,129 +179,76 @@ class DiseaseService {
 
     );
 
-
   }
-
-
-
 
 
   validateId(id) {
 
-
     if (!id) {
 
-
       throw createError(
-
         "Disease id is required",
-
         "DISEASE_ID_REQUIRED"
-
       );
-
 
     }
 
-
-
     return true;
 
-
   }
-
-
-
 
 
   validateCreate(data) {
 
-
     this.validateData(data);
 
-
-
     if (
-      !data.name ||
-      !data.name.trim()
+      !data.diseaseName ||
+      !data.diseaseName.trim()
     ) {
 
-
       throw createError(
-
         "Disease name is required",
-
         "DISEASE_NAME_REQUIRED"
-
       );
-
 
     }
 
-
-
     return true;
 
-
   }
-
-
-
 
 
   validateUpdate(data) {
 
-
     this.validateData(data);
 
-
-
     return true;
-
 
   }
 
 
-
-
-
   validateData(data) {
-
 
     if (
       !data ||
       typeof data !== "object"
     ) {
 
-
       throw createError(
-
         "Disease data is required",
-
         "DISEASE_DATA_REQUIRED"
-
       );
-
 
     }
 
-
-
     return true;
 
-
   }
-
-
 
 }
 
 
-
-
-
 export default Object.freeze(
-
   new DiseaseService()
-
 );
