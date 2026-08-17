@@ -189,37 +189,35 @@ export default function Irrigation() {
 
 
 
-  const save = ()=>{
+  const save = () => {
 
+  if (
+    !form.farmId ||
+    !form.fieldId ||
+    !form.waterAmount
+  ) {
+    return;
+  }
 
-    if(
-      !form.farmId ||
-      !form.fieldId ||
-      !form.waterAmount
-    )
+  if (editId) {
 
-      irrigationActions.update(
+    irrigationActions.update(
+      editId,
+      form
+    );
 
-  editId,
+  } else {
 
-  form
+    irrigationActions.create(
+      form
+    );
 
-);
+  }
 
+  setForm(initialForm);
+  setEditId(null);
 
-    }
-
-    else{
-
-
-      
-irrigationActions.create(
-
-  form
-
-);
-
-    }
+};
 
 
 
