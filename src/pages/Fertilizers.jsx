@@ -25,9 +25,7 @@ export default function Fertilizers() {
 
     fertilizers = [],
 
-    addFertilizer,
-    updateFertilizer,
-    deleteFertilizer,
+  fertilizerActions,  
 
   } = useContext(FarmContext);
 
@@ -302,13 +300,10 @@ export default function Fertilizers() {
     if(editId){
 
 
-      updateFertilizer(
-
-        editId,
-
-        form
-
-      );
+      fertilizerActions.update(
+  editId,
+  form
+);
 
 
     }
@@ -316,11 +311,9 @@ export default function Fertilizers() {
     else{
 
 
-      addFertilizer(
-
-        form
-
-      );
+      fertilizerActions.create(
+  form
+);
 
 
     }
@@ -1161,10 +1154,10 @@ onClick={()=>edit(item)}
 
 onClick={()=>
 
-deleteFertilizer(
-item.id
-)
 
+fertilizerActions.delete(
+  item.id
+);
 }
 
 >
@@ -1187,7 +1180,6 @@ item.id
 
 
 </Card>
-
 
 </div>
 
