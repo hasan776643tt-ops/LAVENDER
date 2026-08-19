@@ -1,11 +1,11 @@
-// src/hooks/useApi.js
+📄 src/hooks/useApi.js
 
+// src/hooks/useApi.js
 
 import {
   useState,
   useCallback
 } from "react";
-
 
 
 export default function useApi() {
@@ -21,8 +21,6 @@ export default function useApi() {
 
   const [data, setData] =
     useState(null);
-
-
 
 
   const execute =
@@ -41,16 +39,13 @@ export default function useApi() {
           setError(null);
 
 
-
           const result =
             await apiCall();
-
 
 
           setData(
             result
           );
-
 
 
           return result;
@@ -60,7 +55,8 @@ export default function useApi() {
 
 
           setError(
-            err.message
+            err?.message ||
+            "API_REQUEST_FAILED"
           );
 
 
@@ -83,22 +79,24 @@ export default function useApi() {
     );
 
 
-
-
   const reset =
-    () => {
+    useCallback(
+
+      () => {
 
 
-      setData(null);
+        setData(null);
 
-      setError(null);
+        setError(null);
 
-      setLoading(false);
-
-
-    };
+        setLoading(false);
 
 
+      },
+
+      []
+
+    );
 
 
   return {
@@ -109,7 +107,6 @@ export default function useApi() {
     loading,
 
     error,
-
 
 
     execute,
