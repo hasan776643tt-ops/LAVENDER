@@ -1,15 +1,14 @@
-// src/hooks/useAnalytics.js
+📄 src/hooks/useAnalytics.js
 
+// src/hooks/useAnalytics.js
 
 import {
   useCallback,
   useState
 } from "react";
 
-
 import analyticsService
-from "../services/analyticsService.js";
-
+  from "../services/analyticsService.js";
 
 
 export default function useAnalytics() {
@@ -25,8 +24,6 @@ export default function useAnalytics() {
 
   const [error, setError] =
     useState(null);
-
-
 
 
   const loadAnalytics =
@@ -45,7 +42,6 @@ export default function useAnalytics() {
           setError(null);
 
 
-
           const data =
 
             await analyticsService.getAnalytics(
@@ -53,11 +49,9 @@ export default function useAnalytics() {
             );
 
 
-
           setAnalytics(
             data
           );
-
 
 
           return data;
@@ -67,7 +61,8 @@ export default function useAnalytics() {
 
 
           setError(
-            err.message
+            err?.message ||
+            "ANALYTICS_LOAD_FAILED"
           );
 
 
@@ -90,38 +85,46 @@ export default function useAnalytics() {
     );
 
 
-
-
   const refreshAnalytics =
-    async (
-      params = {}
-    ) => {
+    useCallback(
+
+      async (
+        params = {}
+      ) => {
 
 
-      return await loadAnalytics(
-        params
-      );
+        return await loadAnalytics(
+          params
+        );
 
 
-    };
+      },
 
+      [
+        loadAnalytics
+      ]
 
+    );
 
 
   const resetAnalytics =
-    () => {
+    useCallback(
+
+      () => {
 
 
-      setAnalytics(null);
+        setAnalytics(null);
 
-      setError(null);
+        setError(null);
 
-      setLoading(false);
-
-
-    };
+        setLoading(false);
 
 
+      },
+
+      []
+
+    );
 
 
   return {
@@ -132,7 +135,6 @@ export default function useAnalytics() {
     loading,
 
     error,
-
 
 
     loadAnalytics,
