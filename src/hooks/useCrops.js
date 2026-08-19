@@ -2,29 +2,34 @@
 
 import {
   useCallback,
-  useMemo,
 } from "react";
 
-import cropService from "../services/cropService.js";
+import cropService
+  from "../services/cropService.js";
+
 
 export default function useCrops() {
+
+
   const loadCrops = useCallback(
     async () => {
-      return await cropService.getAll();
+      return cropService.getAll();
     },
     []
   );
+
 
   const addCrop = useCallback(
     async (data) => {
-      return await cropService.create(data);
+      return cropService.create(data);
     },
     []
   );
 
+
   const updateCrop = useCallback(
     async (id, data) => {
-      return await cropService.update(
+      return cropService.update(
         id,
         data
       );
@@ -32,22 +37,27 @@ export default function useCrops() {
     []
   );
 
+
   const deleteCrop = useCallback(
     async (id) => {
-      return await cropService.delete(id);
+      return cropService.delete(id);
     },
     []
   );
 
+
   const searchCrops = useCallback(
     (crops = [], text = "") => {
+
       const value = String(text)
         .toLowerCase()
         .trim();
 
+
       if (!value) {
         return crops;
       }
+
 
       return crops.filter(
         (crop) =>
@@ -59,31 +69,27 @@ export default function useCrops() {
     []
   );
 
+
   const getStatistics = useCallback(
-    (crops = []) => ({
-      total: crops.length,
+    (crops = []) => {
 
-      active: crops.filter(
-        (crop) =>
-          crop?.status === "active"
-      ).length,
+      return {
+        total: crops.length,
 
-      archived: crops.filter(
-        (crop) =>
-          crop?.status === "archived"
-      ).length,
-    }),
+        active: crops.filter(
+          (crop) =>
+            crop?.status === "active"
+        ).length,
+
+        archived: crops.filter(
+          (crop) =>
+            crop?.status === "archived"
+        ).length,
+      };
+    },
     []
   );
 
-  const statistics = useMemo(
-    () => ({
-      total: 0,
-      active: 0,
-      archived: 0,
-    }),
-    []
-  );
 
   return {
     loadCrops,
@@ -92,6 +98,5 @@ export default function useCrops() {
     deleteCrop,
     searchCrops,
     getStatistics,
-    statistics,
   };
 }
