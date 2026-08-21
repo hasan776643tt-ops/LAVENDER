@@ -1,8 +1,10 @@
 // src/services/aiService.js
 
 
-import storageService
-from "./storageService.js";
+import {
+  storageService
+}
+from "../storage";
 
 
 import {
@@ -223,7 +225,7 @@ class AIService {
 
 
 
-    storageService.save(
+    await storageService.save(
 
       this.historyKey,
 
