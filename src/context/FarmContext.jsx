@@ -13,9 +13,6 @@ import farmController
 import fieldController
   from "../controllers/fieldController.js";
 
-import cropController
-  from "../controllers/cropController.js";
-
 import irrigationController
   from "../controllers/irrigationController.js";
 
@@ -43,8 +40,7 @@ import inventoryController
 // =========================
 
 export const FarmContext =
-createContext(null);
-
+  createContext(null);
 
 
 // =========================
@@ -56,344 +52,308 @@ export function FarmProvider({
 }) {
 
 
-const [farms,setFarms] =
-useState([]);
+  const [farms, setFarms] =
+    useState([]);
 
-const [fields,setFields] =
-useState([]);
+  const [fields, setFields] =
+    useState([]);
 
-const [crops,setCrops] =
-useState([]);
+  const [irrigations, setIrrigations] =
+    useState([]);
 
-const [irrigations,setIrrigations] =
-useState([]);
+  const [fertilizers, setFertilizers] =
+    useState([]);
 
-const [fertilizers,setFertilizers] =
-useState([]);
+  const [pesticides, setPesticides] =
+    useState([]);
 
-const [pesticides,setPesticides] =
-useState([]);
+  const [diseases, setDiseases] =
+    useState([]);
 
-const [diseases,setDiseases] =
-useState([]);
+  const [expenses, setExpenses] =
+    useState([]);
 
-const [expenses,setExpenses] =
-useState([]);
+  const [harvests, setHarvests] =
+    useState([]);
 
-const [harvests,setHarvests] =
-useState([]);
+  const [inventory, setInventory] =
+    useState([]);
 
-const [inventory,setInventory] =
-useState([]);
+  const [consultations, setConsultations] =
+    useState([]);
 
-const [consultations,setConsultations] =
-useState([]);
+  const [aiQuestions, setAiQuestions] =
+    useState([]);
 
-const [aiQuestions,setAiQuestions] =
-useState([]);
 
+  // =========================
+  // Generic CRUD Actions
+  // =========================
 
+  const createActions =
+    (
+      setData,
+      controller
+    ) =>
+    ({
 
-// =========================
-// Generic CRUD Actions
-// =========================
+      load:
+        async () => {
 
-const createActions =
-(
- setData,
- controller
-)=>
-({
+          const result =
+            await controller.getAll();
 
+          setData(result);
 
-load:
-async()=>{
+          return result;
 
- const result =
- await controller.getAll();
+        },
 
- setData(result);
 
- return result;
+      create:
+        async (data) => {
 
-},
+          const result =
+            await controller.create(data);
 
+          setData(
+            prev => [
+              ...prev,
+              result
+            ]
+          );
 
+          return result;
 
-create:
-async(data)=>{
+        },
 
- const result =
- await controller.create(data);
 
+      update:
+        async (id, data) => {
 
- setData(
- prev=>[
-  ...prev,
-  result
- ]
- );
+          const result =
+            await controller.update(
+              id,
+              data
+            );
 
+          setData(
+            prev =>
+              prev.map(
+                item =>
+                  String(item.id) ===
+                  String(id)
+                    ? result
+                    : item
+              )
+          );
 
- return result;
+          return result;
 
-},
+        },
 
 
+      delete:
+        async (id) => {
 
-update:
-async(id,data)=>{
+          const result =
+            await controller.delete(id);
 
- const result =
- await controller.update(
-  id,
-  data
- );
+          setData(
+            prev =>
+              prev.filter(
+                item =>
+                  String(item.id) !==
+                  String(id)
+              )
+          );
 
+          return result;
 
- setData(
- prev=>
- prev.map(
- item=>
- item.id===id
- ? result
- : item
- )
- );
+        },
 
 
- return result;
+      count:
+        async () => {
 
-},
+          return controller.count();
 
+        },
 
 
-delete:
-async(id)=>{
+      exists:
+        async (id) => {
 
- const result =
- await controller.delete(id);
+          return controller.exists(id);
 
+        }
 
- setData(
- prev=>
- prev.filter(
- item=>
- item.id!==id
- )
- );
+    });
 
 
- return result;
+  // =========================
+  // Actions
+  // =========================
 
-},
+  const farmActions =
+    createActions(
+      setFarms,
+      farmController
+    );
 
 
+  const fieldActions =
+    createActions(
+      setFields,
+      fieldController
+    );
 
-count:
-async()=>{
 
- return controller.count();
+  const irrigationActions =
+    createActions(
+      setIrrigations,
+      irrigationController
+    );
 
-},
 
+  const fertilizerActions =
+    createActions(
+      setFertilizers,
+      fertilizerController
+    );
 
 
-exists:
-async(id)=>{
+  const pesticideActions =
+    createActions(
+      setPesticides,
+      pesticideController
+    );
 
- return controller.exists(id);
 
-}
+  const diseaseActions =
+    createActions(
+      setDiseases,
+      diseaseController
+    );
 
 
-});
+  const expenseActions =
+    createActions(
+      setExpenses,
+      expenseController
+    );
 
 
+  const harvestActions =
+    createActions(
+      setHarvests,
+      harvestController
+    );
 
-// =========================
-// Actions
-// =========================
 
+  const inventoryActions =
+    createActions(
+      setInventory,
+      inventoryController
+    );
 
-const farmActions =
-createActions(
- setFarms,
- farmController
-);
 
+  // =========================
+  // Context Value
+  // =========================
 
-const fieldActions =
-createActions(
- setFields,
- fieldController
-);
+  const value =
+    useMemo(
+      () => ({
 
+        farms,
+        fields,
 
-const cropActions =
-createActions(
- setCrops,
- cropController
-);
+        irrigations,
+        fertilizers,
+        pesticides,
 
+        diseases,
 
-const irrigationActions =
-createActions(
- setIrrigations,
- irrigationController
-);
+        expenses,
+        harvests,
 
+        inventory,
 
-const fertilizerActions =
-createActions(
- setFertilizers,
- fertilizerController
-);
+        consultations,
+        aiQuestions,
 
 
-const pesticideActions =
-createActions(
- setPesticides,
- pesticideController
-);
+        farmActions,
+        fieldActions,
 
+        irrigationActions,
+        fertilizerActions,
 
-const diseaseActions =
-createActions(
- setDiseases,
- diseaseController
-);
+        pesticideActions,
+        diseaseActions,
 
+        expenseActions,
+        harvestActions,
 
-const expenseActions =
-createActions(
- setExpenses,
- expenseController
-);
+        inventoryActions,
 
 
-const harvestActions =
-createActions(
- setHarvests,
- harvestController
-);
+        setFarms,
+        setFields,
 
+        setIrrigations,
+        setFertilizers,
 
-const inventoryActions =
-createActions(
- setInventory,
- inventoryController
-);
+        setPesticides,
+        setDiseases,
 
+        setExpenses,
+        setHarvests,
 
+        setInventory,
 
-// =========================
-// Context Value
-// =========================
+        setConsultations,
+        setAiQuestions
 
+      }),
+      [
 
-const value =
-useMemo(
-()=>({
+        farms,
+        fields,
 
+        irrigations,
+        fertilizers,
 
-farms,
-fields,
-crops,
+        pesticides,
+        diseases,
 
-irrigations,
-fertilizers,
-pesticides,
+        expenses,
+        harvests,
 
-diseases,
+        inventory,
 
-expenses,
-harvests,
+        consultations,
+        aiQuestions
 
-inventory,
+      ]
+    );
 
-consultations,
-aiQuestions,
 
+  // =========================
+  // Provider
+  // =========================
 
+  return (
 
-farmActions,
-fieldActions,
-cropActions,
+    <FarmContext.Provider
+      value={value}
+    >
 
-irrigationActions,
-fertilizerActions,
+      {children}
 
-pesticideActions,
-diseaseActions,
+    </FarmContext.Provider>
 
-expenseActions,
-harvestActions,
-
-inventoryActions,
-
-
-
-setFarms,
-setFields,
-setCrops,
-
-setIrrigations,
-setFertilizers,
-
-setPesticides,
-setDiseases,
-
-setExpenses,
-setHarvests,
-
-setInventory,
-
-setConsultations,
-setAiQuestions
-
-
-}),
-[
-
-farms,
-fields,
-crops,
-
-irrigations,
-fertilizers,
-
-pesticides,
-diseases,
-
-expenses,
-harvests,
-
-inventory,
-
-consultations,
-aiQuestions
-
-]
-);
-
-
-
-// =========================
-// Provider
-// =========================
-
-return (
-
-<FarmContext.Provider
- value={value}
->
-
-{children}
-
-</FarmContext.Provider>
-
-);
-
+  );
 
 }
