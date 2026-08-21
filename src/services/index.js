@@ -1,8 +1,10 @@
 // src/services/index.js
 
 
-import storageService
-  from "./storageService.js";
+import {
+  storageService
+}
+from "../storage";
 
 
 import cacheService
