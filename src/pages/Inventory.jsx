@@ -1,17 +1,23 @@
+// src/pages/Inventory.jsx
+
 import {
   useState,
   useContext,
   useMemo,
 } from "react";
 
+
 import {
   FarmContext,
 } from "../context/FarmContext";
 
+
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+
 export default function Inventory() {
+
 
   const {
 
@@ -19,9 +25,7 @@ export default function Inventory() {
 
     inventory = [],
 
-    addInventory,
-    updateInventory,
-    deleteInventory,
+    inventoryActions,
 
   } = useContext(FarmContext);
 
@@ -52,9 +56,9 @@ export default function Inventory() {
   const [form, setForm] =
     useState(initialForm);
 
+
   const [editId, setEditId] =
     useState(null);
-
 
 
   const updateForm = (
@@ -74,63 +78,68 @@ export default function Inventory() {
 
 
 
-  const totalItems = useMemo(() => {
+  const totalItems =
+    useMemo(() => {
 
-    return inventory.length;
+      return inventory.length;
 
-  }, [inventory]);
-
-
-
-  const lowStockItems = useMemo(() => {
-
-    return inventory.filter(
-
-      (item) =>
-
-        Number(item.quantity || 0) <=
-        Number(item.minimumStock || 0)
-
-    ).length;
-
-  }, [inventory]);
+    }, [inventory]);
 
 
 
-  const save = () => {
+  const lowStockItems =
+    useMemo(() => {
+
+      return inventory.filter(
+
+        (item) =>
+
+          Number(
+            item.quantity || 0
+          ) <=
+
+          Number(
+            item.minimumStock || 0
+          )
+
+      ).length;
+
+    }, [inventory]);
+
+
+
+  const save = async () => {
 
     if (
-
       !form.farmId ||
-
       !form.name
-
-    )
+    ) {
 
       return;
 
+    }
 
 
     if (editId) {
 
-      updateInventory(
+      await inventoryActions.update(
         editId,
         form
       );
 
     } else {
 
-      addInventory(
+      await inventoryActions.create(
         form
       );
 
     }
 
 
+    setForm({
+      ...initialForm
+    });
 
-    setForm(
-      initialForm
-    );
 
     setEditId(null);
 
@@ -143,33 +152,44 @@ export default function Inventory() {
     setForm({
 
       farmId:
-        item.farmId,
+        item.farmId || "",
 
       name:
-        item.name,
+        item.name || "",
 
       category:
-        item.category,
+        item.category || "",
 
       quantity:
-        item.quantity,
+        item.quantity || "",
 
       unit:
-        item.unit,
+        item.unit || "",
 
       minimumStock:
-        item.minimumStock,
+        item.minimumStock || "",
 
       supplier:
-        item.supplier,
+        item.supplier || "",
 
       notes:
-        item.notes,
+        item.notes || "",
 
     });
 
+
     setEditId(
       item.id
+    );
+
+  };
+
+
+
+  const remove = async (id) => {
+
+    await inventoryActions.delete(
+      id
     );
 
   };
@@ -185,13 +205,18 @@ export default function Inventory() {
       </h1>
 
 
-
       <Card
+
         title={
+
           editId
+
             ? "✏️ تعديل مادة"
+
             : "➕ إضافة مادة"
+
         }
+
       >
 
         <select
@@ -212,6 +237,7 @@ export default function Inventory() {
           <option value="">
             اختر المزرعة
           </option>
+
 
           {
 
@@ -236,9 +262,8 @@ export default function Inventory() {
         </select>
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <input
@@ -259,9 +284,8 @@ export default function Inventory() {
         />
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <input
@@ -282,9 +306,8 @@ export default function Inventory() {
         />
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <input
@@ -307,9 +330,8 @@ export default function Inventory() {
         />
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <input
@@ -330,9 +352,8 @@ export default function Inventory() {
         />
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <input
@@ -355,9 +376,8 @@ export default function Inventory() {
         />
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <input
@@ -378,9 +398,8 @@ export default function Inventory() {
         />
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <textarea
@@ -401,9 +420,8 @@ export default function Inventory() {
         />
 
 
-
-        <br /><br />
-
+        <br />
+        <br />
 
 
         <Button
@@ -425,7 +443,6 @@ export default function Inventory() {
       </Card>
 
 
-
       <Card
         title="📊 إحصائيات المخزون"
       >
@@ -436,6 +453,7 @@ export default function Inventory() {
           {totalItems}
         </p>
 
+
         <p>
           مواد تحتاج إعادة تزويد:
           {" "}
@@ -443,7 +461,6 @@ export default function Inventory() {
         </p>
 
       </Card>
-
 
 
       <Card
@@ -468,6 +485,7 @@ export default function Inventory() {
                 {item.category}
               </p>
 
+
               <p>
                 🔢 الكمية:
                 {" "}
@@ -476,17 +494,20 @@ export default function Inventory() {
                 {item.unit}
               </p>
 
+
               <p>
                 ⚠️ الحد الأدنى:
                 {" "}
                 {item.minimumStock}
               </p>
 
+
               <p>
                 🏢 المورد:
                 {" "}
                 {item.supplier}
               </p>
+
 
               <p>
                 📝
@@ -495,25 +516,29 @@ export default function Inventory() {
               </p>
 
 
-
               <Button
+
                 onClick={() =>
                   edit(item)
                 }
+
               >
+
                 تعديل
+
               </Button>
 
 
-
               <Button
+
                 onClick={() =>
-                  deleteInventory(
-                    item.id
-                  )
+                  remove(item.id)
                 }
+
               >
+
                 حذف
+
               </Button>
 
             </Card>
