@@ -1,6 +1,5 @@
 // src/pages/Crops.jsx
 
-
 import {
   useContext,
   useMemo,
@@ -13,809 +12,611 @@ import {
 } from "../context/FarmContext";
 
 
+import useCrops
+  from "../hooks/useCrops.js";
+
+
 import Card from "../components/Card";
 import Button from "../components/Button";
 
 
+export default function Crops() {
 
 
-export default function Crops(){
+  const {
+    farms,
+    fields
+  } = useContext(FarmContext);
 
 
+  const {
+    crops,
+    loading,
+    error,
+    addCrop,
+    updateCrop,
+    deleteCrop,
+    searchCrops
+  } = useCrops();
 
-const {
 
-farms,
+  const emptyForm = {
 
-fields,
+    farmId: "",
+    fieldId: "",
+    name: "",
+    variety: "",
+    plantingDate: "",
+    harvestDate: "",
+    seedQuantity: "",
+    expectedProduction: "",
+    status: "",
+    notes: ""
 
-crops,
+  };
 
-cropActions
 
-}=useContext(FarmContext);
+  const [form, setForm] =
+    useState(emptyForm);
 
 
+  const [editId, setEditId] =
+    useState(null);
 
 
-// =====================
-// Form Model
-// =====================
+  const [search, setSearch] =
+    useState("");
 
 
-const emptyForm = {
+  const handleChange = (e) => {
 
+    setForm({
 
-farmId:"",
+      ...form,
 
-fieldId:"",
+      [e.target.name]:
+        e.target.value
 
-name:"",
+    });
 
-variety:"",
+  };
 
-plantingDate:"",
 
-harvestDate:"",
+  const clearForm = () => {
 
-seedQuantity:"",
+    setForm({
+      ...emptyForm
+    });
 
-expectedProduction:"",
+    setEditId(null);
 
-status:"",
+  };
 
-notes:""
 
+  const saveCrop = async () => {
 
-};
+    if (
+      !form.name ||
+      !form.fieldId
+    ) {
+      return;
+    }
 
 
+    try {
 
+      if (editId) {
 
+        await updateCrop(
+          editId,
+          form
+        );
 
-const [form,setForm]=
-useState(emptyForm);
+      } else {
 
+        await addCrop(
+          form
+        );
 
+      }
 
-const [editId,setEditId]=
-useState(null);
+      clearForm();
 
+    } catch (err) {
 
+      console.error(
+        "Failed to save crop:",
+        err
+      );
 
-const [search,setSearch]=
-useState("");
+    }
 
+  };
 
 
+  const editCrop = (crop) => {
 
+    setForm({
 
-// =====================
-// Change
-// =====================
+      farmId:
+        crop.farmId || "",
 
+      fieldId:
+        crop.fieldId || "",
 
-const handleChange=(e)=>{
+      name:
+        crop.name || "",
 
+      variety:
+        crop.variety || "",
 
-setForm({
+      plantingDate:
+        crop.plantingDate || "",
 
-...form,
+      harvestDate:
+        crop.harvestDate || "",
 
-[e.target.name]:
-e.target.value
+      seedQuantity:
+        crop.seedQuantity || "",
 
+      expectedProduction:
+        crop.expectedProduction || "",
 
-});
+      status:
+        crop.status || "",
 
+      notes:
+        crop.notes || ""
 
-};
+    });
 
 
+    setEditId(
+      crop.id
+    );
 
+  };
 
 
-// =====================
-// Clear
-// =====================
+  const farmFields =
 
+    useMemo(() => {
 
-const clearForm=()=>{
+      return fields.filter(
 
+        field =>
 
-setForm({
+          String(field.farmId) ===
+          String(form.farmId)
 
-...emptyForm
+      );
 
-});
+    }, [
 
+      fields,
+      form.farmId
 
-setEditId(null);
+    ]);
 
 
-};  // =====================
-// Save Crop
-// =====================
+  const filteredCrops =
 
+    useMemo(() => {
 
-const saveCrop=()=>{
+      return searchCrops(
+        crops,
+        search
+      );
 
+    }, [
 
-if(
-!form.name ||
-!form.fieldId
-)
-return;
+      crops,
+      search,
+      searchCrops
 
+    ]);
 
 
-if(editId){
+  const getFarmName = (farmId) => {
 
+    const farm =
 
-cropActions.update(
+      farms.find(
 
-editId,
+        item =>
 
-form
+          String(item.id) ===
+          String(farmId)
 
-);
+      );
 
 
+    return farm
+      ? farm.name
+      : "غير محددة";
 
-}else{
+  };
 
- cropActions.create({
 
-...form,
+  const getFieldName = (fieldId) => {
 
-createdAt:
-new Date()
-.toISOString()
+    const field =
 
-});
+      fields.find(
 
+        item =>
 
-}
+          String(item.id) ===
+          String(fieldId)
 
+      );
 
 
-clearForm();
+    return field
+      ? field.name
+      : "غير محدد";
 
+  };
 
-};
 
+  return (
 
+    <div>
 
 
+      <h1>
+        🌱 إدارة المحاصيل الذكية
+      </h1>
 
-// =====================
-// Edit Crop
-// =====================
 
+      {error && (
 
-const editCrop=(crop)=>{
+        <p>
+          حدث خطأ أثناء التعامل مع المحاصيل.
+        </p>
 
+      )}
 
-setForm({
 
+      <Card
 
-farmId:
-crop.farmId || "",
+        title={
 
+          editId
+            ? "✏️ تعديل محصول"
+            : "➕ إضافة محصول"
 
-fieldId:
-crop.fieldId || "",
+        }
 
+      >
 
-name:
-crop.name || "",
 
+        <select
 
-variety:
-crop.variety || "",
+          name="farmId"
 
+          value={form.farmId}
 
-plantingDate:
-crop.plantingDate || "",
+          onChange={handleChange}
 
+        >
 
-harvestDate:
-crop.harvestDate || "",
+          <option value="">
+            اختر المزرعة
+          </option>
 
 
-seedQuantity:
-crop.seedQuantity || "",
+          {
 
+            farms.map(farm => (
 
-expectedProduction:
-crop.expectedProduction || "",
+              <option
 
+                key={farm.id}
 
-status:
-crop.status || "",
+                value={farm.id}
 
+              >
 
-notes:
-crop.notes || ""
+                {farm.name}
 
+              </option>
 
+            ))
 
-});
+          }
 
+        </select>
 
-setEditId(
-crop.id
-);
 
+        <select
 
-};
+          name="fieldId"
 
+          value={form.fieldId}
 
+          onChange={handleChange}
 
+        >
 
+          <option value="">
+            اختر الحقل
+          </option>
 
-// =====================
-// Fields By Farm
-// =====================
 
+          {
 
-const farmFields =
+            farmFields.map(field => (
 
-useMemo(()=>{
+              <option
 
+                key={field.id}
 
-return fields.filter(
+                value={field.id}
 
+              >
 
-field =>
+                {field.name}
 
-String(field.farmId)
+              </option>
 
-===
+            ))
 
-String(form.farmId)
+          }
 
+        </select>
 
-);
 
+        <input
 
-},[
+          name="name"
 
-fields,
+          placeholder="اسم المحصول"
 
-form.farmId
+          value={form.name}
 
-]);
+          onChange={handleChange}
 
+        />
 
 
+        <input
 
+          name="variety"
 
-// =====================
-// Search
-// =====================
+          placeholder="الصنف"
 
+          value={form.variety}
 
-const filteredCrops =
+          onChange={handleChange}
 
-useMemo(()=>{
+        />
 
 
-return crops.filter(
+        <input
 
+          type="date"
 
-crop =>
+          name="plantingDate"
 
+          value={form.plantingDate}
 
-crop.name
+          onChange={handleChange}
 
-?.toLowerCase()
+        />
 
-.includes(
 
-search.toLowerCase()
+        <input
 
-)
+          type="date"
 
+          name="harvestDate"
 
-);
+          value={form.harvestDate}
 
+          onChange={handleChange}
 
-},[
+        />
 
-crops,
 
-search
+        <input
 
-]);
+          type="number"
 
+          name="seedQuantity"
 
+          placeholder="كمية البذور"
 
+          value={form.seedQuantity}
 
+          onChange={handleChange}
 
-// =====================
-// Names
-// =====================
+        />
 
 
-const getFarmName=(farmId)=>{
+        <input
 
+          type="number"
 
-const farm =
+          name="expectedProduction"
 
-farms.find(
+          placeholder="الإنتاج المتوقع"
 
-item =>
+          value={form.expectedProduction}
 
-String(item.id)
+          onChange={handleChange}
 
-===
+        />
 
-String(farmId)
 
-);
+        <input
 
+          name="status"
 
+          placeholder="حالة المحصول"
 
-return farm
+          value={form.status}
 
-?
+          onChange={handleChange}
 
-farm.name
+        />
 
-:
 
-"غير محددة";
+        <textarea
 
+          name="notes"
 
-};
+          placeholder="ملاحظات"
 
+          value={form.notes}
 
+          onChange={handleChange}
 
+        />
 
 
-const getFieldName=(fieldId)=>{
+        <Button
 
+          onClick={saveCrop}
 
-const field =
+        >
 
-fields.find(
+          {
 
-item =>
+            loading
+              ? "جاري الحفظ..."
+              : editId
+                ? "حفظ التعديل"
+                : "إضافة المحصول"
 
-String(item.id)
+          }
 
-===
+        </Button>
 
-String(fieldId)
 
-);
+      </Card>
 
 
+      <Card title="🔎 البحث">
 
-return field
 
-?
+        <input
 
-field.name
+          placeholder="ابحث عن محصول"
 
-:
+          value={search}
 
-"غير محدد";
+          onChange={e =>
+            setSearch(
+              e.target.value
+            )
+          }
 
+        />
 
-};  // =====================
-// UI
-// =====================
 
+      </Card>
 
-return (
 
-<div>
+      <h2>
+        🌾 قائمة المحاصيل
+      </h2>
 
 
-<h1>
-🌱 إدارة المحاصيل الذكية
-</h1>
+      {
 
+        filteredCrops.map(crop => (
 
+          <Card
 
-<Card
+            key={crop.id}
 
-title={
+            title={
+              `🌿 ${crop.name}`
+            }
 
-editId
+          >
 
-?
+            <p>
+              🚜 المزرعة:
+              {getFarmName(
+                crop.farmId
+              )}
+            </p>
 
-"✏️ تعديل محصول"
 
-:
+            <p>
+              📍 الحقل:
+              {getFieldName(
+                crop.fieldId
+              )}
+            </p>
 
-"➕ إضافة محصول"
 
-}
+            <p>
+              🌱 الصنف:
+              {crop.variety}
+            </p>
 
->
 
+            <p>
+              📅 الزراعة:
+              {crop.plantingDate}
+            </p>
 
-<select
 
-name="farmId"
+            <p>
+              📦 الإنتاج المتوقع:
+              {crop.expectedProduction}
+            </p>
 
-value={form.farmId}
 
-onChange={handleChange}
+            <p>
+              📌 الحالة:
+              {crop.status}
+            </p>
 
->
 
+            <p>
+              📝 {crop.notes}
+            </p>
 
-<option value="">
-اختر المزرعة
-</option>
 
+            <Button
 
+              onClick={() =>
+                editCrop(crop)
+              }
 
-{
+            >
 
-farms.map(farm=>(
+              تعديل
 
-<option
+            </Button>
 
-key={farm.id}
 
-value={farm.id}
+            <Button
 
->
+              onClick={() =>
+                deleteCrop(crop.id)
+              }
 
-{farm.name}
+            >
 
-</option>
+              حذف
 
-))
+            </Button>
 
-}
 
+          </Card>
 
-</select>
+        ))
 
+      }
 
 
+    </div>
 
-
-<select
-
-name="fieldId"
-
-value={form.fieldId}
-
-onChange={handleChange}
-
->
-
-
-<option value="">
-اختر الحقل
-</option>
-
-
-
-{
-
-farmFields.map(field=>(
-
-<option
-
-key={field.id}
-
-value={field.id}
-
->
-
-{field.name}
-
-</option>
-
-))
-
-}
-
-
-</select>
-
-
-
-
-
-<input
-
-name="name"
-
-placeholder="اسم المحصول"
-
-value={form.name}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-name="variety"
-
-placeholder="الصنف"
-
-value={form.variety}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-type="date"
-
-name="plantingDate"
-
-value={form.plantingDate}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-type="date"
-
-name="harvestDate"
-
-value={form.harvestDate}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-type="number"
-
-name="seedQuantity"
-
-placeholder="كمية البذور"
-
-value={form.seedQuantity}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-type="number"
-
-name="expectedProduction"
-
-placeholder="الإنتاج المتوقع"
-
-value={form.expectedProduction}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<input
-
-name="status"
-
-placeholder="حالة المحصول"
-
-value={form.status}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<textarea
-
-name="notes"
-
-placeholder="ملاحظات"
-
-value={form.notes}
-
-onChange={handleChange}
-
-/>
-
-
-
-
-
-<Button onClick={saveCrop}>
-
-{
-
-editId
-
-?
-
-"حفظ التعديل"
-
-:
-
-"إضافة المحصول"
-
-}
-
-</Button>
-
-
-</Card>
-
-
-
-
-
-<Card title="🔎 البحث">
-
-
-<input
-
-placeholder="ابحث عن محصول"
-
-value={search}
-
-onChange={e=>
-
-setSearch(e.target.value)
-
-}
-
-/>
-
-
-</Card>
-
-
-
-
-
-<h2>
-🌾 قائمة المحاصيل
-</h2>
-
-
-
-
-{
-
-filteredCrops.map(crop=>(
-
-
-<Card
-
-key={crop.id}
-
-title={
-`🌿 ${crop.name}`
-}
-
->
-
-
-<p>
-🚜 المزرعة:
-{getFarmName(crop.farmId)}
-</p>
-
-
-<p>
-📍 الحقل:
-{getFieldName(crop.fieldId)}
-</p>
-
-
-<p>
-🌱 الصنف:
-{crop.variety}
-</p>
-
-
-<p>
-📅 الزراعة:
-{crop.plantingDate}
-</p>
-
-
-<p>
-📦 الإنتاج المتوقع:
-{crop.expectedProduction}
-</p>
-
-
-<p>
-📌 الحالة:
-{crop.status}
-</p>
-
-
-<p>
-📝 {crop.notes}
-</p>
-
-
-
-
-
-<Button
-
-onClick={()=>editCrop(crop)}
-
->
-
-تعديل
-
-</Button>
-
-
-
-
-
-<Button
-
-onClick={()=>
-cropActions.delete(crop.id)
-}
-
->
-
-حذف
-
-</Button>
-
-
-
-</Card>
-
-
-))
-
-
-}
-
-
-
-</div>
-
-);
-
+  );
 
 }
