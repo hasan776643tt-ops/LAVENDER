@@ -1,9 +1,3 @@
-تمام. الآن نعدّل useCrops.js فقط، ولا نلمس Crops.jsx بعد.
-الهدف أن يصبح الـHook مسؤولًا عن حالة المحاصيل، مع بقاء كل الوصول للبيانات عبر cropService.
-استبدل محتوى:
-src/hooks/useCrops.js
-بالنسخة التالية:
-الكتابة
 // src/hooks/useCrops.js
 
 import {
@@ -119,4 +113,155 @@ export default function useCrops() {
 
       try {
 
-        const updated
+        const updatedCrop =
+          await cropService.update(
+            id,
+            data
+          );
+
+        setCrops(
+          current =>
+            current.map(
+              crop =>
+                String(crop.id) === String(id)
+                  ? updatedCrop
+                  : crop
+            )
+        );
+
+        return updatedCrop;
+
+      } catch (err) {
+
+        setError(err);
+
+        throw err;
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+    []
+  );
+
+
+  const deleteCrop = useCallback(
+    async (id) => {
+
+      setLoading(true);
+      setError(null);
+
+      try {
+
+        await cropService.delete(id);
+
+        setCrops(
+          current =>
+            current.filter(
+              crop =>
+                String(crop.id) !== String(id)
+            )
+        );
+
+        return true;
+
+      } catch (err) {
+
+        setError(err);
+
+        throw err;
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+    []
+  );
+
+
+  const searchCrops = useCallback(
+    (items = crops, text = "") => {
+
+      const value =
+        String(text)
+          .toLowerCase()
+          .trim();
+
+
+      if (!value) {
+
+        return items;
+
+      }
+
+
+      return items.filter(
+        crop =>
+          String(
+            crop?.name ?? ""
+          )
+            .toLowerCase()
+            .includes(value)
+      );
+
+    },
+    [crops]
+  );
+
+
+  const getStatistics = useCallback(
+    (items = crops) => {
+
+      return {
+
+        total:
+          items.length,
+
+        active:
+          items.filter(
+            crop =>
+              crop?.status === "active"
+          ).length,
+
+        archived:
+          items.filter(
+            crop =>
+              crop?.status === "archived"
+          ).length,
+
+      };
+
+    },
+    [crops]
+  );
+
+
+  return {
+
+    crops,
+
+    loading,
+
+    error,
+
+    loadCrops,
+
+    addCrop,
+
+    updateCrop,
+
+    deleteCrop,
+
+    searchCrops,
+
+    getStatistics,
+
+  };
+
+}
