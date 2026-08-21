@@ -1,8 +1,10 @@
 // src/services/logService.js
 
 
-import storageService
-  from "./storageService.js";
+import {
+  storageService
+}
+from "../storage";
 
 
 
@@ -129,6 +131,7 @@ class LogService {
 
   async warning(
     message,
+
     data = {}
   ) {
 
@@ -152,6 +155,7 @@ class LogService {
 
   async error(
     message,
+
     data = {}
   ) {
 
@@ -175,6 +179,7 @@ class LogService {
 
   async debug(
     message,
+
     data = {}
   ) {
 
