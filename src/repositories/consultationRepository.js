@@ -1,6 +1,9 @@
 // src/repositories/consultationRepository.js
 
-import storageService from "../services/storageService.js";
+import {
+  storageService
+}
+from "../storage";
 
 
 class ConsultationRepository {
