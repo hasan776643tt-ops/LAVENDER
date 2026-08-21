@@ -1,8 +1,10 @@
 // src/services/notificationService.js
 
 
-import storageService
-  from "./storageService.js";
+import {
+  storageService
+}
+from "../storage";
 
 
 
