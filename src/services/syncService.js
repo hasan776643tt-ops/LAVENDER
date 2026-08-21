@@ -1,8 +1,10 @@
 // src/services/syncService.js
 
 
-import storageService
-  from "./storageService.js";
+import {
+  storageService
+}
+from "../storage";
 
 
 
