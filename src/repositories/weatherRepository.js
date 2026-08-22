@@ -1,308 +1,285 @@
-// src/repositories/weatherRepository.js
-
-
-import {
-  storageService
-}
-from "../storage";
-
+// src/hooks/useWeather.js
 
 import {
-  createError
+  useState,
+  useCallback
+} from "react";
+
+import weatherService
+  from "../services/weatherService.js";
+
+
+export default function useWeather() {
+
+  const [weather, setWeather] =
+    useState(null);
+
+
+  const [loading, setLoading] =
+    useState(false);
+
+
+  const [error, setError] =
+    useState(null);
+
+
+
+  // =========================
+  // Get Current Weather
+  // =========================
+
+  const getWeather = useCallback(
+
+    async (location) => {
+
+      try {
+
+        setLoading(true);
+
+        setError(null);
+
+
+        const data =
+          await weatherService.getCurrentWeather(
+            location
+          );
+
+
+        setWeather(data);
+
+
+        return data;
+
+
+      } catch (err) {
+
+        setError(err);
+
+
+        throw err;
+
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+
+    []
+
+  );
+
+
+
+  // =========================
+  // Refresh Weather
+  // =========================
+
+  const refreshWeather = useCallback(
+
+    async (location) => {
+
+      try {
+
+        setLoading(true);
+
+        setError(null);
+
+
+        const data =
+          await weatherService.refreshWeather(
+            location
+          );
+
+
+        setWeather(data);
+
+
+        return data;
+
+
+      } catch (err) {
+
+        setError(err);
+
+
+        throw err;
+
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+
+    []
+
+  );
+
+
+
+  // =========================
+  // Forecast
+  // =========================
+
+  const getForecast = useCallback(
+
+    async (location) => {
+
+      try {
+
+        setLoading(true);
+
+        setError(null);
+
+
+        const data =
+          await weatherService.getForecast(
+            location
+          );
+
+
+        return data;
+
+
+      } catch (err) {
+
+        setError(err);
+
+
+        throw err;
+
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+
+    []
+
+  );
+
+
+
+  // =========================
+  // Agricultural Advice
+  // =========================
+
+  const farmAdvice = useCallback(
+
+    () => {
+
+      if (!weather) {
+
+        return null;
+
+      }
+
+
+      const {
+        humidity,
+        rainChance,
+        temperature
+      } = weather;
+
+
+
+      if (
+        humidity != null &&
+        humidity < 30
+      ) {
+
+        return (
+          "💧 الرطوبة منخفضة، يفضل فحص الري."
+        );
+
+      }
+
+
+
+      if (
+        rainChance != null &&
+        rainChance > 70
+      ) {
+
+        return (
+          "🌧️ احتمال أمطار مرتفع، راقب عمليات الري."
+        );
+
+      }
+
+
+
+      if (
+        temperature != null &&
+        temperature >= 35
+      ) {
+
+        return (
+          "⚠️ الحرارة مرتفعة، يفضل زيادة مراقبة الري."
+        );
+
+      }
+
+
+
+      return (
+        "✅ الظروف الجوية مناسبة."
+      );
+
+    },
+
+    [weather]
+
+  );
+
+
+
+  // =========================
+  // Clear Weather
+  // =========================
+
+  const clearWeather = useCallback(
+
+    () => {
+
+      setWeather(null);
+
+      setError(null);
+
+    },
+
+    []
+
+  );
+
+
+
+  return {
+
+    weather,
+
+    loading,
+
+    error,
+
+    getWeather,
+
+    refreshWeather,
+
+    getForecast,
+
+    farmAdvice,
+
+    clearWeather
+
+  };
+
 }
-from "../utils/errorHandler.js";
-
-
-
-class WeatherRepository {
-
-
-  constructor() {
-
-    this.key =
-      "weather";
-
-  }
-
-
-
-
-
-  async getCurrentWeather(location) {
-
-
-    if (!location) {
-
-
-      throw createError(
-
-        "Weather location is required",
-
-        "WEATHER_LOCATION_REQUIRED"
-
-      );
-
-
-    }
-
-
-
-    const weather =
-
-      await storageService.load(
-
-        this.key,
-
-        []
-
-      );
-
-
-
-    return (
-
-      weather.find(
-
-        item =>
-
-          item.location === location
-
-      )
-
-      ??
-
-      null
-
-    );
-
-
-  }
-
-
-
-
-
-  async saveWeather(data) {
-
-
-    if (
-
-      !data ||
-
-      !data.location
-
-    ) {
-
-
-      throw createError(
-
-        "Weather data with location is required",
-
-        "WEATHER_DATA_REQUIRED"
-
-      );
-
-
-    }
-
-
-
-    const weather =
-
-      await storageService.load(
-
-        this.key,
-
-        []
-
-      );
-
-
-
-    const filtered =
-
-      weather.filter(
-
-        item =>
-
-          item.location !== data.location
-
-      );
-
-
-
-    const weatherItem = {
-
-
-      id:
-
-        data.id ??
-
-        crypto.randomUUID(),
-
-
-      ...data,
-
-
-      updatedAt:
-
-        new Date().toISOString()
-
-
-    };
-
-
-
-    filtered.push(
-
-      weatherItem
-
-    );
-
-
-
-    await storageService.save(
-
-      this.key,
-
-      filtered
-
-    );
-
-
-
-    return weatherItem;
-
-
-  }
-
-
-
-
-
-  async deleteWeather(location) {
-
-
-    if (!location) {
-
-
-      return false;
-
-
-    }
-
-
-
-    const weather =
-
-      await storageService.load(
-
-        this.key,
-
-        []
-
-      );
-
-
-
-    const filtered =
-
-      weather.filter(
-
-        item =>
-
-          item.location !== location
-
-      );
-
-
-
-    const deleted =
-
-      filtered.length !== weather.length;
-
-
-
-    if (deleted) {
-
-
-      await storageService.save(
-
-        this.key,
-
-        filtered
-
-      );
-
-
-    }
-
-
-
-    return deleted;
-
-
-  }
-
-
-
-
-
-  async exists(location) {
-
-
-    return Boolean(
-
-      await this.getCurrentWeather(
-
-        location
-
-      )
-
-    );
-
-
-  }
-
-
-
-
-
-  async count() {
-
-
-    const weather =
-
-      await storageService.load(
-
-        this.key,
-
-        []
-
-      );
-
-
-
-    return weather.length;
-
-
-  }
-
-
-}
-
-
-
-
-
-const weatherRepository =
-
-  new WeatherRepository();
-
-
-
-export default Object.freeze(
-
-  weatherRepository
-
-);
