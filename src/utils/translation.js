@@ -100,7 +100,28 @@ const translations = Object.freeze({
       liter: "لتر",
       cubic_meter: "متر مكعب"
     }),
-
+map: Object.freeze({
+  title: "الخريطة",
+  addLocation: "إضافة موقع",
+  selectFarm: "اختر المزرعة",
+  farm: "مزرعة",
+  field: "حقل",
+  waterSource: "مصدر مياه",
+  getGPS: "تحديد الموقع",
+  locating: "جاري تحديد الموقع",
+  latitude: "خط العرض",
+  longitude: "خط الطول",
+  accuracy: "الدقة",
+  meters: "متر",
+  locationTime: "وقت التحديد",
+  notes: "ملاحظات",
+  notesPlaceholder: "اكتب ملاحظات الموقع",
+  save: "حفظ الموقع",
+  savedLocations: "المواقع المحفوظة",
+  type: "النوع",
+  openGoogleMaps: "فتح في خرائط Google",
+  delete: "حذف"
+}),
     footer: Object.freeze({
       description: "نظام إدارة المزارع الذكية",
       management:
