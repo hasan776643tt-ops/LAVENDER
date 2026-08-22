@@ -5,19 +5,15 @@ import {
   useState
 } from "react";
 
-
 import mapService
   from "../services/mapService.js";
-
 
 import farmService
   from "../services/farmService.js";
 
-
 import {
   translate
 } from "../utils/translation";
-
 
 import {
   useSettings
@@ -26,10 +22,21 @@ import {
 
 export default function useMap() {
 
+  // =========================================================
+  // Settings / Language
+  // =========================================================
 
-  const { language } =
-    useSettings();
+  const {
+    settings
+  } = useSettings();
 
+  const language =
+    settings?.language || "ar";
+
+
+  // =========================================================
+  // Translation
+  // =========================================================
 
   const t = (key) =>
     translate(
@@ -37,6 +44,45 @@ export default function useMap() {
       language
     );
 
+
+  // =========================================================
+  // State
+  // =========================================================
+
+  const [farms, setFarms] =
+    useState([]);
+
+  const [locations, setLocations] =
+    useState([]);
+
+  const [farmId, setFarmId] =
+    useState("");
+
+  const [locationType, setLocationType] =
+    useState("farm");
+
+  const [latitude, setLatitude] =
+    useState("");
+
+  const [longitude, setLongitude] =
+    useState("");
+
+  const [accuracy, setAccuracy] =
+    useState("");
+
+  const [locationTime, setLocationTime] =
+    useState("");
+
+  const [notes, setNotes] =
+    useState("");
+
+  const [loading, setLoading] =
+    useState(false);
+
+
+  // =========================================================
+  // Error Translation
+  // =========================================================
 
   const getMapErrorMessage =
     (error) => {
@@ -50,23 +96,17 @@ export default function useMap() {
 
         case "MAP_FARM_REQUIRED":
 
-          return t(
-            "selectFarmAndLocation"
-          );
+          return t("farmRequired");
 
 
         case "MAP_COORDINATES_REQUIRED":
 
-          return t(
-            "selectFarmAndLocation"
-          );
+          return t("coordinatesRequired");
 
 
         case "MAP_ID_REQUIRED":
 
-          return t(
-            "locationNotFound"
-          );
+          return t("deleteError");
 
 
         default:
@@ -78,45 +118,9 @@ export default function useMap() {
     };
 
 
-  const [farms, setFarms] =
-    useState([]);
-
-
-  const [locations, setLocations] =
-    useState([]);
-
-
-  const [farmId, setFarmId] =
-    useState("");
-
-
-  const [locationType, setLocationType] =
-    useState("farm");
-
-
-  const [latitude, setLatitude] =
-    useState("");
-
-
-  const [longitude, setLongitude] =
-    useState("");
-
-
-  const [accuracy, setAccuracy] =
-    useState("");
-
-
-  const [locationTime, setLocationTime] =
-    useState("");
-
-
-  const [notes, setNotes] =
-    useState("");
-
-
-  const [loading, setLoading] =
-    useState(false);
-
+  // =========================================================
+  // Load Farms + Saved Locations
+  // =========================================================
 
   useEffect(() => {
 
@@ -140,9 +144,7 @@ export default function useMap() {
 
 
         if (!mounted) {
-
           return;
-
         }
 
 
@@ -170,6 +172,15 @@ export default function useMap() {
           error
         );
 
+
+        if (mounted) {
+
+          setFarms([]);
+
+          setLocations([]);
+
+        }
+
       }
 
     };
@@ -187,12 +198,16 @@ export default function useMap() {
   }, []);
 
 
+  // =========================================================
+  // Get Current GPS Location
+  // =========================================================
+
   const getCurrentLocation = () => {
 
     if (!navigator.geolocation) {
 
       alert(
-        t("gpsNotSupported")
+        t("locationError")
       );
 
       return;
@@ -207,22 +222,25 @@ export default function useMap() {
 
       (position) => {
 
+        const {
+          latitude: currentLatitude,
+          longitude: currentLongitude,
+          accuracy: currentAccuracy
+        } = position.coords;
+
+
         setLatitude(
-          position.coords.latitude.toFixed(6)
+          currentLatitude.toFixed(6)
         );
 
 
         setLongitude(
-          position.coords.longitude.toFixed(6)
+          currentLongitude.toFixed(6)
         );
 
 
         setAccuracy(
-
-          Math.round(
-            position.coords.accuracy
-          )
-
+          Math.round(currentAccuracy)
         );
 
 
@@ -243,14 +261,61 @@ export default function useMap() {
 
         setLoading(false);
 
+
+        alert(
+          t("locationSuccess")
+        );
+
       },
 
 
-      () => {
+      (error) => {
 
-        alert(
-          t("allowLocation")
+        console.error(
+          "GPS error:",
+          error
         );
+
+
+        let message =
+          t("locationError");
+
+
+        switch (error?.code) {
+
+          case 1:
+
+            message =
+              t("permissionDenied");
+
+            break;
+
+
+          case 2:
+
+            message =
+              t("positionUnavailable");
+
+            break;
+
+
+          case 3:
+
+            message =
+              t("locationTimeout");
+
+            break;
+
+
+          default:
+
+            message =
+              t("locationError");
+
+        }
+
+
+        alert(message);
 
 
         setLoading(false);
@@ -273,16 +338,30 @@ export default function useMap() {
   };
 
 
+  // =========================================================
+  // Add Location
+  // =========================================================
+
   const addLocation = async () => {
 
+    if (!farmId) {
+
+      alert(
+        t("farmRequired")
+      );
+
+      return;
+
+    }
+
+
     if (
-      !farmId ||
       !latitude ||
       !longitude
     ) {
 
       alert(
-        t("selectFarmAndLocation")
+        t("coordinatesRequired")
       );
 
       return;
@@ -306,21 +385,27 @@ export default function useMap() {
 
       farmName:
         farm?.name ||
-        t("unknownFarm"),
+        t("farm"),
+
 
       type:
         locationType,
+
 
       latitude,
 
       longitude,
 
+
       accuracy,
+
 
       notes,
 
+
       createdAt:
         locationTime,
+
 
       status:
         "active"
@@ -339,16 +424,24 @@ export default function useMap() {
         );
 
 
-      setLocations(
-        (current) => [
+      if (newLocation) {
 
-          ...current,
+        setLocations(
+          (current) => [
 
-          newLocation
+            ...current,
 
-        ]
-      );
+            newLocation
 
+          ]
+        );
+
+      }
+
+
+      // =====================================================
+      // Reset Form
+      // =====================================================
 
       setFarmId("");
 
@@ -382,7 +475,6 @@ export default function useMap() {
         getMapErrorMessage(error)
       );
 
-
     } finally {
 
       setLoading(false);
@@ -392,8 +484,23 @@ export default function useMap() {
   };
 
 
+  // =========================================================
+  // Delete Location
+  // =========================================================
+
   const deleteLocation =
     async (id) => {
+
+      if (!id) {
+
+        alert(
+          t("deleteError")
+        );
+
+        return;
+
+      }
+
 
       try {
 
@@ -409,7 +516,7 @@ export default function useMap() {
         if (!deleted) {
 
           alert(
-            t("locationNotFound")
+            t("deleteError")
           );
 
           return;
@@ -428,6 +535,12 @@ export default function useMap() {
                 String(id)
 
             )
+
+        );
+
+
+        alert(
+          t("deleteSuccess")
         );
 
 
@@ -443,7 +556,6 @@ export default function useMap() {
           getMapErrorMessage(error)
         );
 
-
       } finally {
 
         setLoading(false);
@@ -453,6 +565,10 @@ export default function useMap() {
     };
 
 
+  // =========================================================
+  // Return
+  // =========================================================
+
   return {
 
     farms,
@@ -461,32 +577,28 @@ export default function useMap() {
 
 
     farmId,
-
     setFarmId,
 
 
     locationType,
-
     setLocationType,
 
 
     latitude,
-
     setLatitude,
 
 
     longitude,
-
     setLongitude,
 
 
     accuracy,
 
+
     locationTime,
 
 
     notes,
-
     setNotes,
 
 
