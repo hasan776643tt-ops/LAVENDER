@@ -1,285 +1,280 @@
-// src/hooks/useWeather.js
+// src/repositories/weatherRepository.js
 
 import {
-  useState,
-  useCallback
-} from "react";
+  storageService
+} from "../storage";
 
-import weatherService
-  from "../services/weatherService.js";
-
-
-export default function useWeather() {
-
-  const [weather, setWeather] =
-    useState(null);
+import {
+  createError
+} from "../utils/errorHandler.js";
 
 
-  const [loading, setLoading] =
-    useState(false);
+class WeatherRepository {
 
+  constructor() {
 
-  const [error, setError] =
-    useState(null);
+    this.key =
+      "weather";
 
+  }
 
 
   // =========================
   // Get Current Weather
   // =========================
 
-  const getWeather = useCallback(
+  async getCurrentWeather(location) {
 
-    async (location) => {
+    if (!location) {
 
-      try {
+      throw createError(
 
-        setLoading(true);
+        "Weather location is required",
 
-        setError(null);
+        "WEATHER_LOCATION_REQUIRED"
 
-
-        const data =
-          await weatherService.getCurrentWeather(
-            location
-          );
-
-
-        setWeather(data);
-
-
-        return data;
-
-
-      } catch (err) {
-
-        setError(err);
-
-
-        throw err;
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-
-    []
-
-  );
-
-
-
-  // =========================
-  // Refresh Weather
-  // =========================
-
-  const refreshWeather = useCallback(
-
-    async (location) => {
-
-      try {
-
-        setLoading(true);
-
-        setError(null);
-
-
-        const data =
-          await weatherService.refreshWeather(
-            location
-          );
-
-
-        setWeather(data);
-
-
-        return data;
-
-
-      } catch (err) {
-
-        setError(err);
-
-
-        throw err;
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-
-    []
-
-  );
-
-
-
-  // =========================
-  // Forecast
-  // =========================
-
-  const getForecast = useCallback(
-
-    async (location) => {
-
-      try {
-
-        setLoading(true);
-
-        setError(null);
-
-
-        const data =
-          await weatherService.getForecast(
-            location
-          );
-
-
-        return data;
-
-
-      } catch (err) {
-
-        setError(err);
-
-
-        throw err;
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-
-    []
-
-  );
-
-
-
-  // =========================
-  // Agricultural Advice
-  // =========================
-
-  const farmAdvice = useCallback(
-
-    () => {
-
-      if (!weather) {
-
-        return null;
-
-      }
-
-
-      const {
-        humidity,
-        rainChance,
-        temperature
-      } = weather;
-
-
-
-      if (
-        humidity != null &&
-        humidity < 30
-      ) {
-
-        return (
-          "💧 الرطوبة منخفضة، يفضل فحص الري."
-        );
-
-      }
-
-
-
-      if (
-        rainChance != null &&
-        rainChance > 70
-      ) {
-
-        return (
-          "🌧️ احتمال أمطار مرتفع، راقب عمليات الري."
-        );
-
-      }
-
-
-
-      if (
-        temperature != null &&
-        temperature >= 35
-      ) {
-
-        return (
-          "⚠️ الحرارة مرتفعة، يفضل زيادة مراقبة الري."
-        );
-
-      }
-
-
-
-      return (
-        "✅ الظروف الجوية مناسبة."
       );
 
-    },
+    }
 
-    [weather]
 
-  );
+    const weather =
 
+      await storageService.load(
+
+        this.key,
+
+        []
+
+      );
+
+
+    const key =
+
+      `${location.latitude},${location.longitude}`;
+
+
+    return (
+
+      weather.find(
+
+        item =>
+
+          item.location === key
+
+      )
+
+      ??
+
+      null
+
+    );
+
+  }
 
 
   // =========================
-  // Clear Weather
+  // Save Weather
   // =========================
 
-  const clearWeather = useCallback(
+  async saveWeather(data) {
 
-    () => {
+    if (
 
-      setWeather(null);
+      !data ||
 
-      setError(null);
+      !data.location
 
-    },
+    ) {
 
-    []
+      throw createError(
 
-  );
+        "Weather data with location is required",
+
+        "WEATHER_DATA_REQUIRED"
+
+      );
+
+    }
 
 
+    const weather =
 
-  return {
+      await storageService.load(
 
-    weather,
+        this.key,
 
-    loading,
+        []
 
-    error,
+      );
 
-    getWeather,
 
-    refreshWeather,
+    const filtered =
 
-    getForecast,
+      weather.filter(
 
-    farmAdvice,
+        item =>
 
-    clearWeather
+          item.location !== data.location
 
-  };
+      );
+
+
+    const weatherItem = {
+
+      id:
+
+        data.id ??
+
+        crypto.randomUUID(),
+
+      ...data,
+
+      updatedAt:
+
+        new Date().toISOString()
+
+    };
+
+
+    filtered.push(
+
+      weatherItem
+
+    );
+
+
+    await storageService.save(
+
+      this.key,
+
+      filtered
+
+    );
+
+
+    return weatherItem;
+
+  }
+
+
+  // =========================
+  // Delete Weather
+  // =========================
+
+  async deleteWeather(location) {
+
+    if (!location) {
+
+      return false;
+
+    }
+
+
+    const key =
+
+      typeof location === "object"
+
+        ? `${location.latitude},${location.longitude}`
+
+        : location;
+
+
+    const weather =
+
+      await storageService.load(
+
+        this.key,
+
+        []
+
+      );
+
+
+    const filtered =
+
+      weather.filter(
+
+        item =>
+
+          item.location !== key
+
+      );
+
+
+    const deleted =
+
+      filtered.length !== weather.length;
+
+
+    if (deleted) {
+
+      await storageService.save(
+
+        this.key,
+
+        filtered
+
+      );
+
+    }
+
+
+    return deleted;
+
+  }
+
+
+  // =========================
+  // Exists
+  // =========================
+
+  async exists(location) {
+
+    return Boolean(
+
+      await this.getCurrentWeather(
+
+        location
+
+      )
+
+    );
+
+  }
+
+
+  // =========================
+  // Count
+  // =========================
+
+  async count() {
+
+    const weather =
+
+      await storageService.load(
+
+        this.key,
+
+        []
+
+      );
+
+
+    return weather.length;
+
+  }
 
 }
+
+
+const weatherRepository =
+
+  new WeatherRepository();
+
+
+export default Object.freeze(
+
+  weatherRepository
+
+);
