@@ -48,7 +48,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "farms",
@@ -62,7 +61,6 @@ const menuConfig = Object.freeze([
     module: "farms"
 
   }),
-
 
 
   createMenuItem({
@@ -80,7 +78,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "crops",
@@ -94,7 +91,6 @@ const menuConfig = Object.freeze([
     module: "crops"
 
   }),
-
 
 
   createMenuItem({
@@ -112,7 +108,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "fertilizers",
@@ -126,7 +121,6 @@ const menuConfig = Object.freeze([
     module: "fertilizers"
 
   }),
-
 
 
   createMenuItem({
@@ -144,7 +138,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "diseases",
@@ -158,7 +151,6 @@ const menuConfig = Object.freeze([
     module: "diseases"
 
   }),
-
 
 
   createMenuItem({
@@ -176,7 +168,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "map",
@@ -190,7 +181,6 @@ const menuConfig = Object.freeze([
     module: "map"
 
   }),
-
 
 
   createMenuItem({
@@ -208,7 +198,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "engineer",
@@ -222,7 +211,6 @@ const menuConfig = Object.freeze([
     module: "engineer"
 
   }),
-
 
 
   createMenuItem({
@@ -240,7 +228,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "harvest",
@@ -254,7 +241,6 @@ const menuConfig = Object.freeze([
     module: "harvest"
 
   }),
-
 
 
   createMenuItem({
@@ -272,7 +258,6 @@ const menuConfig = Object.freeze([
   }),
 
 
-
   createMenuItem({
 
     id: "expenses",
@@ -287,6 +272,20 @@ const menuConfig = Object.freeze([
 
   }),
 
+
+  createMenuItem({
+
+    id: "users",
+
+    titleKey: "menu.users",
+
+    path: "/users",
+
+    icon: "users",
+
+    module: "users"
+
+  }),
 
 
   createMenuItem({
@@ -305,7 +304,6 @@ const menuConfig = Object.freeze([
 
 
 ]);
-
 
 
 export default menuConfig;
