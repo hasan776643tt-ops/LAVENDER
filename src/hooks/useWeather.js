@@ -1,33 +1,24 @@
 // src/hooks/useWeather.js
 
-
 import {
   useState,
-  useCallback
+  useCallback,
 } from "react";
 
-
 import weatherService
-from "../services/weatherService.js";
-
+  from "../services/weatherService.js";
 
 
 export default function useWeather() {
 
-
   const [weather, setWeather] =
     useState(null);
-
-
 
   const [loading, setLoading] =
     useState(false);
 
-
-
   const [error, setError] =
     useState(null);
-
 
 
   const getWeather = useCallback(
@@ -37,52 +28,44 @@ export default function useWeather() {
       longitude
     ) => {
 
-
       try {
-
 
         setLoading(true);
 
         setError(null);
 
 
-
         const data =
-          await weatherService.getWeather(
-            latitude,
-            longitude
-          );
+          await weatherService.getCurrentWeather({
 
+            latitude,
+
+            longitude,
+
+          });
 
 
         setWeather(data);
 
 
-
         return data;
-
 
 
       } catch (err) {
 
-
         setError(
-          err.message
+          err?.message ||
+          "حدث خطأ أثناء جلب بيانات الطقس."
         );
-
 
         throw err;
 
 
-
       } finally {
-
 
         setLoading(false);
 
-
       }
-
 
     },
 
@@ -91,11 +74,9 @@ export default function useWeather() {
   );
 
 
-
   const farmAdvice = useCallback(
 
     () => {
-
 
       if (!weather) {
 
@@ -104,51 +85,54 @@ export default function useWeather() {
       }
 
 
-
       const {
-
+        temperature,
         humidity,
-
-        rainChance
-
+        rainChance,
       } = weather;
 
 
+      if (
+        temperature != null &&
+        temperature >= 35
+      ) {
+
+        return "⚠️ الحرارة مرتفعة، يفضل زيادة مراقبة الري.";
+
+      }
+
 
       if (
-
-        humidity !== null &&
-
+        humidity != null &&
         humidity < 30
-
       ) {
 
-
-        return "الرطوبة منخفضة، يفضل فحص الري";
-
+        return "💧 الرطوبة منخفضة، يفضل فحص الري.";
 
       }
-
 
 
       if (
-
-        rainChance !== null &&
-
+        rainChance != null &&
         rainChance > 70
-
       ) {
 
-
-        return "احتمال أمطار مرتفع، راقب عمليات الري";
-
+        return "🌧️ احتمال الأمطار مرتفع، راقب عمليات الري.";
 
       }
 
 
+      if (
+        rainChance != null &&
+        rainChance < 20
+      ) {
 
-      return "الظروف الجوية مناسبة";
+        return "🌱 الأمطار قليلة، راجع خطة الري.";
 
+      }
+
+
+      return "✅ الظروف الجوية مناسبة.";
 
     },
 
@@ -157,9 +141,7 @@ export default function useWeather() {
   );
 
 
-
   return {
-
 
     weather,
 
@@ -169,10 +151,8 @@ export default function useWeather() {
 
     getWeather,
 
-    farmAdvice
-
+    farmAdvice,
 
   };
-
 
 }
