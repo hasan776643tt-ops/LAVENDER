@@ -1,46 +1,58 @@
 import {
   useState,
   useContext,
-  useMemo,
+  useMemo
 } from "react";
 
+
 import {
-  FarmContext,
+  FarmContext
 } from "../context/FarmContext";
+
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+
+
 export default function Harvest() {
+
 
   const {
 
     farms = [],
+
     fields = [],
+
     crops = [],
 
     harvests = [],
 
-    addHarvest,
-    updateHarvest,
-    deleteHarvest,
+    harvestActions
 
   } = useContext(FarmContext);
 
 
 
+  // =========================
+  // Form Model
+  // =========================
+
   const initialForm = {
 
     farmId: "",
+
     fieldId: "",
+
     cropId: "",
 
     quantity: "",
+
     quality: "",
 
     harvestDate: "",
 
-    notes: "",
+    notes: ""
 
   };
 
@@ -49,21 +61,26 @@ export default function Harvest() {
   const [form, setForm] =
     useState(initialForm);
 
+
   const [editId, setEditId] =
     useState(null);
 
 
+
+  // =========================
+  // Update Form
+  // =========================
 
   const updateForm = (
     key,
     value
   ) => {
 
-    setForm((prev) => ({
+    setForm(prev => ({
 
       ...prev,
 
-      [key]: value,
+      [key]: value
 
     }));
 
@@ -71,65 +88,91 @@ export default function Harvest() {
 
 
 
-  const farmFields = useMemo(() => {
+  // =========================
+  // Filter Fields
+  // =========================
 
-    return fields.filter(
+  const farmFields =
+    useMemo(() => {
 
-      (field) =>
+      return fields.filter(
 
-        field.farmId === form.farmId
+        field =>
 
-    );
+          String(field.farmId) ===
+          String(form.farmId)
 
-  }, [
+      );
 
-    fields,
-    form.farmId,
+    }, [
 
-  ]);
+      fields,
 
+      form.farmId
 
-
-  const fieldCrops = useMemo(() => {
-
-    return crops.filter(
-
-      (crop) =>
-
-        crop.fieldId === form.fieldId
-
-    );
-
-  }, [
-
-    crops,
-    form.fieldId,
-
-  ]);
+    ]);
 
 
 
-  const totalHarvest = useMemo(() => {
+  // =========================
+  // Filter Crops
+  // =========================
 
-    return harvests.reduce(
+  const fieldCrops =
+    useMemo(() => {
 
-      (sum, item) =>
+      return crops.filter(
 
-        sum +
+        crop =>
 
-        Number(
-          item.quantity || 0
-        ),
+          String(crop.fieldId) ===
+          String(form.fieldId)
 
-      0
+      );
 
-    );
+    }, [
 
-  }, [harvests]);
+      crops,
+
+      form.fieldId
+
+    ]);
 
 
 
-  const save = () => {
+  // =========================
+  // Statistics
+  // =========================
+
+  const totalHarvest =
+    useMemo(() => {
+
+      return harvests.reduce(
+
+        (sum, item) =>
+
+          sum +
+          Number(
+            item.quantity || 0
+          ),
+
+        0
+
+      );
+
+    }, [
+
+      harvests
+
+    ]);
+
+
+
+  // =========================
+  // Save
+  // =========================
+
+  const save = async () => {
 
     if (
 
@@ -139,32 +182,48 @@ export default function Harvest() {
 
       !form.cropId
 
-    )
+    ) {
 
       return;
 
+    }
+
+
+    const data = {
+
+      ...form,
+
+      quantity:
+        Number(
+          form.quantity || 0
+        )
+
+    };
 
 
     if (editId) {
 
-      updateHarvest(
+      await harvestActions.update(
+
         editId,
-        form
+
+        data
+
       );
 
     } else {
 
-      addHarvest(
-        form
+      await harvestActions.create(
+        data
       );
 
     }
 
 
+    setForm({
+      ...initialForm
+    });
 
-    setForm(
-      initialForm
-    );
 
     setEditId(null);
 
@@ -172,32 +231,37 @@ export default function Harvest() {
 
 
 
+  // =========================
+  // Edit
+  // =========================
+
   const edit = (item) => {
 
     setForm({
 
       farmId:
-        item.farmId,
+        item.farmId || "",
 
       fieldId:
-        item.fieldId,
+        item.fieldId || "",
 
       cropId:
-        item.cropId,
+        item.cropId || "",
 
       quantity:
-        item.quantity,
+        item.quantity ?? "",
 
       quality:
-        item.quality,
+        item.quality || "",
 
       harvestDate:
-        item.harvestDate,
+        item.harvestDate || "",
 
       notes:
-        item.notes,
+        item.notes || ""
 
     });
+
 
     setEditId(
       item.id
@@ -206,6 +270,24 @@ export default function Harvest() {
   };
 
 
+
+  // =========================
+  // Delete
+  // =========================
+
+  const remove = async (id) => {
+
+    await harvestActions.delete(
+      id
+    );
+
+  };
+
+
+
+  // =========================
+  // UI
+  // =========================
 
   return (
 
@@ -218,11 +300,17 @@ export default function Harvest() {
 
 
       <Card
+
         title={
+
           editId
+
             ? "✏️ تعديل الحصاد"
+
             : "➕ إضافة حصاد"
+
         }
+
       >
 
         <select
@@ -254,23 +342,26 @@ export default function Harvest() {
             اختر المزرعة
           </option>
 
+
           {
 
-            farms.map((farm) => (
+            farms.map(
+              farm => (
 
-              <option
+                <option
 
-                key={farm.id}
+                  key={farm.id}
 
-                value={farm.id}
+                  value={farm.id}
 
-              >
+                >
 
-                {farm.name}
+                  {farm.name}
 
-              </option>
+                </option>
 
-            ))
+              )
+            )
 
           }
 
@@ -278,7 +369,8 @@ export default function Harvest() {
 
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
 
@@ -286,14 +378,19 @@ export default function Harvest() {
 
           value={form.fieldId}
 
-          onChange={(e) =>
+          onChange={(e) => {
 
             updateForm(
               "fieldId",
               e.target.value
-            )
+            );
 
-          }
+            updateForm(
+              "cropId",
+              ""
+            );
+
+          }}
 
         >
 
@@ -301,23 +398,26 @@ export default function Harvest() {
             اختر الحقل
           </option>
 
+
           {
 
-            farmFields.map((field) => (
+            farmFields.map(
+              field => (
 
-              <option
+                <option
 
-                key={field.id}
+                  key={field.id}
 
-                value={field.id}
+                  value={field.id}
 
-              >
+                >
 
-                {field.name}
+                  {field.name}
 
-              </option>
+                </option>
 
-            ))
+              )
+            )
 
           }
 
@@ -325,7 +425,8 @@ export default function Harvest() {
 
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
 
@@ -348,23 +449,26 @@ export default function Harvest() {
             اختر المحصول
           </option>
 
+
           {
 
-            fieldCrops.map((crop) => (
+            fieldCrops.map(
+              crop => (
 
-              <option
+                <option
 
-                key={crop.id}
+                  key={crop.id}
 
-                value={crop.id}
+                  value={crop.id}
 
-              >
+                >
 
-                {crop.name}
+                  {crop.name}
 
-              </option>
+                </option>
 
-            ))
+              )
+            )
 
           }
 
@@ -372,7 +476,8 @@ export default function Harvest() {
 
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
 
@@ -397,7 +502,8 @@ export default function Harvest() {
 
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
 
@@ -420,7 +526,8 @@ export default function Harvest() {
 
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
 
@@ -443,7 +550,8 @@ export default function Harvest() {
 
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
 
@@ -466,7 +574,8 @@ export default function Harvest() {
 
 
 
-        <br /><br />
+        <br />
+        <br />
 
 
 
@@ -486,6 +595,8 @@ export default function Harvest() {
 
         </Button>
 
+
+
       </Card>
 
 
@@ -495,17 +606,26 @@ export default function Harvest() {
       >
 
         <p>
+
           عدد عمليات الحصاد:
           {" "}
+
           {harvests.length}
+
         </p>
 
+
         <p>
+
           إجمالي الإنتاج:
           {" "}
+
           {totalHarvest}
+
           {" "}
+
           كغ
+
         </p>
 
       </Card>
@@ -518,71 +638,100 @@ export default function Harvest() {
 
         {
 
-          harvests.map((item) => (
+          harvests.map(
+            item => (
 
-            <Card
+              <Card
 
-              key={item.id}
+                key={item.id}
 
-              title="عملية حصاد"
+                title="عملية حصاد"
 
-            >
-
-              <p>
-                🚜 الكمية:
-                {" "}
-                {item.quantity}
-                {" "}
-                كغ
-              </p>
-
-              <p>
-                🌾 الجودة:
-                {" "}
-                {item.quality}
-              </p>
-
-              <p>
-                📅 التاريخ:
-                {" "}
-                {item.harvestDate}
-              </p>
-
-              <p>
-                📝
-                {" "}
-                {item.notes}
-              </p>
-
-
-
-              <Button
-                onClick={() =>
-                  edit(item)
-                }
               >
-                تعديل
-              </Button>
+
+                <p>
+
+                  🚜 الكمية:
+                  {" "}
+
+                  {item.quantity}
+
+                  {" "}
+
+                  كغ
+
+                </p>
+
+
+                <p>
+
+                  🌾 الجودة:
+                  {" "}
+
+                  {item.quality}
+
+                </p>
+
+
+                <p>
+
+                  📅 التاريخ:
+                  {" "}
+
+                  {item.harvestDate}
+
+                </p>
+
+
+                <p>
+
+                  📝
+                  {" "}
+
+                  {item.notes}
+
+                </p>
 
 
 
-              <Button
-                onClick={() =>
-                  deleteHarvest(
-                    item.id
-                  )
-                }
-              >
-                حذف
-              </Button>
+                <Button
 
-            </Card>
+                  onClick={() =>
+                    edit(item)
+                  }
 
-          ))
+                >
+
+                  تعديل
+
+                </Button>
+
+
+
+                <Button
+
+                  onClick={() =>
+                    remove(item.id)
+                  }
+
+                >
+
+                  حذف
+
+                </Button>
+
+
+
+              </Card>
+
+            )
+          )
 
         }
 
       </Card>
+
+
 
     </div>
 
