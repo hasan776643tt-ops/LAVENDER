@@ -25,6 +25,7 @@ const translations = Object.freeze({
       harvest: "الحصاد",
       inventory: "المخزون",
       expenses: "المصروفات",
+      users: "المستخدمون",
       settings: "الإعدادات"
     }),
 
@@ -133,6 +134,7 @@ const translations = Object.freeze({
       harvest: "Harvest",
       inventory: "Inventory",
       expenses: "Expenses",
+      users: "Users",
       settings: "Settings"
     }),
 
@@ -244,6 +246,7 @@ const translations = Object.freeze({
       harvest: "Hasat",
       inventory: "Stok",
       expenses: "Giderler",
+      users: "Kullanıcılar",
       settings: "Ayarlar"
     }),
 
@@ -339,12 +342,16 @@ const translations = Object.freeze({
 // Nested Translation
 // =========================================================
 
-const getNestedValue = (source, key) => {
+const getNestedValue = (
+  source,
+  key
+) => {
 
   return key
     .split(".")
     .reduce(
-      (value, part) => value?.[part],
+      (value, part) =>
+        value?.[part],
       source
     );
 
