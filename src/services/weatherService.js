@@ -1,19 +1,14 @@
 // src/services/weatherService.js
 
 import weatherRepository
-from "../repositories/weatherRepository.js";
-
+  from "../repositories/weatherRepository.js";
 
 import {
   createError
-}
-from "../utils/errorHandler.js";
-
-
+} from "../utils/errorHandler.js";
 
 
 class WeatherService {
-
 
 
   constructor() {
@@ -24,77 +19,102 @@ class WeatherService {
   }
 
 
-
-
+  // =========================
+  // Get Current Weather
+  // =========================
 
   async getCurrentWeather(location) {
-
 
     this.validateLocation(
       location
     );
-
 
 
     return this.repository.getCurrentWeather(
       location
     );
 
-
   }
 
 
-
-
+  // =========================
+  // Refresh Weather
+  // =========================
 
   async refreshWeather(location) {
-
 
     this.validateLocation(
       location
     );
 
+
+    if (
+      typeof this.repository.refreshWeather !==
+      "function"
+    ) {
+
+      throw createError(
+
+        "Weather refresh is not available",
+
+        "WEATHER_REFRESH_NOT_AVAILABLE"
+
+      );
+
+    }
 
 
     return this.repository.refreshWeather(
       location
     );
 
-
   }
 
 
-
-
+  // =========================
+  // Forecast
+  // =========================
 
   async getForecast(location) {
-
 
     this.validateLocation(
       location
     );
 
 
+    if (
+      typeof this.repository.getForecast !==
+      "function"
+    ) {
+
+      throw createError(
+
+        "Weather forecast is not available",
+
+        "WEATHER_FORECAST_NOT_AVAILABLE"
+
+      );
+
+    }
+
 
     return this.repository.getForecast(
       location
     );
 
-
   }
 
 
-
-
+  // =========================
+  // Validate Location
+  // =========================
 
   validateLocation(location) {
-
 
     if (
       !location ||
       typeof location !== "object"
     ) {
-
 
       throw createError(
 
@@ -104,9 +124,7 @@ class WeatherService {
 
       );
 
-
     }
-
 
 
     const {
@@ -115,12 +133,10 @@ class WeatherService {
     } = location;
 
 
-
     if (
       latitude == null ||
       longitude == null
     ) {
-
 
       throw createError(
 
@@ -130,18 +146,13 @@ class WeatherService {
 
       );
 
-
     }
-
-
-
 
 
     if (
       Number(latitude) < -90 ||
       Number(latitude) > 90
     ) {
-
 
       throw createError(
 
@@ -151,18 +162,13 @@ class WeatherService {
 
       );
 
-
     }
-
-
-
 
 
     if (
       Number(longitude) < -180 ||
       Number(longitude) > 180
     ) {
-
 
       throw createError(
 
@@ -172,22 +178,14 @@ class WeatherService {
 
       );
 
-
     }
-
 
 
     return true;
 
-
   }
 
-
-
 }
-
-
-
 
 
 export default Object.freeze(
