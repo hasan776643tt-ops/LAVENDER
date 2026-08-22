@@ -1,3 +1,5 @@
+  // src/pages/Expenses.jsx
+
 import {
   useContext,
   useMemo,
@@ -15,992 +17,939 @@ import Button from "../components/Button";
 
 
 
-export default function Expenses(){
+export default function Expenses() {
 
 
-const {
+  const {
 
+    farms = [],
 
-farms = [],
+    expenses = [],
 
-expenses = [],
+    expenseActions
 
-addExpense,
+  } = useContext(FarmContext);
 
-updateExpense,
 
-deleteExpense
 
+  // =========================
+  // Form Model
+  // =========================
 
-}=useContext(FarmContext);
+  const emptyForm = {
 
+    farmId: "",
 
+    type: "",
 
+    amount: "",
 
-// =====================
-// Form Model
-// =====================
+    currency: "ل.س",
 
+    paymentMethod: "نقدي",
 
-const emptyForm = {
+    supplier: "",
 
+    invoice: "",
 
-farmId:"",
+    date: "",
 
-type:"",
+    category: "",
 
-amount:"",
+    status: "paid",
 
-currency:"ل.س",
+    notes: ""
 
-paymentMethod:"نقدي",
+  };
 
-supplier:"",
 
-invoice:"",
 
-date:"",
+  const [form, setForm] =
+    useState(emptyForm);
 
-category:"",
 
-status:"paid",
+  const [editId, setEditId] =
+    useState(null);
 
-notes:""
 
+  const [search, setSearch] =
+    useState("");
 
-};
 
 
+  // =========================
+  // Update Form
+  // =========================
 
+  const updateForm = (
+    key,
+    value
+  ) => {
 
+    setForm(prev => ({
 
-const [form,setForm]=
+      ...prev,
 
-useState(emptyForm);
+      [key]: value
 
+    }));
 
+  };
 
-const [editId,setEditId]=
 
-useState(null);
 
+  // =========================
+  // Clear
+  // =========================
 
+  const clearForm = () => {
 
-const [search,setSearch]=
+    setForm({
+      ...emptyForm
+    });
 
-useState("");
+    setEditId(null);
 
+  };
 
 
 
+  // =========================
+  // Save
+  // =========================
 
-// =====================
-// Update Form
-// =====================
+  const saveExpense = async () => {
 
+    if (
+      !form.type ||
+      !form.amount
+    ) {
 
-const updateForm=(key,value)=>{
+      return;
 
+    }
 
-setForm(prev=>({
 
-...prev,
+    if (editId) {
 
-[key]:value
+      await expenseActions.update(
 
-}));
+        editId,
 
-};
+        form
 
+      );
 
+    } else {
 
+      await expenseActions.create({
 
+        ...form,
 
-// =====================
-// Clear
-// =====================
+        amount:
+          Number(form.amount),
 
+        createdAt:
+          new Date()
+            .toISOString()
 
-const clearForm=()=>{
+      });
 
+    }
 
-setForm(emptyForm);
 
-setEditId(null);
+    clearForm();
 
+  };
 
-};
 
 
+  // =========================
+  // Edit
+  // =========================
 
+  const editExpense = (item) => {
 
+    setForm({
 
-// =====================
-// Save
-// =====================
+      farmId:
+        item.farmId || "",
 
+      type:
+        item.type || "",
 
-const saveExpense=()=>{
+      amount:
+        item.amount || "",
 
+      currency:
+        item.currency || "ل.س",
 
-if(
+      paymentMethod:
+        item.paymentMethod || "نقدي",
 
-!form.type ||
+      supplier:
+        item.supplier || "",
 
-!form.amount
+      invoice:
+        item.invoice || "",
 
-)
+      date:
+        item.date || "",
 
-return;
+      category:
+        item.category || "",
 
+      status:
+        item.status || "paid",
 
+      notes:
+        item.notes || ""
 
-if(editId){
+    });
 
 
-updateExpense(
+    setEditId(
+      item.id
+    );
 
-editId,
+  };
 
-form
 
-);
 
+  // =========================
+  // Statistics
+  // =========================
 
-}
+  const totalExpenses =
+    useMemo(() => {
 
-else{
+      return expenses.reduce(
 
+        (sum, item) =>
 
-addExpense({
+          sum +
+          Number(
+            item.amount || 0
+          ),
 
-...form,
+        0
 
-amount:Number(form.amount),
+      );
 
-createdAt:
-new Date()
-.toISOString()
+    }, [
+      expenses
+    ]);
 
-});
 
 
-}
+  const expenseCount =
+    useMemo(() => {
 
+      return expenses.length;
 
+    }, [
+      expenses
+    ]);
 
-clearForm();
 
 
-};
+  // =========================
+  // Search
+  // =========================
 
+  const filteredExpenses =
+    useMemo(() => {
 
+      return expenses.filter(
+        item => {
 
+          return (
 
+            item.type
+              ?.toLowerCase()
+              .includes(
+                search.toLowerCase()
+              )
 
-// =====================
-// Edit
-// =====================
+          );
 
+        }
+      );
 
-const editExpense=(item)=>{
+    }, [
 
+      expenses,
 
-setForm({
+      search
 
-farmId:item.farmId || "",
+    ]);
 
-type:item.type || "",
 
-amount:item.amount || "",
 
-currency:item.currency || "ل.س",
+  // =========================
+  // Smart Analysis
+  // =========================
 
-paymentMethod:item.paymentMethod || "نقدي",
+  const smartAdvice =
+    useMemo(() => {
 
-supplier:item.supplier || "",
+      if (
+        totalExpenses > 1000000
+      ) {
 
-invoice:item.invoice || "",
+        return "⚠️ المصاريف مرتفعة، راجع إدارة التكاليف.";
 
-date:item.date || "",
+      }
 
-category:item.category || "",
 
-status:item.status || "paid",
+      if (
+        expenseCount > 20
+      ) {
 
-notes:item.notes || ""
+        return "📊 يوجد نشاط مالي كبير، يفضل إنشاء تقرير مالي.";
 
+      }
 
-});
 
+      return "✅ الوضع المالي يحتاج متابعة دورية.";
 
-setEditId(item.id);
+    }, [
 
+      totalExpenses,
 
-};
+      expenseCount
 
+    ]);
 
 
-//   // =====================
-// Smart Statistics
-// =====================
 
+  // =========================
+  // UI
+  // =========================
 
-const totalExpenses = useMemo(()=>{
+  return (
 
+    <div>
 
-return expenses.reduce(
+      <h1>
+        💰 الإدارة المالية الذكية
+      </h1>
 
-(sum,item)=>
 
-sum +
 
-Number(item.amount || 0),
+      <Card
 
-0
+        title={
+          editId
+            ? "✏️ تعديل مصروف"
+            : "➕ إضافة مصروف جديد"
+        }
 
-);
+      >
 
+        <select
 
-},[
-expenses
-]);
+          value={form.farmId}
 
+          onChange={(e) =>
 
+            updateForm(
+              "farmId",
+              e.target.value
+            )
 
+          }
 
+        >
 
-const expenseCount = useMemo(()=>{
+          <option value="">
+            اختر المزرعة
+          </option>
 
 
-return expenses.length;
+          {
 
+            farms.map(
+              farm => (
 
-},[
-expenses
-]);
+                <option
 
+                  key={farm.id}
 
+                  value={farm.id}
 
+                >
 
+                  {farm.name}
 
+                </option>
 
-// =====================
-// Search
-// =====================
+              )
+            )
 
+          }
 
-const filteredExpenses = useMemo(()=>{
+        </select>
 
 
-return expenses.filter(item=>{
 
+        <br />
+        <br />
 
-return (
 
-item.type
 
-?.toLowerCase()
+        <input
 
-.includes(
+          placeholder="نوع المصروف"
 
-search.toLowerCase()
+          value={form.type}
 
-)
+          onChange={(e) =>
 
-);
+            updateForm(
+              "type",
+              e.target.value
+            )
 
+          }
 
-});
+        />
 
 
-},[
 
-expenses,
+        <br />
+        <br />
 
-search
 
-]);
 
+        <input
 
+          type="number"
 
+          placeholder="قيمة المصروف"
 
+          value={form.amount}
 
+          onChange={(e) =>
 
+            updateForm(
+              "amount",
+              e.target.value
+            )
 
-// =====================
-// Smart Analysis
-// =====================
+          }
 
+        />
 
-const smartAdvice = useMemo(()=>{
 
 
-if(
-totalExpenses > 1000000
-)
+        <br />
+        <br />
 
-return "⚠️ المصاريف مرتفعة، راجع إدارة التكاليف.";
 
 
+        <select
 
-if(
-expenseCount > 20
-)
+          value={form.currency}
 
-return "📊 يوجد نشاط مالي كبير، يفضل إنشاء تقرير مالي.";
+          onChange={(e) =>
 
+            updateForm(
+              "currency",
+              e.target.value
+            )
 
+          }
 
-return "✅ الوضع المالي يحتاج متابعة دورية.";
+        >
 
+          <option value="ل.س">
+            ل.س
+          </option>
 
+          <option value="$">
+            $
+          </option>
 
-},[
+          <option value="€">
+            €
+          </option>
 
-totalExpenses,
+          <option value="₺">
+            ₺
+          </option>
 
-expenseCount
+        </select>
 
-]);
 
 
+        <br />
+        <br />
 
 
 
+        <select
 
-// =====================
-// UI
-// =====================
+          value={
+            form.paymentMethod
+          }
 
+          onChange={(e) =>
 
-return (
+            updateForm(
+              "paymentMethod",
+              e.target.value
+            )
 
-<div>
+          }
 
+        >
 
-<h1>
-💰 الإدارة المالية الذكية
-</h1>
+          <option value="نقدي">
+            نقدي
+          </option>
 
+          <option value="تحويل بنكي">
+            تحويل بنكي
+          </option>
 
+          <option value="بطاقة">
+            بطاقة
+          </option>
 
+          <option value="محفظة إلكترونية">
+            محفظة إلكترونية
+          </option>
 
-<Card
+        </select>
 
-title={
-editId
-?
-"✏️ تعديل مصروف"
-:
-"➕ إضافة مصروف جديد"
-}
 
->
 
+        <br />
+        <br />
 
 
 
-<select
+        <input
 
-value={form.farmId}
+          placeholder="المورد"
 
-onChange={(e)=>
+          value={form.supplier}
 
-updateForm(
-"farmId",
-e.target.value
-)
+          onChange={(e) =>
 
-}
+            updateForm(
+              "supplier",
+              e.target.value
+            )
 
->
+          }
 
-<option value="">
-اختر المزرعة
-</option>
+        />
 
 
-{
 
-farms.map(farm=>(
+        <br />
+        <br />
 
-<option
 
-key={farm.id}
 
-value={farm.id}
+        <input
 
->
+          placeholder="رقم الفاتورة"
 
-{farm.name}
+          value={form.invoice}
 
-</option>
+          onChange={(e) =>
 
-))
+            updateForm(
+              "invoice",
+              e.target.value
+            )
 
-}
+          }
 
+        />
 
-</select>
 
 
+        <br />
+        <br />
 
 
 
-<input
+        <input
 
-placeholder="نوع المصروف"
+          type="date"
 
-value={form.type}
+          value={form.date}
 
-onChange={(e)=>
+          onChange={(e) =>
 
-updateForm(
-"type",
-e.target.value
-)
+            updateForm(
+              "date",
+              e.target.value
+            )
 
-}
+          }
 
-/>
+        />
 
 
 
+        <br />
+        <br />
 
 
-<input
 
-type="number"
+        <select
 
-placeholder="قيمة المصروف"
+          value={form.category}
 
-value={form.amount}
+          onChange={(e) =>
 
-onChange={(e)=>
+            updateForm(
+              "category",
+              e.target.value
+            )
 
-updateForm(
-"amount",
-e.target.value
-)
+          }
 
-}
+        >
 
-/>
+          <option value="">
+            تصنيف المصروف
+          </option>
 
+          <option value="تشغيل">
+            تشغيل
+          </option>
 
+          <option value="زراعة">
+            زراعة
+          </option>
 
+          <option value="معدات">
+            معدات
+          </option>
 
+          <option value="عمال">
+            عمال
+          </option>
 
-<select
+          <option value="نقل">
+            نقل
+          </option>
 
-value={form.currency}
+          <option value="صيانة">
+            صيانة
+          </option>
 
-onChange={(e)=>
+        </select>
 
-updateForm(
-"currency",
-e.target.value
-)
 
-}
 
->
+        <br />
+        <br />
 
 
-<option>
-ل.س
-</option>
 
+        <select
 
-<option>
-$
-</option>
+          value={form.status}
 
+          onChange={(e) =>
 
-<option>
-€
-</option>
+            updateForm(
+              "status",
+              e.target.value
+            )
 
+          }
 
-<option>
-₺
-</option>
+        >
 
+          <option value="paid">
+            مدفوع
+          </option>
 
-</select>
+          <option value="pending">
+            معلق
+          </option>
 
+          <option value="scheduled">
+            مجدول
+          </option>
 
+        </select>
 
 
 
-<select
+        <br />
+        <br />
 
-value={form.paymentMethod}
 
-onChange={(e)=>
 
-updateForm(
-"paymentMethod",
-e.target.value
-)
+        <textarea
 
-}
+          placeholder="ملاحظات"
 
->
+          value={form.notes}
 
+          onChange={(e) =>
 
-<option>
-نقدي
-</option>
+            updateForm(
+              "notes",
+              e.target.value
+            )
 
+          }
 
-<option>
-تحويل بنكي
-</option>
+        />
 
 
-<option>
-بطاقة
-</option>
 
+        <br />
+        <br />
 
-<option>
-محفظة إلكترونية
-</option>
 
 
-</select>
+        <Button
+          onClick={saveExpense}
+        >
 
+          {
 
+            editId
 
+              ? "حفظ التعديل"
 
+              : "إضافة المصروف"
 
-<input
+          }
 
-placeholder="المورد"
+        </Button>
 
-value={form.supplier}
 
-onChange={(e)=>
 
-updateForm(
-"supplier",
-e.target.value
-)
+      </Card>
 
-}
 
-/>
 
+      <Card
+        title="🤖 التحليل المالي الذكي"
+      >
 
+        <p>
+          {smartAdvice}
+        </p>
 
+      </Card>
 
 
-<input
 
-placeholder="رقم الفاتورة"
+      <Card
+        title="🔎 البحث"
+      >
 
-value={form.invoice}
+        <input
 
-onChange={(e)=>
+          placeholder="ابحث عن مصروف"
 
-updateForm(
-"invoice",
-e.target.value
-)
+          value={search}
 
-}
+          onChange={(e) =>
 
-/>
+            setSearch(
+              e.target.value
+            )
 
+          }
 
+        />
 
+      </Card>
 
-  // =====================
-// Continue UI
-// =====================
 
 
-<input
+      <Card
+        title="📊 الملخص المالي"
+      >
 
-type="date"
+        <h2>
+          {totalExpenses}
+        </h2>
 
-value={form.date}
+        <p>
+          إجمالي المصاريف
+        </p>
 
-onChange={(e)=>
+        <p>
 
-updateForm(
-"date",
-e.target.value
-)
+          عدد العمليات:
+          {" "}
 
-}
+          {expenseCount}
 
-/>
+        </p>
 
+      </Card>
 
 
 
+      <h2>
+        📑 سجل المصاريف
+      </h2>
 
-<select
 
-value={form.category}
 
-onChange={(e)=>
+      {
 
-updateForm(
-"category",
-e.target.value
-)
+        filteredExpenses.map(
+          item => (
 
-}
+            <Card
 
->
+              key={item.id}
 
-<option value="">
-تصنيف المصروف
-</option>
+              title={
+                item.type
+              }
 
+            >
 
-<option>
-تشغيل
-</option>
+              <p>
 
+                💵 القيمة:
+                {" "}
 
-<option>
-زراعة
-</option>
+                {item.amount}
+                {" "}
 
+                {item.currency}
 
-<option>
-معدات
-</option>
+              </p>
 
 
-<option>
-عمال
-</option>
 
+              <p>
 
-<option>
-نقل
-</option>
+                🏦 الدفع:
+                {" "}
 
+                {item.paymentMethod}
 
-<option>
-صيانة
-</option>
+              </p>
 
 
-</select>
 
+              <p>
 
+                🏢 المورد:
+                {" "}
 
+                {item.supplier}
 
+              </p>
 
-<select
 
-value={form.status}
 
-onChange={(e)=>
+              <p>
 
-updateForm(
-"status",
-e.target.value
-)
+                🧾 الفاتورة:
+                {" "}
 
-}
+                {item.invoice}
 
->
+              </p>
 
 
-<option value="paid">
-مدفوع
-</option>
 
+              <p>
 
-<option value="pending">
-معلق
-</option>
+                📂 التصنيف:
+                {" "}
 
+                {item.category}
 
-<option value="scheduled">
-مجدول
-</option>
+              </p>
 
 
-</select>
 
+              <p>
 
+                📅 التاريخ:
+                {" "}
 
+                {item.date}
 
+              </p>
 
-<textarea
 
-placeholder="ملاحظات"
 
-value={form.notes}
+              <p>
 
-onChange={(e)=>
+                🚦 الحالة:
+                {" "}
 
-updateForm(
-"notes",
-e.target.value
-)
+                {item.status}
 
-}
+              </p>
 
-/>
 
 
+              <p>
 
+                📝 الملاحظات:
+                {" "}
 
+                {item.notes}
 
-<Button
+              </p>
 
-onClick={saveExpense}
 
->
 
-{
+              <Button
 
-editId
+                onClick={() =>
+                  editExpense(item)
+                }
 
-?
+              >
 
-"حفظ التعديل"
+                تعديل
 
-:
+              </Button>
 
-"إضافة المصروف"
 
-}
 
-</Button>
+              <Button
 
+                onClick={() =>
+                  expenseActions.delete(
+                    item.id
+                  )
+                }
 
+              >
 
+                حذف
 
-</Card>
+              </Button>
 
 
 
+            </Card>
 
+          )
+        )
 
+      }
 
 
 
+    </div>
 
-<Card title="🤖 التحليل المالي الذكي">
-
-
-<p>
-{smartAdvice}
-</p>
-
-
-</Card>
-
-
-
-
-
-
-
-
-
-<Card title="🔎 البحث">
-
-
-<input
-
-placeholder="ابحث عن مصروف"
-
-value={search}
-
-onChange={(e)=>
-
-setSearch(
-e.target.value
-)
-
-}
-
-/>
-
-
-</Card>
-
-
-
-
-
-
-
-
-
-<Card title="📊 الملخص المالي">
-
-
-<h2>
-{totalExpenses}
-</h2>
-
-
-<p>
-إجمالي المصاريف
-</p>
-
-
-<p>
-عدد العمليات:
-{" "}
-{expenseCount}
-</p>
-
-
-</Card>
-
-
-
-
-
-
-
-
-
-<h2>
-📑 سجل المصاريف
-</h2>
-
-
-
-
-
-{
-
-filteredExpenses.map(item=>(
-
-
-<Card
-
-key={item.id}
-
-title={
-item.type
-}
-
->
-
-
-<p>
-💵 القيمة:
-{" "}
-{item.amount}
-{" "}
-{item.currency}
-</p>
-
-
-
-<p>
-🏦 الدفع:
-{" "}
-{item.paymentMethod}
-</p>
-
-
-
-<p>
-🏢 المورد:
-{" "}
-{item.supplier}
-</p>
-
-
-
-<p>
-🧾 الفاتورة:
-{" "}
-{item.invoice}
-</p>
-
-
-
-<p>
-📂 التصنيف:
-{" "}
-{item.category}
-</p>
-
-
-
-<p>
-📅 التاريخ:
-{" "}
-{item.date}
-</p>
-
-
-
-<p>
-🚦 الحالة:
-{" "}
-{item.status}
-</p>
-
-
-
-<p>
-📝 الملاحظات:
-{" "}
-{item.notes}
-</p>
-
-
-
-
-
-<Button
-
-onClick={()=>editExpense(item)}
-
->
-
-تعديل
-
-</Button>
-
-
-
-
-
-<Button
-
-onClick={()=>deleteExpense(item.id)}
-
->
-
-حذف
-
-</Button>
-
-
-
-</Card>
-
-
-))
-
-
-}
-
-
-
-</div>
-
-);
-
+  );
 
 }
