@@ -1,222 +1,433 @@
-import { useState, useContext } from "react";
-import { FarmContext } from "../context/FarmContext";
+// src/pages/Users.jsx
 
-import Card from "../components/Card";
-import Button from "../components/Button";
+import {
+  useState,
+} from "react";
+
+import useUsers
+  from "../hooks/useUsers.js";
+
+import Card
+  from "../components/Card";
+
+import Button
+  from "../components/Button";
+
 
 export default function Users() {
 
+
   const {
-    users,
-    setUsers,
-  } = useContext(FarmContext);
 
-  const [name, setName] = useState("");
-  const [email, setEmail] = useState("");
-  const [phone, setPhone] = useState("");
-  const [role, setRole] = useState("مزارع");
-  const [status, setStatus] = useState("نشط");
+    users = [],
 
-  const addUser = () => {
+    loading,
 
-    if (!name || !email) return;
+    error,
 
-    const newUser = {
+    createUser,
 
-      id: Date.now(),
+    deleteUser,
 
-      name,
-      email,
-      phone,
-      role,
-      status,
+  } = useUsers();
 
-      createdAt:
-        new Date().toLocaleDateString(),
 
-    };
 
-    setUsers([
-      ...users,
-      newUser,
-    ]);
+  // =========================
+  // Form State
+  // =========================
 
-    setName("");
-    setEmail("");
-    setPhone("");
-    setRole("مزارع");
-    setStatus("نشط");
+  const initialForm = {
+
+    name: "",
+
+    email: "",
+
+    phone: "",
+
+    role: "مزارع",
+
+    status: "نشط",
 
   };
 
-  const deleteUser = (id) => {
 
-    setUsers(
-      users.filter(
-        (user) =>
-          user.id !== id
-      )
+  const [form, setForm] =
+    useState(initialForm);
+
+
+
+  // =========================
+  // Update Form
+  // =========================
+
+  const updateForm = (
+    key,
+    value
+  ) => {
+
+    setForm(prev => ({
+
+      ...prev,
+
+      [key]: value,
+
+    }));
+
+  };
+
+
+
+  // =========================
+  // Create User
+  // =========================
+
+  const addUser = async () => {
+
+    if (
+      !form.name ||
+      !form.email
+    ) {
+
+      return;
+
+    }
+
+
+    await createUser({
+
+      name:
+        form.name,
+
+      email:
+        form.email,
+
+      phone:
+        form.phone,
+
+      role:
+        form.role,
+
+      status:
+        form.status,
+
+    });
+
+
+    setForm({
+      ...initialForm
+    });
+
+  };
+
+
+
+  // =========================
+  // Delete User
+  // =========================
+
+  const removeUser = async (
+    id
+  ) => {
+
+    await deleteUser(
+      id
     );
 
   };
+
+
+
+  // =========================
+  // UI
+  // =========================
 
   return (
 
     <div>
 
+
       <h1>
         👥 إدارة المستخدمين
       </h1>
 
-      <Card title="إضافة مستخدم جديد">
+
+
+      <Card
+        title="إضافة مستخدم جديد"
+      >
+
 
         <input
+
           type="text"
+
           placeholder="الاسم الكامل"
-          value={name}
+
+          value={form.name}
+
           onChange={(e) =>
-            setName(e.target.value)
+            updateForm(
+              "name",
+              e.target.value
+            )
           }
+
         />
 
-        <br /><br />
+
+        <br />
+        <br />
+
 
         <input
+
           type="email"
+
           placeholder="البريد الإلكتروني"
-          value={email}
+
+          value={form.email}
+
           onChange={(e) =>
-            setEmail(e.target.value)
+            updateForm(
+              "email",
+              e.target.value
+            )
           }
+
         />
 
-        <br /><br />
+
+        <br />
+        <br />
+
 
         <input
+
           type="tel"
+
           placeholder="رقم الهاتف"
-          value={phone}
+
+          value={form.phone}
+
           onChange={(e) =>
-            setPhone(e.target.value)
+            updateForm(
+              "phone",
+              e.target.value
+            )
           }
+
         />
 
-        <br /><br />
+
+        <br />
+        <br />
+
 
         <select
-          value={role}
+
+          value={form.role}
+
           onChange={(e) =>
-            setRole(e.target.value)
+            updateForm(
+              "role",
+              e.target.value
+            )
           }
+
         >
 
-          <option>
+          <option value="مزارع">
             مزارع
           </option>
 
-          <option>
+          <option value="مهندس زراعي">
             مهندس زراعي
           </option>
 
-          <option>
+          <option value="مراقب">
             مراقب
           </option>
 
-          <option>
+          <option value="مشرف">
             مشرف
           </option>
 
-          <option>
+          <option value="مدير النظام">
             مدير النظام
           </option>
 
         </select>
 
-        <br /><br />
+
+        <br />
+        <br />
+
 
         <select
-          value={status}
+
+          value={form.status}
+
           onChange={(e) =>
-            setStatus(e.target.value)
+            updateForm(
+              "status",
+              e.target.value
+            )
           }
+
         >
 
-          <option>
+          <option value="نشط">
             نشط
           </option>
 
-          <option>
+          <option value="موقوف">
             موقوف
           </option>
 
-          <option>
+          <option value="بانتظار التفعيل">
             بانتظار التفعيل
           </option>
 
         </select>
 
-        <br /><br />
+
+        <br />
+        <br />
+
 
         <Button
           onClick={addUser}
+          disabled={loading}
         >
-          إضافة مستخدم
+
+          {loading
+            ? "جاري الحفظ..."
+            : "إضافة مستخدم"
+          }
+
         </Button>
 
+
       </Card>
+
+
+
+      {
+        error && (
+
+          <Card
+            title="⚠️ خطأ"
+          >
+
+            <p>
+              {error.message ||
+                "حدث خطأ أثناء معالجة المستخدم."}
+            </p>
+
+          </Card>
+
+        )
+      }
+
+
 
       <h2>
         قائمة المستخدمين
       </h2>
 
-      {users.map((user) => (
 
-        <Card
-          key={user.id}
-          title={user.name}
-        >
+
+      {
+        loading && users.length === 0 ? (
 
           <p>
-            📧 البريد:
-            {" "}
-            {user.email}
+            جاري تحميل المستخدمين...
           </p>
 
-          <p>
-            📱 الهاتف:
-            {" "}
-            {user.phone}
-          </p>
+        ) : (
 
-          <p>
-            🔑 الصلاحية:
-            {" "}
-            {user.role}
-          </p>
+          users.map(
+            user => (
 
-          <p>
-            🟢 الحالة:
-            {" "}
-            {user.status}
-          </p>
+              <Card
 
-          <p>
-            📅 تاريخ الإنشاء:
-            {" "}
-            {user.createdAt}
-          </p>
+                key={user.id}
 
-          <Button
-            onClick={() =>
-              deleteUser(user.id)
-            }
-          >
-            حذف المستخدم
-          </Button>
+                title={user.name}
 
-        </Card>
+              >
 
-      ))}
+                <p>
+
+                  📧 البريد:
+                  {" "}
+                  {user.email}
+
+                </p>
+
+
+                <p>
+
+                  📱 الهاتف:
+                  {" "}
+                  {user.phone}
+
+                </p>
+
+
+                <p>
+
+                  🔑 الصلاحية:
+                  {" "}
+                  {user.role}
+
+                </p>
+
+
+                <p>
+
+                  🟢 الحالة:
+                  {" "}
+                  {user.status}
+
+                </p>
+
+
+                <p>
+
+                  📅 تاريخ الإنشاء:
+                  {" "}
+                  {user.createdAt}
+
+                </p>
+
+
+                <Button
+
+                  onClick={() =>
+                    removeUser(
+                      user.id
+                    )
+                  }
+
+                  disabled={loading}
+
+                >
+
+                  حذف المستخدم
+
+                </Button>
+
+
+              </Card>
+
+            )
+          )
+
+        )
+      }
+
 
     </div>
 
