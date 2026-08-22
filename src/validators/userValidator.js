@@ -1,94 +1,151 @@
 // src/validators/userValidator.js
 
 
+import {
+  createError
+} from "../utils/errorHandler.js";
+
+
+
 class UserValidator {
 
 
-  validate(user) {
+  validateCreate(data) {
+
+    return this.validate(data);
+
+  }
+
+
+
+  validateUpdate(data) {
+
+    return this.validate(
+      data,
+      true
+    );
+
+  }
+
+
+
+  validate(
+    user,
+    isUpdate = false
+  ) {
 
 
     const errors = {};
 
 
 
-    if(!user?.name?.trim()) {
+    if (
+      !isUpdate ||
+      user?.name !== undefined
+    ) {
 
+      if (
+        !user?.name ||
+        !String(user.name).trim()
+      ) {
 
-      errors.name =
-        "User name is required";
-
-
-    }
-
-
-
-
-    if(!user?.email?.trim()) {
-
-
-      errors.email =
-        "User email is required";
-
-
-    } else {
-
-
-      const emailRegex =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-
-
-      if(!emailRegex.test(user.email)) {
-
-
-        errors.email =
-          "User email is invalid";
-
+        errors.name =
+          "User name is required";
 
       }
 
+    }
+
+
+
+    if (
+      !isUpdate ||
+      user?.email !== undefined
+    ) {
+
+      if (
+        !user?.email ||
+        !String(user.email).trim()
+      ) {
+
+        errors.email =
+          "User email is required";
+
+      } else {
+
+        const emailRegex =
+          /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+
+        if (
+          !emailRegex.test(
+            String(user.email).trim()
+          )
+        ) {
+
+          errors.email =
+            "User email is invalid";
+
+        }
+
+      }
 
     }
 
 
 
+    if (
+      !isUpdate ||
+      user?.role !== undefined
+    ) {
 
-    if(!user?.role?.trim()) {
+      if (
+        !user?.role ||
+        !String(user.role).trim()
+      ) {
 
+        errors.role =
+          "User role is required";
 
-      errors.role =
-        "User role is required";
-
+      }
 
     }
 
 
 
+    if (
+      user?.status !== undefined &&
+      !String(user.status).trim()
+    ) {
 
-    if(Object.keys(errors).length){
+      errors.status =
+        "User status is invalid";
+
+    }
 
 
-      throw new Error(
 
-        Object.values(errors).join(", ")
+    if (
+      Object.keys(errors).length > 0
+    ) {
+
+      throw createError(
+
+        Object.values(errors).join(", "),
+
+        "USER_VALIDATION_ERROR"
 
       );
 
-
     }
-
 
 
 
     return true;
 
-
   }
 
-
 }
-
-
 
 
 
