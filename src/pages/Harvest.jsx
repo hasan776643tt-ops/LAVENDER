@@ -1,171 +1,130 @@
+// src/pages/Harvest.jsx
+
 import {
   useState,
   useContext,
-  useMemo
+  useMemo,
 } from "react";
 
-
 import {
-  FarmContext
+  FarmContext,
 } from "../context/FarmContext";
-
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
 
-
 export default function Harvest() {
 
-
   const {
-
     farms = [],
-
     fields = [],
-
     crops = [],
-
     harvests = [],
-
-    harvestActions
-
+    harvestActions,
   } = useContext(FarmContext);
 
 
-
-  // =========================
-  // Form Model
-  // =========================
-
   const initialForm = {
-
     farmId: "",
-
     fieldId: "",
-
     cropId: "",
-
     quantity: "",
-
     quality: "",
-
     harvestDate: "",
-
-    notes: ""
-
+    notes: "",
   };
-
 
 
   const [form, setForm] =
     useState(initialForm);
 
-
   const [editId, setEditId] =
     useState(null);
 
+  const [error, setError] =
+    useState(null);
 
+  const [saving, setSaving] =
+    useState(false);
 
-  // =========================
-  // Update Form
-  // =========================
 
   const updateForm = (
     key,
     value
   ) => {
 
-    setForm(prev => ({
-
+    setForm((prev) => ({
       ...prev,
-
-      [key]: value
-
+      [key]: value,
     }));
 
+    setError(null);
   };
 
 
-
   // =========================
-  // Filter Fields
+  // Fields belonging to farm
   // =========================
 
-  const farmFields =
-    useMemo(() => {
+  const farmFields = useMemo(() => {
 
-      return fields.filter(
+    if (!form.farmId) {
+      return [];
+    }
 
-        field =>
+    return fields.filter(
+      (field) =>
+        String(field.farmId) ===
+        String(form.farmId)
+    );
 
-          String(field.farmId) ===
-          String(form.farmId)
-
-      );
-
-    }, [
-
-      fields,
-
-      form.farmId
-
-    ]);
-
+  }, [
+    fields,
+    form.farmId,
+  ]);
 
 
   // =========================
-  // Filter Crops
+  // Crops belonging to field
   // =========================
 
-  const fieldCrops =
-    useMemo(() => {
+  const fieldCrops = useMemo(() => {
 
-      return crops.filter(
+    if (!form.fieldId) {
+      return [];
+    }
 
-        crop =>
+    return crops.filter(
+      (crop) =>
+        String(crop.fieldId) ===
+        String(form.fieldId)
+    );
 
-          String(crop.fieldId) ===
-          String(form.fieldId)
-
-      );
-
-    }, [
-
-      crops,
-
-      form.fieldId
-
-    ]);
-
+  }, [
+    crops,
+    form.fieldId,
+  ]);
 
 
   // =========================
-  // Statistics
+  // Total Harvest
   // =========================
 
-  const totalHarvest =
-    useMemo(() => {
+  const totalHarvest = useMemo(() => {
 
-      return harvests.reduce(
+    return harvests.reduce(
+      (sum, item) =>
+        sum +
+        Number(
+          item?.quantity || 0
+        ),
+      0
+    );
 
-        (sum, item) =>
-
-          sum +
-          Number(
-            item.quantity || 0
-          ),
-
-        0
-
-      );
-
-    }, [
-
-      harvests
-
-    ]);
-
+  }, [
+    harvests,
+  ]);
 
 
   // =========================
@@ -174,61 +133,137 @@ export default function Harvest() {
 
   const save = async () => {
 
-    if (
+    setError(null);
 
-      !form.farmId ||
 
-      !form.fieldId ||
+    if (!form.farmId) {
 
-      !form.cropId
-
-    ) {
+      setError(
+        "يرجى اختيار المزرعة."
+      );
 
       return;
-
     }
 
 
-    const data = {
+    if (!form.fieldId) {
 
-      ...form,
-
-      quantity:
-        Number(
-          form.quantity || 0
-        )
-
-    };
-
-
-    if (editId) {
-
-      await harvestActions.update(
-
-        editId,
-
-        data
-
+      setError(
+        "يرجى اختيار الحقل."
       );
 
-    } else {
-
-      await harvestActions.create(
-        data
-      );
-
+      return;
     }
 
 
-    setForm({
-      ...initialForm
-    });
+    if (!form.cropId) {
+
+      setError(
+        "يرجى اختيار المحصول."
+      );
+
+      return;
+    }
 
 
-    setEditId(null);
+    if (
+      form.quantity === "" ||
+      Number(form.quantity) <= 0
+    ) {
+
+      setError(
+        "يرجى إدخال كمية حصاد صحيحة."
+      );
+
+      return;
+    }
+
+
+    if (!harvestActions) {
+
+      setError(
+        "تعذر الوصول إلى نظام الحصاد."
+      );
+
+      return;
+    }
+
+
+    try {
+
+      setSaving(true);
+
+
+      const data = {
+
+        farmId:
+          form.farmId,
+
+        fieldId:
+          form.fieldId,
+
+        cropId:
+          form.cropId,
+
+        quantity:
+          Number(form.quantity),
+
+        quality:
+          form.quality.trim(),
+
+        harvestDate:
+          form.harvestDate,
+
+        notes:
+          form.notes.trim(),
+
+      };
+
+
+      if (editId) {
+
+        await harvestActions.update(
+          editId,
+          data
+        );
+
+      } else {
+
+        await harvestActions.create(
+          data
+        );
+
+      }
+
+
+      setForm({
+        ...initialForm,
+      });
+
+      setEditId(null);
+
+
+    } catch (err) {
+
+      console.error(
+        "Harvest save error:",
+        err
+      );
+
+
+      setError(
+        err?.message ||
+        "تعذر حفظ بيانات الحصاد."
+      );
+
+
+    } finally {
+
+      setSaving(false);
+
+    }
 
   };
-
 
 
   // =========================
@@ -237,28 +272,31 @@ export default function Harvest() {
 
   const edit = (item) => {
 
+    setError(null);
+
+
     setForm({
 
       farmId:
-        item.farmId || "",
+        item?.farmId ?? "",
 
       fieldId:
-        item.fieldId || "",
+        item?.fieldId ?? "",
 
       cropId:
-        item.cropId || "",
+        item?.cropId ?? "",
 
       quantity:
-        item.quantity ?? "",
+        item?.quantity ?? "",
 
       quality:
-        item.quality || "",
+        item?.quality ?? "",
 
       harvestDate:
-        item.harvestDate || "",
+        item?.harvestDate ?? "",
 
       notes:
-        item.notes || ""
+        item?.notes ?? "",
 
     });
 
@@ -270,19 +308,33 @@ export default function Harvest() {
   };
 
 
-
   // =========================
   // Delete
   // =========================
 
   const remove = async (id) => {
 
-    await harvestActions.delete(
-      id
-    );
+    try {
+
+      setError(null);
+
+      await harvestActions.delete(id);
+
+    } catch (err) {
+
+      console.error(
+        "Harvest delete error:",
+        err
+      );
+
+      setError(
+        err?.message ||
+        "تعذر حذف عملية الحصاد."
+      );
+
+    }
 
   };
-
 
 
   // =========================
@@ -298,20 +350,34 @@ export default function Harvest() {
       </h1>
 
 
-
       <Card
-
         title={
-
           editId
-
             ? "✏️ تعديل الحصاد"
-
             : "➕ إضافة حصاد"
-
         }
-
       >
+
+        {error && (
+
+          <div
+            style={{
+              marginBottom: "1rem",
+              padding: "0.75rem",
+              borderRadius: "8px",
+            }}
+          >
+
+            ⚠️ {error}
+
+          </div>
+
+        )}
+
+
+        {/* =========================
+            Farm
+        ========================= */}
 
         <select
 
@@ -319,20 +385,22 @@ export default function Harvest() {
 
           onChange={(e) => {
 
-            updateForm(
-              "farmId",
-              e.target.value
-            );
+            const farmId =
+              e.target.value;
 
-            updateForm(
-              "fieldId",
-              ""
-            );
+            setForm((prev) => ({
 
-            updateForm(
-              "cropId",
-              ""
-            );
+              ...prev,
+
+              farmId,
+
+              fieldId: "",
+
+              cropId: "",
+
+            }));
+
+            setError(null);
 
           }}
 
@@ -343,36 +411,40 @@ export default function Harvest() {
           </option>
 
 
-          {
+          {farms.map(
+            (farm) => (
 
-            farms.map(
-              farm => (
+              <option
+                key={farm.id}
+                value={farm.id}
+              >
 
-                <option
+                {farm.name}
 
-                  key={farm.id}
+              </option>
 
-                  value={farm.id}
-
-                >
-
-                  {farm.name}
-
-                </option>
-
-              )
             )
-
-          }
+          )}
 
         </select>
 
 
+        {farms.length === 0 && (
+
+          <p>
+            ⚠️ لا توجد مزارع محفوظة.
+          </p>
+
+        )}
+
 
         <br />
         <br />
 
 
+        {/* =========================
+            Field
+        ========================= */}
 
         <select
 
@@ -380,17 +452,26 @@ export default function Harvest() {
 
           onChange={(e) => {
 
-            updateForm(
-              "fieldId",
-              e.target.value
-            );
+            const fieldId =
+              e.target.value;
 
-            updateForm(
-              "cropId",
-              ""
-            );
+            setForm((prev) => ({
+
+              ...prev,
+
+              fieldId,
+
+              cropId: "",
+
+            }));
+
+            setError(null);
 
           }}
+
+          disabled={
+            !form.farmId
+          }
 
         >
 
@@ -399,48 +480,55 @@ export default function Harvest() {
           </option>
 
 
-          {
+          {farmFields.map(
+            (field) => (
 
-            farmFields.map(
-              field => (
+              <option
+                key={field.id}
+                value={field.id}
+              >
 
-                <option
+                {field.name}
 
-                  key={field.id}
+              </option>
 
-                  value={field.id}
-
-                >
-
-                  {field.name}
-
-                </option>
-
-              )
             )
-
-          }
+          )}
 
         </select>
 
 
+        {form.farmId &&
+          farmFields.length === 0 && (
+
+            <p>
+              ⚠️ لا توجد حقول مرتبطة بهذه المزرعة.
+            </p>
+
+          )}
+
 
         <br />
         <br />
 
 
+        {/* =========================
+            Crop
+        ========================= */}
 
         <select
 
           value={form.cropId}
 
           onChange={(e) =>
-
             updateForm(
               "cropId",
               e.target.value
             )
+          }
 
+          disabled={
+            !form.fieldId
           }
 
         >
@@ -450,288 +538,301 @@ export default function Harvest() {
           </option>
 
 
-          {
+          {fieldCrops.map(
+            (crop) => (
 
-            fieldCrops.map(
-              crop => (
+              <option
+                key={crop.id}
+                value={crop.id}
+              >
 
-                <option
+                {crop.name}
 
-                  key={crop.id}
+              </option>
 
-                  value={crop.id}
-
-                >
-
-                  {crop.name}
-
-                </option>
-
-              )
             )
-
-          }
+          )}
 
         </select>
 
 
+        {form.fieldId &&
+          fieldCrops.length === 0 && (
+
+            <p>
+              ⚠️ لا توجد محاصيل مرتبطة بهذا الحقل.
+            </p>
+
+          )}
+
 
         <br />
         <br />
 
 
+        {/* =========================
+            Quantity
+        ========================= */}
 
         <input
 
           type="number"
 
-          placeholder="كمية الحصاد"
+          min="0"
 
-          value={form.quantity}
+          placeholder="كمية الحصاد بالكيلوغرام"
+
+          value={
+            form.quantity
+          }
 
           onChange={(e) =>
-
             updateForm(
               "quantity",
               e.target.value
             )
-
           }
 
         />
 
 
-
         <br />
         <br />
 
 
+        {/* =========================
+            Quality
+        ========================= */}
 
         <input
 
+          type="text"
+
           placeholder="جودة المحصول"
 
-          value={form.quality}
+          value={
+            form.quality
+          }
 
           onChange={(e) =>
-
             updateForm(
               "quality",
               e.target.value
             )
-
           }
 
         />
 
 
-
         <br />
         <br />
 
 
+        {/* =========================
+            Date
+        ========================= */}
 
         <input
 
           type="date"
 
-          value={form.harvestDate}
+          value={
+            form.harvestDate
+          }
 
           onChange={(e) =>
-
             updateForm(
               "harvestDate",
               e.target.value
             )
-
           }
 
         />
 
 
-
         <br />
         <br />
 
 
+        {/* =========================
+            Notes
+        ========================= */}
 
         <textarea
 
           placeholder="ملاحظات"
 
-          value={form.notes}
+          value={
+            form.notes
+          }
 
           onChange={(e) =>
-
             updateForm(
               "notes",
               e.target.value
             )
-
           }
 
         />
 
 
-
         <br />
         <br />
-
 
 
         <Button
           onClick={save}
+          disabled={saving}
         >
 
-          {
+          {saving
 
-            editId
+            ? "⏳ جاري الحفظ..."
 
-              ? "حفظ التعديل"
-
-              : "إضافة الحصاد"
+            : editId
+              ? "💾 حفظ التعديل"
+              : "➕ إضافة الحصاد"
 
           }
 
         </Button>
 
 
+        {editId && (
+
+          <Button
+
+            onClick={() => {
+
+              setForm({
+                ...initialForm,
+              });
+
+              setEditId(null);
+
+              setError(null);
+
+            }}
+
+          >
+
+            إلغاء التعديل
+
+          </Button>
+
+        )}
 
       </Card>
 
 
+      {/* =========================
+          Statistics
+      ========================= */}
 
       <Card
         title="📊 إحصائيات الحصاد"
       >
 
         <p>
-
           عدد عمليات الحصاد:
           {" "}
-
           {harvests.length}
-
         </p>
 
 
         <p>
-
           إجمالي الإنتاج:
           {" "}
-
           {totalHarvest}
-
           {" "}
-
           كغ
-
         </p>
 
       </Card>
 
 
+      {/* =========================
+          Harvest List
+      ========================= */}
 
       <Card
         title="📋 سجل الحصاد"
       >
 
-        {
+        {harvests.length === 0 && (
 
-          harvests.map(
-            item => (
+          <p>
+            لا توجد عمليات حصاد محفوظة حتى الآن.
+          </p>
 
-              <Card
+        )}
 
-                key={item.id}
 
-                title="عملية حصاد"
+        {harvests.map(
+          (item) => (
 
+            <Card
+              key={item.id}
+              title="🚜 عملية حصاد"
+            >
+
+              <p>
+                🚜 الكمية:
+                {" "}
+                {item.quantity ?? 0}
+                {" "}
+                كغ
+              </p>
+
+
+              <p>
+                🌾 الجودة:
+                {" "}
+                {item.quality || "--"}
+              </p>
+
+
+              <p>
+                📅 التاريخ:
+                {" "}
+                {item.harvestDate || "--"}
+              </p>
+
+
+              <p>
+                📝 الملاحظات:
+                {" "}
+                {item.notes || "--"}
+              </p>
+
+
+              <Button
+                onClick={() =>
+                  edit(item)
+                }
               >
 
-                <p>
+                تعديل
 
-                  🚜 الكمية:
-                  {" "}
-
-                  {item.quantity}
-
-                  {" "}
-
-                  كغ
-
-                </p>
+              </Button>
 
 
-                <p>
+              <Button
+                onClick={() =>
+                  remove(item.id)
+                }
+              >
 
-                  🌾 الجودة:
-                  {" "}
+                حذف
 
-                  {item.quality}
+              </Button>
 
-                </p>
+            </Card>
 
-
-                <p>
-
-                  📅 التاريخ:
-                  {" "}
-
-                  {item.harvestDate}
-
-                </p>
-
-
-                <p>
-
-                  📝
-                  {" "}
-
-                  {item.notes}
-
-                </p>
-
-
-
-                <Button
-
-                  onClick={() =>
-                    edit(item)
-                  }
-
-                >
-
-                  تعديل
-
-                </Button>
-
-
-
-                <Button
-
-                  onClick={() =>
-                    remove(item.id)
-                  }
-
-                >
-
-                  حذف
-
-                </Button>
-
-
-
-              </Card>
-
-            )
           )
-
-        }
+        )}
 
       </Card>
-
-
 
     </div>
 
