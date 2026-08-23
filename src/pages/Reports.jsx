@@ -1,613 +1,646 @@
+// src/pages/Reports.jsx
+
 import {
   useContext,
   useMemo,
 } from "react";
 
-
 import {
-  FarmContext
+  FarmContext,
 } from "../context/FarmContext";
 
-
 import {
-  useSettings
+  useSettings,
 } from "../context/SettingsContext";
 
-
 import Card from "../components/Card";
-import Button from "../components/Button";
 
 
+export default function Reports() {
 
-export default function Reports(){
+  const {
+    farms = [],
+    fields = [],
+    crops = [],
 
+    irrigations = [],
+    fertilizers = [],
+    pesticides = [],
 
-const {
+    diseases = [],
 
- farms=[],
- fields=[],
- crops=[],
+    expenses = [],
 
- irrigations=[],
- fertilizers=[],
- pesticides=[],
+    consultations = [],
+    aiQuestions = [],
 
- diseases=[],
+    harvests = [],
+    inventory = [],
 
- expenses=[],
+  } = useContext(FarmContext);
 
- consultations=[],
- aiQuestions=[],
 
- harvests=[],
- inventory=[],
+  const {
+    settings,
+  } = useSettings();
 
-} = useContext(FarmContext);
 
+  // =====================================================
+  // KPI
+  // =====================================================
 
+  const kpi = useMemo(
+    () => ({
 
+      farms: farms.length,
 
-const {
- settings
-} = useSettings();
+      fields: fields.length,
 
+      crops: crops.length,
 
+      operations:
+        irrigations.length +
+        fertilizers.length +
+        pesticides.length +
+        diseases.length,
 
+      harvests:
+        harvests.length,
 
+      inventory:
+        inventory.length,
 
-// =======================
-// KPI
-// =======================
+    }),
+    [
+      farms,
+      fields,
+      crops,
+      irrigations,
+      fertilizers,
+      pesticides,
+      diseases,
+      harvests,
+      inventory,
+    ]
+  );
 
 
-const kpi = useMemo(()=>({
+  // =====================================================
+  // Financial Report
+  // =====================================================
 
+  const financial = useMemo(() => {
 
-farms: farms.length,
+    const total = expenses.reduce(
+      (sum, item) =>
+        sum + Number(item.amount || 0),
+      0
+    );
 
-fields: fields.length,
 
-crops: crops.length,
+    return {
 
-operations:
+      total,
 
-irrigations.length +
-fertilizers.length +
-pesticides.length +
-diseases.length,
+      count:
+        expenses.length,
 
+      average:
+        expenses.length
+          ? Math.round(
+              total / expenses.length
+            )
+          : 0,
 
-harvests:
-harvests.length,
+    };
 
+  }, [expenses]);
 
-inventory:
-inventory.length,
 
+  // =====================================================
+  // Farm Health Score
+  // =====================================================
 
-}),[
+  const healthScore = useMemo(() => {
 
-farms,
-fields,
-crops,
-irrigations,
-fertilizers,
-pesticides,
-diseases,
-harvests,
-inventory
+    let score = 100;
 
-]);
 
+    if (diseases.length) {
+      score -= 20;
+    }
 
 
+    if (
+      fields.length >
+      irrigations.length
+    ) {
+      score -= 15;
+    }
 
 
+    if (
+      fertilizers.length === 0
+    ) {
+      score -= 10;
+    }
 
 
-// =======================
-// Financial Report
-// =======================
+    if (score < 0) {
+      score = 0;
+    }
 
 
-const financial = useMemo(()=>{
+    return score;
 
+  }, [
+    diseases,
+    fields,
+    irrigations,
+    fertilizers,
+  ]);
 
-const total = expenses.reduce(
 
-(sum,item)=>
+  // =====================================================
+  // Crop Intelligence
+  // =====================================================
 
-sum + Number(item.amount || 0),
+  const cropReport = useMemo(() => {
 
-0
+    const counter = {};
 
-);
 
+    crops.forEach((crop) => {
 
+      const name =
+        crop.name ||
+        "غير محدد";
 
-return {
 
-total,
+      counter[name] =
+        (counter[name] || 0) + 1;
 
-count: expenses.length,
+    });
 
-average:
 
-expenses.length
+    const result =
+      Object.entries(counter)
+        .sort(
+          (a, b) =>
+            b[1] - a[1]
+        );
 
-?
 
-Math.round(
-total / expenses.length
-)
+    return {
 
-:
+      top:
+        result[0]?.[0] ||
+        "لا يوجد",
 
-0
+      count:
+        crops.length,
 
+    };
 
-};
+  }, [crops]);
 
 
-},[expenses]);
+  // =====================================================
+  // Smart Advice
+  // =====================================================
 
+  const advice = useMemo(() => {
 
+    const list = [];
 
 
+    if (diseases.length) {
 
+      list.push(
+        "🦠 توجد أمراض تحتاج متابعة."
+      );
 
+    }
 
-// =======================
-// Farm Health Score
-// =======================
 
+    if (
+      fields.length >
+      irrigations.length
+    ) {
 
-const healthScore = useMemo(()=>{
+      list.push(
+        "💧 راجع خطة الري للحقول."
+      );
 
+    }
 
-let score = 100;
 
+    if (expenses.length > 10) {
 
+      list.push(
+        "💰 المصاريف مرتفعة، راجع التكاليف."
+      );
 
-if(diseases.length)
+    }
 
-score -= 20;
 
+    if (inventory.length === 0) {
 
+      list.push(
+        "📦 أضف بيانات المخزون."
+      );
 
-if(fields.length > irrigations.length)
+    }
 
-score -= 15;
 
+    if (list.length === 0) {
 
+      list.push(
+        "✅ حالة المزرعة ممتازة."
+      );
 
-if(fertilizers.length===0)
+    }
 
-score -= 10;
 
+    return list;
 
+  }, [
+    diseases,
+    fields,
+    irrigations,
+    expenses,
+    inventory,
+  ]);
 
-if(score < 0)
 
-score = 0;
+  // =====================================================
+  // UI
+  // =====================================================
 
+  return (
 
+    <div className="reports-page">
 
-return score;
 
+      {/* =================================================
+          PAGE HEADER
+      ================================================= */}
 
+      <section className="reports-hero">
 
-},[
+        <div className="reports-hero-icon">
+          📊
+        </div>
 
-diseases,
-fields,
-irrigations,
-fertilizers
 
-]);
+        <div className="reports-hero-content">
 
+          <h1>
+            التقارير الذكية المتقدمة
+          </h1>
 
 
+          <div className="reports-hero-brand">
+            🌱 LAVENDER Smart Farm
+          </div>
 
 
+          <p>
+            تحليل شامل لأداء المزرعة
+          </p>
 
+        </div>
 
-// =======================
-// Crop Intelligence
-// =======================
+      </section>
 
 
-const cropReport = useMemo(()=>{
 
+      {/* =================================================
+          REPORT GRID
+      ================================================= */}
 
-const counter={};
+      <div className="reports-grid">
 
 
+        {/* =================================================
+            KPI
+        ================================================= */}
 
-crops.forEach(crop=>{
+        <Card
+          title="🚀 مؤشرات الأداء"
+        >
 
+          <div className="reports-main-number">
+            {kpi.operations}
+          </div>
 
-const name =
-crop.name || "غير محدد";
 
+          <p className="reports-main-label">
+            إجمالي العمليات الزراعية
+          </p>
 
-counter[name] =
-(counter[name] || 0)+1;
 
+          <div className="reports-stats">
 
-});
+            <div className="reports-stat">
+              <span className="reports-stat-icon">
+                🌾
+              </span>
 
+              <span>
+                المزارع
+              </span>
 
+              <strong>
+                {kpi.farms}
+              </strong>
+            </div>
 
-const result =
-Object.entries(counter)
-.sort(
-(a,b)=>b[1]-a[1]
-);
 
+            <div className="reports-stat">
+              <span className="reports-stat-icon">
+                🌱
+              </span>
 
+              <span>
+                الحقول
+              </span>
 
-return {
+              <strong>
+                {kpi.fields}
+              </strong>
+            </div>
 
-top:
-result[0]?.[0] || "لا يوجد",
 
-count:
-crops.length
+            <div className="reports-stat">
+              <span className="reports-stat-icon">
+                🌿
+              </span>
 
-};
+              <span>
+                المحاصيل
+              </span>
 
+              <strong>
+                {kpi.crops}
+              </strong>
+            </div>
 
-},[crops]);
+          </div>
 
+        </Card>
 
 
 
+        {/* =================================================
+            HEALTH
+        ================================================= */}
 
+        <Card
+          title="❤️ صحة المزرعة"
+        >
 
+          <div className="reports-health">
 
-// =======================
-// Smart Advice
-// =======================
+            <div className="reports-health-number">
+              {healthScore}%
+            </div>
 
 
-const advice = useMemo(()=>{
+            <p>
+              مؤشر الحالة الزراعية الذكية
+            </p>
 
+          </div>
 
-const list=[];
+        </Card>
 
 
 
-if(diseases.length)
+        {/* =================================================
+            FINANCIAL
+        ================================================= */}
 
-list.push(
-"🦠 توجد أمراض تحتاج متابعة."
-);
+        <Card
+          title="💰 التقرير المالي"
+        >
 
+          <div className="reports-info-list">
 
+            <div className="reports-info-row">
 
-if(fields.length > irrigations.length)
+              <span>
+                إجمالي المصاريف
+              </span>
 
-list.push(
-"💧 راجع خطة الري للحقول."
-);
+              <strong>
+                {financial.total}{" "}
+                {settings?.currency || ""}
+              </strong>
 
+            </div>
 
 
-if(expenses.length > 10)
+            <div className="reports-info-row">
 
-list.push(
-"💰 المصاريف مرتفعة، راجع التكاليف."
-);
+              <span>
+                متوسط المصروف
+              </span>
 
+              <strong>
+                {financial.average}{" "}
+                {settings?.currency || ""}
+              </strong>
 
+            </div>
 
-if(inventory.length===0)
 
-list.push(
-"📦 أضف بيانات المخزون."
-);
+            <div className="reports-info-row">
 
+              <span>
+                عدد العمليات المالية
+              </span>
 
+              <strong>
+                {financial.count}
+              </strong>
 
-if(list.length===0)
+            </div>
 
-list.push(
-"✅ حالة المزرعة ممتازة."
-);
+          </div>
 
+        </Card>
 
 
-return list;
 
+        {/* =================================================
+            CROPS
+        ================================================= */}
 
+        <Card
+          title="🌿 تحليل المحاصيل"
+        >
 
-},[
+          <div className="reports-info-list">
 
-diseases,
-fields,
-irrigations,
-expenses,
-inventory
+            <div className="reports-info-row">
 
-]);
+              <span>
+                أكثر محصول
+              </span>
 
+              <strong>
+                {cropReport.top}
+              </strong>
 
+            </div>
 
 
+            <div className="reports-info-row">
 
+              <span>
+                عدد المحاصيل
+              </span>
 
+              <strong>
+                {cropReport.count}
+              </strong>
 
-return (
+            </div>
 
-<div>
+          </div>
 
+        </Card>
 
-<h1>
-📊 التقارير الذكية المتقدمة
-</h1>
 
 
-<p>
-🌱 LAVENDER Smart Farm
-<br/>
-تحليل شامل لأداء المزرعة
-</p>
+        {/* =================================================
+            SMART ADVICE
+        ================================================= */}
 
+        <Card
+          title="🤖 التوصيات الذكية"
+          variant="smart"
+        >
 
+          <div className="reports-advice">
 
+            {advice.map(
+              (item, index) => (
 
+                <div
+                  key={index}
+                  className="reports-advice-item"
+                >
+                  {item}
+                </div>
 
-<Card title="🚀 مؤشرات الأداء">
+              )
+            )}
 
+          </div>
 
-<h2>
-{kpi.operations}
-</h2>
+        </Card>
 
 
-<p>
-إجمالي العمليات الزراعية
-</p>
 
+        {/* =================================================
+            FUTURE ACTIVITIES
+        ================================================= */}
 
-<p>
-🌾 المزارع: {kpi.farms}
-</p>
+        <Card
+          title="👨‍🌾 الأنشطة المستقبلية"
+        >
 
+          <div className="reports-info-list">
 
-<p>
-🌱 الحقول: {kpi.fields}
-</p>
+            <div className="reports-info-row">
 
+              <span>
+                📨 الاستشارات
+              </span>
 
-<p>
-🌿 المحاصيل: {kpi.crops}
-</p>
+              <strong>
+                {consultations.length}
+              </strong>
 
+            </div>
 
-</Card>
 
+            <div className="reports-info-row">
 
+              <span>
+                🤖 أسئلة AI
+              </span>
 
+              <strong>
+                {aiQuestions.length}
+              </strong>
 
+            </div>
 
 
+            <div className="reports-info-row">
 
-<Card title="❤️ صحة المزرعة">
+              <span>
+                🚜 الحصاد
+              </span>
 
+              <strong>
+                {kpi.harvests}
+              </strong>
 
-<h2>
-{healthScore}%
-</h2>
+            </div>
 
+          </div>
 
-<p>
-مؤشر الحالة الزراعية الذكية
-</p>
+        </Card>
 
 
-</Card>
 
+        {/* =================================================
+            SYSTEM READINESS
+        ================================================= */}
 
+        <Card
+          title="☁️ جاهزية النظام"
+        >
 
+          <div className="reports-readiness">
 
+            <div>
+              ✅ البيانات الزراعية مترابطة
+            </div>
 
+            <div>
+              ✅ جاهز للرسوم البيانية
+            </div>
 
+            <div>
+              ✅ جاهز لتصدير JSON
+            </div>
 
-<Card title="💰 التقرير المالي">
+            <div>
+              ✅ جاهز لتصدير CSV
+            </div>
 
+            <div>
+              ✅ جاهز للذكاء الاصطناعي
+            </div>
 
-<p>
-إجمالي المصاريف:
+            <div>
+              ✅ جاهز للقاعدة السحابية
+            </div>
 
-<strong>
+          </div>
 
-{" "}
+        </Card>
 
-{financial.total}
 
-{" "}
+      </div>
 
-{settings.currency}
+    </div>
 
-</strong>
-
-</p>
-
-
-
-<p>
-متوسط المصروف:
-
-<strong>
-
-{" "}
-
-{financial.average}
-
-{" "}
-
-{settings.currency}
-
-</strong>
-
-</p>
-
-
-
-<p>
-عدد العمليات المالية:
-{" "}
-{financial.count}
-</p>
-
-
-</Card>
-
-
-
-
-
-
-
-<Card title="🌿 تحليل المحاصيل">
-
-
-<p>
-أكثر محصول:
-
-<strong>
-{" "}
-{cropReport.top}
-</strong>
-
-</p>
-
-
-<p>
-عدد المحاصيل:
-{" "}
-{cropReport.count}
-</p>
-
-
-</Card>
-
-
-
-
-
-
-
-<Card title="🤖 التوصيات الذكية">
-
-
-{
-
-advice.map(
-
-(item,index)=>(
-
-<p key={index}>
-{item}
-</p>
-
-)
-
-)
-
-}
-
-
-</Card>
-
-
-
-
-
-
-
-<Card title="👨‍🌾 الأنشطة المستقبلية">
-
-
-<p>
-📨 الاستشارات:
-{" "}
-{consultations.length}
-</p>
-
-
-<p>
-🤖 أسئلة AI:
-{" "}
-{aiQuestions.length}
-</p>
-
-
-<p>
-🚜 الحصاد:
-{" "}
-{kpi.harvests}
-</p>
-
-
-</Card>
-
-
-
-
-
-
-
-<Card title="☁️ جاهزية النظام">
-
-
-<p>
-✅ البيانات الزراعية مترابطة
-</p>
-
-
-<p>
-✅ جاهز للرسوم البيانية
-</p>
-
-
-<p>
-✅ جاهز لتصدير JSON
-</p>
-
-<p>
-✅ جاهز لتصدير CSV
-</p>
-
-
-<p>
-✅ جاهز للذكاء الاصطناعي
-</p>
-
-
-<p>
-✅ جاهز للقاعدة السحابية
-</p>
-
-
-</Card>
-
-
-
-
-
-
-
-
-
-
-
-
-</div>
-
-);
-
+  );
 
 }
