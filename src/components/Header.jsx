@@ -2,88 +2,46 @@
 
 import { Link } from "react-router-dom";
 
-import { translate } from "../utils/translation.js";
-import { useSettings } from "../context/SettingsContext.jsx";
-
-
-const menuItems = Object.freeze([
-  {
-    id: "dashboard",
-    path: "/dashboard",
-    titleKey: "menu.dashboard",
-  },
-  {
-    id: "farms",
-    path: "/farms",
-    titleKey: "menu.farms",
-  },
-  {
-    id: "reports",
-    path: "/reports",
-    titleKey: "menu.reports",
-  },
-  {
-    id: "login",
-    path: "/login",
-    titleKey: "home.login",
-  },
-]);
-
 
 export default function Header() {
 
-  const { settings } =
-    useSettings();
-
-  const language =
-    settings?.language || "ar";
-
-
   return (
 
-    <header className="app-header">
+    <header
+      className="app-header"
+      aria-label="هوية التطبيق"
+    >
 
       <div className="brand">
 
-        <Link to="/">
+        <Link
+          to="/"
+          aria-label="المزرعة الذكية - LAVENDER"
+        >
 
-          <span className="brand-icon">
+          <span
+            className="brand-icon"
+            aria-hidden="true"
+          >
             🌱
           </span>
 
-          <span>
-            LAVENDER Smart Farm
+
+          <span className="brand-title">
+
+            <span className="brand-arabic">
+              المزرعة الذكية
+            </span>
+
+            <span className="brand-english">
+              LAVENDER
+            </span>
+
           </span>
 
         </Link>
 
       </div>
-
-
-      <nav className="header-nav">
-
-        {menuItems.map(item => (
-
-          <Link
-            key={item.id}
-            to={item.path}
-          >
-
-            {item.id === "login"
-              ? `🔐 ${translate(
-                  item.titleKey,
-                  language
-                )}`
-              : translate(
-                  item.titleKey,
-                  language
-                )}
-
-          </Link>
-
-        ))}
-
-      </nav>
 
     </header>
 
