@@ -1,620 +1,986 @@
 // src/pages/Fields.jsx
 
 import {
-  useContext,
+  useEffect,
   useMemo,
-  useState
+  useState,
 } from "react";
-
-import {
-  FarmContext
-} from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
+import useFarms from "../hooks/useFarms";
+import useFields from "../hooks/useFields";
 
-export default function Fields(){
 
-const {
+export default function Fields() {
 
-farms,
-fields,
-fieldActions
+  const {
+    loadFarms,
+  } = useFarms();
 
-}=useContext(FarmContext);
 
+  const {
+    loadFields,
+    addField,
+    updateField,
+    deleteField,
+  } = useFields();
 
 
-const emptyForm = {
+  const [farms, setFarms] =
+    useState([]);
 
-farmId:"",
-name:"",
-soilType:"",
-area:"",
-crop:"",
-plantingDate:"",
-notes:""
+  const [fields, setFields] =
+    useState([]);
 
-};
 
+  const emptyForm = {
 
+    farmId: "",
+    name: "",
+    soilType: "",
+    area: "",
+    crop: "",
+    plantingDate: "",
+    notes: "",
 
-const [form,setForm] =
-useState(emptyForm);
+  };
 
 
-const [editId,setEditId] =
-useState(null);
+  const [form, setForm] =
+    useState(emptyForm);
 
+  const [editId, setEditId] =
+    useState(null);
 
-const [search,setSearch] =
-useState("");
+  const [search, setSearch] =
+    useState("");
 
+  const [farmFilter, setFarmFilter] =
+    useState("");
 
-const [farmFilter,setFarmFilter] =
-useState("");
+  const [loading, setLoading] =
+    useState(true);
 
+  const [saving, setSaving] =
+    useState(false);
 
+  const [error, setError] =
+    useState("");
 
-// =====================
-// Input Change
-// =====================
 
-const handleChange = (e)=>{
+  // =========================
+  // Load Farms + Fields
+  // =========================
 
-setForm({
+  useEffect(() => {
 
-...form,
+    let mounted = true;
 
-[e.target.name]:
-e.target.value
 
-});
+    const loadData = async () => {
 
-};
+      try {
 
+        setLoading(true);
+        setError("");
 
 
-// =====================
-// Reset
-// =====================
+        const [
+          farmsData,
+          fieldsData,
+        ] = await Promise.all([
 
-const clearForm = ()=>{
+          loadFarms(),
 
-setForm(emptyForm);
+          loadFields(),
 
-setEditId(null);
+        ]);
 
-};
 
+        if (!mounted) {
+          return;
+        }
 
 
-// =====================
-// Save
-// =====================
+        setFarms(
+          Array.isArray(farmsData)
+            ? farmsData
+            : []
+        );
 
-const saveField = ()=>{
 
+        setFields(
+          Array.isArray(fieldsData)
+            ? fieldsData
+            : []
+        );
 
-if(
-!form.name ||
-!form.farmId
-)
-return;
 
+      } catch (err) {
 
+        console.error(
+          "Fields loading error:",
+          err
+        );
 
-const fieldData = {
 
-...form,
+        if (mounted) {
 
-area:Number(form.area),
+          setError(
+            err?.message ||
+            "تعذر تحميل بيانات الحقول."
+          );
 
-updatedAt:
-new Date().toISOString()
+          setFarms([]);
+          setFields([]);
 
-};
+        }
 
+      } finally {
 
+        if (mounted) {
+          setLoading(false);
+        }
 
-if(editId){
+      }
 
-fieldActions.update(
+    };
 
-editId,
 
-fieldData
+    loadData();
 
-);
 
+    return () => {
 
-}else{
+      mounted = false;
 
+    };
 
-fieldActions.create({
+  }, [
+    loadFarms,
+    loadFields,
+  ]);
 
-...fieldData,
 
-createdAt:
-new Date().toISOString()
+  // =========================
+  // Input Change
+  // =========================
 
-});
+  const handleChange = (e) => {
 
+    const {
+      name,
+      value,
+    } = e.target;
 
-}
 
+    setForm((prev) => ({
 
+      ...prev,
 
-clearForm();
+      [name]: value,
 
+    }));
 
-};
 
+    setError("");
 
+  };
 
-// =====================
-// Edit
-// =====================
 
-const editField = (field)=>{
+  // =========================
+  // Reset
+  // =========================
 
+  const clearForm = () => {
 
-setForm({
+    setForm({
+      ...emptyForm,
+    });
 
-farmId:
-field.farmId || "",
+    setEditId(null);
 
-name:
-field.name || "",
+    setError("");
 
-soilType:
-field.soilType || "",
+  };
 
-area:
-field.area || "",
 
-crop:
-field.crop || "",
+  // =========================
+  // Save
+  // =========================
 
-plantingDate:
-field.plantingDate || "",
+  const saveField = async () => {
 
-notes:
-field.notes || ""
+    setError("");
 
-});
 
+    if (!form.farmId) {
 
-setEditId(field.id);
+      setError(
+        "يرجى اختيار المزرعة."
+      );
 
+      return;
 
-};
+    }
 
 
+    if (!form.name.trim()) {
 
-// =====================
-// Farm Name
-// =====================
+      setError(
+        "يرجى إدخال اسم الحقل."
+      );
 
-const getFarmName = (farmId)=>{
+      return;
 
+    }
 
-const farm =
-farms.find(
 
-item =>
-item.id === Number(farmId)
+    try {
 
-);
+      setSaving(true);
 
 
+      const fieldData = {
 
-return farm
-?
-farm.name
-:
-"غير محددة";
+        ...form,
 
+        farmId: form.farmId,
 
-};
+        area:
+          Number(form.area || 0),
 
+        updatedAt:
+          new Date().toISOString(),
 
+      };
 
-// =====================
-// Filter
-// =====================
 
-const filteredFields =
+      if (editId) {
 
-useMemo(()=>{
+        const updated =
+          await updateField(
+            editId,
+            fieldData
+          );
 
 
-return fields.filter(field=>{
+        setFields((prev) =>
+          prev.map((field) =>
+            String(field.id) ===
+            String(editId)
+              ? updated
+              : field
+          )
+        );
 
 
-const searchMatch =
+      } else {
 
-field.name
-?.toLowerCase()
-.includes(
-search.toLowerCase()
-);
+        const created =
+          await addField({
 
+            ...fieldData,
 
+            createdAt:
+              new Date().toISOString(),
 
-const farmMatch =
+          });
 
-farmFilter
 
-?
+        setFields((prev) => [
 
-Number(field.farmId) ===
-Number(farmFilter)
+          ...prev,
 
-:
+          created,
 
-true;
+        ]);
 
+      }
 
 
-return searchMatch && farmMatch;
+      clearForm();
 
 
-});
+    } catch (err) {
 
+      console.error(
+        "Field save error:",
+        err
+      );
 
-},[
-fields,
-search,
-farmFilter
-]);
 
+      setError(
+        err?.message ||
+        "تعذر حفظ الحقل."
+      );
 
 
-// =====================
-// UI
-// =====================
+    } finally {
 
-return (
+      setSaving(false);
 
-<div>
+    }
 
+  };
 
-<h1>
-🌱 إدارة الحقول الذكية
-</h1>
 
+  // =========================
+  // Edit
+  // =========================
 
+  const editField = (field) => {
 
-<Card
+    setForm({
 
-title={
-editId
-?
-"✏️ تعديل الحقل"
-:
-"➕ إضافة حقل"
-}
+      farmId:
+        field?.farmId ??
+        field?.farm_id ??
+        "",
 
->
+      name:
+        field?.name ??
+        "",
 
+      soilType:
+        field?.soilType ??
+        field?.soil_type ??
+        "",
 
-<select
+      area:
+        field?.area ??
+        "",
 
-name="farmId"
+      crop:
+        field?.crop ??
+        "",
 
-value={form.farmId}
+      plantingDate:
+        field?.plantingDate ??
+        field?.planting_date ??
+        "",
 
-onChange={handleChange}
+      notes:
+        field?.notes ??
+        "",
 
->
+    });
 
-<option value="">
 
-اختر المزرعة
+    setEditId(
+      field?.id ?? null
+    );
 
-</option>
 
+    setError("");
 
-{
+  };
 
-farms.map(farm=>(
 
-<option
+  // =========================
+  // Delete
+  // =========================
 
-key={farm.id}
+  const removeField = async (id) => {
 
-value={farm.id}
+    if (!id) {
+      return;
+    }
 
->
 
-{farm.name}
+    const confirmed =
+      window.confirm(
+        "هل تريد حذف هذا الحقل؟"
+      );
 
-</option>
 
-))
+    if (!confirmed) {
+      return;
+    }
 
-}
 
-</select>
+    try {
 
+      setError("");
 
 
-<input
+      await deleteField(id);
 
-name="name"
 
-placeholder="اسم الحقل"
+      setFields((prev) =>
+        prev.filter(
+          (field) =>
+            String(field.id) !==
+            String(id)
+        )
+      );
 
-value={form.name}
 
-onChange={handleChange}
+      if (
+        String(editId) ===
+        String(id)
+      ) {
 
-/>
+        clearForm();
 
+      }
 
 
-<input
+    } catch (err) {
 
-name="soilType"
+      console.error(
+        "Field delete error:",
+        err
+      );
 
-placeholder="نوع التربة"
 
-value={form.soilType}
+      setError(
+        err?.message ||
+        "تعذر حذف الحقل."
+      );
 
-onChange={handleChange}
+    }
 
-/>
+  };
 
 
+  // =========================
+  // Farm Name
+  // =========================
 
-<input
+  const getFarmName = (farmId) => {
 
-name="area"
+    const farm =
+      farms.find(
+        (item) =>
+          String(item?.id) ===
+          String(farmId)
+      );
 
-type="number"
 
-placeholder="مساحة الحقل"
+    return farm?.name ||
+      "غير محددة";
 
-value={form.area}
+  };
 
-onChange={handleChange}
 
-/>
+  // =========================
+  // Filter
+  // =========================
 
+  const filteredFields =
+    useMemo(() => {
 
+      const searchValue =
+        search
+          .toLowerCase()
+          .trim();
 
-<input
 
-name="crop"
+      return fields.filter(
+        (field) => {
 
-placeholder="المحصول"
+          const fieldName =
+            String(
+              field?.name ?? ""
+            )
+              .toLowerCase();
 
-value={form.crop}
 
-onChange={handleChange}
+          const fieldFarmId =
+            field?.farmId ??
+            field?.farm_id ??
+            field?.farm?.id ??
+            "";
 
-/>
 
+          const searchMatch =
+            !searchValue ||
+            fieldName.includes(
+              searchValue
+            );
 
 
-<input
+          const farmMatch =
+            !farmFilter ||
+            String(fieldFarmId) ===
+            String(farmFilter);
 
-name="plantingDate"
 
-type="date"
+          return (
+            searchMatch &&
+            farmMatch
+          );
 
-value={form.plantingDate}
+        }
+      );
 
-onChange={handleChange}
+    }, [
 
-/>
+      fields,
 
+      search,
 
+      farmFilter,
 
-<textarea
+    ]);
 
-name="notes"
 
-placeholder="ملاحظات"
+  // =========================
+  // UI
+  // =========================
 
-value={form.notes}
+  return (
 
-onChange={handleChange}
+    <div>
 
-/>
+      <h1>
+        🌱 إدارة الحقول الذكية
+      </h1>
 
 
+      {error && (
 
-<Button
+        <div
+          style={{
+            padding: "10px",
+            marginBottom: "15px",
+            borderRadius: "6px",
+            background: "#ffe5e5",
+            color: "#b00020",
+          }}
+        >
 
-onClick={saveField}
+          ⚠️ {error}
 
->
+        </div>
 
-{
+      )}
 
-editId
-?
-"حفظ التعديل"
-:
-"إضافة الحقل"
 
-}
+      <Card
 
-</Button>
+        title={
+          editId
+            ? "✏️ تعديل الحقل"
+            : "➕ إضافة حقل"
+        }
 
+      >
 
-</Card>
+        <select
 
+          name="farmId"
 
+          value={
+            form.farmId
+          }
 
+          onChange={
+            handleChange
+          }
 
+        >
 
-<Card
+          <option value="">
+            اختر المزرعة
+          </option>
 
-title="🔎 البحث والفلترة"
 
->
+          {farms.map(
+            (farm) => (
 
+              <option
+                key={farm.id}
+                value={farm.id}
+              >
 
-<input
+                {farm.name}
 
-placeholder="بحث عن حقل"
+              </option>
 
-value={search}
+            )
+          )}
 
-onChange={
-e=>setSearch(e.target.value)
-}
+        </select>
 
-/>
 
+        <br />
+        <br />
 
 
-<select
+        <input
 
-value={farmFilter}
+          name="name"
 
-onChange={
-e=>setFarmFilter(e.target.value)
-}
+          placeholder="اسم الحقل"
 
->
+          value={
+            form.name
+          }
 
-<option value="">
+          onChange={
+            handleChange
+          }
 
-كل المزارع
+        />
 
-</option>
 
+        <br />
+        <br />
 
-{
 
-farms.map(farm=>(
+        <input
 
-<option
+          name="soilType"
 
-key={farm.id}
+          placeholder="نوع التربة"
 
-value={farm.id}
+          value={
+            form.soilType
+          }
 
->
+          onChange={
+            handleChange
+          }
 
-{farm.name}
+        />
 
-</option>
 
-))
+        <br />
+        <br />
 
-}
 
+        <input
 
-</select>
+          name="area"
 
+          type="number"
 
-</Card>
+          min="0"
 
+          step="0.01"
 
+          placeholder="مساحة الحقل"
 
+          value={
+            form.area
+          }
 
+          onChange={
+            handleChange
+          }
 
-<h2>
-📋 قائمة الحقول
-</h2>
+        />
 
 
+        <br />
+        <br />
 
-{
 
-filteredFields.map(field=>(
+        <input
 
+          name="crop"
 
-<Card
+          placeholder="المحصول"
 
-key={field.id}
+          value={
+            form.crop
+          }
 
-title={
-`🌱 ${field.name}`
-}
+          onChange={
+            handleChange
+          }
 
->
+        />
 
 
-<p>
-🚜 المزرعة:
-{getFarmName(field.farmId)}
-</p>
+        <br />
+        <br />
 
 
-<p>
-🌍 التربة:
-{field.soilType}
-</p>
+        <input
 
+          name="plantingDate"
 
-<p>
-📏 المساحة:
-{field.area} دونم
-</p>
+          type="date"
 
+          value={
+            form.plantingDate
+          }
 
-<p>
-🌾 المحصول:
-{field.crop}
-</p>
+          onChange={
+            handleChange
+          }
 
+        />
 
-<p>
-📅 الزراعة:
-{field.plantingDate}
-</p>
 
+        <br />
+        <br />
 
-<p>
-📝 {field.notes || "لا يوجد"}
-</p>
 
+        <textarea
 
+          name="notes"
 
-<Button
+          placeholder="ملاحظات"
 
-onClick={()=>editField(field)}
+          value={
+            form.notes
+          }
 
->
+          onChange={
+            handleChange
+          }
 
-تعديل
+        />
 
-</Button>
 
+        <br />
+        <br />
 
 
-<Button
+        <Button
 
-onClick={()=>
-fieldActions.delete(field.id)
-}
+          onClick={
+            saveField
+          }
 
->
+          disabled={
+            saving
+          }
 
-حذف
+        >
 
-</Button>
+          {saving
 
+            ? "جاري الحفظ..."
 
-</Card>
+            : editId
+              ? "حفظ التعديل"
+              : "إضافة الحقل"
 
+          }
 
-))
+        </Button>
 
 
-}
+        {editId && (
 
+          <Button
+            onClick={
+              clearForm
+            }
+          >
 
+            إلغاء التعديل
 
-</div>
+          </Button>
 
-);
+        )}
+
+      </Card>
+
+
+      <Card
+        title="🔎 البحث والفلترة"
+      >
+
+        <input
+
+          placeholder="بحث عن حقل"
+
+          value={
+            search
+          }
+
+          onChange={(e) =>
+            setSearch(
+              e.target.value
+            )
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        <select
+
+          value={
+            farmFilter
+          }
+
+          onChange={(e) =>
+            setFarmFilter(
+              e.target.value
+            )
+          }
+
+        >
+
+          <option value="">
+            كل المزارع
+          </option>
+
+
+          {farms.map(
+            (farm) => (
+
+              <option
+                key={farm.id}
+                value={farm.id}
+              >
+
+                {farm.name}
+
+              </option>
+
+            )
+          )}
+
+        </select>
+
+      </Card>
+
+
+      <h2>
+        📋 قائمة الحقول
+      </h2>
+
+
+      {loading ? (
+
+        <p>
+          ⏳ جاري تحميل الحقول...
+        </p>
+
+      ) : filteredFields.length === 0 ? (
+
+        <p>
+          لا توجد حقول مسجلة.
+        </p>
+
+      ) : (
+
+        filteredFields.map(
+          (field) => (
+
+            <Card
+
+              key={
+                field.id
+              }
+
+              title={
+                `🌱 ${field.name}`
+              }
+
+            >
+
+              <p>
+                🚜 المزرعة:
+                {" "}
+                {
+                  getFarmName(
+                    field.farmId ??
+                    field.farm_id ??
+                    field.farm?.id
+                  )
+                }
+              </p>
+
+
+              <p>
+                🌍 التربة:
+                {" "}
+                {
+                  field.soilType ??
+                  field.soil_type ??
+                  ""
+                }
+              </p>
+
+
+              <p>
+                📏 المساحة:
+                {" "}
+                {field.area || 0}
+                {" "}
+                دونم
+              </p>
+
+
+              <p>
+                🌾 المحصول:
+                {" "}
+                {field.crop || ""}
+              </p>
+
+
+              <p>
+                📅 الزراعة:
+                {" "}
+                {
+                  field.plantingDate ??
+                  field.planting_date ??
+                  ""
+                }
+              </p>
+
+
+              <p>
+                📝
+                {" "}
+                {
+                  field.notes ||
+                  "لا يوجد"
+                }
+              </p>
+
+
+              <Button
+
+                onClick={() =>
+                  editField(field)
+                }
+
+              >
+
+                ✏️ تعديل
+
+              </Button>
+
+
+              <Button
+
+                onClick={() =>
+                  removeField(
+                    field.id
+                  )
+                }
+
+              >
+
+                🗑️ حذف
+
+              </Button>
+
+
+            </Card>
+
+          )
+        )
+
+      )}
+
+    </div>
+
+  );
 
 }
