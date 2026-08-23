@@ -1603,3 +1603,533 @@ textarea:focus-visible {
   }
 
 }
+  /* =========================================================
+   REPORTS PAGE
+   تنظيم صفحة التقارير ومنع تداخل النصوص
+========================================================= */
+
+.reports-page {
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   REPORT HERO
+========================================================= */
+
+.reports-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+
+  margin-bottom: 24px;
+  padding: 22px;
+
+  background: #ffffff;
+
+  border: 1px solid var(--lavender-border);
+  border-radius: var(--radius-xl);
+
+  box-shadow: var(--shadow-sm);
+}
+
+
+.reports-hero-icon {
+  flex: 0 0 54px;
+
+  width: 54px;
+  height: 54px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 16px;
+
+  background: var(--lavender-green-100);
+
+  font-size: 27px;
+}
+
+
+.reports-hero-content {
+  min-width: 0;
+}
+
+
+.reports-hero-content h1 {
+  margin: 0 0 7px;
+}
+
+
+.reports-hero-brand {
+  margin-bottom: 3px;
+
+  color: var(--lavender-green-700);
+
+  font-size: 16px;
+  font-weight: 700;
+}
+
+
+.reports-hero-content p {
+  margin: 0;
+
+  color: var(--lavender-muted);
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   REPORT GRID
+========================================================= */
+
+.reports-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 18px;
+
+  align-items: stretch;
+}
+
+
+.reports-grid .card {
+  height: 100%;
+  margin: 0;
+}
+
+
+/* =========================================================
+   MAIN NUMBER
+========================================================= */
+
+.reports-main-number {
+  margin: 4px 0 2px;
+
+  color: var(--lavender-green-900);
+
+  font-family: "Cairo", sans-serif;
+
+  font-size: 38px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+
+.reports-main-label {
+  margin: 0 0 18px;
+
+  color: var(--lavender-muted);
+
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   STATISTICS
+========================================================= */
+
+.reports-stats {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 10px;
+}
+
+
+.reports-stat {
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 4px;
+
+  min-height: 100px;
+
+  padding: 10px;
+
+  text-align: center;
+
+  background: var(--lavender-green-50);
+
+  border-radius: var(--radius-md);
+}
+
+
+.reports-stat-icon {
+  font-size: 20px;
+}
+
+
+.reports-stat span:not(.reports-stat-icon) {
+  color: var(--lavender-muted);
+
+  font-size: 13px;
+
+  line-height: 1.6;
+}
+
+
+.reports-stat strong {
+  color: var(--lavender-green-900);
+
+  font-size: 19px;
+}
+
+
+/* =========================================================
+   HEALTH
+========================================================= */
+
+.reports-health {
+  min-height: 150px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+}
+
+
+.reports-health-number {
+  color: var(--lavender-green-700);
+
+  font-family: "Cairo", sans-serif;
+
+  font-size: 44px;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+}
+
+
+.reports-health p {
+  margin: 8px 0 0;
+
+  color: var(--lavender-muted);
+
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   INFO LIST
+========================================================= */
+
+.reports-info-list {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+
+.reports-info-row {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 18px;
+
+  min-width: 0;
+
+  padding: 12px 13px;
+
+  background: var(--lavender-green-50);
+
+  border-radius: var(--radius-md);
+
+  line-height: 1.8;
+}
+
+
+.reports-info-row span {
+  min-width: 0;
+
+  color: var(--lavender-muted);
+}
+
+
+.reports-info-row strong {
+  flex-shrink: 0;
+
+  color: var(--lavender-green-900);
+
+  text-align: left;
+}
+
+
+/* =========================================================
+   SMART ADVICE
+========================================================= */
+
+.reports-advice {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+}
+
+
+.reports-advice-item {
+  padding: 13px 14px;
+
+  color: var(--lavender-purple-800);
+
+  background: var(--lavender-purple-50);
+
+  border: 1px solid #ddd2e9;
+
+  border-radius: var(--radius-md);
+
+  line-height: 1.9;
+}
+
+
+/* =========================================================
+   SYSTEM READINESS
+========================================================= */
+
+.reports-readiness {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 10px;
+}
+
+
+.reports-readiness div {
+  padding: 10px 12px;
+
+  background: var(--lavender-green-50);
+
+  border-radius: var(--radius-md);
+
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   TABLET
+========================================================= */
+
+@media (max-width: 800px) {
+
+  .reports-grid {
+    grid-template-columns: 1fr;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .reports-page {
+    width: 100%;
+  }
+
+
+  .reports-hero {
+    gap: 13px;
+
+    margin-bottom: 18px;
+
+    padding: 17px;
+
+    border-radius: 16px;
+  }
+
+
+  .reports-hero-icon {
+    flex: 0 0 46px;
+
+    width: 46px;
+    height: 46px;
+
+    font-size: 23px;
+  }
+
+
+  .reports-hero-content h1 {
+    margin-bottom: 8px;
+
+    font-size: 22px;
+
+    line-height: 1.55;
+  }
+
+
+  .reports-hero-brand {
+    margin-bottom: 5px;
+
+    font-size: 14px;
+
+    line-height: 1.7;
+  }
+
+
+  .reports-hero-content p {
+    font-size: 13px;
+
+    line-height: 1.8;
+  }
+
+
+  .reports-grid {
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 14px;
+  }
+
+
+  .reports-grid .card {
+    width: 100%;
+  }
+
+
+  .reports-stats {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 7px;
+  }
+
+
+  .reports-stat {
+    min-height: 88px;
+
+    padding: 8px 5px;
+  }
+
+
+  .reports-stat span:not(.reports-stat-icon) {
+    font-size: 12px;
+
+    white-space: normal;
+
+    line-height: 1.6;
+  }
+
+
+  .reports-stat strong {
+    font-size: 17px;
+  }
+
+
+  .reports-info-row {
+    align-items: flex-start;
+
+    gap: 12px;
+
+    padding: 11px 12px;
+
+    line-height: 1.9;
+  }
+
+
+  .reports-info-row span {
+    overflow-wrap: anywhere;
+  }
+
+
+  .reports-info-row strong {
+    white-space: nowrap;
+  }
+
+
+  .reports-main-number {
+    font-size: 34px;
+  }
+
+
+  .reports-health {
+    min-height: 125px;
+  }
+
+
+  .reports-health-number {
+    font-size: 40px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .reports-hero {
+    padding: 14px;
+  }
+
+
+  .reports-hero-icon {
+    flex-basis: 42px;
+
+    width: 42px;
+    height: 42px;
+  }
+
+
+  .reports-hero-content h1 {
+    font-size: 20px;
+  }
+
+
+  .reports-stats {
+    gap: 5px;
+  }
+
+
+  .reports-stat {
+    min-height: 82px;
+
+    padding: 7px 3px;
+  }
+
+
+  .reports-stat-icon {
+    font-size: 18px;
+  }
+
+
+  .reports-stat strong {
+    font-size: 16px;
+  }
+
+}
