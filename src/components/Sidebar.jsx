@@ -22,26 +22,12 @@ export default function Sidebar() {
       aria-label="القائمة الرئيسية"
     >
 
-      <div className="sidebar-brand">
+      <nav
+        className="sidebar-menu"
+        aria-label="التنقل الرئيسي"
+      >
 
-        <div className="sidebar-logo">
-          🌱
-        </div>
-
-        <h2>
-          LAVENDER
-        </h2>
-
-        <p>
-          Smart Farm
-        </p>
-
-      </div>
-
-
-      <nav aria-label="التنقل الرئيسي">
-
-        <ul className="sidebar-grid">
+        <ul>
 
           {menuConfig
             .filter((item) => item.enabled)
@@ -72,20 +58,18 @@ export default function Sidebar() {
 
                   )}
 
+                  <span className="sidebar-label">
 
-                  <span className="sidebar-arabic">
+                    <span className="sidebar-arabic">
+                      {translate(
+                        item.titleKey,
+                        language
+                      )}
+                    </span>
 
-                    {translate(
-                      item.titleKey,
-                      language
-                    )}
-
-                  </span>
-
-
-                  <span className="sidebar-english">
-
-                    {item.id}
+                    <span className="sidebar-english">
+                      {item.id}
+                    </span>
 
                   </span>
 
@@ -102,5 +86,4 @@ export default function Sidebar() {
     </aside>
 
   );
-
 }
