@@ -1,7 +1,10 @@
 /* =========================================================
    LAVENDER SMART FARM
-   APP.CSS — FINAL VISUAL SYSTEM
-   Green Agriculture × Purple Intelligence
+   CLEAN VISUAL IDENTITY
+   Agriculture Green × Intelligence Purple
+
+   IMPORTANT:
+   This file replaces the previous App.css completely.
 ========================================================= */
 
 
@@ -9,7 +12,9 @@
    GOOGLE FONTS
 ========================================================= */
 
-@import url("https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Tajawal:wght@400;500;600;700&display=swap");
+@import url(
+  "https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Tajawal:wght@400;500;600;700&display=swap"
+);
 
 
 /* =========================================================
@@ -19,55 +24,61 @@
 :root {
 
   /* -------------------------
-     Agriculture — Green
+     AGRICULTURE
   ------------------------- */
 
-  --lavender-green-900: #245c3a;
-  --lavender-green-800: #2d6b43;
-  --lavender-green-700: #367a4d;
-  --lavender-green-600: #438d59;
-  --lavender-green-500: #5aa469;
+  --green-900: #245c3a;
+  --green-800: #2d6b43;
+  --green-700: #367a4d;
+  --green-600: #438d59;
+  --green-500: #5aa469;
 
-  --lavender-green-100: #eaf5ed;
-  --lavender-green-50: #f5faf6;
+  --green-100: #eaf5ed;
+  --green-50: #f5faf6;
 
 
   /* -------------------------
-     Intelligence — Purple
+     INTELLIGENCE
+     Purple is secondary only
   ------------------------- */
 
-  --lavender-purple-800: #59407d;
-  --lavender-purple-700: #6d4b91;
-  --lavender-purple-600: #8060a5;
+  --purple-800: #59407d;
+  --purple-700: #6d4b91;
+  --purple-600: #8060a5;
 
-  --lavender-purple-100: #eee8f5;
-  --lavender-purple-50: #f7f4fa;
+  --purple-100: #eee8f5;
+  --purple-50: #f7f4fa;
 
 
   /* -------------------------
-     Supporting
+     SUPPORTING
   ------------------------- */
 
-  --lavender-gold: #d7a83e;
-  --lavender-blue: #3f7fa3;
+  --gold: #d7a83e;
+  --blue: #3f7fa3;
 
 
   /* -------------------------
-     Neutral
+     TEXT
   ------------------------- */
 
-  --lavender-text: #24352a;
-  --lavender-muted: #6c786f;
-
-  --lavender-border: #dfe8e1;
-
-  --lavender-white: #ffffff;
-
-  --lavender-background: #f4f8f5;
+  --text: #24352a;
+  --text-soft: #526158;
+  --muted: #748078;
 
 
   /* -------------------------
-     Radius
+     SURFACES
+  ------------------------- */
+
+  --white: #ffffff;
+  --background: #f4f8f5;
+  --border: #dfe8e1;
+  --border-soft: #edf1ee;
+
+
+  /* -------------------------
+     RADIUS
   ------------------------- */
 
   --radius-sm: 8px;
@@ -77,25 +88,25 @@
 
 
   /* -------------------------
-     Shadows
+     SHADOWS
   ------------------------- */
 
   --shadow-sm:
-    0 2px 8px rgba(35, 60, 45, 0.06);
+    0 2px 8px rgba(35, 60, 45, .06);
 
   --shadow-md:
-    0 8px 24px rgba(35, 60, 45, 0.09);
+    0 8px 24px rgba(35, 60, 45, .09);
 
   --shadow-lg:
-    0 14px 35px rgba(35, 60, 45, 0.12);
+    0 14px 35px rgba(35, 60, 45, .12);
 
 
   /* -------------------------
-     Motion
+     MOTION
   ------------------------- */
 
-  --transition-fast: 0.18s ease;
-  --transition: 0.25s ease;
+  --transition:
+    .2s ease;
 
 }
 
@@ -126,11 +137,11 @@ body {
   background:
     linear-gradient(
       180deg,
-      #f8fbf9 0%,
+      #f8faf8 0%,
       #f1f7f3 100%
     );
 
-  color: var(--lavender-text);
+  color: var(--text);
 
   font-family:
     "Tajawal",
@@ -143,8 +154,6 @@ body {
   direction: rtl;
 
   overflow-x: hidden;
-
-  -webkit-font-smoothing: antialiased;
 }
 
 
@@ -173,15 +182,20 @@ h6 {
   line-height: 1.55;
 
   overflow-wrap: anywhere;
+  word-break: normal;
 }
 
 
 h1 {
   margin: 0 0 24px;
 
-  color: var(--lavender-green-900);
+  color: var(--green-900);
 
-  font-size: clamp(24px, 4vw, 34px);
+  font-size: clamp(
+    24px,
+    4vw,
+    34px
+  );
 
   font-weight: 800;
 }
@@ -190,7 +204,7 @@ h1 {
 h2 {
   margin: 0 0 18px;
 
-  color: var(--lavender-green-700);
+  color: var(--green-700);
 
   font-size: 21px;
 
@@ -201,23 +215,17 @@ h2 {
 h3 {
   margin: 0 0 14px;
 
-  color: var(--lavender-green-700);
+  color: var(--green-700);
 
   font-size: 18px;
 }
 
 
-h4,
-h5,
-h6 {
-  margin: 0 0 12px;
-}
-
-
 p {
-  margin: 0 0 16px;
+  margin-top: 0;
+  margin-bottom: 16px;
 
-  line-height: 2;
+  line-height: 1.9;
 
   overflow-wrap: anywhere;
 }
@@ -233,12 +241,16 @@ a {
 }
 
 
+strong {
+  font-weight: 700;
+}
+
+
 /* =========================================================
    MAIN APPLICATION
 ========================================================= */
 
 .app-layout {
-  width: 100%;
   min-height: 100vh;
 
   display: flex;
@@ -247,17 +259,17 @@ a {
 
 
 .app-body {
-  width: 100%;
-  min-width: 0;
-
   display: flex;
 
   flex: 1;
+
+  min-width: 0;
 }
 
 
 .app-content {
   flex: 1;
+
   min-width: 0;
 
   padding: 28px;
@@ -274,15 +286,15 @@ a {
   position: relative;
   z-index: 20;
 
-  width: 100%;
-  min-height: 76px;
-
   display: flex;
 
   align-items: center;
+
   justify-content: space-between;
 
-  gap: 20px;
+  gap: 24px;
+
+  min-height: 76px;
 
   padding: 14px 24px;
 
@@ -291,13 +303,14 @@ a {
   background:
     linear-gradient(
       135deg,
-      var(--lavender-green-900) 0%,
-      var(--lavender-green-700) 82%,
-      var(--lavender-purple-700) 100%
+      var(--green-900) 0%,
+      var(--green-700) 78%,
+      var(--purple-700) 100%
     );
 
   box-shadow:
-    0 5px 20px rgba(36, 92, 58, 0.18);
+    0 5px 20px
+    rgba(36, 92, 58, .18);
 }
 
 
@@ -311,7 +324,7 @@ a {
 
   align-items: center;
 
-  gap: 10px;
+  gap: 11px;
 
   color: white;
 
@@ -330,23 +343,24 @@ a {
 
 
 .brand-icon {
-  width: 38px;
-  min-width: 38px;
-  height: 38px;
-
   display: inline-flex;
 
   align-items: center;
   justify-content: center;
 
+  flex: 0 0 38px;
+
+  width: 38px;
+  height: 38px;
+
   border-radius: 12px;
 
   background:
-    rgba(255, 255, 255, 0.14);
+    rgba(255, 255, 255, .15);
 
   box-shadow:
     inset 0 0 0 1px
-    rgba(255, 255, 255, 0.12);
+    rgba(255, 255, 255, .12);
 }
 
 
@@ -354,6 +368,7 @@ a {
   display: flex;
 
   align-items: center;
+
   justify-content: flex-end;
 
   gap: 8px;
@@ -382,19 +397,19 @@ a {
 
   font-weight: 600;
 
-  line-height: 1.5;
+  line-height: 1.6;
 
-  white-space: nowrap;
+  white-space: normal;
 
   transition:
-    background var(--transition-fast),
-    transform var(--transition-fast);
+    background var(--transition),
+    transform var(--transition);
 }
 
 
 .header-nav a:hover {
   background:
-    rgba(255, 255, 255, 0.12);
+    rgba(255, 255, 255, .12);
 
   transform:
     translateY(-1px);
@@ -402,7 +417,7 @@ a {
 
 
 /* =========================================================
-   SIDEBAR — DESKTOP
+   SIDEBAR - DESKTOP
 ========================================================= */
 
 .sidebar {
@@ -414,35 +429,33 @@ a {
 
   padding: 24px 16px;
 
-  background:
-    var(--lavender-white);
+  background: var(--white);
 
   border-left:
-    1px solid var(--lavender-border);
+    1px solid var(--border);
 
   box-shadow:
     -4px 0 18px
-    rgba(35, 60, 45, 0.04);
+    rgba(35, 60, 45, .04);
 }
 
 
 .sidebar-brand {
-  padding: 8px 8px 20px;
+  padding: 8px 8px 22px;
 
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 
   text-align: center;
 
   border-bottom:
-    1px solid var(--lavender-border);
+    1px solid var(--border);
 }
 
 
 .sidebar-brand h2 {
   margin: 0;
 
-  color:
-    var(--lavender-green-900);
+  color: var(--green-900);
 
   font-size: 22px;
 
@@ -455,8 +468,7 @@ a {
 .sidebar-brand p {
   margin: 5px 0 0;
 
-  color:
-    var(--lavender-muted);
+  color: var(--muted);
 
   font-size: 13px;
 
@@ -473,21 +485,22 @@ a {
 
 
 .sidebar li {
-  margin: 0 0 6px;
+  margin: 0 0 7px;
 }
 
 
 .sidebar-link {
-  width: 100%;
-  min-height: 48px;
-
   display: flex;
 
   align-items: center;
 
   gap: 12px;
 
-  padding: 10px 13px;
+  width: 100%;
+
+  min-height: 48px;
+
+  padding: 11px 13px;
 
   border-radius: 12px;
 
@@ -499,21 +512,23 @@ a {
 
   font-weight: 600;
 
-  line-height: 1.6;
+  line-height: 1.7;
+
+  overflow-wrap: anywhere;
 
   transition:
-    background var(--transition-fast),
-    color var(--transition-fast),
-    transform var(--transition-fast);
+    background var(--transition),
+    color var(--transition),
+    transform var(--transition);
 }
 
 
 .sidebar-link:hover {
   background:
-    var(--lavender-green-50);
+    var(--green-50);
 
   color:
-    var(--lavender-green-900);
+    var(--green-900);
 
   transform:
     translateX(-2px);
@@ -526,36 +541,37 @@ a {
   background:
     linear-gradient(
       135deg,
-      var(--lavender-green-700),
-      var(--lavender-green-600)
+      var(--green-700),
+      var(--green-600)
     );
 
   box-shadow:
     0 5px 13px
-    rgba(54, 122, 77, 0.18);
+    rgba(54, 122, 77, .18);
 }
 
 
-/* الذكاء والتحليلات فقط بنفسجي */
+/* AI + REPORTS = Intelligence */
 
 .sidebar-link[href="/ai"].active,
 .sidebar-link[href="/reports"].active {
   background:
     linear-gradient(
       135deg,
-      var(--lavender-purple-800),
-      var(--lavender-purple-600)
+      var(--purple-800),
+      var(--purple-600)
     );
 
   box-shadow:
     0 5px 14px
-    rgba(89, 64, 125, 0.18);
+    rgba(89, 64, 125, .18);
 }
 
 
 .sidebar-icon {
+  flex: 0 0 28px;
+
   width: 28px;
-  min-width: 28px;
 
   display: inline-flex;
 
@@ -563,6 +579,15 @@ a {
   justify-content: center;
 
   font-size: 18px;
+}
+
+
+.sidebar-link > span:last-child {
+  flex: 1;
+
+  min-width: 0;
+
+  overflow-wrap: anywhere;
 }
 
 
@@ -575,13 +600,12 @@ a {
 
   margin: 0 0 20px;
 
-  padding: 20px;
+  padding: 21px;
 
-  background:
-    var(--lavender-white);
+  background: var(--white);
 
   border:
-    1px solid var(--lavender-border);
+    1px solid var(--border);
 
   border-radius:
     var(--radius-lg);
@@ -607,8 +631,6 @@ a {
 
 
 .card-header {
-  width: 100%;
-
   display: flex;
 
   align-items: center;
@@ -620,7 +642,7 @@ a {
   padding-bottom: 13px;
 
   border-bottom:
-    1px solid #edf1ee;
+    1px solid var(--border-soft);
 }
 
 
@@ -632,26 +654,29 @@ a {
   margin: 0;
 
   color:
-    var(--lavender-green-700);
+    var(--green-700);
 
   line-height: 1.6;
+
+  overflow-wrap: anywhere;
 }
 
 
 .card-icon {
-  width: 40px;
-  min-width: 40px;
-  height: 40px;
-
   display: inline-flex;
 
   align-items: center;
   justify-content: center;
 
-  border-radius: 12px;
+  flex: 0 0 38px;
+
+  width: 38px;
+  height: 38px;
+
+  border-radius: 11px;
 
   background:
-    var(--lavender-green-100);
+    var(--green-100);
 
   font-size: 20px;
 }
@@ -669,7 +694,7 @@ a {
 
 
 /* =========================================================
-   SMART / INTELLIGENCE CARDS
+   SMART / INTELLIGENCE CARD
 ========================================================= */
 
 .card-smart {
@@ -677,7 +702,7 @@ a {
     linear-gradient(
       145deg,
       #ffffff 0%,
-      var(--lavender-purple-50) 100%
+      var(--purple-50) 100%
     );
 
   border-color:
@@ -687,13 +712,13 @@ a {
 
 .card-smart .card-header h2 {
   color:
-    var(--lavender-purple-800);
+    var(--purple-800);
 }
 
 
 .card-smart .card-icon {
   background:
-    var(--lavender-purple-100);
+    var(--purple-100);
 }
 
 
@@ -702,7 +727,7 @@ a {
 ========================================================= */
 
 .button {
-  min-height: 44px;
+  min-height: 46px;
 
   border: 0;
 
@@ -711,7 +736,7 @@ a {
 
   padding: 10px 18px;
 
-  margin: 4px;
+  margin: 5px;
 
   display: inline-flex;
 
@@ -730,14 +755,14 @@ a {
 
   font-weight: 700;
 
-  line-height: 1.5;
+  line-height: 1.6;
 
   cursor: pointer;
 
   transition:
-    transform var(--transition-fast),
-    box-shadow var(--transition-fast),
-    opacity var(--transition-fast);
+    transform var(--transition),
+    box-shadow var(--transition),
+    opacity var(--transition);
 }
 
 
@@ -747,7 +772,7 @@ a {
 
   box-shadow:
     0 5px 14px
-    rgba(0, 0, 0, 0.12);
+    rgba(0, 0, 0, .12);
 }
 
 
@@ -761,15 +786,15 @@ a {
   background:
     linear-gradient(
       135deg,
-      var(--lavender-green-700),
-      var(--lavender-green-500)
+      var(--green-700),
+      var(--green-500)
     );
 }
 
 
 .button-success {
   background:
-    var(--lavender-green-900);
+    var(--green-900);
 }
 
 
@@ -781,7 +806,7 @@ a {
 
 .button-warning {
   background:
-    var(--lavender-gold);
+    var(--gold);
 
   color:
     #3f3217;
@@ -792,14 +817,14 @@ a {
   background:
     linear-gradient(
       135deg,
-      var(--lavender-purple-800),
-      var(--lavender-purple-600)
+      var(--purple-800),
+      var(--purple-600)
     );
 }
 
 
 .button:disabled {
-  opacity: 0.55;
+  opacity: .55;
 
   cursor: not-allowed;
 
@@ -810,7 +835,7 @@ a {
 
 
 /* =========================================================
-   FORMS
+   FORM CONTROLS
 ========================================================= */
 
 input,
@@ -818,7 +843,7 @@ select,
 textarea {
   width: 100%;
 
-  min-height: 46px;
+  min-height: 48px;
 
   margin: 8px 0 14px;
 
@@ -830,11 +855,10 @@ textarea {
   border-radius:
     var(--radius-md);
 
-  background:
-    white;
+  background: white;
 
   color:
-    var(--lavender-text);
+    var(--text);
 
   font-family:
     "Tajawal",
@@ -846,13 +870,13 @@ textarea {
   line-height: 1.7;
 
   transition:
-    border-color var(--transition-fast),
-    box-shadow var(--transition-fast);
+    border-color var(--transition),
+    box-shadow var(--transition);
 }
 
 
 textarea {
-  min-height: 110px;
+  min-height: 115px;
 
   resize: vertical;
 }
@@ -871,11 +895,11 @@ textarea:focus {
   outline: none;
 
   border-color:
-    var(--lavender-green-600);
+    var(--green-600);
 
   box-shadow:
     0 0 0 3px
-    rgba(67, 141, 89, 0.10);
+    rgba(67, 141, 89, .10);
 }
 
 
@@ -885,26 +909,54 @@ select {
 
 
 /* =========================================================
+   TEXT BLOCKS
+   Prevent cramped report information
+========================================================= */
+
+.card p,
+.card li,
+.card-body p {
+  overflow-wrap: anywhere;
+
+  line-height: 1.95;
+}
+
+
+.card ul,
+.card ol {
+  padding-right: 22px;
+
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+
+.card li {
+  margin-bottom: 9px;
+}
+
+
+/* =========================================================
    PILLS / BADGES
 ========================================================= */
 
 .pill {
-  min-height: 32px;
-
   display: inline-flex;
 
   align-items: center;
   justify-content: center;
+
+  min-height: 34px;
 
   padding: 5px 13px;
 
   border-radius: 999px;
 
   background:
-    var(--lavender-green-100);
+    var(--green-100);
 
   color:
-    var(--lavender-green-900);
+    var(--green-900);
 
   font-size: 13px;
 
@@ -916,10 +968,10 @@ select {
 
 .pill-smart {
   background:
-    var(--lavender-purple-100);
+    var(--purple-100);
 
   color:
-    var(--lavender-purple-800);
+    var(--purple-800);
 }
 
 
@@ -928,9 +980,7 @@ select {
 ========================================================= */
 
 .app-footer {
-  width: 100%;
-
-  padding: 26px 20px;
+  padding: 27px 20px;
 
   color: white;
 
@@ -939,14 +989,16 @@ select {
   background:
     linear-gradient(
       135deg,
-      var(--lavender-green-900),
+      var(--green-900),
       #315e42
     );
+
+  line-height: 1.9;
 }
 
 
 .footer-brand {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 
   font-family:
     "Cairo",
@@ -962,17 +1014,17 @@ select {
 
 .footer-description {
   color:
-    rgba(255, 255, 255, 0.88);
+    rgba(255, 255, 255, .88);
 
   line-height: 2;
 }
 
 
 .footer-copy {
-  margin-top: 12px;
+  margin-top: 14px;
 
   color:
-    rgba(255, 255, 255, 0.70);
+    rgba(255, 255, 255, .70);
 
   font-size: 13px;
 
@@ -988,12 +1040,8 @@ select {
 
   .app-body {
     display: block;
-
-    width: 100%;
   }
 
-
-  /* القائمة تبقى عمودية */
 
   .sidebar {
     width: 100%;
@@ -1005,32 +1053,27 @@ select {
     border-left: 0;
 
     border-bottom:
-      1px solid var(--lavender-border);
+      1px solid var(--border);
 
     box-shadow:
       0 4px 14px
-      rgba(35, 60, 45, 0.06);
+      rgba(35, 60, 45, .06);
   }
 
 
-  .sidebar-brand {
-    padding: 7px 6px 14px;
-
-    margin-bottom: 10px;
-  }
-
+  /*
+     IMPORTANT:
+     Sidebar remains vertical.
+     No horizontal menu.
+  */
 
   .sidebar ul {
     display: block;
-
-    width: 100%;
   }
 
 
   .sidebar li {
-    width: 100%;
-
-    margin-bottom: 6px;
+    margin-bottom: 7px;
   }
 
 
@@ -1044,14 +1087,14 @@ select {
   .app-content {
     width: 100%;
 
-    padding: 20px 16px 28px;
+    padding: 20px 16px 30px;
   }
 
 }
 
 
 /* =========================================================
-   MOBILE — MAIN
+   MOBILE
 ========================================================= */
 
 @media (max-width: 600px) {
@@ -1059,31 +1102,24 @@ select {
   body {
     font-size: 15px;
 
-    line-height: 1.9;
-  }
-
-
-  .app-layout {
-    width: 100%;
+    line-height: 1.85;
   }
 
 
   /* -------------------------
-     Header
+     HEADER
   ------------------------- */
 
   .app-header {
-    width: 100%;
-
     min-height: auto;
 
-    padding: 15px 12px 17px;
+    padding: 16px 13px 18px;
 
     flex-direction: column;
 
     align-items: stretch;
 
-    gap: 12px;
+    gap: 13px;
 
     text-align: center;
   }
@@ -1098,20 +1134,21 @@ select {
 
     line-height: 1.6;
 
-    white-space: normal;
+    overflow-wrap: anywhere;
   }
 
 
   .brand-icon {
+    flex-basis: 34px;
+
     width: 34px;
-    min-width: 34px;
     height: 34px;
   }
 
 
   /*
-     روابط Header تصبح
-     عناصر منفصلة عموديًا
+     Header navigation:
+     vertical and separated
   */
 
   .header-nav {
@@ -1120,8 +1157,6 @@ select {
     display: flex;
 
     flex-direction: column;
-
-    align-items: stretch;
 
     gap: 7px;
   }
@@ -1135,37 +1170,37 @@ select {
     padding: 9px 12px;
 
     background:
-      rgba(255, 255, 255, 0.08);
+      rgba(255, 255, 255, .09);
 
     border-radius: 10px;
 
+    line-height: 1.7;
+
     white-space: normal;
 
-    line-height: 1.6;
+    overflow-wrap: anywhere;
   }
 
 
   /* -------------------------
-     Sidebar
+     SIDEBAR
   ------------------------- */
 
   .sidebar {
-    width: 100%;
-
-    padding: 13px 11px 16px;
+    padding: 14px 11px 18px;
   }
 
 
   .sidebar-brand {
-    width: 100%;
+    padding: 7px 5px 16px;
 
-    padding: 7px 6px 15px;
-
-    margin-bottom: 11px;
+    margin-bottom: 12px;
   }
 
 
   .sidebar-brand h2 {
+    margin: 0;
+
     font-size: 20px;
 
     line-height: 1.6;
@@ -1173,200 +1208,179 @@ select {
 
 
   .sidebar-brand p {
-    margin-top: 5px;
+    margin-top: 6px;
+
+    font-size: 14px;
 
     line-height: 1.8;
   }
 
 
   .sidebar ul {
-    width: 100%;
-
     display: block;
+
+    width: 100%;
   }
 
 
   .sidebar li {
     width: 100%;
 
-    margin-bottom: 7px;
+    margin-bottom: 8px;
   }
 
 
   .sidebar-link {
     width: 100%;
 
-    min-height: 49px;
+    min-height: 50px;
 
     padding: 11px 13px;
 
     gap: 13px;
 
+    border-radius: 12px;
+
     font-size: 15px;
 
-    line-height: 1.7;
+    line-height: 1.8;
+  }
+
+
+  .sidebar-link > span:last-child {
+    display: block;
+
+    min-width: 0;
 
     white-space: normal;
 
     overflow-wrap: anywhere;
+
+    word-break: normal;
   }
 
 
   .sidebar-icon {
-    width: 28px;
-    min-width: 28px;
+    flex: 0 0 29px;
+
+    width: 29px;
+
+    font-size: 18px;
   }
 
 
   /* -------------------------
-     Content
+     CONTENT
   ------------------------- */
 
   .app-content {
     width: 100%;
 
-    padding:
-      20px 12px 30px;
+    padding: 20px 13px 30px;
 
     line-height: 1.9;
   }
 
 
   /* -------------------------
-     Titles
+     HEADINGS
   ------------------------- */
 
   h1 {
-    margin:
-      0 0 24px;
+    margin-top: 4px;
+
+    margin-bottom: 24px;
 
     font-size: 25px;
 
-    line-height: 1.7;
+    line-height: 1.6;
   }
 
 
   h2 {
-    margin:
-      0 0 18px;
+    margin-bottom: 19px;
 
     font-size: 19px;
+
+    line-height: 1.65;
+  }
+
+
+  h3 {
+    margin-bottom: 15px;
+
+    font-size: 17px;
 
     line-height: 1.7;
   }
 
 
-  h3 {
-    margin:
-      0 0 15px;
-
-    font-size: 17px;
-
-    line-height: 1.8;
-  }
-
-
   /* -------------------------
-     Paragraphs
-  ------------------------- */
-
-  p {
-    margin:
-      0 0 17px;
-
-    line-height: 2;
-  }
-
-
-  /* -------------------------
-     Cards
+     CARDS
   ------------------------- */
 
   .card {
     width: 100%;
 
-    margin:
-      0 0 20px;
+    margin-bottom: 20px;
 
-    padding:
-      17px 15px;
+    padding: 18px 15px;
 
-    border-radius:
-      16px;
+    border-radius: 16px;
   }
 
 
   .card-header {
-    width: 100%;
-
-    display: flex;
-
     align-items: flex-start;
 
-    gap: 10px;
+    gap: 11px;
 
-    margin-bottom: 17px;
+    margin-bottom: 18px;
 
-    padding-bottom: 13px;
+    padding-bottom: 14px;
   }
 
 
   .card-header h2 {
-    flex: 1;
-
-    min-width: 0;
-
     margin: 0;
 
     font-size: 18px;
 
-    line-height: 1.8;
+    line-height: 1.7;
   }
 
 
   .card-icon {
-    width: 38px;
-    min-width: 38px;
-    height: 38px;
+    flex-basis: 36px;
+
+    width: 36px;
+    height: 36px;
   }
 
 
   .card-body {
-    width: 100%;
-
     font-size: 15px;
 
     line-height: 2;
-
-    overflow-wrap: anywhere;
-
-    word-break: normal;
-
-    word-spacing: 1px;
   }
 
 
-  /* فصل الفقرات داخل البطاقات */
-
-  .card-body p {
-    display: block;
-
-    width: 100%;
-
-    margin:
-      0 0 17px;
+  .card p {
+    margin-bottom: 15px;
 
     line-height: 2;
   }
 
 
-  .card-body p:last-child {
-    margin-bottom: 0;
+  .card li {
+    margin-bottom: 10px;
+
+    line-height: 1.9;
   }
 
 
   /* -------------------------
-     Forms
+     FORMS
   ------------------------- */
 
   input,
@@ -1374,13 +1388,13 @@ select {
   textarea {
     width: 100%;
 
-    min-height: 46px;
+    min-height: 48px;
 
-    margin:
-      8px 0 14px;
+    margin-top: 9px;
 
-    padding:
-      11px 13px;
+    margin-bottom: 15px;
+
+    padding: 11px 13px;
 
     font-size: 16px;
 
@@ -1394,52 +1408,35 @@ select {
 
 
   /* -------------------------
-     Buttons
+     BUTTONS
   ------------------------- */
 
   .button {
     width: 100%;
 
-    min-height: 46px;
+    min-height: 48px;
 
-    margin:
-      6px 0;
+    margin: 6px 0;
 
-    padding:
-      10px 15px;
+    padding: 10px 14px;
 
     line-height: 1.7;
   }
 
 
   /* -------------------------
-     Pills
-  ------------------------- */
-
-  .pill {
-    min-height: 34px;
-
-    padding:
-      6px 13px;
-
-    line-height: 1.6;
-  }
-
-
-  /* -------------------------
-     Footer
+     FOOTER
   ------------------------- */
 
   .app-footer {
-    width: 100%;
+    padding: 27px 15px;
 
-    padding:
-      27px 15px;
+    line-height: 2;
   }
 
 
   .footer-brand {
-    margin-bottom: 12px;
+    margin-bottom: 13px;
 
     font-size: 18px;
 
@@ -1453,7 +1450,7 @@ select {
 
 
   .footer-copy {
-    margin-top: 14px;
+    margin-top: 15px;
 
     line-height: 1.9;
   }
@@ -1462,51 +1459,51 @@ select {
 
 
 /* =========================================================
-   EXTRA SMALL PHONES
+   VERY SMALL PHONES
 ========================================================= */
 
 @media (max-width: 380px) {
 
-  .app-content {
-    padding:
-      18px 9px 27px;
-  }
-
-
-  .card {
-    padding:
-      15px 12px;
-
-    border-radius:
-      14px;
-  }
-
-
-  .card-header h2 {
-    font-size: 17px;
-  }
-
-
-  .card-body {
+  body {
     font-size: 14px;
+  }
 
-    line-height: 2.05;
 
-    word-spacing: 1.5px;
+  .app-content {
+    padding: 18px 10px 28px;
+  }
+
+
+  .app-header {
+    padding-left: 10px;
+    padding-right: 10px;
+  }
+
+
+  .brand a {
+    font-size: 17px;
+
+    gap: 7px;
+  }
+
+
+  .header-nav a {
+    min-height: 45px;
+
+    padding: 9px 10px;
   }
 
 
   .sidebar {
-    padding:
-      11px 9px 14px;
+    padding-left: 9px;
+    padding-right: 9px;
   }
 
 
   .sidebar-link {
-    min-height: 48px;
+    min-height: 49px;
 
-    padding:
-      10px 11px;
+    padding: 11px 11px;
 
     gap: 11px;
 
@@ -1514,15 +1511,17 @@ select {
   }
 
 
-  .brand a {
-    font-size: 17px;
+  .sidebar-icon {
+    flex-basis: 27px;
+
+    width: 27px;
   }
 
 
   h1 {
     font-size: 23px;
 
-    line-height: 1.8;
+    margin-bottom: 22px;
   }
 
 
@@ -1530,6 +1529,41 @@ select {
     font-size: 18px;
   }
 
+
+  .card {
+    padding: 16px 13px;
+
+    margin-bottom: 18px;
+  }
+
+
+  .card-body {
+    font-size: 14px;
+  }
+
+
+  .button {
+    min-height: 47px;
+  }
+
+}
+
+
+/* =========================================================
+   PREVENT HORIZONTAL OVERFLOW
+========================================================= */
+
+.app-layout,
+.app-body,
+.app-content,
+.card,
+.card-body,
+.sidebar,
+.sidebar-link,
+.app-header,
+.header-nav,
+.app-footer {
+  max-width: 100%;
 }
 
 
@@ -1545,10 +1579,9 @@ textarea:focus-visible {
 
   outline:
     3px solid
-    rgba(128, 96, 165, 0.35);
+    rgba(128, 96, 165, .35);
 
-  outline-offset:
-    2px;
+  outline-offset: 2px;
 }
 
 
@@ -1562,14 +1595,11 @@ textarea:focus-visible {
   *::before,
   *::after {
 
-    scroll-behavior:
-      auto !important;
+    scroll-behavior: auto !important;
 
-    transition:
-      none !important;
+    transition: none !important;
 
-    animation:
-      none !important;
+    animation: none !important;
   }
 
 }
