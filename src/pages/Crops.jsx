@@ -1,32 +1,39 @@
 // src/pages/Crops.jsx
 
 import {
-  useContext,
+  useEffect,
   useMemo,
-  useState
+  useState,
 } from "react";
-
-
-import {
-  FarmContext
-} from "../context/FarmContext";
-
-
-import useCrops
-  from "../hooks/useCrops.js";
 
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
 
+import useFarms
+  from "../hooks/useFarms";
+
+
+import useFields
+  from "../hooks/useFields";
+
+
+import useCrops
+  from "../hooks/useCrops";
+
+
 export default function Crops() {
 
 
   const {
-    farms,
-    fields
-  } = useContext(FarmContext);
+    loadFarms,
+  } = useFarms();
+
+
+  const {
+    loadFields,
+  } = useFields();
 
 
   const {
@@ -36,8 +43,20 @@ export default function Crops() {
     addCrop,
     updateCrop,
     deleteCrop,
-    searchCrops
+    searchCrops,
   } = useCrops();
+
+
+  const [
+    farms,
+    setFarms
+  ] = useState([]);
+
+
+  const [
+    fields,
+    setFields
+  ] = useState([]);
 
 
   const emptyForm = {
@@ -51,76 +70,300 @@ export default function Crops() {
     seedQuantity: "",
     expectedProduction: "",
     status: "",
-    notes: ""
+    notes: "",
 
   };
 
 
-  const [form, setForm] =
-    useState(emptyForm);
+  const [
+    form,
+    setForm
+  ] = useState(emptyForm);
 
 
-  const [editId, setEditId] =
-    useState(null);
+  const [
+    editId,
+    setEditId
+  ] = useState(null);
 
 
-  const [search, setSearch] =
-    useState("");
+  const [
+    search,
+    setSearch
+  ] = useState("");
 
+
+  const [
+    pageLoading,
+    setPageLoading
+  ] = useState(true);
+
+
+  const [
+    pageError,
+    setPageError
+  ] = useState("");
+
+
+  // =========================
+  // Load Farms + Fields
+  // =========================
+
+  useEffect(() => {
+
+    let mounted = true;
+
+
+    const loadData = async () => {
+
+      try {
+
+        setPageLoading(true);
+        setPageError("");
+
+
+        const [
+          farmsData,
+          fieldsData,
+        ] = await Promise.all([
+
+          loadFarms(),
+
+          loadFields(),
+
+        ]);
+
+
+        if (!mounted) {
+          return;
+        }
+
+
+        setFarms(
+          Array.isArray(farmsData)
+            ? farmsData
+            : []
+        );
+
+
+        setFields(
+          Array.isArray(fieldsData)
+            ? fieldsData
+            : []
+        );
+
+
+      } catch (err) {
+
+        console.error(
+          "Crops loading error:",
+          err
+        );
+
+
+        if (mounted) {
+
+          setPageError(
+            err?.message ||
+            "تعذر تحميل بيانات المزارع والحقول."
+          );
+
+
+          setFarms([]);
+          setFields([]);
+
+        }
+
+      } finally {
+
+        if (mounted) {
+
+          setPageLoading(false);
+
+        }
+
+      }
+
+    };
+
+
+    loadData();
+
+
+    return () => {
+
+      mounted = false;
+
+    };
+
+  }, [
+    loadFarms,
+    loadFields,
+  ]);
+
+
+  // =========================
+  // Input Change
+  // =========================
 
   const handleChange = (e) => {
 
-    setForm({
+    const {
+      name,
+      value,
+    } = e.target;
 
-      ...form,
 
-      [e.target.name]:
-        e.target.value
+    if (name === "farmId") {
 
-    });
+      setForm((prev) => ({
+
+        ...prev,
+
+        farmId: value,
+
+        fieldId: "",
+
+      }));
+
+
+      return;
+
+    }
+
+
+    setForm((prev) => ({
+
+      ...prev,
+
+      [name]: value,
+
+    }));
+
 
   };
 
+
+  // =========================
+  // Reset
+  // =========================
 
   const clearForm = () => {
 
     setForm({
-      ...emptyForm
+      ...emptyForm,
     });
+
 
     setEditId(null);
 
   };
 
 
+  // =========================
+  // Fields By Farm
+  // =========================
+
+  const farmFields =
+
+    useMemo(() => {
+
+      if (!form.farmId) {
+
+        return [];
+
+      }
+
+
+      return fields.filter(
+        (field) => {
+
+          const fieldFarmId =
+
+            field?.farmId ??
+            field?.farm_id ??
+            field?.farm?.id ??
+            "";
+
+
+          return (
+
+            String(fieldFarmId) ===
+            String(form.farmId)
+
+          );
+
+        }
+      );
+
+    }, [
+
+      fields,
+      form.farmId,
+
+    ]);
+
+
+  // =========================
+  // Save Crop
+  // =========================
+
   const saveCrop = async () => {
 
-    if (
-      !form.name ||
-      !form.fieldId
-    ) {
+    if (!form.farmId) {
+
       return;
+
+    }
+
+
+    if (!form.fieldId) {
+
+      return;
+
+    }
+
+
+    if (!form.name.trim()) {
+
+      return;
+
     }
 
 
     try {
 
+      const data = {
+
+        ...form,
+
+        farmId:
+          form.farmId,
+
+        fieldId:
+          form.fieldId,
+
+      };
+
+
       if (editId) {
 
         await updateCrop(
           editId,
-          form
+          data
         );
 
       } else {
 
         await addCrop(
-          form
+          data
         );
 
       }
 
+
       clearForm();
+
 
     } catch (err) {
 
@@ -134,70 +377,83 @@ export default function Crops() {
   };
 
 
+  // =========================
+  // Edit Crop
+  // =========================
+
   const editCrop = (crop) => {
+
+    const farmId =
+
+      crop?.farmId ??
+      crop?.farm_id ??
+      crop?.farm?.id ??
+      "";
+
+
+    const fieldId =
+
+      crop?.fieldId ??
+      crop?.field_id ??
+      crop?.field?.id ??
+      "";
+
 
     setForm({
 
-      farmId:
-        crop.farmId || "",
+      farmId,
 
-      fieldId:
-        crop.fieldId || "",
+      fieldId,
 
       name:
-        crop.name || "",
+        crop?.name ||
+        "",
 
       variety:
-        crop.variety || "",
+        crop?.variety ||
+        "",
 
       plantingDate:
-        crop.plantingDate || "",
+        crop?.plantingDate ??
+        crop?.planting_date ??
+        "",
 
       harvestDate:
-        crop.harvestDate || "",
+        crop?.harvestDate ??
+        crop?.harvest_date ??
+        "",
 
       seedQuantity:
-        crop.seedQuantity || "",
+        crop?.seedQuantity ??
+        crop?.seed_quantity ??
+        "",
 
       expectedProduction:
-        crop.expectedProduction || "",
+        crop?.expectedProduction ??
+        crop?.expected_production ??
+        "",
 
       status:
-        crop.status || "",
+        crop?.status ||
+        "",
 
       notes:
-        crop.notes || ""
+        crop?.notes ||
+        "",
 
     });
 
 
     setEditId(
-      crop.id
+      crop?.id ?? null
     );
 
   };
 
 
-  const farmFields =
-
-    useMemo(() => {
-
-      return fields.filter(
-
-        field =>
-
-          String(field.farmId) ===
-          String(form.farmId)
-
-      );
-
-    }, [
-
-      fields,
-      form.farmId
-
-    ]);
-
+  // =========================
+  // Search
+  // =========================
 
   const filteredCrops =
 
@@ -212,52 +468,62 @@ export default function Crops() {
 
       crops,
       search,
-      searchCrops
+      searchCrops,
 
     ]);
 
 
+  // =========================
+  // Farm Name
+  // =========================
+
   const getFarmName = (farmId) => {
 
     const farm =
-
       farms.find(
-
-        item =>
-
-          String(item.id) ===
+        (item) =>
+          String(item?.id) ===
           String(farmId)
-
       );
 
 
-    return farm
-      ? farm.name
-      : "غير محددة";
+    return (
+
+      farm?.name ||
+      "غير محددة"
+
+    );
 
   };
 
+
+  // =========================
+  // Field Name
+  // =========================
 
   const getFieldName = (fieldId) => {
 
     const field =
-
       fields.find(
-
-        item =>
-
-          String(item.id) ===
+        (item) =>
+          String(item?.id) ===
           String(fieldId)
-
       );
 
 
-    return field
-      ? field.name
-      : "غير محدد";
+    return (
+
+      field?.name ||
+      "غير محدد"
+
+    );
 
   };
 
+
+  // =========================
+  // UI
+  // =========================
 
   return (
 
@@ -269,11 +535,21 @@ export default function Crops() {
       </h1>
 
 
-      {error && (
+      {pageError && (
 
-        <p>
-          حدث خطأ أثناء التعامل مع المحاصيل.
-        </p>
+        <div
+          style={{
+            padding: "10px",
+            marginBottom: "15px",
+            borderRadius: "6px",
+            background: "#ffe5e5",
+            color: "#b00020",
+          }}
+        >
+
+          ⚠️ {pageError}
+
+        </div>
 
       )}
 
@@ -281,11 +557,9 @@ export default function Crops() {
       <Card
 
         title={
-
           editId
             ? "✏️ تعديل محصول"
             : "➕ إضافة محصول"
-
         }
 
       >
@@ -295,9 +569,17 @@ export default function Crops() {
 
           name="farmId"
 
-          value={form.farmId}
+          value={
+            form.farmId
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
+
+          disabled={
+            pageLoading
+          }
 
         >
 
@@ -306,65 +588,84 @@ export default function Crops() {
           </option>
 
 
-          {
-
-            farms.map(farm => (
+          {farms.map(
+            (farm) => (
 
               <option
-
                 key={farm.id}
-
                 value={farm.id}
-
               >
 
                 {farm.name}
 
               </option>
 
-            ))
-
-          }
+            )
+          )}
 
         </select>
+
+
+        <br />
+        <br />
 
 
         <select
 
           name="fieldId"
 
-          value={form.fieldId}
+          value={
+            form.fieldId
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
+
+          disabled={
+            !form.farmId ||
+            farmFields.length === 0
+          }
 
         >
 
           <option value="">
-            اختر الحقل
+
+            {!form.farmId
+
+              ? "اختر المزرعة أولاً"
+
+              : farmFields.length === 0
+
+              ? "لا توجد حقول لهذه المزرعة"
+
+              : "اختر الحقل"
+
+            }
+
           </option>
 
 
-          {
-
-            farmFields.map(field => (
+          {farmFields.map(
+            (field) => (
 
               <option
-
                 key={field.id}
-
                 value={field.id}
-
               >
 
                 {field.name}
 
               </option>
 
-            ))
-
-          }
+            )
+          )}
 
         </select>
+
+
+        <br />
+        <br />
 
 
         <input
@@ -373,11 +674,19 @@ export default function Crops() {
 
           placeholder="اسم المحصول"
 
-          value={form.name}
+          value={
+            form.name
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
+
+
+        <br />
+        <br />
 
 
         <input
@@ -386,11 +695,19 @@ export default function Crops() {
 
           placeholder="الصنف"
 
-          value={form.variety}
+          value={
+            form.variety
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
+
+
+        <br />
+        <br />
 
 
         <input
@@ -399,11 +716,19 @@ export default function Crops() {
 
           name="plantingDate"
 
-          value={form.plantingDate}
+          value={
+            form.plantingDate
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
+
+
+        <br />
+        <br />
 
 
         <input
@@ -412,11 +737,19 @@ export default function Crops() {
 
           name="harvestDate"
 
-          value={form.harvestDate}
+          value={
+            form.harvestDate
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
+
+
+        <br />
+        <br />
 
 
         <input
@@ -427,11 +760,19 @@ export default function Crops() {
 
           placeholder="كمية البذور"
 
-          value={form.seedQuantity}
+          value={
+            form.seedQuantity
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
+
+
+        <br />
+        <br />
 
 
         <input
@@ -442,11 +783,19 @@ export default function Crops() {
 
           placeholder="الإنتاج المتوقع"
 
-          value={form.expectedProduction}
+          value={
+            form.expectedProduction
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
+
+
+        <br />
+        <br />
 
 
         <input
@@ -455,11 +804,19 @@ export default function Crops() {
 
           placeholder="حالة المحصول"
 
-          value={form.status}
+          value={
+            form.status
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
+
+
+        <br />
+        <br />
 
 
         <textarea
@@ -468,26 +825,45 @@ export default function Crops() {
 
           placeholder="ملاحظات"
 
-          value={form.notes}
+          value={
+            form.notes
+          }
 
-          onChange={handleChange}
+          onChange={
+            handleChange
+          }
 
         />
 
 
+        <br />
+        <br />
+
+
         <Button
 
-          onClick={saveCrop}
+          onClick={
+            saveCrop
+          }
+
+          disabled={
+            loading ||
+            pageLoading
+          }
 
         >
 
           {
 
             loading
+
               ? "جاري الحفظ..."
+
               : editId
-                ? "حفظ التعديل"
-                : "إضافة المحصول"
+
+              ? "حفظ التعديل"
+
+              : "إضافة المحصول"
 
           }
 
@@ -497,23 +873,25 @@ export default function Crops() {
       </Card>
 
 
-      <Card title="🔎 البحث">
-
+      <Card
+        title="🔎 البحث"
+      >
 
         <input
 
           placeholder="ابحث عن محصول"
 
-          value={search}
+          value={
+            search
+          }
 
-          onChange={e =>
+          onChange={(e) =>
             setSearch(
               e.target.value
             )
           }
 
         />
-
 
       </Card>
 
@@ -523,13 +901,14 @@ export default function Crops() {
       </h2>
 
 
-      {
-
-        filteredCrops.map(crop => (
+      {filteredCrops.map(
+        (crop) => (
 
           <Card
 
-            key={crop.id}
+            key={
+              crop.id
+            }
 
             title={
               `🌿 ${crop.name}`
@@ -538,47 +917,82 @@ export default function Crops() {
           >
 
             <p>
+
               🚜 المزرعة:
+              {" "}
+
               {getFarmName(
-                crop.farmId
+                crop.farmId ??
+                crop.farm_id
               )}
+
             </p>
 
 
             <p>
+
               📍 الحقل:
+              {" "}
+
               {getFieldName(
-                crop.fieldId
+                crop.fieldId ??
+                crop.field_id
               )}
+
             </p>
 
 
             <p>
+
               🌱 الصنف:
-              {crop.variety}
+              {" "}
+
+              {crop.variety || "--"}
+
             </p>
 
 
             <p>
+
               📅 الزراعة:
-              {crop.plantingDate}
+              {" "}
+
+              {crop.plantingDate ??
+                crop.planting_date ??
+                "--"}
+
             </p>
 
 
             <p>
+
               📦 الإنتاج المتوقع:
-              {crop.expectedProduction}
+              {" "}
+
+              {crop.expectedProduction ??
+                crop.expected_production ??
+                "--"}
+
             </p>
 
 
             <p>
+
               📌 الحالة:
-              {crop.status}
+              {" "}
+
+              {crop.status || "--"}
+
             </p>
 
 
             <p>
-              📝 {crop.notes}
+
+              📝
+              {" "}
+
+              {crop.notes || "--"}
+
             </p>
 
 
@@ -590,7 +1004,7 @@ export default function Crops() {
 
             >
 
-              تعديل
+              ✏️ تعديل
 
             </Button>
 
@@ -598,21 +1012,22 @@ export default function Crops() {
             <Button
 
               onClick={() =>
-                deleteCrop(crop.id)
+                deleteCrop(
+                  crop.id
+                )
               }
 
             >
 
-              حذف
+              🗑️ حذف
 
             </Button>
 
 
           </Card>
 
-        ))
-
-      }
+        )
+      )}
 
 
     </div>
