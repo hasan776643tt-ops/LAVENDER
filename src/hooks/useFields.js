@@ -1,19 +1,15 @@
-// src/hooks/useFields.js
+// src/hooks/useGeoLocation.js
 
 import {
-  useCallback,
-  useEffect,
   useState,
+  useCallback,
 } from "react";
 
-import fieldService
-  from "../services/fieldService.js";
 
+export default function useGeoLocation() {
 
-export default function useFields() {
-
-  const [fields, setFields] =
-    useState([]);
+  const [location, setLocation] =
+    useState(null);
 
   const [loading, setLoading] =
     useState(false);
@@ -23,361 +19,243 @@ export default function useFields() {
 
 
   // =========================
-  // Load Fields
+  // Get GPS + Place Name
   // =========================
 
-  const loadFields =
-    useCallback(async () => {
+  const getLocation =
+    useCallback(() => {
 
-      try {
+      return new Promise(
+        (resolve, reject) => {
 
-        setLoading(true);
-        setError(null);
+          if (!navigator.geolocation) {
 
+            const message =
+              "المتصفح لا يدعم تحديد الموقع.";
 
-        const data =
-          await fieldService.getAll();
+            setError(message);
 
+            reject(
+              new Error(message)
+            );
 
-        const result =
-          Array.isArray(data)
-            ? data
-            : [];
+            return;
+          }
 
-
-        setFields(result);
-
-
-        return result;
-
-
-      } catch (err) {
-
-        console.error(
-          "useFields loadFields error:",
-          err
-        );
-
-
-        setError(
-          err?.message ||
-          "تعذر تحميل الحقول."
-        );
-
-
-        setFields([]);
-
-
-        return [];
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    }, []);
-
-
-  // =========================
-  // Add Field
-  // =========================
-
-  const addField =
-    useCallback(async (fieldData) => {
-
-      try {
-
-        setLoading(true);
-        setError(null);
-
-
-        const created =
-          await fieldService.create(
-            fieldData
-          );
-
-
-        await loadFields();
-
-
-        return created;
-
-
-      } catch (err) {
-
-        console.error(
-          "useFields addField error:",
-          err
-        );
-
-
-        setError(
-          err?.message ||
-          "تعذر إضافة الحقل."
-        );
-
-
-        throw err;
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    }, [
-      loadFields,
-    ]);
-
-
-  // =========================
-  // Update Field
-  // =========================
-
-  const updateField =
-    useCallback(
-      async (
-        id,
-        fieldData
-      ) => {
-
-        try {
 
           setLoading(true);
           setError(null);
 
 
-          const updated =
-            await fieldService.update(
-              id,
-              fieldData
-            );
+          navigator.geolocation.getCurrentPosition(
+
+            async (position) => {
+
+              const coordinates = {
+
+                latitude:
+                  position.coords.latitude,
+
+                longitude:
+                  position.coords.longitude,
+
+                accuracy:
+                  position.coords.accuracy,
+
+              };
 
 
-          await loadFields();
+              let place = {
+
+                village: "",
+                town: "",
+                city: "",
+                district: "",
+                governorate: "",
+                state: "",
+                country: "",
+                displayName: "",
+
+              };
 
 
-          return updated;
+              try {
+
+                const url =
+                  `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${coordinates.latitude}&lon=${coordinates.longitude}&zoom=18&addressdetails=1&accept-language=ar`;
 
 
-        } catch (err) {
-
-          console.error(
-            "useFields updateField error:",
-            err
-          );
-
-
-          setError(
-            err?.message ||
-            "تعذر تعديل الحقل."
-          );
+                const response =
+                  await fetch(url, {
+                    headers: {
+                      Accept:
+                        "application/json",
+                    },
+                  });
 
 
-          throw err;
+                if (response.ok) {
+
+                  const data =
+                    await response.json();
 
 
-        } finally {
-
-          setLoading(false);
-
-        }
-
-      },
-      [
-        loadFields,
-      ]
-    );
+                  const address =
+                    data?.address || {};
 
 
-  // =========================
-  // Delete Field
-  // =========================
+                  place = {
 
-  const deleteField =
-    useCallback(async (id) => {
+                    village:
+                      address.village ||
+                      address.hamlet ||
+                      "",
 
-      try {
+                    town:
+                      address.town ||
+                      "",
 
-        setLoading(true);
-        setError(null);
+                    city:
+                      address.city ||
+                      address.municipality ||
+                      "",
 
+                    district:
+                      address.district ||
+                      address.suburb ||
+                      address.neighbourhood ||
+                      "",
 
-        const result =
-          await fieldService.delete(
-            id
-          );
+                    governorate:
+                      address.state ||
+                      address.province ||
+                      "",
 
+                    state:
+                      address.state ||
+                      address.province ||
+                      "",
 
-        await loadFields();
+                    country:
+                      address.country ||
+                      "",
 
+                    displayName:
+                      data?.display_name ||
+                      "",
 
-        return result;
+                  };
 
+                }
 
-      } catch (err) {
+              } catch (geocodeError) {
 
-        console.error(
-          "useFields deleteField error:",
-          err
-        );
+                console.warn(
+                  "Reverse geocoding failed:",
+                  geocodeError
+                );
 
-
-        setError(
-          err?.message ||
-          "تعذر حذف الحقل."
-        );
-
-
-        throw err;
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    }, [
-      loadFields,
-    ]);
-
-
-  // =========================
-  // Search Fields
-  // =========================
-
-  const searchFields =
-    useCallback(
-      async (query = "") => {
-
-        try {
-
-          setError(null);
+              }
 
 
-          const data =
-            await fieldService.getAll();
+              const result = {
+
+                ...coordinates,
+
+                ...place,
+
+              };
 
 
-          const allFields =
-            Array.isArray(data)
-              ? data
-              : [];
+              setLocation(result);
+
+              setLoading(false);
 
 
-          const normalizedQuery =
-            String(query)
-              .trim()
-              .toLowerCase();
+              resolve(result);
+
+            },
 
 
-          if (!normalizedQuery) {
+            (err) => {
 
-            return allFields;
+              let message =
+                "تعذر تحديد موقع الحقل.";
 
-          }
+              if (err.code === 1) {
 
+                message =
+                  "تم رفض صلاحية الوصول إلى موقعك. اسمح للموقع بالوصول إلى GPS.";
 
-          return allFields.filter(
-            (field) => {
+              } else if (err.code === 2) {
 
-              const name =
-                String(
-                  field?.name || ""
-                ).toLowerCase();
+                message =
+                  "تعذر الحصول على موقعك الحالي.";
 
+              } else if (err.code === 3) {
 
-              const soilType =
-                String(
-                  field?.soilType ||
-                  field?.soil_type ||
-                  ""
-                ).toLowerCase();
+                message =
+                  "انتهت مهلة تحديد الموقع. حاول مرة أخرى.";
 
-
-              const crop =
-                String(
-                  field?.crop || ""
-                ).toLowerCase();
+              }
 
 
-              return (
-                name.includes(
-                  normalizedQuery
-                ) ||
-                soilType.includes(
-                  normalizedQuery
-                ) ||
-                crop.includes(
-                  normalizedQuery
-                )
+              setError(message);
+
+              setLoading(false);
+
+              reject(
+                new Error(message)
               );
 
+            },
+
+
+            {
+
+              enableHighAccuracy:
+                true,
+
+              timeout:
+                15000,
+
+              maximumAge:
+                0,
+
             }
+
           );
-
-
-        } catch (err) {
-
-          console.error(
-            "useFields searchFields error:",
-            err
-          );
-
-
-          setError(
-            err?.message ||
-            "تعذر البحث في الحقول."
-          );
-
-
-          return [];
 
         }
+      );
 
-      },
-      []
-    );
-
-
-  // =========================
-  // Initial Load
-  // =========================
-
-  useEffect(() => {
-
-    loadFields();
-
-  }, [
-    loadFields,
-  ]);
+    }, []);
 
 
   // =========================
-  // Return
+  // Clear
   // =========================
+
+  const clearLocation =
+    useCallback(() => {
+
+      setLocation(null);
+      setError(null);
+
+    }, []);
+
 
   return {
 
-    fields,
+    location,
 
     loading,
 
     error,
 
-    loadFields,
+    getLocation,
 
-    addField,
-
-    updateField,
-
-    deleteField,
-
-    searchFields,
+    clearLocation,
 
   };
 
