@@ -1,137 +1,168 @@
-// src/components/Sidebar.jsx
+// src/config/menuConfig.js
 
-import { NavLink } from "react-router-dom";
+const createMenuItem = ({
+  id,
+  titleKey,
+  path,
+  icon,
+  module,
+  permission = null,
+  enabled = true,
+}) =>
+  Object.freeze({
+    id,
+    titleKey,
+    path,
+    icon,
+    module,
+    permission,
+    enabled,
+  });
 
-import menuConfig from "../config/menuConfig.js";
-import { translate } from "../utils/translation.js";
-import { useSettings } from "../context/SettingsContext.jsx";
+const menuConfig = Object.freeze([
+  createMenuItem({
+    id: "dashboard",
+    titleKey: "menu.dashboard",
+    path: "/dashboard",
+    icon: "📊",
+    module: "dashboard",
+  }),
 
+  createMenuItem({
+    id: "farms",
+    titleKey: "menu.farms",
+    path: "/farms",
+    icon: "🚜",
+    module: "farms",
+  }),
 
-const englishNames = {
+  createMenuItem({
+    id: "fields",
+    titleKey: "menu.fields",
+    path: "/fields",
+    icon: "🌱",
+    module: "fields",
+  }),
 
-  dashboard: "Dashboard",
-  farms: "Farms",
-  fields: "Fields",
-  crops: "Crops",
-  irrigation: "Irrigation",
-  fertilizers: "Fertilizers",
-  pesticides: "Pesticides",
-  diseases: "Diseases",
-  weather: "Weather",
-  map: "Map",
-  ai: "AI Advisor",
-  engineer: "Agricultural Engineer",
-  reports: "Reports",
-  harvest: "Harvest",
-  inventory: "Inventory",
-  expenses: "Expenses",
-  users: "Users",
-  settings: "Settings",
+  createMenuItem({
+    id: "crops",
+    titleKey: "menu.crops",
+    path: "/crops",
+    icon: "🌾",
+    module: "crops",
+  }),
 
-};
+  createMenuItem({
+    id: "irrigation",
+    titleKey: "menu.irrigation",
+    path: "/irrigation",
+    icon: "💧",
+    module: "irrigation",
+  }),
 
+  createMenuItem({
+    id: "fertilizers",
+    titleKey: "menu.fertilizers",
+    path: "/fertilizers",
+    icon: "🧪",
+    module: "fertilizers",
+  }),
 
-export default function Sidebar() {
+  createMenuItem({
+    id: "pesticides",
+    titleKey: "menu.pesticides",
+    path: "/pesticides",
+    icon: "🛡️",
+    module: "pesticides",
+  }),
 
-  const { settings } = useSettings();
+  createMenuItem({
+    id: "diseases",
+    titleKey: "menu.diseases",
+    path: "/diseases",
+    icon: "🦠",
+    module: "diseases",
+  }),
 
-  const language =
-    settings?.language || "ar";
+  createMenuItem({
+    id: "weather",
+    titleKey: "menu.weather",
+    path: "/weather",
+    icon: "☁️",
+    module: "weather",
+  }),
 
+  createMenuItem({
+    id: "map",
+    titleKey: "menu.map",
+    path: "/map",
+    icon: "🗺️",
+    module: "map",
+  }),
 
-  return (
+  createMenuItem({
+    id: "ai",
+    titleKey: "menu.ai",
+    path: "/ai",
+    icon: "🤖",
+    module: "ai",
+  }),
 
-    <aside
-      className="sidebar"
-      aria-label="القائمة الرئيسية"
-    >
+  createMenuItem({
+    id: "engineer",
+    titleKey: "menu.engineer",
+    path: "/engineer",
+    icon: "👨‍🌾",
+    module: "engineer",
+  }),
 
-      <div className="sidebar-brand">
+  createMenuItem({
+    id: "reports",
+    titleKey: "menu.reports",
+    path: "/reports",
+    icon: "📈",
+    module: "reports",
+  }),
 
-        <div className="sidebar-brand-logo">
-          🌱
-        </div>
+  createMenuItem({
+    id: "harvest",
+    titleKey: "menu.harvest",
+    path: "/harvest",
+    icon: "🌽",
+    module: "harvest",
+  }),
 
-        <h2>
-          LAVENDER
-        </h2>
+  createMenuItem({
+    id: "inventory",
+    titleKey: "menu.inventory",
+    path: "/inventory",
+    icon: "📦",
+    module: "inventory",
+  }),
 
-        <p>
-          المزرعة الذكية
-        </p>
+  createMenuItem({
+    id: "expenses",
+    titleKey: "menu.expenses",
+    path: "/expenses",
+    icon: "💰",
+    module: "expenses",
+  }),
 
-        <span className="sidebar-brand-en">
-          Smart Farm
-        </span>
+  createMenuItem({
+    id: "users",
+    titleKey: "menu.users",
+    path: "/users",
+    icon: "👥",
+    module: "users",
+  }),
 
-      </div>
+  createMenuItem({
+    id: "settings",
+    titleKey: "menu.settings",
+    path: "/settings",
+    icon: "⚙️",
+    module: "settings",
+  }),
+]);
 
-
-      <nav
-        className="sidebar-nav"
-        aria-label="التنقل الرئيسي"
-      >
-
-        <ul>
-
-          {menuConfig
-            .filter((item) => item.enabled)
-            .map((item) => (
-
-              <li key={item.id}>
-
-                <NavLink
-                  to={item.path}
-                  className={({ isActive }) =>
-                    isActive
-                      ? "sidebar-link active"
-                      : "sidebar-link"
-                  }
-                  end={
-                    item.path === "/dashboard"
-                  }
-                >
-
-                  <span
-                    className="sidebar-icon"
-                    aria-hidden="true"
-                  >
-                    {item.icon}
-                  </span>
-
-
-                  <span className="sidebar-link-text">
-
-                    <span className="sidebar-title-ar">
-
-                      {translate(
-                        item.titleKey,
-                        language
-                      )}
-
-                    </span>
-
-
-                    <span className="sidebar-title-en">
-
-                      {englishNames[item.id] || item.id}
-
-                    </span>
-
-                  </span>
-
-                </NavLink>
-
-              </li>
-
-            ))}
-
-        </ul>
-
-      </nav>
-
-    </aside>
-
-  );
-
-}
+export default menuConfig;
