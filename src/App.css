@@ -1,7 +1,7 @@
 /* =========================================================
    LAVENDER SMART FARM
-   VISUAL IDENTITY
-   Agriculture Green × Warm Neutral
+   CLEAN VISUAL IDENTITY
+   Agriculture Green × Olive Frame
 ========================================================= */
 
 
@@ -10,7 +10,7 @@
 ========================================================= */
 
 @import url(
-  "https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Tajawal:wght@400;500;600;700&display=swap"
+  'https://fonts.googleapis.com/css2?family=Cairo:wght@600;700;800&family=Tajawal:wght@400;500;600;700&display=swap'
 );
 
 
@@ -20,92 +20,70 @@
 
 :root {
 
-  /* Green */
-  --green-900: #245c3a;
-  --green-800: #28683f;
-  --green-700: #2f7d46;
-  --green-600: #3d8b55;
-  --green-500: #58a66b;
+  --green-dark: #1f6338;
+  --green: #2f8f46;
+  --green-light: #eaf6ed;
 
-  /* Green backgrounds */
-  --green-100: #e7f3e9;
-  --green-50: #f4faf5;
+  --olive-frame: #566b3d;
+  --olive-light: #edf2e8;
 
-  /* Warm neutral */
-  --cream-100: #f7f4ec;
-  --cream-200: #eee9dc;
-  --cream-300: #ddd5c5;
+  --text: #203128;
+  --muted: #68756d;
 
-  /* Text */
-  --text-main: #26352b;
-  --text-muted: #707970;
-
-  /* White */
   --white: #ffffff;
+  --background: #f5f8f4;
 
-  /* Borders */
-  --border: #dfe6df;
+  --border: #dce7de;
 
-  /* Other */
-  --gold: #d3a43a;
-  --red: #b94a48;
-  --blue: #467d9d;
+  --radius: 18px;
 
-  /* Radius */
-  --radius-sm: 8px;
-  --radius-md: 12px;
-  --radius-lg: 16px;
-  --radius-xl: 20px;
+  --shadow:
+    0 6px 20px rgba(31, 72, 45, .10);
 
-  /* Shadows */
-  --shadow-sm:
-    0 3px 10px rgba(35, 60, 45, .07);
-
-  --shadow-md:
-    0 8px 22px rgba(35, 60, 45, .10);
-
-  --shadow-lg:
-    0 14px 32px rgba(35, 60, 45, .13);
-
-  /* Motion */
-  --transition:
-    .2s ease;
+  --transition: .2s ease;
 
 }
 
 
 /* =========================================================
-   GLOBAL RESET
+   RESET
 ========================================================= */
 
 *,
 *::before,
 *::after {
+
   box-sizing: border-box;
+
+}
+
+
+html,
+body,
+#root {
+
+  width: 100%;
+  min-height: 100%;
+
 }
 
 
 html {
-  width: 100%;
-  min-height: 100%;
+
   scroll-behavior: smooth;
+
 }
 
 
 body {
+
   margin: 0;
 
-  width: 100%;
-  min-height: 100vh;
-
   background:
-    linear-gradient(
-      180deg,
-      #fafbf9 0%,
-      #f3f7f3 100%
-    );
+    var(--background);
 
-  color: var(--text-main);
+  color:
+    var(--text);
 
   font-family:
     "Tajawal",
@@ -114,17 +92,25 @@ body {
 
   font-size: 16px;
 
-  line-height: 1.75;
+  line-height: 1.7;
 
   direction: rtl;
 
   overflow-x: hidden;
+
 }
 
 
-#root {
-  width: 100%;
-  min-height: 100vh;
+button,
+input,
+select,
+textarea {
+
+  font-family:
+    "Tajawal",
+    Arial,
+    sans-serif;
+
 }
 
 
@@ -138,6 +124,7 @@ h3,
 h4,
 h5,
 h6 {
+
   font-family:
     "Cairo",
     "Tajawal",
@@ -146,53 +133,59 @@ h6 {
 
   line-height: 1.5;
 
-  overflow-wrap: break-word;
 }
 
 
 h1 {
-  margin: 0 0 20px;
 
-  color: var(--green-900);
+  margin:
+    0 0 22px;
 
-  font-size: clamp(
-    24px,
-    4vw,
-    34px
-  );
+  color:
+    var(--green-dark);
 
-  font-weight: 800;
+  font-size:
+    clamp(24px, 5vw, 34px);
+
+  font-weight:
+    800;
+
 }
 
 
 h2 {
-  margin: 0 0 14px;
 
-  color: var(--green-700);
+  margin: 0;
+
+  color:
+    var(--green-dark);
 
   font-size: 21px;
 
-  font-weight: 700;
+  font-weight: 800;
+
 }
 
 
 h3 {
-  color: var(--green-700);
 
-  font-size: 18px;
+  color:
+    var(--green-dark);
+
 }
 
 
 p {
-  margin-top: 0;
-  margin-bottom: 14px;
 
-  overflow-wrap: break-word;
+  margin-top: 0;
+
 }
 
 
 a {
+
   color: inherit;
+
 }
 
 
@@ -201,23 +194,29 @@ a {
 ========================================================= */
 
 .app-layout {
+
   min-height: 100vh;
 
   display: flex;
+
   flex-direction: column;
+
 }
 
 
 .app-body {
+
   display: flex;
 
   flex: 1;
 
   min-width: 0;
+
 }
 
 
 .app-content {
+
   flex: 1;
 
   min-width: 0;
@@ -225,6 +224,7 @@ a {
   padding: 28px;
 
   overflow-x: hidden;
+
 }
 
 
@@ -233,10 +233,10 @@ a {
 ========================================================= */
 
 .app-header {
-  position: relative;
-  z-index: 20;
 
-  min-height: 74px;
+  position: relative;
+
+  z-index: 20;
 
   display: flex;
 
@@ -246,34 +246,35 @@ a {
 
   gap: 20px;
 
-  padding: 13px 24px;
+  min-height: 72px;
+
+  padding: 13px 22px;
 
   color: white;
 
   background:
-    linear-gradient(
-      135deg,
-      var(--green-900),
-      var(--green-700)
-    );
+    var(--green-dark);
 
   box-shadow:
-    0 5px 18px
-    rgba(36, 92, 58, .16);
+    0 4px 16px rgba(31, 99, 56, .18);
+
 }
 
 
 .brand {
+
   flex-shrink: 0;
+
 }
 
 
 .brand a {
+
   display: flex;
 
   align-items: center;
 
-  gap: 10px;
+  gap: 9px;
 
   color: white;
 
@@ -287,31 +288,11 @@ a {
 
   font-weight: 800;
 
-  line-height: 1.5;
-}
-
-
-.brand-icon {
-  width: 38px;
-  height: 38px;
-
-  display: inline-flex;
-
-  align-items: center;
-  justify-content: center;
-
-  flex-shrink: 0;
-
-  border-radius: 12px;
-
-  background:
-    rgba(255,255,255,.14);
-
-  font-size: 21px;
 }
 
 
 .header-nav {
+
   display: flex;
 
   align-items: center;
@@ -321,38 +302,38 @@ a {
   gap: 7px;
 
   flex-wrap: wrap;
+
 }
 
 
 .header-nav a {
-  padding: 8px 12px;
 
-  border-radius: 9px;
+  padding:
+    7px 11px;
 
-  color: white;
+  border-radius:
+    9px;
 
-  text-decoration: none;
+  color:
+    white;
 
-  font-size: 14px;
+  text-decoration:
+    none;
 
-  font-weight: 600;
+  font-size:
+    14px;
 
-  line-height: 1.6;
+  font-weight:
+    600;
 
-  white-space: nowrap;
-
-  transition:
-    background var(--transition),
-    transform var(--transition);
 }
 
 
 .header-nav a:hover {
+
   background:
     rgba(255,255,255,.12);
 
-  transform:
-    translateY(-1px);
 }
 
 
@@ -361,185 +342,372 @@ a {
 ========================================================= */
 
 .sidebar {
-  flex: 0 0 260px;
 
-  width: 260px;
+  flex:
+    0 0 270px;
 
-  min-height: 100%;
+  width:
+    270px;
 
-  padding: 22px 15px;
+  min-height:
+    100%;
+
+  padding:
+    22px 16px;
 
   background:
-    var(--cream-100);
+    white;
 
   border-left:
-    1px solid var(--cream-300);
+    5px solid var(--olive-frame);
 
   box-shadow:
-    -4px 0 18px
-    rgba(40,55,45,.05);
+    -3px 0 18px rgba(35,60,45,.06);
+
 }
 
 
 .sidebar-brand {
+
+  text-align:
+    center;
+
   padding:
-    7px 7px 20px;
+    5px 6px 20px;
 
-  margin-bottom: 15px;
-
-  text-align: center;
+  margin-bottom:
+    16px;
 
   border-bottom:
-    1px solid var(--cream-300);
+    1px solid var(--border);
+
 }
 
 
-.sidebar-logo {
-  width: 46px;
-  height: 46px;
+.sidebar-brand-logo {
+
+  display:
+    flex;
+
+  align-items:
+    center;
+
+  justify-content:
+    center;
+
+  width:
+    52px;
+
+  height:
+    52px;
 
   margin:
     0 auto 8px;
 
-  display: flex;
-
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 14px;
+  border-radius:
+    16px;
 
   background:
-    var(--green-700);
+    var(--green-light);
 
-  color: white;
+  font-size:
+    27px;
 
-  font-size: 24px;
-
-  box-shadow:
-    0 6px 14px
-    rgba(47,125,70,.18);
 }
 
 
 .sidebar-brand h2 {
-  margin: 0;
+
+  margin:
+    0;
 
   color:
-    var(--green-900);
+    var(--green-dark);
 
-  font-family:
-    "Cairo",
-    sans-serif;
+  font-size:
+    23px;
 
-  font-size: 22px;
+  font-weight:
+    800;
 
-  font-weight: 800;
+  letter-spacing:
+    .5px;
+
 }
 
 
 .sidebar-brand p {
-  margin: 2px 0 0;
+
+  margin:
+    2px 0 0;
 
   color:
-    var(--text-muted);
+    var(--text);
+
+  font-size:
+    15px;
+
+  font-weight:
+    700;
+
+}
+
+
+.sidebar-brand-en {
+
+  display:
+    block;
+
+  margin-top:
+    1px;
+
+  color:
+    var(--muted);
 
   font-family:
-    "Tajawal",
+    Arial,
     sans-serif;
 
-  font-size: 13px;
+  font-size:
+    11px;
+
+  font-weight:
+    600;
+
+  letter-spacing:
+    .7px;
+
 }
 
 
 .sidebar ul {
-  list-style: none;
 
-  padding: 0;
+  list-style:
+    none;
 
-  margin: 0;
+  padding:
+    0;
+
+  margin:
+    0;
+
 }
 
 
 .sidebar li {
-  margin-bottom: 6px;
+
+  margin-bottom:
+    7px;
+
 }
 
 
 .sidebar-link {
-  width: 100%;
 
-  min-height: 46px;
+  display:
+    flex;
 
-  display: flex;
+  align-items:
+    center;
 
-  align-items: center;
+  width:
+    100%;
 
-  gap: 11px;
+  min-height:
+    52px;
 
-  padding: 10px 13px;
+  padding:
+    8px 11px;
 
-  border-radius: 12px;
+  gap:
+    11px;
+
+  border:
+    1px solid transparent;
+
+  border-radius:
+    15px;
+
+  background:
+    var(--green-light);
 
   color:
-    #35443a;
+    var(--green-dark);
 
-  text-decoration: none;
-
-  font-family:
-    "Tajawal",
-    sans-serif;
-
-  font-size: 15px;
-
-  font-weight: 600;
-
-  line-height: 1.6;
+  text-decoration:
+    none;
 
   transition:
+    transform var(--transition),
     background var(--transition),
-    color var(--transition),
-    transform var(--transition);
+    box-shadow var(--transition);
+
 }
 
 
 .sidebar-link:hover {
-  background:
-    var(--green-100);
 
-  color:
-    var(--green-900);
+  background:
+    #dff0e3;
 
   transform:
     translateX(-2px);
+
 }
 
 
 .sidebar-link.active {
-  color: white;
 
   background:
-    var(--green-700);
+    var(--green);
+
+  color:
+    white;
 
   box-shadow:
-    0 6px 15px
-    rgba(47,125,70,.20);
+    0 6px 16px rgba(47,143,70,.22);
+
 }
 
 
 .sidebar-icon {
-  width: 27px;
 
-  min-width: 27px;
+  flex:
+    0 0 34px;
 
-  display: inline-flex;
+  width:
+    34px;
 
-  align-items: center;
+  height:
+    34px;
 
-  justify-content: center;
+  display:
+    flex;
 
-  font-size: 19px;
+  align-items:
+    center;
 
-  line-height: 1;
+  justify-content:
+    center;
+
+  border-radius:
+    11px;
+
+  background:
+    rgba(255,255,255,.72);
+
+  font-size:
+    17px;
+
+}
+
+
+.sidebar-link.active .sidebar-icon {
+
+  background:
+    rgba(255,255,255,.18);
+
+}
+
+
+.sidebar-link-text {
+
+  min-width:
+    0;
+
+  display:
+    flex;
+
+  flex-direction:
+    column;
+
+  justify-content:
+    center;
+
+  line-height:
+    1.2;
+
+  overflow:
+    hidden;
+
+}
+
+
+.sidebar-title-ar {
+
+  display:
+    block;
+
+  font-family:
+    "Cairo",
+    "Tajawal",
+    sans-serif;
+
+  font-size:
+    16px;
+
+  font-weight:
+    800;
+
+  white-space:
+    nowrap;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+}
+
+
+.sidebar-title-en {
+
+  display:
+    block;
+
+  margin-top:
+    2px;
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size:
+    10px;
+
+  font-weight:
+    600;
+
+  letter-spacing:
+    .4px;
+
+  opacity:
+    .68;
+
+  direction:
+    ltr;
+
+  text-align:
+    right;
+
+  white-space:
+    nowrap;
+
+  overflow:
+    hidden;
+
+  text-overflow:
+    ellipsis;
+
+}
+
+
+.sidebar-link.active .sidebar-title-en {
+
+  opacity:
+    .88;
+
 }
 
 
@@ -548,94 +716,131 @@ a {
 ========================================================= */
 
 .card {
-  width: 100%;
+
+  width:
+    100%;
 
   margin:
     0 0 18px;
 
-  padding: 20px;
+  padding:
+    20px;
 
   background:
-    var(--white);
+    white;
 
   border:
     1px solid var(--border);
 
   border-radius:
-    var(--radius-lg);
+    var(--radius);
 
   box-shadow:
-    var(--shadow-sm);
+    var(--shadow);
 
-  overflow: hidden;
-
-  transition:
-    box-shadow var(--transition),
-    transform var(--transition);
-}
-
-
-.card:hover {
-  box-shadow:
-    var(--shadow-md);
-
-  transform:
-    translateY(-2px);
 }
 
 
 .card-header {
-  display: flex;
 
-  align-items: center;
+  display:
+    flex;
 
-  gap: 10px;
+  align-items:
+    center;
 
-  margin-bottom: 17px;
+  gap:
+    10px;
 
-  padding-bottom: 11px;
+  margin-bottom:
+    16px;
+
+  padding-bottom:
+    11px;
 
   border-bottom:
-    1px solid #edf1ee;
+    1px solid #edf2ee;
+
 }
 
 
 .card-header h2 {
-  margin: 0;
+
+  margin:
+    0;
 
   color:
-    var(--green-700);
+    var(--green-dark);
 
-  line-height: 1.6;
 }
 
 
 .card-icon {
-  width: 38px;
-  height: 38px;
 
-  display: inline-flex;
+  display:
+    flex;
 
-  align-items: center;
-  justify-content: center;
+  align-items:
+    center;
 
-  flex-shrink: 0;
+  justify-content:
+    center;
 
-  border-radius: 11px;
+  width:
+    40px;
+
+  height:
+    40px;
+
+  flex:
+    0 0 40px;
+
+  border-radius:
+    12px;
 
   background:
-    var(--green-100);
+    var(--green-light);
 
-  font-size: 20px;
+  font-size:
+    20px;
+
 }
 
 
 .card-body {
-  width: 100%;
 
-  font-size: 16px;
+  width:
+    100%;
 
-  line-height: 1.85;
+  font-size:
+    16px;
+
+}
+
+
+.card p {
+
+  line-height:
+    1.9;
+
+  margin:
+    0 0 13px;
+
+}
+
+
+/* =========================================================
+   SMART CARDS
+========================================================= */
+
+.card-smart {
+
+  background:
+    #f4f1f8;
+
+  border-color:
+    #d8cfdf;
+
 }
 
 
@@ -644,139 +849,111 @@ a {
 ========================================================= */
 
 .button {
-  min-height: 44px;
 
-  border: 0;
+  min-height:
+    44px;
+
+  border:
+    0;
 
   border-radius:
-    var(--radius-md);
+    12px;
 
   padding:
     10px 18px;
 
-  margin: 4px;
+  margin:
+    4px;
 
-  display: inline-flex;
+  display:
+    inline-flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  gap: 7px;
+  gap:
+    7px;
 
-  color: white;
+  color:
+    white;
 
-  font-family:
-    "Tajawal",
-    sans-serif;
+  font-size:
+    15px;
 
-  font-size: 15px;
+  font-weight:
+    700;
 
-  font-weight: 700;
+  cursor:
+    pointer;
 
-  line-height: 1.5;
-
-  cursor: pointer;
-
-  transition:
-    transform var(--transition),
-    box-shadow var(--transition),
-    opacity var(--transition);
-}
-
-
-.button:hover {
-  transform:
-    translateY(-2px);
-
-  box-shadow:
-    0 5px 14px
-    rgba(0,0,0,.12);
-}
-
-
-.button:active {
-  transform:
-    translateY(0);
 }
 
 
 .button-primary {
+
   background:
-    var(--green-700);
+    var(--green);
+
 }
 
 
 .button-success {
+
   background:
-    var(--green-900);
+    var(--green-dark);
+
 }
 
 
 .button-danger {
+
   background:
-    var(--red);
+    #b94a48;
+
 }
 
 
 .button-warning {
+
   background:
-    var(--gold);
+    #d7a83e;
 
   color:
-    #3f3217;
+    #3d3014;
+
 }
 
 
 .button:disabled {
-  opacity: .55;
 
-  cursor: not-allowed;
+  opacity:
+    .55;
 
-  transform: none;
+  cursor:
+    not-allowed;
 
-  box-shadow: none;
 }
 
 
 /* =========================================================
-   FORMS
+   FORM CONTROLS
 ========================================================= */
-
-label {
-  display: block;
-
-  margin-top: 12px;
-
-  margin-bottom: 5px;
-
-  color:
-    var(--text-main);
-
-  font-family:
-    "Cairo",
-    "Tajawal",
-    sans-serif;
-
-  font-size: 15px;
-
-  font-weight: 700;
-
-  line-height: 1.7;
-}
-
 
 input,
 select,
 textarea {
-  width: 100%;
 
-  min-height: 46px;
+  width:
+    100%;
 
-  display: block;
+  min-height:
+    46px;
 
   margin:
-    6px 0 14px;
+    7px 0;
 
   padding:
     10px 13px;
@@ -785,80 +962,48 @@ textarea {
     1px solid #ccd9cf;
 
   border-radius:
-    var(--radius-md);
+    12px;
 
   background:
     white;
 
   color:
-    var(--text-main);
+    var(--text);
 
-  font-family:
-    "Tajawal",
-    Arial,
-    sans-serif;
+  font-size:
+    16px;
 
-  font-size: 16px;
+  line-height:
+    1.5;
 
-  line-height: 1.6;
 }
 
 
 textarea {
-  min-height: 110px;
 
-  resize: vertical;
-}
+  min-height:
+    110px;
 
+  resize:
+    vertical;
 
-input::placeholder,
-textarea::placeholder {
-  color:
-    #8a958d;
 }
 
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline: none;
+
+  outline:
+    none;
 
   border-color:
-    var(--green-600);
+    var(--green);
 
   box-shadow:
     0 0 0 3px
-    rgba(61,139,85,.10);
-}
+    rgba(47,143,70,.12);
 
-
-/* =========================================================
-   PILLS
-========================================================= */
-
-.pill {
-  display: inline-flex;
-
-  align-items: center;
-  justify-content: center;
-
-  min-height: 32px;
-
-  padding:
-    5px 12px;
-
-  border-radius:
-    999px;
-
-  background:
-    var(--green-100);
-
-  color:
-    var(--green-900);
-
-  font-size: 13px;
-
-  font-weight: 700;
 }
 
 
@@ -867,52 +1012,59 @@ textarea:focus {
 ========================================================= */
 
 .app-footer {
+
   padding:
     24px 18px;
 
-  color: white;
+  color:
+    white;
 
-  text-align: center;
+  text-align:
+    center;
 
   background:
-    linear-gradient(
-      135deg,
-      var(--green-900),
-      #315e42
-    );
+    var(--green-dark);
+
 }
 
 
 .footer-brand {
-  margin-bottom: 10px;
+
+  margin-bottom:
+    9px;
 
   font-family:
     "Cairo",
     sans-serif;
 
-  font-size: 19px;
+  font-size:
+    19px;
 
-  font-weight: 800;
+  font-weight:
+    800;
+
 }
 
 
 .footer-description {
-  color:
-    rgba(255,255,255,.88);
 
-  line-height: 1.9;
+  line-height:
+    1.9;
+
 }
 
 
 .footer-copy {
-  margin-top: 12px;
 
-  color:
-    rgba(255,255,255,.72);
+  margin-top:
+    11px;
 
-  font-size: 13px;
+  font-size:
+    13px;
 
-  line-height: 1.7;
+  opacity:
+    .75;
+
 }
 
 
@@ -923,542 +1075,575 @@ textarea:focus {
 @media (max-width: 900px) {
 
   .app-body {
-    display: block;
+
+    display:
+      block;
+
   }
 
 
   .sidebar {
-    width: 100%;
 
-    min-height: auto;
+    width:
+      100%;
+
+    min-height:
+      auto;
 
     padding:
-      14px 12px 18px;
+      14px;
 
-    border-left: 0;
+    border-left:
+      0;
 
-    border-bottom:
-      1px solid var(--cream-300);
+    border-top:
+      5px solid var(--olive-frame);
 
-    box-shadow:
-      0 4px 15px
-      rgba(40,55,45,.06);
   }
 
 
-  .sidebar-brand {
-    margin-bottom: 14px;
-  }
+  .sidebar ul {
 
-
-  /*
-     الهاتف والتابلت:
-     شبكة حقيقية.
-     لا flex أفقي.
-     لا شريط.
-  */
-
-  .sidebar-grid {
-    width: 100%;
-
-    display: grid;
+    display:
+      grid;
 
     grid-template-columns:
-      repeat(2, minmax(0, 1fr));
+      repeat(3, minmax(0, 1fr));
 
-    gap: 10px;
+    gap:
+      9px;
+
   }
 
 
   .sidebar li {
-    width: 100%;
 
-    min-width: 0;
+    margin:
+      0;
 
-    margin: 0;
   }
 
 
   .sidebar-link {
-    width: 100%;
 
-    min-width: 0;
+    min-height:
+      60px;
 
-    min-height: 90px;
-
-    padding:
-      10px 6px;
-
-    display: flex;
-
-    flex-direction: column;
-
-    align-items: center;
-
-    justify-content: center;
-
-    gap: 3px;
-
-    overflow: hidden;
-
-    text-align: center;
-
-    color: white;
-
-    background:
-      var(--green-700);
-
-    border-radius:
-      16px;
-
-    box-shadow:
-      0 4px 10px
-      rgba(47,125,70,.14);
-  }
-
-
-  .sidebar-link:hover {
-    color: white;
-
-    background:
-      var(--green-600);
-
-    transform:
-      translateY(-2px);
-  }
-
-
-  .sidebar-link.active {
-    color: white;
-
-    background:
-      var(--green-900);
-
-    box-shadow:
-      0 7px 16px
-      rgba(37,104,58,.23);
-  }
-
-
-  .sidebar-icon {
-    width: auto;
-
-    min-width: 0;
-
-    height: 25px;
-
-    font-size: 21px;
-
-    line-height: 1;
-  }
-
-
-  /*
-     العربية:
-     أكبر وأوضح.
-  */
-
-  .sidebar-arabic {
-    display: block;
-
-    width: 100%;
-
-    padding:
-      0 3px;
-
-    color: white;
-
-    font-family:
-      "Cairo",
-      "Tajawal",
-      sans-serif;
-
-    font-size: 16px;
-
-    font-weight: 800;
-
-    line-height: 1.45;
-
-    text-align: center;
-
-    white-space: normal;
-
-    overflow-wrap: anywhere;
-  }
-
-
-  /*
-     English:
-     أصغر من العربية.
-  */
-
-  .sidebar-english {
-    display: block;
-
-    width: 100%;
-
-    padding:
-      0 3px;
-
-    color:
-      rgba(255,255,255,.78);
-
-    font-family:
-      "Cairo",
-      Arial,
-      sans-serif;
-
-    font-size: 9px;
-
-    font-weight: 600;
-
-    line-height: 1.2;
-
-    letter-spacing: .25px;
-
-    text-transform: uppercase;
-
-    white-space: nowrap;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    direction: ltr;
-
-    text-align: center;
   }
 
 
   .app-content {
-    width: 100%;
-
-    min-width: 0;
 
     padding:
-      18px 12px 26px;
+      18px 14px 28px;
+
   }
 
 }
 
 
 /* =========================================================
-   MOBILE
+   MOBILE PHONE
 ========================================================= */
 
 @media (max-width: 600px) {
 
   body {
-    font-size: 15px;
+
+    font-size:
+      15px;
+
   }
 
 
-  /* -------------------------------------------------------
+  .app-layout {
+
+    width:
+      100%;
+
+    max-width:
+      100%;
+
+  }
+
+
+  /* -----------------------------
      HEADER
-  ------------------------------------------------------- */
+  ----------------------------- */
 
   .app-header {
-    min-height: auto;
+
+    width:
+      100%;
+
+    min-height:
+      auto;
 
     padding:
-      13px 10px 14px;
+      12px;
 
-    flex-direction: column;
+    flex-direction:
+      column;
 
-    align-items: stretch;
+    gap:
+      8px;
 
-    gap: 9px;
-
-    text-align: center;
   }
 
 
   .brand a {
-    justify-content: center;
 
-    font-size: 19px;
-  }
+    justify-content:
+      center;
 
+    font-size:
+      18px;
 
-  .brand-icon {
-    width: 34px;
-    height: 34px;
-
-    font-size: 19px;
   }
 
 
   .header-nav {
-    width: 100%;
 
-    display: grid;
+    width:
+      100%;
+
+    display:
+      grid;
 
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
 
-    gap: 6px;
+    gap:
+      6px;
+
   }
 
 
   .header-nav a {
-    width: 100%;
 
-    min-width: 0;
+    width:
+      100%;
+
+    min-width:
+      0;
 
     padding:
       8px 5px;
 
+    text-align:
+      center;
+
+    font-size:
+      12px;
+
     background:
-      rgba(255,255,255,.09);
+      rgba(255,255,255,.10);
 
-    border-radius: 9px;
-
-    font-size: 13px;
-
-    white-space: normal;
-
-    line-height: 1.5;
   }
 
 
-  /* -------------------------------------------------------
+  /* -----------------------------
      SIDEBAR
-  ------------------------------------------------------- */
+  ----------------------------- */
 
   .sidebar {
+
+    width:
+      100%;
+
+    max-width:
+      100%;
+
     padding:
-      12px 8px 16px;
+      12px;
+
+    border-top:
+      5px solid var(--olive-frame);
+
+    border-bottom:
+      1px solid var(--border);
+
+    overflow:
+      hidden;
+
   }
 
 
   .sidebar-brand {
+
+    margin-bottom:
+      12px;
+
     padding:
       3px 4px 13px;
 
-    margin-bottom:
-      13px;
   }
 
 
-  .sidebar-logo {
-    width: 42px;
-    height: 42px;
+  .sidebar-brand-logo {
 
-    font-size: 22px;
+    width:
+      46px;
+
+    height:
+      46px;
+
+    border-radius:
+      14px;
+
+    font-size:
+      24px;
+
   }
 
 
   .sidebar-brand h2 {
-    font-size: 21px;
+
+    font-size:
+      21px;
+
   }
 
 
   .sidebar-brand p {
-    font-size: 12px;
+
+    font-size:
+      15px;
+
   }
 
 
-  .sidebar-grid {
+  .sidebar-brand-en {
+
+    font-size:
+      10px;
+
+  }
+
+
+  /*
+     أهم جزء:
+     شبكة بطاقات ثابتة داخل عرض الهاتف.
+  */
+
+  .sidebar ul {
+
+    width:
+      100%;
+
+    display:
+      grid;
+
     grid-template-columns:
       repeat(2, minmax(0, 1fr));
 
-    gap: 8px;
+    gap:
+      10px;
+
+  }
+
+
+  .sidebar li {
+
+    width:
+      100%;
+
+    min-width:
+      0;
+
+    margin:
+      0;
+
   }
 
 
   .sidebar-link {
-    min-height: 86px;
+
+    width:
+      100%;
+
+    min-width:
+      0;
+
+    min-height:
+      76px;
 
     padding:
-      8px 4px;
+      9px 7px;
+
+    flex-direction:
+      column;
+
+    justify-content:
+      center;
+
+    gap:
+      4px;
+
+    border:
+      1px solid #d7e9db;
 
     border-radius:
-      15px;
+      16px;
+
+    text-align:
+      center;
+
+    overflow:
+      hidden;
+
+  }
+
+
+  .sidebar-link:hover {
+
+    transform:
+      translateY(-1px);
+
   }
 
 
   .sidebar-icon {
-    height: 23px;
 
-    font-size: 20px;
+    width:
+      30px;
+
+    height:
+      30px;
+
+    flex:
+      0 0 30px;
+
+    border-radius:
+      10px;
+
+    font-size:
+      15px;
+
   }
 
 
-  .sidebar-arabic {
-    font-size: 15px;
+  .sidebar-link-text {
 
-    line-height: 1.45;
+    width:
+      100%;
+
+    min-width:
+      0;
+
+    align-items:
+      center;
+
+    text-align:
+      center;
+
   }
 
 
-  .sidebar-english {
-    font-size: 8px;
+  /*
+     العربية أكبر وأوضح
+  */
 
-    line-height: 1.2;
+  .sidebar-title-ar {
+
+    width:
+      100%;
+
+    font-size:
+      16px;
+
+    font-weight:
+      800;
+
+    line-height:
+      1.35;
+
+    white-space:
+      nowrap;
+
+    overflow:
+      hidden;
+
+    text-overflow:
+      ellipsis;
+
   }
 
 
-  /* -------------------------------------------------------
+  /*
+     الإنجليزية أصغر
+  */
+
+  .sidebar-title-en {
+
+    width:
+      100%;
+
+    margin-top:
+      1px;
+
+    font-size:
+      9px;
+
+    line-height:
+      1.2;
+
+    text-align:
+      center;
+
+    direction:
+      ltr;
+
+  }
+
+
+  .sidebar-link.active {
+
+    background:
+      var(--green);
+
+    border-color:
+      var(--green);
+
+  }
+
+
+  /* -----------------------------
      CONTENT
-  ------------------------------------------------------- */
+  ----------------------------- */
 
   .app-content {
+
+    width:
+      100%;
+
+    max-width:
+      100%;
+
     padding:
-      16px 9px 24px;
+      18px 12px 28px;
+
+    overflow-x:
+      hidden;
+
   }
 
 
   h1 {
-    margin-bottom: 18px;
 
-    font-size: 25px;
+    margin-bottom:
+      18px;
 
-    line-height: 1.55;
+    font-size:
+      24px;
+
+    line-height:
+      1.5;
+
   }
 
 
   h2 {
-    font-size: 19px;
 
-    line-height: 1.6;
+    font-size:
+      19px;
+
   }
 
-
-  h3 {
-    line-height: 1.6;
-  }
-
-
-  /* -------------------------------------------------------
-     CARDS
-  ------------------------------------------------------- */
 
   .card {
+
+    width:
+      100%;
+
     padding:
-      16px 14px;
+      16px;
 
     margin-bottom:
       15px;
 
     border-radius:
-      15px;
+      16px;
+
   }
 
 
   .card-header {
-    gap: 9px;
 
-    margin-bottom: 14px;
+    gap:
+      8px;
 
-    padding-bottom: 11px;
+    margin-bottom:
+      13px;
+
   }
 
 
   .card-header h2 {
-    font-size: 18px;
 
-    line-height: 1.6;
+    font-size:
+      18px;
+
   }
 
 
   .card-body {
-    font-size: 15px;
 
-    line-height: 1.9;
+    font-size:
+      15px;
+
   }
 
 
   .card p {
-    margin-bottom: 14px;
 
-    line-height: 1.9;
-  }
+    margin-bottom:
+      12px;
 
+    line-height:
+      1.95;
 
-  .card p:last-child {
-    margin-bottom: 0;
-  }
-
-
-  /* -------------------------------------------------------
-     FORMS
-  ------------------------------------------------------- */
-
-  label {
-    margin-top: 13px;
-
-    margin-bottom: 6px;
-
-    font-size: 15px;
-
-    line-height: 1.8;
   }
 
 
   input,
   select,
   textarea {
-    min-height: 46px;
 
-    margin:
-      6px 0 15px;
+    font-size:
+      16px;
 
-    padding:
-      10px 12px;
-
-    font-size: 16px;
-
-    line-height: 1.7;
   }
 
-
-  textarea {
-    min-height: 115px;
-  }
-
-
-  /* -------------------------------------------------------
-     BUTTONS
-  ------------------------------------------------------- */
 
   .button {
-    width: 100%;
 
-    min-height: 46px;
+    width:
+      100%;
 
     margin:
-      6px 0;
+      5px 0;
 
-    line-height: 1.6;
   }
 
 
-  /* -------------------------------------------------------
+  /* -----------------------------
      FOOTER
-  ------------------------------------------------------- */
+  ----------------------------- */
 
   .app-footer {
+
     padding:
-      23px 13px;
-  }
+      22px 14px;
 
-
-  .footer-brand {
-    margin-bottom: 11px;
-
-    font-size: 18px;
   }
 
 
   .footer-description {
-    line-height: 2;
-  }
 
+    line-height:
+      2;
 
-  .footer-copy {
-    margin-top: 13px;
-
-    line-height: 1.8;
   }
 
 }
@@ -1470,67 +1655,68 @@ textarea:focus {
 
 @media (max-width: 380px) {
 
-  .app-content {
-    padding-left: 7px;
-    padding-right: 7px;
-  }
-
-
   .sidebar {
+
     padding:
-      10px 6px 14px;
+      10px;
+
   }
 
 
-  .sidebar-grid {
-    gap: 7px;
+  .sidebar ul {
+
+    gap:
+      8px;
+
   }
 
 
   .sidebar-link {
-    min-height: 82px;
+
+    min-height:
+      72px;
 
     padding:
-      7px 3px;
+      8px 5px;
 
-    border-radius:
-      14px;
   }
 
 
-  .sidebar-arabic {
-    font-size: 14px;
+  .sidebar-title-ar {
+
+    font-size:
+      15px;
+
   }
 
 
-  .sidebar-english {
-    font-size: 7px;
+  .sidebar-title-en {
+
+    font-size:
+      8px;
+
   }
 
 
   .sidebar-icon {
-    font-size: 19px;
+
+    width:
+      28px;
+
+    height:
+      28px;
+
+    flex-basis:
+      28px;
+
   }
 
 
-  .brand a {
-    font-size: 17px;
-  }
+  .app-content {
 
-
-  .header-nav a {
-    font-size: 12px;
-  }
-
-
-  h1 {
-    font-size: 23px;
-  }
-
-
-  .card {
     padding:
-      13px 11px;
+      15px 9px 25px;
+
   }
 
 }
@@ -1545,11 +1731,14 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
+
   outline:
     3px solid
-    rgba(47,125,70,.30);
+    rgba(86,107,61,.35);
 
-  outline-offset: 2px;
+  outline-offset:
+    2px;
+
 }
 
 
@@ -1571,6 +1760,7 @@ textarea:focus-visible {
 
     animation:
       none !important;
+
   }
 
 }
