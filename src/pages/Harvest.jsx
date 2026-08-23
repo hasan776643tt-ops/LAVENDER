@@ -1,8 +1,10 @@
 // src/pages/Harvest.jsx
 
 import {
-  useState,
+  useContext,
+  useEffect,
   useMemo,
+  useState,
 } from "react";
 
 import Card from "../components/Card";
@@ -13,12 +15,8 @@ import useFields from "../hooks/useFields";
 import useCrops from "../hooks/useCrops";
 
 import {
-  FarmContext
+  FarmContext,
 } from "../context/FarmContext";
-
-import {
-  useContext,
-} from "react";
 
 
 export default function Harvest() {
@@ -83,10 +81,10 @@ export default function Harvest() {
 
 
   // =========================
-  // Load Data
+  // Load Farms + Fields + Crops
   // =========================
 
-  useState(() => {
+  useEffect(() => {
 
     let mounted = true;
 
@@ -103,8 +101,6 @@ export default function Harvest() {
           loadFarms(),
 
           loadFields(),
-
-          loadCrops(),
 
         ]);
 
@@ -127,12 +123,24 @@ export default function Harvest() {
             : []
         );
 
+
+        await loadCrops();
+
       } catch (err) {
 
         console.error(
           "Harvest data loading error:",
           err
         );
+
+
+        if (mounted) {
+
+          setFarms([]);
+
+          setFields([]);
+
+        }
 
       }
 
@@ -188,7 +196,9 @@ export default function Harvest() {
         ? farms
         : [];
 
-    }, [farms]);
+    }, [
+      farms
+    ]);
 
 
   // =========================
@@ -212,6 +222,7 @@ export default function Harvest() {
             field?.farm_id ??
             field?.farm?.id ??
             "";
+
 
           return (
 
@@ -241,7 +252,11 @@ export default function Harvest() {
       }
 
 
-      return crops.filter(
+      return (
+        Array.isArray(crops)
+          ? crops
+          : []
+      ).filter(
         (crop) => {
 
           const cropFieldId =
@@ -250,6 +265,7 @@ export default function Harvest() {
             crop?.field_id ??
             crop?.field?.id ??
             "";
+
 
           return (
 
@@ -274,7 +290,11 @@ export default function Harvest() {
   const totalHarvest =
     useMemo(() => {
 
-      return harvests.reduce(
+      return (
+        Array.isArray(harvests)
+          ? harvests
+          : []
+      ).reduce(
 
         (sum, item) =>
 
@@ -342,7 +362,11 @@ export default function Harvest() {
     (cropId) => {
 
       const crop =
-        crops.find(
+        (
+          Array.isArray(crops)
+            ? crops
+            : []
+        ).find(
           (item) =>
             String(item?.id) ===
             String(cropId)
@@ -464,11 +488,8 @@ export default function Harvest() {
       if (editId) {
 
         await harvestActions.update(
-
           editId,
-
           data
-
         );
 
       } else {
