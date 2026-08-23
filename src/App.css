@@ -1,83 +1,256 @@
 /* =========================================================
-   LAVENDER Smart Farm
-   Stable Responsive Design
-   Green + Soft Lavender Identity
+   LAVENDER SMART FARM
+   Visual Identity System
+   Green Agriculture × Purple Intelligence
 ========================================================= */
 
 
 /* =========================================================
-   RESET
+   GOOGLE FONTS
 ========================================================= */
 
-* {
-  box-sizing: border-box;
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Tajawal:wght@400;500;600;700&display=swap');
+
+
+/* =========================================================
+   DESIGN TOKENS
+========================================================= */
+
+:root {
+
+  /* Agriculture */
+  --lavender-green-900: #245c3a;
+  --lavender-green-700: #367a4d;
+  --lavender-green-600: #438d59;
+  --lavender-green-500: #5aa469;
+  --lavender-green-100: #eaf5ed;
+  --lavender-green-50: #f5faf6;
+
+
+  /* Intelligence */
+  --lavender-purple-800: #59407d;
+  --lavender-purple-700: #6d4b91;
+  --lavender-purple-600: #8060a5;
+  --lavender-purple-100: #eee8f5;
+  --lavender-purple-50: #f7f4fa;
+
+
+  /* Supporting */
+  --lavender-gold: #d7a83e;
+  --lavender-blue: #3f7fa3;
+
+
+  /* Neutral */
+  --lavender-text: #24352a;
+  --lavender-muted: #6c786f;
+
+  --lavender-border: #dfe8e1;
+
+  --lavender-white: #ffffff;
+
+  --lavender-background: #f4f8f5;
+
+
+  /* Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 18px;
+  --radius-xl: 24px;
+
+
+  /* Shadows */
+  --shadow-sm:
+    0 2px 8px rgba(35, 60, 45, .06);
+
+  --shadow-md:
+    0 8px 24px rgba(35, 60, 45, .09);
+
+  --shadow-lg:
+    0 14px 35px rgba(35, 60, 45, .12);
+
+
+  /* Motion */
+  --transition:
+    .2s ease;
+
 }
 
-html,
-body,
-#root {
-  width: 100%;
-  min-height: 100%;
+
+/* =========================================================
+   GLOBAL RESET
+========================================================= */
+
+*,
+*::before,
+*::after {
+
+  box-sizing: border-box;
+
 }
+
+
+html {
+
+  width: 100%;
+
+  min-height: 100%;
+
+  scroll-behavior: smooth;
+
+}
+
 
 body {
+
   margin: 0;
+
+  width: 100%;
+
+  min-height: 100vh;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f7faf8 0%,
+      #f1f7f3 100%
+    );
+
+  color: var(--lavender-text);
 
   font-family:
     "Tajawal",
     Arial,
     sans-serif;
 
-  background: #f4f7f1;
-  color: #26352a;
+  font-size: 16px;
 
-  -webkit-font-smoothing: antialiased;
+  line-height: 1.7;
+
+  direction: rtl;
+
+  overflow-x: hidden;
+
 }
 
-a {
-  -webkit-tap-highlight-color: transparent;
-}
 
-button,
-input,
-select,
-textarea {
-  font-family: inherit;
+#root {
+
+  width: 100%;
+
+  min-height: 100vh;
+
 }
 
 
 /* =========================================================
-   MAIN LAYOUT
+   TYPOGRAPHY
+========================================================= */
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+
+  font-family:
+    "Cairo",
+    "Tajawal",
+    Arial,
+    sans-serif;
+
+  line-height: 1.35;
+
+}
+
+
+h1 {
+
+  margin: 0 0 20px;
+
+  color: var(--lavender-green-900);
+
+  font-size: clamp(
+    24px,
+    4vw,
+    34px
+  );
+
+  font-weight: 800;
+
+}
+
+
+h2 {
+
+  margin: 0;
+
+  color: var(--lavender-green-700);
+
+  font-size: 21px;
+
+  font-weight: 700;
+
+}
+
+
+h3 {
+
+  color: var(--lavender-green-700);
+
+}
+
+
+p {
+
+  margin-top: 0;
+
+}
+
+
+a {
+
+  color: inherit;
+
+}
+
+
+/* =========================================================
+   MAIN APPLICATION
 ========================================================= */
 
 .app-layout {
-  width: 100%;
+
   min-height: 100vh;
 
   display: flex;
+
   flex-direction: column;
 
-  background: #f4f7f1;
 }
 
+
 .app-body {
-  width: 100%;
 
   display: flex;
 
   flex: 1;
 
   min-width: 0;
+
 }
 
+
 .app-content {
+
   flex: 1;
 
   min-width: 0;
 
-  padding: 24px;
+  padding: 28px;
 
   overflow-x: hidden;
+
 }
 
 
@@ -86,67 +259,94 @@ textarea {
 ========================================================= */
 
 .app-header {
-  width: 100%;
+
+  position: relative;
+
+  z-index: 20;
 
   display: flex;
 
-  justify-content: space-between;
   align-items: center;
+
+  justify-content: space-between;
 
   gap: 20px;
 
-  padding: 15px 22px;
+  min-height: 76px;
+
+  padding: 14px 24px;
+
+  color: white;
 
   background:
     linear-gradient(
       135deg,
-      #416f45 0%,
-      #5d884d 100%
+      var(--lavender-green-900) 0%,
+      var(--lavender-green-700) 72%,
+      var(--lavender-purple-700) 100%
     );
 
-  color: #ffffff;
-
   box-shadow:
-    0 3px 14px rgba(43, 70, 47, 0.15);
+    0 5px 20px rgba(36, 92, 58, .18);
 
-  position: relative;
-
-  z-index: 10;
 }
 
-
-/* Brand */
 
 .brand {
-  min-width: 0;
+
+  flex-shrink: 0;
+
 }
 
+
 .brand a {
+
   display: flex;
 
   align-items: center;
 
-  gap: 8px;
+  gap: 10px;
 
-  color: #ffffff;
+  color: white;
 
   text-decoration: none;
+
+  font-family:
+    "Cairo",
+    sans-serif;
 
   font-size: 21px;
 
   font-weight: 800;
 
-  white-space: nowrap;
 }
+
 
 .brand-icon {
-  font-size: 23px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  width: 38px;
+
+  height: 38px;
+
+  border-radius: 12px;
+
+  background:
+    rgba(255,255,255,.15);
+
+  box-shadow:
+    inset 0 0 0 1px rgba(255,255,255,.12);
+
 }
 
 
-/* Header navigation */
-
 .header-nav {
+
   display: flex;
 
   align-items: center;
@@ -156,121 +356,139 @@ textarea {
   gap: 8px;
 
   flex-wrap: wrap;
+
 }
 
+
 .header-nav a {
-  color: #ffffff;
 
-  text-decoration: none;
-
-  padding: 8px 11px;
+  padding: 8px 12px;
 
   border-radius: 9px;
+
+  color: white;
+
+  text-decoration: none;
 
   font-size: 14px;
 
   font-weight: 600;
 
   transition:
-    background 0.2s ease,
-    opacity 0.2s ease;
+    background var(--transition),
+    transform var(--transition);
+
 }
+
 
 .header-nav a:hover {
-  background: rgba(255, 255, 255, 0.14);
-}
 
-.header-nav a:active {
-  opacity: 0.75;
+  background:
+    rgba(255,255,255,.12);
+
+  transform: translateY(-1px);
+
 }
 
 
 /* =========================================================
-   SIDEBAR
+   SIDEBAR - DESKTOP
 ========================================================= */
 
 .sidebar {
-  width: 260px;
 
   flex: 0 0 260px;
 
-  background: #ffffff;
+  width: 260px;
 
-  padding: 18px 14px;
+  min-height: 100%;
+
+  padding: 24px 16px;
+
+  background: white;
 
   border-left:
-    1px solid #e1e8dd;
+    1px solid var(--lavender-border);
 
   box-shadow:
-    -3px 0 15px rgba(40, 65, 43, 0.05);
+    -4px 0 18px rgba(35, 60, 45, .04);
+
 }
 
 
-/* Sidebar brand */
-
 .sidebar-brand {
-  text-align: center;
 
-  padding: 4px 5px 16px;
+  padding: 8px 8px 22px;
 
   margin-bottom: 10px;
 
+  text-align: center;
+
   border-bottom:
-    1px solid #edf1ea;
+    1px solid var(--lavender-border);
+
 }
+
 
 .sidebar-brand h2 {
+
   margin: 0;
 
-  color: #4d794f;
+  color: var(--lavender-green-900);
 
-  font-size: 21px;
+  font-size: 22px;
 
   font-weight: 800;
+
 }
+
 
 .sidebar-brand p {
-  margin: 5px 0 0;
 
-  color: #7c857d;
+  margin: 3px 0 0;
+
+  color: var(--lavender-muted);
 
   font-size: 13px;
+
 }
 
 
-/* Sidebar list */
-
 .sidebar ul {
+
   list-style: none;
 
   padding: 0;
 
   margin: 0;
+
 }
+
 
 .sidebar li {
-  margin: 0 0 5px;
+
+  margin-bottom: 5px;
+
 }
 
 
-/* Sidebar link */
-
-.sidebar a {
-  width: 100%;
-
-  min-height: 44px;
+.sidebar-link {
 
   display: flex;
 
   align-items: center;
 
-  gap: 10px;
+  gap: 11px;
 
-  padding: 9px 11px;
+  width: 100%;
 
-  border-radius: 10px;
+  min-height: 46px;
 
-  color: #435045;
+  padding: 10px 13px;
+
+  border-radius: 12px;
+
+  color: #405046;
 
   text-decoration: none;
 
@@ -279,34 +497,70 @@ textarea {
   font-weight: 600;
 
   transition:
-    background 0.2s ease,
-    color 0.2s ease;
+    background var(--transition),
+    color var(--transition),
+    transform var(--transition);
+
 }
 
-.sidebar a:hover {
-  background: #eef5eb;
 
-  color: #3e6e44;
+.sidebar-link:hover {
+
+  background:
+    var(--lavender-green-50);
+
+  color:
+    var(--lavender-green-900);
+
+  transform:
+    translateX(-2px);
+
 }
 
-.sidebar a.active {
+
+.sidebar-link.active {
+
+  color: white;
+
   background:
     linear-gradient(
       135deg,
-      #527f52,
-      #6c9159
+      var(--lavender-green-700),
+      var(--lavender-green-600)
     );
 
-  color: #ffffff;
-
   box-shadow:
-    0 4px 10px rgba(70, 120, 70, 0.16);
+    0 5px 13px rgba(54, 122, 77, .18);
+
 }
 
-.sidebar-icon {
-  width: 27px;
 
-  min-width: 27px;
+/*
+   الذكاء الاصطناعي والتحليلات
+   تأخذ اللمسة البنفسجية
+*/
+
+.sidebar-link[href="/ai"].active,
+.sidebar-link[href="/reports"].active {
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--lavender-purple-800),
+      var(--lavender-purple-600)
+    );
+
+  box-shadow:
+    0 5px 14px rgba(89, 64, 125, .18);
+
+}
+
+
+.sidebar-icon {
+
+  width: 26px;
+
+  min-width: 26px;
 
   display: inline-flex;
 
@@ -315,101 +569,144 @@ textarea {
   justify-content: center;
 
   font-size: 18px;
+
 }
 
 
 /* =========================================================
-   PAGE
-========================================================= */
-
-.app-content h1 {
-  margin-top: 0;
-
-  margin-bottom: 20px;
-
-  color: #365f3d;
-
-  font-size: 28px;
-
-  line-height: 1.4;
-
-  font-weight: 800;
-}
-
-.app-content h2 {
-  color: #477348;
-
-  line-height: 1.5;
-}
-
-.app-content p {
-  line-height: 1.8;
-}
-
-
-/* =========================================================
-   CARD
+   CARDS
 ========================================================= */
 
 .card {
+
   width: 100%;
 
-  background: #ffffff;
-
-  border:
-    1px solid #e1e8dc;
-
-  border-radius: 16px;
+  margin: 0 0 18px;
 
   padding: 20px;
 
-  margin: 15px 0;
+  background: white;
+
+  border:
+    1px solid var(--lavender-border);
+
+  border-radius:
+    var(--radius-lg);
 
   box-shadow:
-    0 5px 18px rgba(45, 67, 48, 0.07);
+    var(--shadow-sm);
+
+  transition:
+    box-shadow var(--transition),
+    transform var(--transition);
+
 }
 
+
+.card:hover {
+
+  box-shadow:
+    var(--shadow-md);
+
+  transform:
+    translateY(-2px);
+
+}
+
+
 .card-header {
+
   display: flex;
 
   align-items: center;
 
-  gap: 9px;
+  gap: 10px;
 
-  margin-bottom: 15px;
+  margin-bottom: 16px;
 
   padding-bottom: 10px;
 
   border-bottom:
-    1px solid #edf1ea;
+    1px solid #edf1ee;
+
 }
+
 
 .card-header h2 {
+
   margin: 0;
 
-  color: #477348;
+  color:
+    var(--lavender-green-700);
 
-  font-size: 19px;
-
-  font-weight: 800;
 }
 
+
 .card-icon {
+
   display: inline-flex;
 
   align-items: center;
 
   justify-content: center;
 
-  font-size: 23px;
+  width: 38px;
+
+  height: 38px;
+
+  border-radius: 11px;
+
+  background:
+    var(--lavender-green-100);
+
+  font-size: 20px;
+
 }
 
+
 .card-body {
+
   width: 100%;
 
-  font-size: 15px;
+  font-size: 16px;
 
-  line-height: 1.8;
+}
+
+
+/* =========================================================
+   INTELLIGENCE CARDS
+   يمكن استخدام:
+   className="card card-smart"
+========================================================= */
+
+.card-smart {
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff 0%,
+      var(--lavender-purple-50) 100%
+    );
+
+  border-color:
+    #ddd2e9;
+
+}
+
+
+.card-smart .card-header h2 {
+
+  color:
+    var(--lavender-purple-800);
+
+}
+
+
+.card-smart .card-icon {
+
+  background:
+    var(--lavender-purple-100);
+
 }
 
 
@@ -418,13 +715,17 @@ textarea {
 ========================================================= */
 
 .button {
+
   min-height: 44px;
 
-  border: none;
+  border: 0;
 
-  border-radius: 10px;
+  border-radius:
+    var(--radius-md);
 
   padding: 10px 18px;
+
+  margin: 4px;
 
   display: inline-flex;
 
@@ -434,137 +735,234 @@ textarea {
 
   gap: 7px;
 
-  cursor: pointer;
+  color: white;
+
+  font-family:
+    "Tajawal",
+    sans-serif;
 
   font-size: 15px;
 
   font-weight: 700;
 
+  cursor: pointer;
+
   transition:
-    transform 0.15s ease,
-    opacity 0.15s ease;
+    transform var(--transition),
+    box-shadow var(--transition),
+    opacity var(--transition);
+
 }
+
 
 .button:hover {
-  transform: translateY(-1px);
+
+  transform:
+    translateY(-2px);
+
+  box-shadow:
+    0 5px 14px rgba(0,0,0,.12);
+
 }
+
 
 .button:active {
-  transform: scale(0.98);
+
+  transform:
+    translateY(0);
+
 }
+
 
 .button-primary {
-  background: #5b8752;
 
-  color: #ffffff;
+  background:
+    linear-gradient(
+      135deg,
+      var(--lavender-green-700),
+      var(--lavender-green-500)
+    );
+
 }
+
 
 .button-success {
-  background: #3f8555;
 
-  color: #ffffff;
+  background:
+    var(--lavender-green-900);
+
 }
+
 
 .button-danger {
-  background: #c64b43;
 
-  color: #ffffff;
+  background:
+    #b94a48;
+
 }
+
 
 .button-warning {
-  background: #c69a32;
 
-  color: #ffffff;
+  background:
+    var(--lavender-gold);
+
+  color:
+    #3f3217;
+
 }
 
+
+/* زر الذكاء */
+
+.button-smart {
+
+  background:
+    linear-gradient(
+      135deg,
+      var(--lavender-purple-800),
+      var(--lavender-purple-600)
+    );
+
+}
+
+
 .button:disabled {
-  opacity: 0.5;
+
+  opacity: .55;
 
   cursor: not-allowed;
 
   transform: none;
+
+  box-shadow: none;
+
 }
 
 
 /* =========================================================
-   FORMS
+   FORM CONTROLS
 ========================================================= */
 
 input,
 select,
 textarea {
+
   width: 100%;
 
-  max-width: 100%;
+  min-height: 46px;
 
-  min-height: 45px;
+  margin: 7px 0;
 
-  display: block;
-
-  margin: 8px 0;
-
-  padding: 10px 12px;
+  padding: 10px 13px;
 
   border:
-    1px solid #cfdacb;
+    1px solid #ccd9cf;
 
-  border-radius: 10px;
+  border-radius:
+    var(--radius-md);
 
-  background: #ffffff;
+  background: white;
 
-  color: #29362c;
+  color:
+    var(--lavender-text);
+
+  font-family:
+    "Tajawal",
+    Arial,
+    sans-serif;
 
   font-size: 16px;
 
-  outline: none;
+  line-height: 1.5;
 
-  overflow: hidden;
+  transition:
+    border-color var(--transition),
+    box-shadow var(--transition);
+
 }
+
 
 textarea {
-  min-height: 100px;
+
+  min-height: 110px;
 
   resize: vertical;
+
 }
+
 
 input::placeholder,
 textarea::placeholder {
-  color: #8d968e;
+
+  color:
+    #8a958d;
+
 }
+
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #6f9465;
+
+  outline: none;
+
+  border-color:
+    var(--lavender-green-600);
 
   box-shadow:
-    0 0 0 3px rgba(111, 148, 101, 0.12);
+    0 0 0 3px
+    rgba(67, 141, 89, .10);
+
 }
 
-input:disabled,
-select:disabled,
-textarea:disabled {
-  background: #f0f3ef;
 
-  color: #8a928b;
+select {
 
-  cursor: not-allowed;
+  cursor: pointer;
+
 }
 
 
 /* =========================================================
-   SOFT LAVENDER
-   فقط لمسة بسيطة
+   PILLS / BADGES
 ========================================================= */
 
-.card a,
-.app-content a {
-  color: #6e6485;
+.pill {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 32px;
+
+  padding: 5px 12px;
+
+  border-radius: 999px;
+
+  background:
+    var(--lavender-green-100);
+
+  color:
+    var(--lavender-green-900);
+
+  font-size: 13px;
+
+  font-weight: 700;
+
 }
 
-.card a:hover,
-.app-content a:hover {
-  color: #544a6a;
+
+.pill-smart {
+
+  background:
+    var(--lavender-purple-100);
+
+  color:
+    var(--lavender-purple-800);
+
 }
 
 
@@ -573,253 +971,145 @@ textarea:disabled {
 ========================================================= */
 
 .app-footer {
-  width: 100%;
+
+  padding: 25px 20px;
+
+  color: white;
+
+  text-align: center;
 
   background:
     linear-gradient(
       135deg,
-      #365d3d,
-      #477348
+      var(--lavender-green-900),
+      #315e42
     );
 
-  color: #ffffff;
-
-  padding: 20px 15px;
-
-  text-align: center;
 }
 
+
 .footer-brand {
+
+  margin-bottom: 8px;
+
+  font-family:
+    "Cairo",
+    sans-serif;
+
   font-size: 19px;
 
   font-weight: 800;
 
-  margin-bottom: 8px;
 }
+
 
 .footer-description {
+
+  color:
+    rgba(255,255,255,.88);
+
   line-height: 1.8;
 
-  font-size: 14px;
 }
 
+
 .footer-copy {
+
   margin-top: 10px;
+
+  color:
+    rgba(255,255,255,.70);
 
   font-size: 13px;
 
-  opacity: 0.75;
 }
 
 
 /* =========================================================
-   TABLET
+   MOBILE
 ========================================================= */
 
 @media (max-width: 900px) {
 
-  .app-content {
-    padding: 18px;
-  }
-
-  .sidebar {
-    width: 220px;
-
-    flex-basis: 220px;
-  }
-
-  .header-nav {
-    gap: 5px;
-  }
-
-  .header-nav a {
-    font-size: 13px;
-
-    padding: 7px 9px;
-  }
-}
-
-
-/* =========================================================
-   PHONE
-   هنا فقط يتحول التخطيط إلى عمودي
-========================================================= */
-
-@media (max-width: 700px) {
-
-  .app-header {
-    flex-direction: column;
-
-    align-items: stretch;
-
-    text-align: center;
-
-    padding: 13px 10px;
-
-    gap: 10px;
-  }
-
-
-  /* Brand */
-
-  .brand a {
-    justify-content: center;
-
-    font-size: 19px;
-  }
-
-
-  /* Header navigation */
-
-  .header-nav {
-    width: 100%;
-
-    display: flex;
-
-    flex-direction: row;
-
-    justify-content: center;
-
-    align-items: center;
-
-    gap: 5px;
-
-    flex-wrap: wrap;
-  }
-
-  .header-nav a {
-    padding: 7px 9px;
-
-    font-size: 13px;
-  }
-
-
-  /* Main body */
-
   .app-body {
+
     display: block;
 
-    width: 100%;
-  }
-
-
-  /* Sidebar becomes a normal vertical section */
-
-  .sidebar {
-    width: 100%;
-
-    flex: none;
-
-    min-height: auto;
-
-    padding: 10px;
-
-    border-left: none;
-
-    border-bottom:
-      1px solid #e1e8dc;
-
-    box-shadow:
-      0 3px 12px rgba(40, 65, 43, 0.05);
-  }
-
-
-  /* Sidebar brand */
-
-  .sidebar-brand {
-    padding: 3px 5px 10px;
-
-    margin-bottom: 7px;
-  }
-
-  .sidebar-brand h2 {
-    font-size: 19px;
-  }
-
-  .sidebar-brand p {
-    font-size: 12px;
   }
 
 
   /*
-    القائمة طولية فقط على الهاتف
+     مهم:
+     لا نجعل القائمة شريطاً أفقياً.
+     تبقى قائمة عمودية مرتبة.
   */
 
+  .sidebar {
+
+    width: 100%;
+
+    min-height: auto;
+
+    padding: 12px;
+
+    border-left: 0;
+
+    border-bottom:
+      1px solid var(--lavender-border);
+
+    box-shadow:
+      0 4px 14px rgba(35,60,45,.06);
+
+  }
+
+
+  .sidebar-brand {
+
+    padding: 6px 5px 12px;
+
+    margin-bottom: 8px;
+
+  }
+
+
+  .sidebar-brand h2 {
+
+    font-size: 20px;
+
+  }
+
+
   .sidebar ul {
+
     display: block;
 
-    width: 100%;
   }
+
 
   .sidebar li {
-    width: 100%;
 
-    margin-bottom: 4px;
-  }
+    margin-bottom: 5px;
 
-  .sidebar a {
-    width: 100%;
-
-    min-height: 43px;
-
-    padding: 8px 11px;
-
-    font-size: 14px;
   }
 
 
-  /* Content */
+  .sidebar-link {
+
+    min-height: 44px;
+
+    padding: 9px 12px;
+
+  }
+
 
   .app-content {
+
     width: 100%;
 
-    padding: 14px 10px 20px;
+    padding: 16px 12px 24px;
+
   }
 
-  .app-content h1 {
-    font-size: 23px;
-
-    margin-bottom: 15px;
-  }
-
-
-  /* Cards */
-
-  .card {
-    width: 100%;
-
-    margin: 10px 0;
-
-    padding: 15px;
-
-    border-radius: 14px;
-  }
-
-  .card-header h2 {
-    font-size: 18px;
-  }
-
-
-  /* Buttons */
-
-  .button {
-    width: 100%;
-
-    margin-top: 5px;
-  }
-
-
-  /* Forms */
-
-  input,
-  select,
-  textarea {
-    width: 100%;
-
-    max-width: 100%;
-
-    font-size: 16px;
-  }
 }
 
 
@@ -827,47 +1117,274 @@ textarea:disabled {
    SMALL PHONE
 ========================================================= */
 
-@media (max-width: 400px) {
+@media (max-width: 600px) {
+
+  body {
+
+    font-size: 15px;
+
+  }
+
+
+  .app-header {
+
+    min-height: auto;
+
+    padding: 14px 12px;
+
+    flex-direction: column;
+
+    align-items: stretch;
+
+    gap: 10px;
+
+    text-align: center;
+
+  }
+
 
   .brand a {
-    font-size: 17px;
+
+    justify-content: center;
+
+    font-size: 19px;
+
   }
+
+
+  .brand-icon {
+
+    width: 34px;
+
+    height: 34px;
+
+  }
+
+
+  /*
+     Header links:
+     لا نسمح لها بالتداخل.
+  */
+
+  .header-nav {
+
+    width: 100%;
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 5px;
+
+  }
+
 
   .header-nav a {
-    font-size: 12px;
 
-    padding: 6px 8px;
+    width: 100%;
+
+    padding: 8px 10px;
+
+    background:
+      rgba(255,255,255,.08);
+
+    border-radius: 9px;
+
   }
+
 
   .sidebar {
-    padding: 8px;
+
+    padding: 10px;
+
   }
 
-  .sidebar a {
-    min-height: 41px;
+
+  .sidebar-link {
+
+    min-height: 45px;
+
+    width: 100%;
+
+    padding: 9px 11px;
+
+    font-size: 15px;
+
+  }
+
+
+  .sidebar-icon {
+
+    width: 28px;
+
+    min-width: 28px;
+
+  }
+
+
+  .app-content {
+
+    padding: 14px 10px 22px;
+
+  }
+
+
+  h1 {
+
+    margin-bottom: 15px;
+
+    font-size: 25px;
+
+    line-height: 1.4;
+
+  }
+
+
+  h2 {
+
+    font-size: 19px;
+
+  }
+
+
+  .card {
+
+    padding: 15px;
+
+    margin-bottom: 14px;
+
+    border-radius: 15px;
+
+  }
+
+
+  .card-header {
+
+    gap: 8px;
+
+    margin-bottom: 12px;
+
+  }
+
+
+  .card-header h2 {
+
+    font-size: 18px;
+
+  }
+
+
+  .card-body {
+
+    font-size: 15px;
+
+  }
+
+
+  input,
+  select,
+  textarea {
+
+    min-height: 45px;
+
+    font-size: 16px;
+
+  }
+
+
+  .button {
+
+    width: 100%;
+
+    min-height: 45px;
+
+    margin: 5px 0;
+
+  }
+
+
+  .app-footer {
+
+    padding: 20px 12px;
+
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .app-content {
+
+    padding-left: 8px;
+
+    padding-right: 8px;
+
+  }
+
+
+  .card {
+
+    padding: 12px;
+
+  }
+
+
+  .sidebar-link {
 
     font-size: 14px;
 
-    padding: 8px 10px;
   }
 
-  .sidebar-icon {
-    width: 25px;
 
-    min-width: 25px;
+  .brand a {
 
     font-size: 17px;
+
   }
 
-  .app-content {
-    padding: 12px 8px 18px;
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+========================================================= */
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+
+  outline:
+    3px solid
+    rgba(128,96,165,.35);
+
+  outline-offset: 2px;
+
+}
+
+
+/* =========================================================
+   REDUCE MOTION
+========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  *,
+  *::before,
+  *::after {
+
+    scroll-behavior: auto !important;
+
+    transition: none !important;
+
+    animation: none !important;
+
   }
 
-  .app-content h1 {
-    font-size: 21px;
-  }
-
-  .card {
-    padding: 13px;
-  }
 }
