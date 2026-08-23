@@ -7,36 +7,18 @@ export default function Header() {
 
   return (
 
-    <header
-      className="app-header"
-      aria-label="هوية التطبيق"
-    >
+    <header className="app-header">
 
       <div className="brand">
 
-        <Link
-          to="/"
-          aria-label="المزرعة الذكية - LAVENDER"
-        >
+        <Link to="/" className="brand-link">
 
-          <span
-            className="brand-icon"
-            aria-hidden="true"
-          >
-            🌱
+          <span className="brand-arabic">
+            المزرعة الذكية
           </span>
 
-
-          <span className="brand-title">
-
-            <span className="brand-arabic">
-              المزرعة الذكية
-            </span>
-
-            <span className="brand-english">
-              LAVENDER
-            </span>
-
+          <span className="brand-english">
+            LAVENDER
           </span>
 
         </Link>
