@@ -1,23 +1,50 @@
-// src/components/Footer.jsx
+import { useSettings } from "../context/SettingsContext";
+import { translate } from "../utils/translation";
 
 const currentYear = new Date().getFullYear();
 
 export default function Footer() {
+
+  const { settings } = useSettings();
+
+  const language =
+    settings?.language || "ar";
+
   return (
+
     <footer className="app-footer">
 
-      <div className="footer-name">
+      <div className="footer-brand">
+
         المزرعة الذكية
+
       </div>
 
-      <div className="footer-lavender">
+      <div
+        style={{
+          fontSize: "12px",
+          letterSpacing: "3px",
+          marginBottom: "10px",
+        }}
+      >
         LAVENDER
       </div>
 
       <div className="footer-copy">
-        © {currentYear} جميع الحقوق محفوظة
+
+        © {currentYear}
+
+        {" "}
+
+        {translate(
+          "footer.rights",
+          language
+        )}
+
       </div>
 
     </footer>
+
   );
+
 }
