@@ -1,49 +1,27 @@
 // src/pages/Home.jsx
 
-import { Link } from "react-router-dom";
-import { useSettings } from "../context/SettingsContext.jsx";
-import { translate } from "../utils/translation.js";
-
 export default function Home() {
-  const { settings } = useSettings();
-
-  const language = settings?.language || "ar";
-
   return (
-    <div>
-      <h1>
-        🌱 {translate("home.title", language)}
-      </h1>
+    <main className="home-page">
 
-      <p>
-        {translate("home.description", language)}
-      </p>
+      <section className="home-hero">
 
-      <div>
-        <Link to="/register">
-          <button type="button">
-            {translate("home.start", language)}
-          </button>
-        </Link>
+        <div className="home-brand">
+          <h1 className="home-title">
+            المزرعة الذكية
+          </h1>
 
-        <Link to="/login">
-          <button type="button">
-            {translate("home.login", language)}
-          </button>
-        </Link>
+          <div className="home-name">
+            LAVENDER
+          </div>
+        </div>
 
-        <Link to="/dashboard">
-          <button type="button">
-            {translate("menu.dashboard", language)}
-          </button>
-        </Link>
+        <p className="home-subtitle">
+          نظام ذكي لإدارة المزارع والمحاصيل والري
+        </p>
 
-        <Link to="/services">
-          <button type="button">
-            {translate("home.services", language)}
-          </button>
-        </Link>
-      </div>
-    </div>
+      </section>
+
+    </main>
   );
 }
