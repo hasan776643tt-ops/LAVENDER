@@ -1,6 +1,7 @@
 /* =========================================================
    LAVENDER — المزرعة الذكية
    Mobile First Agricultural Identity
+   Wheat Field Full Screen Background
 ========================================================= */
 
 
@@ -44,10 +45,10 @@
   --background: #f4f8f4;
 
   --shadow-small:
-    0 3px 12px rgba(18, 61, 36, .08);
+    0 3px 12px rgba(18, 61, 36, .10);
 
   --shadow-medium:
-    0 9px 24px rgba(18, 61, 36, .13);
+    0 9px 24px rgba(18, 61, 36, .16);
 
   --radius: 18px;
 
@@ -80,13 +81,6 @@ body {
   width: 100%;
   min-height: 100vh;
 
-  background:
-    linear-gradient(
-      180deg,
-      #f9fcf9 0%,
-      #eef6ef 100%
-    );
-
   color: var(--text);
 
   font-family:
@@ -101,12 +95,88 @@ body {
   direction: rtl;
 
   overflow-x: hidden;
+
+  background:
+    #356d3d;
 }
 
 
 #root {
   width: 100%;
   min-height: 100vh;
+}
+
+
+/* =========================================================
+   FULL SCREEN AGRICULTURAL BACKGROUND
+========================================================= */
+
+.app-layout {
+
+  position: relative;
+
+  min-height: 100vh;
+
+  display: flex;
+
+  flex-direction: column;
+
+  isolation: isolate;
+
+  background-image:
+
+    linear-gradient(
+      rgba(24, 72, 37, .28),
+      rgba(24, 72, 37, .34)
+    ),
+
+    url(
+      "https://images.unsplash.com/photo-1500382017468-9049fed747ef?auto=format&fit=crop&w=2200&q=85"
+    );
+
+  background-size:
+    cover;
+
+  background-position:
+    center center;
+
+  background-attachment:
+    fixed;
+
+  background-repeat:
+    no-repeat;
+}
+
+
+/*
+   طبقة خضراء خفيفة فوق الصورة
+   تجعل النص والمربعات أوضح
+*/
+
+.app-layout::before {
+
+  content:
+    "";
+
+  position:
+    fixed;
+
+  inset:
+    0;
+
+  z-index:
+    -1;
+
+  pointer-events:
+    none;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(245,250,246,.18) 0%,
+      rgba(28,91,43,.12) 45%,
+      rgba(18,61,36,.28) 100%
+    );
 }
 
 
@@ -127,59 +197,75 @@ h6 {
     Arial,
     sans-serif;
 
-  line-height: 1.5;
+  line-height:
+    1.5;
 
-  overflow-wrap: anywhere;
+  overflow-wrap:
+    anywhere;
 }
 
 
 h1 {
 
-  margin: 0 0 22px;
+  margin:
+    0 0 22px;
 
-  color: var(--green-950);
+  color:
+    var(--green-950);
 
   font-size:
     clamp(24px, 5vw, 34px);
 
-  font-weight: 900;
+  font-weight:
+    900;
 }
 
 
 h2 {
 
-  margin: 0 0 14px;
+  margin:
+    0 0 14px;
 
-  color: var(--green-800);
+  color:
+    var(--green-800);
 
-  font-size: 21px;
+  font-size:
+    21px;
 
-  font-weight: 800;
+  font-weight:
+    800;
 }
 
 
 h3 {
 
-  margin: 0 0 12px;
+  margin:
+    0 0 12px;
 
-  color: var(--green-800);
+  color:
+    var(--green-800);
 
-  font-size: 18px;
+  font-size:
+    18px;
 }
 
 
 p {
 
-  margin-top: 0;
+  margin-top:
+    0;
 
-  margin-bottom: 14px;
+  margin-bottom:
+    14px;
 
-  overflow-wrap: anywhere;
+  overflow-wrap:
+    anywhere;
 }
 
 
 a {
-  color: inherit;
+  color:
+    inherit;
 }
 
 
@@ -187,118 +273,131 @@ a {
    MAIN LAYOUT
 ========================================================= */
 
-.app-layout {
-
-  min-height: 100vh;
-
-  display: flex;
-
-  flex-direction: column;
-}
-
-
 .app-body {
 
-  display: flex;
+  display:
+    flex;
 
-  flex: 1;
+  flex:
+    1;
 
-  min-width: 0;
+  min-width:
+    0;
+
+  position:
+    relative;
+
+  z-index:
+    1;
 }
 
 
 .app-content {
 
-  flex: 1;
+  flex:
+    1;
 
-  min-width: 0;
+  min-width:
+    0;
 
-  padding: 28px;
+  padding:
+    28px;
 
-  overflow-x: hidden;
+  overflow-x:
+    hidden;
 }
 
 
 /* =========================================================
    HEADER
-   هوية المزرعة الذكية
 ========================================================= */
 
 .app-header {
 
-  position: relative;
+  position:
+    relative;
 
-  z-index: 50;
+  z-index:
+    50;
 
-  width: 100%;
+  width:
+    100%;
 
-  min-height: 145px;
+  min-height:
+    145px;
 
   padding:
     18px 15px 20px;
 
-  display: flex;
+  display:
+    flex;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  text-align: center;
+  text-align:
+    center;
 
   background:
+    rgba(250,253,250,.88);
 
-    radial-gradient(
-      circle at 50% 0%,
-      rgba(103, 171, 112, .14),
-      transparent 55%
-    ),
+  backdrop-filter:
+    blur(8px);
 
-    linear-gradient(
-      180deg,
-      #ffffff 0%,
-      #f4faf5 100%
-    );
+  -webkit-backdrop-filter:
+    blur(8px);
 
   border-bottom:
-    1px solid var(--border);
+    1px solid
+    rgba(216,229,219,.85);
 
   box-shadow:
     0 5px 20px
-    rgba(18, 61, 36, .07);
+    rgba(18,61,36,.10);
 }
 
 
-/* إخفاء الروابط القديمة أعلى التطبيق */
-
 .header-nav {
-
-  display: none !important;
+  display:
+    none !important;
 }
 
 
 .brand {
 
-  width: 100%;
+  width:
+    100%;
 
-  display: flex;
+  display:
+    flex;
 
-  justify-content: center;
+  justify-content:
+    center;
 }
 
 
 .brand-link {
 
-  display: flex;
+  display:
+    flex;
 
-  flex-direction: column;
+  flex-direction:
+    column;
 
-  align-items: center;
+  align-items:
+    center;
 
-  justify-content: center;
+  justify-content:
+    center;
 
-  text-decoration: none;
+  text-decoration:
+    none;
 
-  line-height: 1;
+  line-height:
+    1;
 
   transition:
     transform var(--transition);
@@ -306,21 +405,22 @@ a {
 
 
 .brand-link:hover {
-
   transform:
     translateY(-2px);
 }
 
 
 /* =========================================================
-   الاسم العربي الرئيسي
+   الاسم العربي
 ========================================================= */
 
 .brand-arabic {
 
-  display: block;
+  display:
+    block;
 
-  color: var(--green-950);
+  color:
+    var(--green-950);
 
   font-family:
     "Aref Ruqaa",
@@ -330,34 +430,38 @@ a {
   font-size:
     clamp(34px, 9vw, 52px);
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  line-height: 1.25;
+  line-height:
+    1.25;
 
-  letter-spacing: 0;
+  letter-spacing:
+    0;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 
   text-shadow:
-    0 2px 0 rgba(255,255,255,.8),
-
-    0 5px 12px
-    rgba(18,61,36,.10);
+    0 2px 0 rgba(255,255,255,.9),
+    0 5px 12px rgba(18,61,36,.14);
 }
 
 
 /* =========================================================
    LAVENDER
-   أصغر من الاسم العربي
 ========================================================= */
 
 .brand-english {
 
-  display: block;
+  display:
+    block;
 
-  margin-top: 5px;
+  margin-top:
+    5px;
 
-  color: var(--earth-700);
+  color:
+    var(--earth-700);
 
   font-family:
     "Cairo",
@@ -367,27 +471,29 @@ a {
   font-size:
     clamp(13px, 3.5vw, 17px);
 
-  font-weight: 700;
+  font-weight:
+    700;
 
-  letter-spacing: 4px;
+  letter-spacing:
+    4px;
 
-  line-height: 1.3;
+  line-height:
+    1.3;
 
-  direction: ltr;
+  direction:
+    ltr;
 
-  white-space: nowrap;
+  white-space:
+    nowrap;
 
-  opacity: .95;
+  opacity:
+    .95;
 }
 
 
-/* =========================================================
-   إلغاء أي شعار قديم داخل الهيدر
-========================================================= */
-
 .brand-icon {
-
-  display: none !important;
+  display:
+    none !important;
 }
 
 
@@ -400,22 +506,31 @@ a {
   flex:
     0 0 260px;
 
-  width: 260px;
+  width:
+    260px;
 
-  min-height: 100%;
+  min-height:
+    100%;
 
   padding:
     22px 15px;
 
   background:
-    #ffffff;
+    rgba(255,255,255,.84);
+
+  backdrop-filter:
+    blur(7px);
+
+  -webkit-backdrop-filter:
+    blur(7px);
 
   border-left:
-    1px solid var(--border);
+    1px solid
+    rgba(216,229,219,.85);
 
   box-shadow:
     -3px 0 18px
-    rgba(18,61,36,.05);
+    rgba(18,61,36,.08);
 }
 
 
@@ -431,13 +546,15 @@ a {
     center;
 
   border-bottom:
-    1px solid var(--border);
+    1px solid
+    rgba(216,229,219,.85);
 }
 
 
 .sidebar-brand h2 {
 
-  margin: 0;
+  margin:
+    0;
 
   color:
     var(--green-950);
@@ -468,8 +585,8 @@ a {
 
 
 .sidebar-brand-en {
-
-  display: none;
+  display:
+    none;
 }
 
 
@@ -538,7 +655,7 @@ a {
 .sidebar-link:hover {
 
   background:
-    var(--green-50);
+    rgba(229,242,231,.90);
 
   color:
     var(--green-950);
@@ -558,7 +675,7 @@ a {
 
   box-shadow:
     0 5px 14px
-    rgba(47,125,75,.18);
+    rgba(47,125,75,.22);
 }
 
 
@@ -603,10 +720,17 @@ a {
     20px;
 
   background:
-    #ffffff;
+    rgba(255,255,255,.91);
+
+  backdrop-filter:
+    blur(5px);
+
+  -webkit-backdrop-filter:
+    blur(5px);
 
   border:
-    1px solid var(--border);
+    1px solid
+    rgba(216,229,219,.90);
 
   border-radius:
     var(--radius);
@@ -651,7 +775,8 @@ a {
     12px;
 
   border-bottom:
-    1px solid #edf2ee;
+    1px solid
+    #edf2ee;
 }
 
 
@@ -716,11 +841,7 @@ a {
 .card-smart {
 
   background:
-    linear-gradient(
-      145deg,
-      #ffffff,
-      #f4f8f4
-    );
+    rgba(248,251,248,.92);
 
   border-color:
     #d9e4db;
@@ -800,33 +921,29 @@ a {
 
   box-shadow:
     0 5px 14px
-    rgba(0,0,0,.10);
+    rgba(0,0,0,.12);
 }
 
 
 .button:active {
-
   transform:
     translateY(0);
 }
 
 
 .button-primary {
-
   background:
     var(--green-700);
 }
 
 
 .button-success {
-
   background:
     var(--green-900);
 }
 
 
 .button-danger {
-
   background:
     #b94a48;
 }
@@ -843,7 +960,6 @@ a {
 
 
 .button-smart {
-
   background:
     var(--earth-700);
 }
@@ -886,13 +1002,14 @@ textarea {
     11px 13px;
 
   border:
-    1px solid #ccd9cf;
+    1px solid
+    #ccd9cf;
 
   border-radius:
     13px;
 
   background:
-    white;
+    rgba(255,255,255,.96);
 
   color:
     var(--text);
@@ -940,12 +1057,11 @@ textarea:focus {
 
   box-shadow:
     0 0 0 3px
-    rgba(63,145,88,.10);
+    rgba(63,145,88,.12);
 }
 
 
 select {
-
   cursor:
     pointer;
 }
@@ -1005,6 +1121,12 @@ select {
 
 .app-footer {
 
+  position:
+    relative;
+
+  z-index:
+    10;
+
   padding:
     25px 20px;
 
@@ -1015,7 +1137,13 @@ select {
     center;
 
   background:
-    var(--green-950);
+    rgba(18,61,36,.92);
+
+  backdrop-filter:
+    blur(7px);
+
+  -webkit-backdrop-filter:
+    blur(7px);
 }
 
 
@@ -1025,14 +1153,15 @@ select {
     9px;
 
   font-family:
+    "Aref Ruqaa",
     "Cairo",
     sans-serif;
 
   font-size:
-    19px;
+    23px;
 
   font-weight:
-    900;
+    700;
 }
 
 
@@ -1066,7 +1195,6 @@ select {
 @media (max-width: 900px) {
 
   .app-body {
-
     display:
       block;
   }
@@ -1087,11 +1215,12 @@ select {
       0;
 
     border-bottom:
-      1px solid var(--border);
+      1px solid
+      rgba(216,229,219,.85);
 
     box-shadow:
       0 4px 18px
-      rgba(30,70,45,.06);
+      rgba(30,70,45,.08);
 
     position:
       relative;
@@ -1112,7 +1241,6 @@ select {
 
 
   .sidebar-brand h2 {
-
     font-size:
       20px;
   }
@@ -1124,7 +1252,7 @@ select {
       grid;
 
     grid-template-columns:
-      repeat(2, minmax(0,1fr));
+      repeat(2,minmax(0,1fr));
 
     gap:
       10px;
@@ -1183,20 +1311,27 @@ select {
       center;
 
     border:
-      1px solid #dce9df;
+      1px solid
+      rgba(220,233,223,.90);
 
     border-radius:
       17px;
 
     background:
-      rgba(255,255,255,.96);
+      rgba(255,255,255,.90);
+
+    backdrop-filter:
+      blur(4px);
+
+    -webkit-backdrop-filter:
+      blur(4px);
 
     color:
       var(--green-900);
 
     box-shadow:
       0 3px 10px
-      rgba(30,70,45,.07);
+      rgba(30,70,45,.09);
 
     transform:
       none !important;
@@ -1209,7 +1344,7 @@ select {
   .sidebar-link:hover {
 
     background:
-      var(--green-50);
+      rgba(244,250,245,.96);
 
     color:
       var(--green-950);
@@ -1229,7 +1364,7 @@ select {
 
     box-shadow:
       0 7px 16px
-      rgba(47,125,75,.20);
+      rgba(47,125,75,.24);
   }
 
 
@@ -1307,107 +1442,6 @@ select {
     padding:
       18px 14px 28px;
   }
-
-
-  /* =======================================================
-     المشهد الزراعي خلف / أسفل المربعات
-  ======================================================= */
-
-  .sidebar::after {
-
-    content:
-      "";
-
-    display:
-      block;
-
-    position:
-      relative;
-
-    z-index:
-      1;
-
-    width:
-      calc(100% + 28px);
-
-    height:
-      125px;
-
-    margin:
-      24px -14px -25px;
-
-    background:
-
-      /* سماء */
-      linear-gradient(
-        180deg,
-        #c9e9c9 0%,
-        #b4dcb5 30%,
-        #8fc18f 31%,
-        #6da66c 50%,
-        #4c8d51 51%,
-        #397642 70%,
-        #286438 100%
-      );
-
-    border-radius:
-      45% 45% 0 0;
-
-    box-shadow:
-      inset 0 14px 20px
-      rgba(255,255,255,.18);
-
-    opacity:
-      .98;
-  }
-
-
-  /*
-     خطوط الحقول
-  */
-
-  .sidebar::before {
-
-    content:
-      "";
-
-    position:
-      absolute;
-
-    z-index:
-      2;
-
-    right:
-      5%;
-
-    left:
-      5%;
-
-    bottom:
-      34px;
-
-    height:
-      70px;
-
-    pointer-events:
-      none;
-
-    background:
-
-      repeating-linear-gradient(
-        165deg,
-        transparent 0,
-        transparent 12px,
-        rgba(255,255,255,.20) 13px,
-        transparent 15px
-      );
-
-    border-radius:
-      50%;
-
-    opacity:
-      .75;
-  }
 }
 
 
@@ -1418,7 +1452,6 @@ select {
 @media (max-width: 600px) {
 
   body {
-
     font-size:
       15px;
   }
@@ -1435,13 +1468,22 @@ select {
 
     padding:
       17px 10px 19px;
+
+    background:
+      rgba(250,253,250,.84);
+
+    backdrop-filter:
+      blur(8px);
+
+    -webkit-backdrop-filter:
+      blur(8px);
   }
 
 
   .brand-arabic {
 
     font-size:
-      clamp(35px, 10vw, 46px);
+      clamp(35px,10vw,46px);
 
     line-height:
       1.25;
@@ -1469,6 +1511,15 @@ select {
 
     padding:
       14px 10px 25px;
+
+    background:
+      rgba(255,255,255,.70);
+
+    backdrop-filter:
+      blur(6px);
+
+    -webkit-backdrop-filter:
+      blur(6px);
   }
 
 
@@ -1483,14 +1534,12 @@ select {
 
 
   .sidebar-brand h2 {
-
     font-size:
       19px;
   }
 
 
   .sidebar-brand p {
-
     font-size:
       12px;
   }
@@ -1516,11 +1565,13 @@ select {
 
     border-radius:
       16px;
+
+    background:
+      rgba(255,255,255,.88);
   }
 
 
   .sidebar-icon {
-
     font-size:
       18px;
   }
@@ -1536,16 +1587,6 @@ select {
   }
 
 
-  .sidebar::after {
-
-    height:
-      120px;
-
-    margin-top:
-      22px;
-  }
-
-
   /* =======================================================
      CONTENT
   ======================================================= */
@@ -1554,6 +1595,39 @@ select {
 
     padding:
       18px 10px 28px;
+  }
+
+
+  /*
+     إظهار الصورة الزراعية بوضوح
+     خلف محتوى الصفحة
+  */
+
+  .app-content::before {
+
+    content:
+      "";
+
+    display:
+      block;
+
+    position:
+      fixed;
+
+    inset:
+      0;
+
+    z-index:
+      -1;
+
+    pointer-events:
+      none;
+
+    background:
+      linear-gradient(
+        rgba(239,248,240,.28),
+        rgba(54,104,59,.18)
+      );
   }
 
 
@@ -1581,7 +1655,6 @@ select {
 
 
   h3 {
-
     font-size:
       17px;
   }
@@ -1601,6 +1674,9 @@ select {
 
     border-radius:
       17px;
+
+    background:
+      rgba(255,255,255,.91);
   }
 
 
@@ -1618,7 +1694,6 @@ select {
 
 
   .card-header h2 {
-
     font-size:
       18px;
   }
@@ -1722,7 +1797,6 @@ select {
 
 
   .brand-arabic {
-
     font-size:
       32px;
   }
@@ -1746,7 +1820,6 @@ select {
 
 
   .sidebar ul {
-
     gap:
       7px;
   }
@@ -1776,24 +1849,12 @@ select {
 
 
   .sidebar-icon {
-
     font-size:
       17px;
   }
 
 
-  .sidebar::after {
-
-    height:
-      105px;
-
-    margin-top:
-      15px;
-  }
-
-
   .app-content {
-
     padding:
       15px 8px 24px;
   }
@@ -1806,6 +1867,9 @@ select {
 
     border-radius:
       15px;
+
+    background:
+      rgba(255,255,255,.93);
   }
 }
 
