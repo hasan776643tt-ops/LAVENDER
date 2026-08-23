@@ -1,73 +1,139 @@
 /* =========================================================
    LAVENDER SMART FARM
-   PURE GREEN AGRICULTURE × PURPLE FRAME
+   Visual Identity
+   Agriculture Green × Deep Teal
 ========================================================= */
-
-@import url(
-  "https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Tajawal:wght@400;500;600;700&display=swap"
-);
 
 
 /* =========================================================
-   COLORS
+   FONTS
+========================================================= */
+
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@500;600;700;800&family=Inter:wght@400;500;600;700&family=Tajawal:wght@400;500;600;700;800&display=swap');
+
+
+/* =========================================================
+   DESIGN TOKENS
 ========================================================= */
 
 :root {
 
-  /* PURE AGRICULTURE GREEN */
-  --green: #3f8f4f;
-  --green-dark: #2f733e;
-  --green-light: #eaf6ed;
+  /* =========================
+     AGRICULTURE GREEN
+  ========================= */
 
-  /* PURE INTELLIGENCE PURPLE */
-  --purple: #7650a8;
-  --purple-dark: #60418c;
-  --purple-light: #eee7f6;
+  --lavender-green: #2e7d32;
+  --lavender-green-dark: #256b2a;
+  --lavender-green-light: #eaf5eb;
 
-  /* NEUTRAL */
-  --text: #24352a;
-  --muted: #6d786f;
-  --white: #ffffff;
-  --background: #f5f8f6;
-  --border: #dfe7e1;
 
-  --radius: 16px;
+  /* =========================
+     TECHNOLOGY / FRAME
+  ========================= */
 
-  --shadow:
-    0 5px 16px rgba(35,60,45,.08);
+  --lavender-teal: #145a5a;
+  --lavender-teal-dark: #0f4949;
+  --lavender-teal-light: #e8f3f3;
 
-  --transition: .2s ease;
+
+  /* =========================
+     NEUTRAL
+  ========================= */
+
+  --lavender-white: #ffffff;
+
+  --lavender-background: #f5f8f6;
+
+  --lavender-text: #24352a;
+
+  --lavender-muted: #6b776f;
+
+  --lavender-border: #dce7df;
+
+
+  /* =========================
+     OTHER
+  ========================= */
+
+  --lavender-gold: #d7a83e;
+
+  --lavender-danger: #b94a48;
+
+
+  /* =========================
+     RADIUS
+  ========================= */
+
+  --radius-sm: 8px;
+
+  --radius-md: 12px;
+
+  --radius-lg: 18px;
+
+  --radius-xl: 24px;
+
+
+  /* =========================
+     SHADOW
+  ========================= */
+
+  --shadow-sm:
+    0 2px 8px rgba(20, 90, 90, .07);
+
+  --shadow-md:
+    0 8px 24px rgba(20, 90, 90, .10);
+
+  --shadow-lg:
+    0 14px 35px rgba(20, 90, 90, .14);
+
+
+  /* =========================
+     MOTION
+  ========================= */
+
+  --transition:
+    .2s ease;
+
 }
 
 
 /* =========================================================
-   RESET
+   GLOBAL RESET
 ========================================================= */
 
 *,
 *::before,
 *::after {
+
   box-sizing: border-box;
+
 }
 
 
 html {
+
   width: 100%;
+
   min-height: 100%;
+
+  scroll-behavior: smooth;
+
 }
 
 
 body {
+
   margin: 0;
 
   width: 100%;
+
   min-height: 100vh;
 
   background:
-    var(--background);
+    var(--lavender-background);
 
   color:
-    var(--text);
+    var(--lavender-text);
 
   font-family:
     "Tajawal",
@@ -81,12 +147,16 @@ body {
   direction: rtl;
 
   overflow-x: hidden;
+
 }
 
 
 #root {
+
   width: 100%;
+
   min-height: 100vh;
+
 }
 
 
@@ -100,74 +170,97 @@ h3,
 h4,
 h5,
 h6 {
+
   font-family:
     "Cairo",
     "Tajawal",
     Arial,
     sans-serif;
 
-  line-height: 1.45;
+  line-height: 1.4;
+
 }
 
 
 h1 {
-  margin:
-    0 0 22px;
+
+  margin: 0 0 22px;
 
   color:
-    var(--green-dark);
+    var(--lavender-teal-dark);
 
   font-size:
-    clamp(24px, 4vw, 34px);
+    clamp(24px, 5vw, 34px);
 
   font-weight: 800;
+
 }
 
 
 h2 {
+
   margin: 0;
 
   color:
-    var(--green-dark);
+    var(--lavender-green-dark);
 
   font-size: 21px;
 
   font-weight: 700;
+
+}
+
+
+h3 {
+
+  color:
+    var(--lavender-green-dark);
+
 }
 
 
 p {
+
   margin-top: 0;
+
 }
 
 
 a {
+
   color: inherit;
+
 }
 
 
 /* =========================================================
-   APPLICATION
+   MAIN LAYOUT
 ========================================================= */
 
 .app-layout {
+
   min-height: 100vh;
 
   display: flex;
+
   flex-direction: column;
+
 }
 
 
 .app-body {
+
   display: flex;
 
   flex: 1;
 
   min-width: 0;
+
 }
 
 
 .app-content {
+
   flex: 1;
 
   min-width: 0;
@@ -175,6 +268,7 @@ a {
   padding: 28px;
 
   overflow-x: hidden;
+
 }
 
 
@@ -183,12 +277,15 @@ a {
 ========================================================= */
 
 .app-header {
+
   position: relative;
+
   z-index: 20;
 
   display: flex;
 
   align-items: center;
+
   justify-content: space-between;
 
   gap: 20px;
@@ -200,14 +297,26 @@ a {
   color: white;
 
   background:
-    var(--green);
+    var(--lavender-teal);
+
+  border-bottom:
+    4px solid var(--lavender-green);
 
   box-shadow:
-    0 5px 18px rgba(47,115,62,.18);
+    var(--shadow-md);
+
+}
+
+
+.brand {
+
+  flex-shrink: 0;
+
 }
 
 
 .brand a {
+
   display: flex;
 
   align-items: center;
@@ -219,32 +328,42 @@ a {
   text-decoration: none;
 
   font-family:
+    "Inter",
     "Cairo",
     sans-serif;
 
-  font-size: 21px;
+  font-size: 20px;
 
-  font-weight: 800;
+  font-weight: 700;
+
 }
 
 
 .brand-icon {
-  width: 38px;
-  height: 38px;
 
   display: inline-flex;
 
   align-items: center;
+
   justify-content: center;
+
+  width: 38px;
+
+  height: 38px;
 
   border-radius: 12px;
 
   background:
-    rgba(255,255,255,.16);
+    rgba(255,255,255,.12);
+
+  border:
+    1px solid rgba(255,255,255,.20);
+
 }
 
 
 .header-nav {
+
   display: flex;
 
   align-items: center;
@@ -254,12 +373,13 @@ a {
   gap: 8px;
 
   flex-wrap: wrap;
+
 }
 
 
 .header-nav a {
-  padding:
-    8px 12px;
+
+  padding: 8px 12px;
 
   border-radius: 9px;
 
@@ -268,7 +388,6 @@ a {
   text-decoration: none;
 
   font-family:
-    "Cairo",
     "Tajawal",
     sans-serif;
 
@@ -279,15 +398,18 @@ a {
   transition:
     background var(--transition),
     transform var(--transition);
+
 }
 
 
 .header-nav a:hover {
+
   background:
-    rgba(255,255,255,.13);
+    rgba(255,255,255,.12);
 
   transform:
     translateY(-1px);
+
 }
 
 
@@ -296,180 +418,165 @@ a {
 ========================================================= */
 
 .sidebar {
-  flex:
-    0 0 260px;
 
-  width:
-    260px;
+  flex: 0 0 260px;
 
-  min-height:
-    100%;
+  width: 260px;
 
-  padding:
-    24px 16px;
+  min-height: 100%;
+
+  padding: 24px 16px;
 
   background:
-    var(--white);
+    var(--lavender-white);
 
   border-left:
-    1px solid var(--border);
+    1px solid var(--lavender-border);
 
   box-shadow:
-    -4px 0 18px rgba(35,60,45,.04);
+    -4px 0 18px rgba(20,90,90,.05);
+
 }
 
 
 .sidebar-brand {
+
   padding:
     8px 8px 20px;
 
   margin-bottom:
-    12px;
+    14px;
 
   text-align:
     center;
 
   border-bottom:
-    1px solid var(--border);
+    1px solid var(--lavender-border);
+
 }
 
 
 .sidebar-brand h2 {
-  margin:
-    0;
+
+  margin: 0;
 
   color:
-    var(--green-dark);
+    var(--lavender-green-dark);
 
-  font-family:
-    "Cairo",
-    sans-serif;
+  font-size: 22px;
 
-  font-size:
-    22px;
+  font-weight: 800;
 
-  font-weight:
-    800;
 }
 
 
 .sidebar-brand p {
+
   margin:
-    4px 0 0;
+    3px 0 0;
 
   color:
-    var(--muted);
+    var(--lavender-muted);
 
-  font-size:
-    13px;
+  font-size: 13px;
+
 }
 
 
 .sidebar ul {
-  list-style:
-    none;
 
-  padding:
-    0;
+  list-style: none;
 
-  margin:
-    0;
+  padding: 0;
+
+  margin: 0;
+
 }
 
 
 .sidebar li {
-  margin-bottom:
-    5px;
+
+  margin-bottom: 7px;
+
 }
 
 
 .sidebar-link {
-  display:
-    flex;
 
-  align-items:
-    center;
+  display: flex;
 
-  gap:
-    11px;
+  align-items: center;
 
-  width:
-    100%;
+  gap: 11px;
 
-  min-height:
-    46px;
+  width: 100%;
 
-  padding:
-    10px 13px;
+  min-height: 46px;
 
-  border-radius:
-    12px;
+  padding: 10px 13px;
+
+  border-radius: 12px;
 
   color:
     #405046;
 
-  text-decoration:
-    none;
+  background:
+    transparent;
 
-  font-family:
-    "Cairo",
-    "Tajawal",
-    sans-serif;
+  text-decoration: none;
 
-  font-size:
-    15px;
+  font-size: 15px;
 
-  font-weight:
-    600;
+  font-weight: 600;
 
   transition:
-    .2s ease;
+    background var(--transition),
+    color var(--transition),
+    transform var(--transition);
+
 }
 
 
 .sidebar-link:hover {
+
   background:
-    var(--green-light);
+    var(--lavender-green-light);
 
   color:
-    var(--green-dark);
+    var(--lavender-green-dark);
+
 }
 
 
 .sidebar-link.active {
-  color:
-    white;
+
+  color: white;
 
   background:
-    var(--green);
+    var(--lavender-green);
 
   box-shadow:
-    0 5px 13px rgba(63,143,79,.22);
+    0 5px 14px rgba(46,125,50,.20);
+
 }
 
 
-/* =========================================================
-   SIDEBAR ICON
-========================================================= */
-
 .sidebar-icon {
-  width:
-    26px;
 
-  min-width:
-    26px;
+  width: 28px;
 
-  display:
-    inline-flex;
+  min-width: 28px;
 
-  align-items:
-    center;
+  height: 28px;
 
-  justify-content:
-    center;
+  display: inline-flex;
 
-  font-size:
-    18px;
+  align-items: center;
+
+  justify-content: center;
+
+  font-size: 18px;
+
 }
 
 
@@ -478,107 +585,131 @@ a {
 ========================================================= */
 
 .card {
-  width:
-    100%;
+
+  width: 100%;
 
   margin:
     0 0 18px;
 
-  padding:
-    20px;
+  padding: 20px;
 
   background:
     white;
 
   border:
-    1px solid var(--border);
+    1px solid var(--lavender-border);
 
   border-radius:
-    18px;
+    var(--radius-lg);
 
   box-shadow:
-    var(--shadow);
+    var(--shadow-sm);
 
   transition:
-    .2s ease;
+    box-shadow var(--transition),
+    transform var(--transition);
+
 }
 
 
 .card:hover {
+
+  box-shadow:
+    var(--shadow-md);
+
   transform:
     translateY(-2px);
 
-  box-shadow:
-    0 9px 25px rgba(35,60,45,.11);
 }
 
 
 .card-header {
-  display:
-    flex;
 
-  align-items:
-    center;
+  display: flex;
 
-  gap:
-    10px;
+  align-items: center;
 
-  margin-bottom:
-    16px;
+  gap: 10px;
 
-  padding-bottom:
-    10px;
+  margin-bottom: 16px;
+
+  padding-bottom: 10px;
 
   border-bottom:
     1px solid #edf1ee;
+
 }
 
 
 .card-header h2 {
-  margin:
-    0;
+
+  margin: 0;
 
   color:
-    var(--green-dark);
+    var(--lavender-green-dark);
+
 }
 
 
 .card-icon {
-  width:
-    38px;
 
-  height:
-    38px;
+  display: inline-flex;
 
-  display:
-    inline-flex;
+  align-items: center;
 
-  align-items:
-    center;
+  justify-content: center;
 
-  justify-content:
-    center;
+  width: 38px;
 
-  border-radius:
-    11px;
+  height: 38px;
+
+  border-radius: 11px;
 
   background:
-    var(--green-light);
+    var(--lavender-green-light);
 
-  font-size:
-    20px;
+  font-size: 20px;
+
 }
 
 
 .card-body {
-  width:
-    100%;
 
-  font-size:
-    16px;
+  width: 100%;
 
-  line-height:
-    1.9;
+  font-size: 16px;
+
+}
+
+
+/* =========================================================
+   SMART CARD
+========================================================= */
+
+.card-smart {
+
+  border:
+    1px solid var(--lavender-teal);
+
+  background:
+    var(--lavender-teal-light);
+
+}
+
+
+.card-smart .card-header h2 {
+
+  color:
+    var(--lavender-teal-dark);
+
+}
+
+
+.card-smart .card-icon {
+
+  background:
+    #d8eaea;
+
 }
 
 
@@ -587,159 +718,217 @@ a {
 ========================================================= */
 
 .button {
-  min-height:
-    44px;
 
-  border:
-    0;
+  min-height: 44px;
+
+  border: 0;
 
   border-radius:
-    13px;
+    var(--radius-md);
 
-  padding:
-    10px 18px;
+  padding: 10px 18px;
 
-  margin:
-    4px;
+  margin: 4px;
 
-  display:
-    inline-flex;
+  display: inline-flex;
 
-  align-items:
-    center;
+  align-items: center;
 
-  justify-content:
-    center;
+  justify-content: center;
 
-  gap:
-    7px;
+  gap: 7px;
 
-  color:
-    white;
+  color: white;
 
   font-family:
-    "Cairo",
     "Tajawal",
     sans-serif;
 
-  font-size:
-    15px;
+  font-size: 15px;
 
-  font-weight:
-    700;
+  font-weight: 700;
 
-  cursor:
-    pointer;
+  cursor: pointer;
 
   transition:
-    .2s ease;
+    transform var(--transition),
+    box-shadow var(--transition),
+    opacity var(--transition);
+
 }
 
 
 .button:hover {
+
   transform:
     translateY(-2px);
 
   box-shadow:
     0 5px 14px rgba(0,0,0,.12);
+
 }
 
 
-.button-primary,
-.button-success {
+.button-primary {
+
   background:
-    var(--green);
+    var(--lavender-green);
+
+}
+
+
+.button-success {
+
+  background:
+    var(--lavender-green-dark);
+
 }
 
 
 .button-danger {
+
   background:
-    #b94a48;
+    var(--lavender-danger);
+
 }
 
 
 .button-warning {
+
   background:
-    #d7a83e;
+    var(--lavender-gold);
 
   color:
     #3f3217;
+
 }
 
 
-/* Purple only for smart action */
-
 .button-smart {
+
   background:
-    var(--purple);
+    var(--lavender-teal);
+
+}
+
+
+.button:disabled {
+
+  opacity: .55;
+
+  cursor: not-allowed;
+
+  transform: none;
+
+  box-shadow: none;
+
 }
 
 
 /* =========================================================
-   FORMS
+   FORM CONTROLS
 ========================================================= */
 
 input,
 select,
 textarea {
-  width:
-    100%;
 
-  min-height:
-    46px;
+  width: 100%;
 
-  margin:
-    7px 0;
+  min-height: 46px;
 
-  padding:
-    10px 13px;
+  margin: 7px 0;
+
+  padding: 10px 13px;
 
   border:
     1px solid #ccd9cf;
 
   border-radius:
-    12px;
+    var(--radius-md);
 
   background:
     white;
 
   color:
-    var(--text);
+    var(--lavender-text);
 
   font-family:
     "Tajawal",
     Arial,
     sans-serif;
 
-  font-size:
-    16px;
+  font-size: 16px;
 
-  line-height:
-    1.6;
+  line-height: 1.5;
+
 }
 
 
 textarea {
-  min-height:
-    110px;
 
-  resize:
-    vertical;
+  min-height: 110px;
+
+  resize: vertical;
+
 }
 
 
 input:focus,
 select:focus,
 textarea:focus {
-  outline:
-    none;
+
+  outline: none;
 
   border-color:
-    var(--green);
+    var(--lavender-green);
 
   box-shadow:
     0 0 0 3px
-    rgba(63,143,79,.10);
+    rgba(46,125,50,.10);
+
+}
+
+
+/* =========================================================
+   PILLS
+========================================================= */
+
+.pill {
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  min-height: 32px;
+
+  padding: 5px 12px;
+
+  border-radius: 999px;
+
+  background:
+    var(--lavender-green-light);
+
+  color:
+    var(--lavender-green-dark);
+
+  font-size: 13px;
+
+  font-weight: 700;
+
+}
+
+
+.pill-smart {
+
+  background:
+    var(--lavender-teal-light);
+
+  color:
+    var(--lavender-teal-dark);
+
 }
 
 
@@ -748,121 +937,169 @@ textarea:focus {
 ========================================================= */
 
 .app-footer {
-  padding:
-    25px 20px;
 
-  color:
-    white;
+  padding: 25px 20px;
 
-  text-align:
-    center;
+  color: white;
+
+  text-align: center;
 
   background:
-    var(--green-dark);
+    var(--lavender-teal);
+
+  border-top:
+    4px solid var(--lavender-green);
+
 }
 
 
 .footer-brand {
-  margin-bottom:
-    8px;
+
+  margin-bottom: 8px;
 
   font-family:
+    "Inter",
     "Cairo",
     sans-serif;
 
-  font-size:
-    19px;
+  font-size: 19px;
 
-  font-weight:
-    800;
+  font-weight: 700;
+
 }
 
 
 .footer-description {
-  line-height:
-    2;
+
+  color:
+    rgba(255,255,255,.88);
+
+  line-height: 1.9;
+
 }
 
 
 .footer-copy {
-  margin-top:
-    10px;
 
-  opacity:
-    .75;
+  margin-top: 10px;
 
-  font-size:
-    13px;
+  color:
+    rgba(255,255,255,.70);
+
+  font-size: 13px;
+
 }
 
 
 /* =========================================================
-   TABLET
+   TABLET / MOBILE
 ========================================================= */
 
 @media (max-width: 900px) {
 
   .app-body {
-    display:
-      block;
+
+    display: block;
+
   }
 
 
   .sidebar {
-    width:
-      100%;
 
-    min-height:
-      auto;
+    width: 100%;
 
-    padding:
-      14px;
+    min-height: auto;
 
-    border-left:
-      0;
+    padding: 14px;
+
+    border-left: 0;
 
     border-bottom:
-      1px solid var(--border);
+      1px solid var(--lavender-border);
+
+  }
+
+
+  .sidebar-brand {
+
+    padding:
+      5px 5px 12px;
+
+    margin-bottom:
+      12px;
+
   }
 
 
   .sidebar ul {
-    display:
-      grid;
+
+    display: grid;
 
     grid-template-columns:
-      repeat(3, minmax(0, 1fr));
+      repeat(3, 1fr);
 
-    gap:
-      8px;
+    gap: 9px;
+
   }
 
 
   .sidebar li {
-    margin:
-      0;
+
+    margin: 0;
+
   }
 
 
   .sidebar-link {
-    justify-content:
-      center;
 
-    min-height:
-      58px;
+    min-height: 64px;
 
-    padding:
-      9px 8px;
+    padding: 9px 6px;
 
-    text-align:
-      center;
+    flex-direction: column;
+
+    justify-content: center;
+
+    gap: 4px;
+
+    text-align: center;
+
+    border-radius: 14px;
+
+    font-size: 14px;
+
+  }
+
+
+  .sidebar-icon {
+
+    width: auto;
+
+    min-width: auto;
+
+    height: 27px;
+
+    font-size: 19px;
+
+  }
+
+
+  .sidebar-link.active {
+
+    background:
+      var(--lavender-green);
+
   }
 
 
   .app-content {
-    padding:
-      18px 14px 28px;
+
+    width: 100%;
+
+    padding: 18px 14px 28px;
+
   }
+
 }
 
 
@@ -872,196 +1109,162 @@ textarea:focus {
 
 @media (max-width: 600px) {
 
+  body {
+
+    background:
+      var(--lavender-teal);
+
+    padding: 0;
+
+  }
+
+
   /*
-     Purple frame around the mobile application
+     إطار الهاتف
   */
 
-  body {
-    background:
-      var(--purple);
+  .app-layout {
 
-    padding:
-      7px;
+    width: 100%;
 
-    font-size:
-      15px;
-  }
-
-
-  #root {
-    min-height:
-      calc(100vh - 14px);
+    min-height: 100vh;
 
     background:
-      var(--background);
+      var(--lavender-background);
 
     border:
-      4px solid var(--purple);
+      4px solid var(--lavender-teal);
 
     border-radius:
-      22px;
+      18px;
 
-    overflow:
-      hidden;
+    overflow: hidden;
+
   }
 
 
-  /* -------------------------
+  /* =========================
      HEADER
-  ------------------------- */
+  ========================= */
 
   .app-header {
-    min-height:
-      auto;
 
-    padding:
-      13px 10px;
+    min-height: auto;
 
-    flex-direction:
-      column;
+    padding: 15px 12px;
 
-    gap:
-      9px;
+    flex-direction: column;
 
-    text-align:
-      center;
+    align-items: stretch;
 
-    background:
-      var(--green);
+    gap: 10px;
+
+    text-align: center;
+
+    border-bottom:
+      3px solid var(--lavender-green);
+
   }
 
 
   .brand a {
-    justify-content:
-      center;
 
-    font-size:
-      18px;
+    justify-content: center;
 
-    letter-spacing:
-      .2px;
+    font-size: 19px;
+
   }
 
 
   .brand-icon {
-    width:
-      32px;
 
-    height:
-      32px;
+    width: 34px;
+
+    height: 34px;
+
   }
 
 
   .header-nav {
-    width:
-      100%;
 
-    display:
-      grid;
+    width: 100%;
+
+    display: grid;
 
     grid-template-columns:
-      repeat(3, 1fr);
+      repeat(2, 1fr);
 
-    gap:
-      6px;
+    gap: 6px;
+
   }
 
 
   .header-nav a {
-    min-height:
-      38px;
 
-    display:
-      flex;
+    width: 100%;
 
-    align-items:
-      center;
-
-    justify-content:
-      center;
-
-    padding:
-      6px 4px;
+    padding: 8px 6px;
 
     background:
-      rgba(255,255,255,.10);
+      rgba(255,255,255,.08);
 
-    font-size:
-      12px;
+    font-size: 13px;
 
-    line-height:
-      1.35;
-
-    text-align:
-      center;
   }
 
 
-  /* -------------------------
-     MOBILE MENU
-  ------------------------- */
+  /* =========================
+     MENU
+  ========================= */
 
   .sidebar {
-    width:
-      100%;
 
-    padding:
-      11px 8px 13px;
+    padding: 12px;
 
     background:
-      white;
+      var(--lavender-white);
 
-    border:
-      0;
-
-    box-shadow:
-      none;
   }
 
 
   .sidebar-brand {
-    padding:
-      2px 4px 10px;
+
+    padding-bottom:
+      12px;
 
     margin-bottom:
-      10px;
+      12px;
+
   }
 
 
   .sidebar-brand h2 {
-    font-size:
-      19px;
 
-    color:
-      var(--green-dark);
+    font-size: 20px;
+
   }
 
 
   .sidebar-brand p {
-    font-size:
-      12px;
+
+    font-size: 13px;
+
   }
 
 
   /*
-     شبكة الاختيارات
+     4 أعمدة
+     حتى تظهر الخيارات كمربعات
+     بدل شريط طويل
   */
 
   .sidebar ul {
-    display:
-      grid;
 
     grid-template-columns:
-      repeat(3, 1fr);
+      repeat(4, 1fr);
 
-    gap:
-      7px;
-  }
+    gap: 7px;
 
-
-  .sidebar li {
-    margin:
-      0;
   }
 
 
@@ -1070,320 +1273,328 @@ textarea:focus {
   */
 
   .sidebar-link {
-    width:
-      100%;
 
-    min-height:
-      68px;
+    width: 100%;
 
-    padding:
-      8px 4px;
+    min-height: 70px;
 
-    display:
-      flex;
-
-    flex-direction:
-      column;
-
-    align-items:
-      center;
-
-    justify-content:
-      center;
-
-    gap:
-      5px;
-
-    border:
-      0;
-
-    border-radius:
-      14px;
+    padding: 7px 4px;
 
     background:
-      var(--green);
+      var(--lavender-green);
 
     color:
       white;
 
+    border:
+      1px solid var(--lavender-green-dark);
+
+    border-radius:
+      13px;
+
+    box-shadow:
+      0 3px 7px
+      rgba(46,125,50,.16);
+
     font-family:
-      "Cairo",
       "Tajawal",
       sans-serif;
 
-    font-size:
-      12px;
+    font-size: 13px;
 
-    font-weight:
-      700;
+    font-weight: 700;
 
-    line-height:
-      1.35;
+    line-height: 1.25;
 
-    text-align:
-      center;
-
-    box-shadow:
-      0 4px 10px rgba(47,115,62,.16);
-
-    transform:
-      none;
   }
 
 
   .sidebar-link:hover {
+
     background:
-      var(--green-dark);
+      var(--lavender-green-dark);
 
     color:
       white;
 
     transform:
-      none;
+      translateY(-1px);
+
   }
 
 
   .sidebar-link.active {
+
     background:
-      var(--green-dark);
+      var(--lavender-green-dark);
 
     color:
       white;
 
     box-shadow:
-      0 0 0 2px
-      rgba(47,115,62,.18);
-  }
+      0 4px 10px
+      rgba(20,90,90,.20);
 
-
-  /*
-     لا نستخدم البنفسجي داخل مربعات الخيارات.
-     البنفسجي محجوز للإطار.
-  */
-
-  .sidebar-link[href="/ai"].active,
-  .sidebar-link[href="/reports"].active {
-    background:
-      var(--green-dark);
-
-    color:
-      white;
-
-    box-shadow:
-      0 0 0 2px
-      rgba(47,115,62,.18);
   }
 
 
   .sidebar-icon {
-    width:
-      auto;
 
-    min-width:
-      0;
+    height: 27px;
 
-    height:
-      25px;
+    font-size: 19px;
 
-    font-size:
-      20px;
-
-    line-height:
-      1;
   }
 
 
-  .sidebar-link span:last-child {
-    display:
-      block;
-
-    width:
-      100%;
-
-    overflow:
-      hidden;
-
-    text-overflow:
-      ellipsis;
-
-    white-space:
-      nowrap;
-  }
-
-
-  /* -------------------------
+  /* =========================
      CONTENT
-  ------------------------- */
+  ========================= */
 
   .app-content {
-    width:
-      100%;
 
     padding:
-      17px 10px 25px;
+      18px 12px 28px;
 
-    line-height:
-      1.9;
   }
 
 
   h1 {
-    margin:
-      4px 0 20px;
+
+    margin-bottom:
+      18px;
 
     font-size:
-      24px;
+      25px;
 
     line-height:
       1.5;
+
   }
 
 
   h2 {
+
     font-size:
       19px;
+
+    line-height:
+      1.6;
+
   }
 
 
+  h3 {
+
+    line-height:
+      1.6;
+
+  }
+
+
+  /* =========================
+     CARDS
+  ========================= */
+
   .card {
+
+    padding:
+      16px;
+
     margin-bottom:
       15px;
 
-    padding:
-      16px 14px;
-
     border-radius:
       16px;
+
   }
 
 
   .card-header {
+
     gap:
       9px;
 
     margin-bottom:
-      14px;
+      13px;
 
-    padding-bottom:
-      11px;
+  }
+
+
+  .card-header h2 {
+
+    font-size:
+      18px;
+
   }
 
 
   .card-body {
+
     font-size:
       15px;
 
     line-height:
-      2;
+      1.9;
+
   }
 
 
   .card p {
+
     margin-bottom:
-      14px;
+      12px;
 
     line-height:
-      2;
+      1.9;
+
   }
 
+
+  /* =========================
+     FORMS
+  ========================= */
 
   input,
   select,
   textarea {
+
     min-height:
-      46px;
+      45px;
 
     font-size:
       16px;
+
   }
 
 
+  /* =========================
+     BUTTONS
+  ========================= */
+
   .button {
+
     width:
       100%;
 
+    min-height:
+      45px;
+
     margin:
-      6px 0;
+      5px 0;
+
   }
 
+
+  /* =========================
+     FOOTER
+  ========================= */
 
   .app-footer {
+
     padding:
-      23px 13px;
+      22px 12px;
+
+    border-top:
+      3px solid var(--lavender-green);
+
   }
+
+
+  .footer-description {
+
+    line-height:
+      2;
+
+  }
+
 }
 
 
 /* =========================================================
-   VERY SMALL PHONE
+   VERY SMALL PHONES
 ========================================================= */
 
 @media (max-width: 380px) {
 
-  body {
-    padding:
-      5px;
-  }
+  .app-layout {
 
-
-  #root {
     border-width:
       3px;
 
     border-radius:
-      18px;
+      14px;
+
   }
 
 
   .sidebar {
+
     padding:
-      9px 6px 11px;
+      9px;
+
   }
 
 
   .sidebar ul {
+
     gap:
       5px;
+
   }
 
 
   .sidebar-link {
-    min-height:
-      61px;
 
-    border-radius:
-      12px;
+    min-height:
+      65px;
+
+    padding:
+      5px 2px;
 
     font-size:
       11px;
+
+    border-radius:
+      10px;
+
   }
 
 
   .sidebar-icon {
+
     font-size:
-      18px;
+      17px;
 
     height:
-      22px;
+      24px;
+
   }
 
 
   .app-content {
+
     padding:
-      15px 8px 22px;
+      15px 9px 24px;
+
   }
 
 
   .card {
+
     padding:
-      14px 12px;
+      13px;
+
   }
 
 
-  h1 {
+  .brand a {
+
     font-size:
-      22px;
+      17px;
+
   }
+
 }
 
 
@@ -1396,12 +1607,14 @@ a:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
+
   outline:
     3px solid
-    rgba(118,80,168,.40);
+    rgba(20,90,90,.35);
 
   outline-offset:
     2px;
+
 }
 
 
@@ -1414,6 +1627,7 @@ textarea:focus-visible {
   *,
   *::before,
   *::after {
+
     scroll-behavior:
       auto !important;
 
@@ -1422,5 +1636,7 @@ textarea:focus-visible {
 
     animation:
       none !important;
+
   }
+
 }
