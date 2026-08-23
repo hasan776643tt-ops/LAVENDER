@@ -2,6 +2,7 @@
 
 import {
   createContext,
+  useEffect,
   useMemo,
   useState
 } from "react";
@@ -103,7 +104,11 @@ export function FarmProvider({
           const result =
             await controller.getAll();
 
-          setData(result);
+          setData(
+            Array.isArray(result)
+              ? result
+              : []
+          );
 
           return result;
 
@@ -256,6 +261,55 @@ export function FarmProvider({
       setInventory,
       inventoryController
     );
+
+
+  // =========================
+  // Initial Data Load
+  // =========================
+
+  useEffect(() => {
+
+    const loadData = async () => {
+
+      try {
+
+        await Promise.all([
+
+          farmActions.load(),
+
+          fieldActions.load(),
+
+          irrigationActions.load(),
+
+          fertilizerActions.load(),
+
+          pesticideActions.load(),
+
+          diseaseActions.load(),
+
+          expenseActions.load(),
+
+          harvestActions.load(),
+
+          inventoryActions.load()
+
+        ]);
+
+      } catch (error) {
+
+        console.error(
+          "Failed to load FarmContext data:",
+          error
+        );
+
+      }
+
+    };
+
+
+    loadData();
+
+  }, []);
 
 
   // =========================
