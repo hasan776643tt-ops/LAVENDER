@@ -259,16 +259,37 @@ class ExpenseService {
 
 
     if (
-      !data.name ||
-      !data.name.trim()
+      !data.type ||
+      !String(data.type).trim()
     ) {
 
 
       throw createError(
 
-        "Expense name is required",
+        "Expense type is required",
 
-        "EXPENSE_NAME_REQUIRED"
+        "EXPENSE_TYPE_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    if (
+      data.amount === undefined ||
+      data.amount === null ||
+      data.amount === "" ||
+      Number(data.amount) <= 0
+    ) {
+
+
+      throw createError(
+
+        "Expense amount is required",
+
+        "EXPENSE_AMOUNT_REQUIRED"
 
       );
 
@@ -290,6 +311,47 @@ class ExpenseService {
 
 
     this.validateData(data);
+
+
+
+    if (
+      data.type !== undefined &&
+      !String(data.type).trim()
+    ) {
+
+
+      throw createError(
+
+        "Expense type is required",
+
+        "EXPENSE_TYPE_REQUIRED"
+
+      );
+
+
+    }
+
+
+
+    if (
+      data.amount !== undefined &&
+      (
+        data.amount === "" ||
+        Number(data.amount) <= 0
+      )
+    ) {
+
+
+      throw createError(
+
+        "Expense amount is required",
+
+        "EXPENSE_AMOUNT_REQUIRED"
+
+      );
+
+
+    }
 
 
 
