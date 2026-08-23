@@ -1,62 +1,23 @@
 // src/components/Footer.jsx
 
-import { useSettings } from "../context/SettingsContext";
-import { translate } from "../utils/translation";
-
-const currentYear =
-  new Date().getFullYear();
-
+const currentYear = new Date().getFullYear();
 
 export default function Footer() {
-
-  const { settings } =
-    useSettings();
-
-  const language =
-    settings?.language || "ar";
-
-
   return (
-
     <footer className="app-footer">
 
-      <div className="footer-brand">
-
-        🌱 LAVENDER Smart Farm
-
+      <div className="footer-name">
+        المزرعة الذكية
       </div>
 
-
-      <div className="footer-description">
-
-        {translate(
-          "footer.description",
-          language
-        )}
-
-        <br />
-
-        {translate(
-          "footer.management",
-          language
-        )}
-
+      <div className="footer-lavender">
+        LAVENDER
       </div>
-
 
       <div className="footer-copy">
-
-        © {currentYear}{" "}
-
-        {translate(
-          "footer.rights",
-          language
-        )}
-
+        © {currentYear} جميع الحقوق محفوظة
       </div>
 
     </footer>
-
   );
-
 }
