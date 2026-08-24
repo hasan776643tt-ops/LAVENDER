@@ -46,7 +46,7 @@ export default function useMap() {
 
 
   // =========================================================
-  // State
+  // Farms / Locations
   // =========================================================
 
   const [farms, setFarms] =
@@ -54,6 +54,11 @@ export default function useMap() {
 
   const [locations, setLocations] =
     useState([]);
+
+
+  // =========================================================
+  // Farm / Location Type
+  // =========================================================
 
   const [farmId, setFarmId] =
     useState("");
@@ -63,7 +68,21 @@ export default function useMap() {
 
 
   // =========================================================
-  // Human-readable location
+  // Location Mode
+  //
+  // gps    = automatic phone location
+  // manual = user selects location on map
+  // =========================================================
+
+  const [locationMode, setLocationMode] =
+    useState("gps");
+
+
+  // =========================================================
+  // Human-readable Location
+  //
+  // These are descriptive only.
+  // They are NOT the real geographic location.
   // =========================================================
 
   const [village, setVillage] =
@@ -77,7 +96,9 @@ export default function useMap() {
 
 
   // =========================================================
-  // GPS
+  // GPS / Coordinates
+  //
+  // latitude + longitude are the authoritative location.
   // =========================================================
 
   const [latitude, setLatitude] =
@@ -94,11 +115,27 @@ export default function useMap() {
 
 
   // =========================================================
-  // Notes / Loading
+  // Location Source
+  //
+  // gps    = phone GPS
+  // manual = map click
+  // =========================================================
+
+  const [locationSource, setLocationSource] =
+    useState("gps");
+
+
+  // =========================================================
+  // Notes
   // =========================================================
 
   const [notes, setNotes] =
     useState("");
+
+
+  // =========================================================
+  // Loading
+  // =========================================================
 
   const [loading, setLoading] =
     useState(false);
@@ -225,7 +262,194 @@ export default function useMap() {
 
 
   // =========================================================
+  // Apply Selected Coordinates
+  //
+  // This is shared by:
+  //
+  // GPS
+  // Manual map click
+  //
+  // =========================================================
+
+  const applyLocation =
+    async ({
+      latitude: selectedLatitude,
+      longitude: selectedLongitude,
+      accuracy: selectedAccuracy = null,
+      source = "gps"
+    }) => {
+
+      const lat =
+        Number(selectedLatitude);
+
+      const lon =
+        Number(selectedLongitude);
+
+
+      // -------------------------------------------------------
+      // Validate coordinates
+      // -------------------------------------------------------
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lon) ||
+        lat < -90 ||
+        lat > 90 ||
+        lon < -180 ||
+        lon > 180
+      ) {
+
+        throw new Error(
+          "MAP_COORDINATES_REQUIRED"
+        );
+
+      }
+
+
+      // -------------------------------------------------------
+      // Save REAL coordinates
+      //
+      // Do NOT use toFixed(6).
+      // We preserve the precision returned by GPS/map.
+      // -------------------------------------------------------
+
+      setLatitude(lat);
+
+      setLongitude(lon);
+
+
+      // -------------------------------------------------------
+      // Accuracy
+      // -------------------------------------------------------
+
+      if (
+        selectedAccuracy !== null &&
+        selectedAccuracy !== undefined &&
+        Number.isFinite(
+          Number(selectedAccuracy)
+        )
+      ) {
+
+        setAccuracy(
+          Number(selectedAccuracy)
+        );
+
+      } else {
+
+        setAccuracy("");
+
+      }
+
+
+      // -------------------------------------------------------
+      // Source
+      // -------------------------------------------------------
+
+      setLocationSource(
+        source
+      );
+
+
+      // -------------------------------------------------------
+      // Time
+      // -------------------------------------------------------
+
+      const now =
+        new Date();
+
+      setLocationTime(
+
+        now.toLocaleString(
+
+          language === "tr"
+            ? "tr-TR"
+            : language === "en"
+            ? "en-US"
+            : "ar-SY"
+
+        )
+
+      );
+
+
+      // =====================================================
+      // Reverse Geocoding
+      //
+      // IMPORTANT:
+      //
+      // Reverse geocoding only describes the coordinates.
+      // It does NOT replace the coordinates.
+      // =====================================================
+
+      try {
+
+        const address =
+          await mapService.reverseGeocode(
+            lat,
+            lon,
+            language
+          );
+
+
+        setVillage(
+
+          address?.village ||
+          address?.town ||
+          address?.municipality ||
+          address?.city ||
+          ""
+
+        );
+
+
+        setRegion(
+
+          address?.region ||
+          address?.state ||
+          address?.province ||
+          ""
+
+        );
+
+
+        setPlaceName(
+
+          address?.placeName ||
+          address?.displayName ||
+          ""
+
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "Reverse geocoding failed. Coordinates remain valid:",
+          error
+        );
+
+
+        // ---------------------------------------------------
+        // IMPORTANT
+        //
+        // GPS/map coordinate is still valid even if
+        // the geographic name lookup fails.
+        // ---------------------------------------------------
+
+        setVillage("");
+
+        setRegion("");
+
+        setPlaceName("");
+
+      }
+
+    };
+
+
+  // =========================================================
   // Get Current GPS Location
+  //
+  // Automatic mode
   // =========================================================
 
   const getCurrentLocation = () => {
@@ -240,6 +464,8 @@ export default function useMap() {
 
     }
 
+
+    setLocationMode("gps");
 
     setLoading(true);
 
@@ -257,99 +483,22 @@ export default function useMap() {
           } = position.coords;
 
 
-          // =================================================
-          // Save GPS internally
-          // =================================================
+          await applyLocation({
 
-          const formattedLatitude =
-            currentLatitude.toFixed(6);
-
-          const formattedLongitude =
-            currentLongitude.toFixed(6);
-
-
-          setLatitude(
-            formattedLatitude
-          );
-
-
-          setLongitude(
-            formattedLongitude
-          );
-
-
-          setAccuracy(
-            Math.round(currentAccuracy)
-          );
-
-
-          setLocationTime(
-
-            new Date().toLocaleString(
-
-              language === "tr"
-                ? "tr-TR"
-                : language === "en"
-                ? "en-US"
-                : "ar-SY"
-
-            )
-
-          );
-
-
-          // =================================================
-          // Reverse Geocoding
-          // تحويل GPS إلى اسم المكان
-          // =================================================
-
-          const address =
-            await mapService.reverseGeocode(
+            latitude:
               currentLatitude,
+
+            longitude:
               currentLongitude,
-              language
-            );
 
+            accuracy:
+              currentAccuracy,
 
-          // =================================================
-          // Village
-          // =================================================
+            source:
+              "gps"
 
-          setVillage(
-            address?.village ||
-            address?.town ||
-            address?.municipality ||
-            address?.city ||
-            ""
-          );
+          });
 
-
-          // =================================================
-          // Region
-          // =================================================
-
-          setRegion(
-            address?.region ||
-            address?.state ||
-            address?.province ||
-            ""
-          );
-
-
-          // =================================================
-          // Place Name
-          // =================================================
-
-          setPlaceName(
-            address?.placeName ||
-            address?.displayName ||
-            ""
-          );
-
-
-          // =================================================
-          // Success
-          // =================================================
 
           alert(
             t("locationSuccess")
@@ -359,16 +508,13 @@ export default function useMap() {
         } catch (error) {
 
           console.error(
-            "Reverse geocoding error:",
+            "GPS processing error:",
             error
           );
 
 
-          // GPS نجح لكن تحويل الإحداثيات
-          // إلى اسم المكان فشل
-
           alert(
-            t("addressError")
+            getMapErrorMessage(error)
           );
 
         } finally {
@@ -444,11 +590,14 @@ export default function useMap() {
 
       {
 
-        enableHighAccuracy: true,
+        enableHighAccuracy:
+          true,
 
-        timeout: 30000,
+        timeout:
+          30000,
 
-        maximumAge: 0
+        maximumAge:
+          0
 
       }
 
@@ -458,250 +607,341 @@ export default function useMap() {
 
 
   // =========================================================
-  // Add Location
+  // Select Location Manually
+  //
+  // Called by Map.jsx when user clicks the Leaflet map.
+  //
+  // Example:
+  //
+  // selectManualLocation(
+  //   36.12345678,
+  //   38.12345678
+  // );
+  //
   // =========================================================
 
-  const addLocation = async () => {
+  const selectManualLocation =
+    async (
+      selectedLatitude,
+      selectedLongitude
+    ) => {
 
-    // -------------------------------------------------------
-    // Farm
-    // -------------------------------------------------------
+      try {
 
-    if (!farmId) {
+        setLoading(true);
 
-      alert(
-        t("farmRequired")
-      );
+        setLocationMode("manual");
 
-      return;
 
-    }
+        await applyLocation({
 
+          latitude:
+            selectedLatitude,
 
-    // -------------------------------------------------------
-    // GPS
-    // -------------------------------------------------------
+          longitude:
+            selectedLongitude,
 
-    if (
-      !latitude ||
-      !longitude
-    ) {
+          accuracy:
+            null,
 
-      alert(
-        t("coordinatesRequired")
-      );
+          source:
+            "manual"
 
-      return;
+        });
 
-    }
+      } catch (error) {
 
+        console.error(
+          "Manual map location error:",
+          error
+        );
 
-    // -------------------------------------------------------
-    // Village
-    // -------------------------------------------------------
 
-    if (!village.trim()) {
+        alert(
+          getMapErrorMessage(error)
+        );
 
-      alert(
-        t("villageRequired")
-      );
+      } finally {
 
-      return;
+        setLoading(false);
 
-    }
-
-
-    // -------------------------------------------------------
-    // Region
-    // -------------------------------------------------------
-
-    if (!region.trim()) {
-
-      alert(
-        t("regionRequired")
-      );
-
-      return;
-
-    }
-
-
-    // -------------------------------------------------------
-    // Place
-    // -------------------------------------------------------
-
-    if (!placeName.trim()) {
-
-      alert(
-        t("placeNameRequired")
-      );
-
-      return;
-
-    }
-
-
-    const farm =
-      farms.find(
-
-        (item) =>
-          String(item.id) ===
-          String(farmId)
-
-      );
-
-
-    // =======================================================
-    // Location Data
-    // =======================================================
-
-    const locationData = {
-
-      farmId:
-
-        String(farmId),
-
-
-      farmName:
-
-        farm?.name ||
-        t("farm"),
-
-
-      village:
-
-        village.trim(),
-
-
-      region:
-
-        region.trim(),
-
-
-      placeName:
-
-        placeName.trim(),
-
-
-      type:
-
-        locationType,
-
-
-      latitude:
-
-        Number(latitude),
-
-
-      longitude:
-
-        Number(longitude),
-
-
-      accuracy:
-
-        accuracy
-          ? Number(accuracy)
-          : null,
-
-
-      notes:
-
-        notes.trim(),
-
-
-      createdAt:
-
-        locationTime ||
-        new Date().toISOString(),
-
-
-      status:
-
-        "active"
+      }
 
     };
 
 
-    // =====================================================
-    // Save
-    // =====================================================
+  // =========================================================
+  // Add Location
+  // =========================================================
 
-    try {
+  const addLocation =
+    async () => {
 
-      setLoading(true);
+      // -------------------------------------------------------
+      // Farm
+      // -------------------------------------------------------
 
+      if (!farmId) {
 
-      const newLocation =
-        await mapService.createLocation(
-          locationData
+        alert(
+          t("farmRequired")
         );
 
-
-      if (newLocation) {
-
-        setLocations(
-          (current) => [
-
-            ...current,
-
-            newLocation
-
-          ]
-        );
+        return;
 
       }
 
 
-      // ===================================================
-      // Reset
-      // ===================================================
+      // -------------------------------------------------------
+      // Coordinates
+      //
+      // Coordinates are the REAL required location.
+      // -------------------------------------------------------
 
-      setFarmId("");
+      if (
+        latitude === "" ||
+        longitude === "" ||
+        latitude === null ||
+        longitude === null
+      ) {
 
-      setLocationType("farm");
+        alert(
+          t("coordinatesRequired")
+        );
 
-      setVillage("");
+        return;
 
-      setRegion("");
-
-      setPlaceName("");
-
-      setLatitude("");
-
-      setLongitude("");
-
-      setAccuracy("");
-
-      setLocationTime("");
-
-      setNotes("");
+      }
 
 
-      alert(
-        t("saveSuccess")
-      );
+      const numericLatitude =
+        Number(latitude);
+
+      const numericLongitude =
+        Number(longitude);
 
 
-    } catch (error) {
+      if (
+        !Number.isFinite(
+          numericLatitude
+        ) ||
+        !Number.isFinite(
+          numericLongitude
+        )
+      ) {
 
-      console.error(
-        "Failed to create location:",
-        error
-      );
+        alert(
+          t("coordinatesRequired")
+        );
+
+        return;
+
+      }
 
 
-      alert(
-        getMapErrorMessage(error)
-      );
+      // -------------------------------------------------------
+      // Farm
+      // -------------------------------------------------------
 
-    } finally {
+      const farm =
+        farms.find(
 
-      setLoading(false);
+          (item) =>
+            String(item.id) ===
+            String(farmId)
 
-    }
+        );
 
-  };
+
+      // =======================================================
+      // Location Data
+      // =======================================================
+
+      const locationData = {
+
+        farmId:
+          String(farmId),
+
+
+        farmName:
+          farm?.name ||
+          t("farm"),
+
+
+        // -----------------------------------------------------
+        // Descriptive address
+        //
+        // These may be empty.
+        // -----------------------------------------------------
+
+        village:
+          village.trim(),
+
+
+        region:
+          region.trim(),
+
+
+        placeName:
+          placeName.trim(),
+
+
+        // -----------------------------------------------------
+        // Location type
+        // -----------------------------------------------------
+
+        type:
+          locationType,
+
+
+        // -----------------------------------------------------
+        // REAL LOCATION
+        // -----------------------------------------------------
+
+        latitude:
+          numericLatitude,
+
+
+        longitude:
+          numericLongitude,
+
+
+        // -----------------------------------------------------
+        // GPS accuracy
+        //
+        // Manual locations have null accuracy.
+        // -----------------------------------------------------
+
+        accuracy:
+
+          accuracy !== "" &&
+          accuracy !== null &&
+          accuracy !== undefined
+
+            ? Number(accuracy)
+
+            : null,
+
+
+        // -----------------------------------------------------
+        // Source
+        // -----------------------------------------------------
+
+        source:
+          locationSource,
+
+
+        // -----------------------------------------------------
+        // Notes
+        // -----------------------------------------------------
+
+        notes:
+          notes.trim(),
+
+
+        // -----------------------------------------------------
+        // REAL ISO timestamp
+        // -----------------------------------------------------
+
+        createdAt:
+          new Date().toISOString(),
+
+
+        // -----------------------------------------------------
+        // Status
+        // -----------------------------------------------------
+
+        status:
+          "active"
+
+      };
+
+
+      // =====================================================
+      // Save
+      // =====================================================
+
+      try {
+
+        setLoading(true);
+
+
+        const newLocation =
+          await mapService.createLocation(
+            locationData
+          );
+
+
+        if (newLocation) {
+
+          setLocations(
+
+            (current) => [
+
+              ...current,
+
+              newLocation
+
+            ]
+
+          );
+
+        }
+
+
+        // ===================================================
+        // Reset
+        // ===================================================
+
+        setFarmId("");
+
+        setLocationMode("gps");
+
+        setLocationType("farm");
+
+        setVillage("");
+
+        setRegion("");
+
+        setPlaceName("");
+
+        setLatitude("");
+
+        setLongitude("");
+
+        setAccuracy("");
+
+        setLocationTime("");
+
+        setLocationSource("gps");
+
+        setNotes("");
+
+
+        alert(
+          t("saveSuccess")
+        );
+
+
+      } catch (error) {
+
+        console.error(
+          "Failed to create location:",
+          error
+        );
+
+
+        alert(
+          getMapErrorMessage(error)
+        );
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    };
 
 
   // =========================================================
@@ -745,6 +985,7 @@ export default function useMap() {
 
 
         setLocations(
+
           (current) =>
 
             current.filter(
@@ -791,54 +1032,111 @@ export default function useMap() {
 
   return {
 
+    // -------------------------------------------------------
+    // Data
+    // -------------------------------------------------------
+
     farms,
 
     locations,
 
 
+    // -------------------------------------------------------
+    // Farm
+    // -------------------------------------------------------
+
     farmId,
+
     setFarmId,
 
 
+    // -------------------------------------------------------
+    // Location Type
+    // -------------------------------------------------------
+
     locationType,
+
     setLocationType,
 
 
-    // Human readable location
+    // -------------------------------------------------------
+    // Location Mode
+    // -------------------------------------------------------
+
+    locationMode,
+
+    setLocationMode,
+
+
+    // -------------------------------------------------------
+    // Human-readable address
+    // -------------------------------------------------------
 
     village,
+
     setVillage,
 
+
     region,
+
     setRegion,
 
+
     placeName,
+
     setPlaceName,
 
 
-    // GPS
+    // -------------------------------------------------------
+    // Coordinates
+    // -------------------------------------------------------
 
     latitude,
+
     setLatitude,
 
+
     longitude,
+
     setLongitude,
 
+
     accuracy,
+
 
     locationTime,
 
 
+    // -------------------------------------------------------
+    // Source
+    // -------------------------------------------------------
+
+    locationSource,
+
+
+    // -------------------------------------------------------
     // Notes
+    // -------------------------------------------------------
 
     notes,
+
     setNotes,
 
+
+    // -------------------------------------------------------
+    // Loading
+    // -------------------------------------------------------
 
     loading,
 
 
+    // -------------------------------------------------------
+    // Actions
+    // -------------------------------------------------------
+
     getCurrentLocation,
+
+    selectManualLocation,
 
     addLocation,
 
