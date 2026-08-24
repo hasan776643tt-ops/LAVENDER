@@ -2,8 +2,8 @@
 
 import {
   useContext,
-  useState,
   useMemo,
+  useState,
 } from "react";
 
 import {
@@ -14,1023 +14,419 @@ import {
   FarmContext,
 } from "../context/FarmContext";
 
-import Card from "../components/Card";
-import Button from "../components/Button";
+import useFarms from "../hooks/useFarms";
 
 
 // =========================================================
-// Farm Page
+// Farm Services
+// =========================================================
+
+const FARM_SERVICES = [
+
+  {
+    key: "fertilizers",
+    icon: "🧪",
+    label: "الأسمدة",
+    path: "/fertilizers",
+  },
+
+  {
+    key: "expenses",
+    icon: "💰",
+    label: "المصروفات",
+    path: "/expenses",
+  },
+
+  {
+    key: "weather",
+    icon: "☁️",
+    label: "الطقس",
+    path: "/weather",
+  },
+
+  {
+    key: "map",
+    icon: "🗺️",
+    label: "الخريطة",
+    path: "/map",
+  },
+
+  {
+    key: "engineer",
+    icon: "👨‍🌾",
+    label: "المستشار الزراعي",
+    path: "/engineer",
+  },
+
+  {
+    key: "irrigation",
+    icon: "💧",
+    label: "الري",
+    path: "/irrigation",
+  },
+
+  {
+    key: "crops",
+    icon: "🌱",
+    label: "المحاصيل",
+    path: "/crops",
+  },
+
+  {
+    key: "diseases",
+    icon: "🦠",
+    label: "الأمراض",
+    path: "/diseases",
+  },
+
+  {
+    key: "harvest",
+    icon: "🌽",
+    label: "الحصاد",
+    path: "/harvest",
+  },
+
+];
+
+
+// =========================================================
+// Farms Page
 // =========================================================
 
 export default function Farms() {
 
-  const navigate =
-    useNavigate();
+  const navigate = useNavigate();
 
 
-  const {
-    farms = [],
-    farmActions,
-  } =
+  // =======================================================
+  // Existing Farm Context
+  // =======================================================
+
+  const farmContext =
     useContext(FarmContext);
 
 
-  // =======================================================
-  // Empty Form
-  // =======================================================
-
-  const emptyForm = {
-
-    name: "",
-    owner: "",
-    area: "",
-    location: "",
-    latitude: "",
-    longitude: "",
-    cropType: "",
-    irrigationType: "",
-    plantingDate: "",
-    notes: "",
-
-  };
+  const farms =
+    farmContext?.farms || [];
 
 
   // =======================================================
-  // State
+  // Existing useFarms Hook
+  // =======================================================
+
+  const {
+    loadFarms,
+    addFarm,
+    updateFarm,
+    deleteFarm,
+    searchFarms,
+    getStatistics,
+  } = useFarms();
+
+
+  // =======================================================
+  // Selected Farm
   // =======================================================
 
   const [
-    form,
-    setForm,
-  ] = useState(
-    emptyForm
-  );
-
-
-  const [
-    editId,
-    setEditId,
-  ] = useState(null);
-
-
-  const [
-    search,
-    setSearch,
-  ] = useState("");
-
-
-  const [
-    openedFarmId,
-    setOpenedFarmId,
+    selectedFarm,
+    setSelectedFarm,
   ] = useState(null);
 
 
   // =======================================================
-  // Change Handler
+  // Number farms
   // =======================================================
 
-  const handleChange = (
-    event
-  ) => {
-
-    const {
-      name,
-      value,
-    } = event.target;
-
-
-    setForm(
-      (previous) => ({
-
-        ...previous,
-
-        [name]:
-          value,
-
-      })
-    );
-
-  };
-
-
-  // =======================================================
-  // GPS
-  // =======================================================
-
-  const getCurrentLocation =
-    () => {
-
-      if (
-        !navigator.geolocation
-      ) {
-
-        alert(
-          "GPS غير مدعوم في هذا الجهاز."
-        );
-
-        return;
-
-      }
-
-
-      navigator.geolocation.getCurrentPosition(
-
-        (position) => {
-
-          const {
-            latitude,
-            longitude,
-          } =
-            position.coords;
-
-
-          setForm(
-            (previous) => ({
-
-              ...previous,
-
-              latitude:
-                latitude,
-
-              longitude:
-                longitude,
-
-              location:
-                `${latitude}, ${longitude}`,
-
-            })
-          );
-
-        },
-
-        () => {
-
-          alert(
-            "تعذر تحديد موقع المزرعة."
-          );
-
-        },
-
-        {
-
-          enableHighAccuracy:
-            true,
-
-          timeout:
-            15000,
-
-          maximumAge:
-            0,
-
-        }
-
-      );
-
-    };
-
-
-  // =======================================================
-  // Reset Form
-  // =======================================================
-
-  const clearForm = () => {
-
-    setForm(
-      emptyForm
-    );
-
-    setEditId(
-      null
-    );
-
-  };
-
-
-  // =======================================================
-  // Save Farm
-  // =======================================================
-
-  const saveFarm = () => {
-
-    if (
-      !form.name ||
-      !form.owner
-    ) {
-
-      alert(
-        "يرجى كتابة اسم المزرعة واسم المالك."
-      );
-
-      return;
-
-    }
-
-
-    if (editId) {
-
-      farmActions.update(
-        editId,
-        form
-      );
-
-    } else {
-
-      farmActions.create({
-
-        ...form,
-
-        created:
-          new Date().toISOString(),
-
-      });
-
-    }
-
-
-    clearForm();
-
-  };
-
-
-  // =======================================================
-  // Edit Farm
-  // =======================================================
-
-  const editFarm = (
-    farm
-  ) => {
-
-    setForm({
-
-      name:
-        farm.name || "",
-
-      owner:
-        farm.owner || "",
-
-      area:
-        farm.area || "",
-
-      location:
-        farm.location || "",
-
-      latitude:
-        farm.latitude || "",
-
-      longitude:
-        farm.longitude || "",
-
-      cropType:
-        farm.cropType || "",
-
-      irrigationType:
-        farm.irrigationType || "",
-
-      plantingDate:
-        farm.plantingDate || "",
-
-      notes:
-        farm.notes || "",
-
-    });
-
-
-    setEditId(
-      farm.id
-    );
-
-
-    window.scrollTo({
-      top: 0,
-      behavior: "smooth",
-    });
-
-  };
-
-
-  // =======================================================
-  // Search
-  // =======================================================
-
-  const filteredFarms =
+  const numberedFarms =
     useMemo(() => {
 
-      const value =
-        search
-          .trim()
-          .toLowerCase();
+      return farms.map(
+        (farm, index) => ({
 
+          ...farm,
 
-      if (!value) {
+          farmNumber:
+            index + 1,
 
-        return farms;
-
-      }
-
-
-      return farms.filter(
-        (farm) => {
-
-          const name =
-            String(
-              farm.name || ""
-            ).toLowerCase();
-
-
-          const owner =
-            String(
-              farm.owner || ""
-            ).toLowerCase();
-
-
-          return (
-            name.includes(value) ||
-            owner.includes(value)
-          );
-
-        }
-      );
-
-    }, [
-      farms,
-      search,
-    ]);
-
-
-  // =======================================================
-  // Toggle Farm
-  // =======================================================
-
-  const toggleFarm = (
-    farmId
-  ) => {
-
-    setOpenedFarmId(
-      (currentId) =>
-        currentId === farmId
-          ? null
-          : farmId
-    );
-
-  };
-
-
-  // =======================================================
-  // Open Farm Module
-  // =======================================================
-
-  const openFarmModule = (
-    path,
-    farm
-  ) => {
-
-    /*
-     * نحفظ المزرعة المختارة مؤقتًا
-     * حتى تعرف الصفحات الأخرى أي مزرعة اختار المستخدم.
-     */
-
-    try {
-
-      sessionStorage.setItem(
-        "lavender_selected_farm",
-        JSON.stringify({
-          id: farm.id,
-          name: farm.name,
         })
       );
 
-    } catch {
-
-      // لا نوقف التطبيق إذا كان sessionStorage غير متاح.
-
-    }
+    }, [farms]);
 
 
-    navigate(
-      path
-    );
+  // =======================================================
+  // Open Farm
+  // =======================================================
+
+  const openFarm = (farm) => {
+
+    setSelectedFarm(farm);
 
   };
 
 
   // =======================================================
-  // Render Module Button
+  // Back to Farms
   // =======================================================
 
-  const ModuleButton = ({
-    icon,
-    label,
-    path,
-    farm,
-  }) => (
+  const backToFarms = () => {
 
-    <button
+    setSelectedFarm(null);
 
-      type="button"
-
-      className="farm-module-button"
-
-      onClick={() =>
-        openFarmModule(
-          path,
-          farm
-        )
-      }
-
-    >
-
-      <span
-        className="farm-module-icon"
-      >
-        {icon}
-      </span>
-
-      <span
-        className="farm-module-label"
-      >
-        {label}
-      </span>
-
-    </button>
-
-  );
+  };
 
 
   // =======================================================
-  // UI
+  // Open Service
+  // =======================================================
+
+  const openService = (service) => {
+
+    if (!selectedFarm) {
+      return;
+    }
+
+
+    /*
+      نحفظ المزرعة المختارة حتى تستطيع
+      الصفحات الأخرى معرفة المزرعة الحالية.
+    */
+
+    try {
+
+      localStorage.setItem(
+        "lavender_selected_farm",
+        JSON.stringify(selectedFarm)
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Unable to save selected farm:",
+        error
+      );
+
+    }
+
+
+    navigate(service.path);
+
+  };
+
+
+  // =======================================================
+  // Empty State
+  // =======================================================
+
+  if (!selectedFarm && numberedFarms.length === 0) {
+
+    return (
+
+      <main className="farms-selector">
+
+        <header className="farms-selector-header">
+
+          <h1 className="farms-selector-title">
+            المزارع
+          </h1>
+
+          <p className="farms-selector-subtitle">
+            لم تتم إضافة أي مزرعة بعد
+          </p>
+
+        </header>
+
+
+        <section className="card card-smart">
+
+          <div className="card-body">
+
+            لا توجد مزارع لعرضها حاليًا.
+
+          </div>
+
+        </section>
+
+      </main>
+
+    );
+
+  }
+
+
+  // =======================================================
+  // Farm Services Screen
+  // =======================================================
+
+  if (selectedFarm) {
+
+    return (
+
+      <main className="farm-services-page">
+
+        <button
+          type="button"
+          className="farms-back-button"
+          onClick={backToFarms}
+        >
+          ← العودة إلى المزارع
+        </button>
+
+
+        <header className="farm-services-header">
+
+          <div className="farm-services-number">
+
+            {selectedFarm.farmNumber ||
+              numberedFarms.find(
+                farm =>
+                  farm.id === selectedFarm.id
+              )?.farmNumber ||
+              "•"}
+
+          </div>
+
+
+          <h1 className="farm-services-title">
+
+            {selectedFarm.name ||
+              "مزرعتي"}
+
+          </h1>
+
+
+          <p className="farm-services-subtitle">
+
+            اختر الخدمة التي تريدها لهذه المزرعة
+
+          </p>
+
+        </header>
+
+
+        <section
+          className="farm-services-grid"
+          aria-label="خدمات المزرعة"
+        >
+
+          {FARM_SERVICES.map(
+            (service) => (
+
+              <button
+                key={service.key}
+                type="button"
+                className="farm-service-choice"
+                onClick={() =>
+                  openService(service)
+                }
+              >
+
+                <span
+                  className="farm-service-icon"
+                  aria-hidden="true"
+                >
+                  {service.icon}
+                </span>
+
+
+                <span className="farm-service-name">
+
+                  {service.label}
+
+                </span>
+
+              </button>
+
+            )
+          )}
+
+        </section>
+
+      </main>
+
+    );
+
+  }
+
+
+  // =======================================================
+  // Farms Selector
   // =======================================================
 
   return (
 
-    <div
-      className="farms-page"
-    >
+    <main className="farms-selector">
 
-      {/* ===================================================
-          Page Title
-      ==================================================== */}
+      <header className="farms-selector-header">
 
-      <div
-        className="farms-page-heading"
-      >
-
-        <h1>
-          🌾 إدارة المزارع
+        <h1 className="farms-selector-title">
+          مزارعي
         </h1>
 
-        <p>
-          اختر المزرعة التي تريد إدارة أعمالها
+        <p className="farms-selector-subtitle">
+          اختر المزرعة التي تريد الدخول إليها
         </p>
 
-      </div>
+      </header>
 
 
-      {/* ===================================================
-          Add / Edit Farm
-      ==================================================== */}
-
-      <Card
-
-        title={
-          editId
-            ? "✏️ تعديل المزرعة"
-            : "➕ إضافة مزرعة جديدة"
-        }
-
+      <section
+        className="farms-grid"
+        aria-label="المزارع"
       >
 
-        <input
-          name="name"
-          placeholder="اسم المزرعة"
-          value={
-            form.name
-          }
-          onChange={
-            handleChange
-          }
-        />
+        {numberedFarms.map(
+          (farm) => (
 
-
-        <input
-          name="owner"
-          placeholder="اسم المالك"
-          value={
-            form.owner
-          }
-          onChange={
-            handleChange
-          }
-        />
-
-
-        <input
-          name="area"
-          type="number"
-          placeholder="📏 المساحة بالدونم"
-          value={
-            form.area
-          }
-          onChange={
-            handleChange
-          }
-        />
-
-
-        <input
-          name="location"
-          placeholder="📍 موقع المزرعة"
-          value={
-            form.location
-          }
-          readOnly
-        />
-
-
-        <Button
-          onClick={
-            getCurrentLocation
-          }
-        >
-          📍 تحديد موقع المزرعة
-        </Button>
-
-
-        <input
-          name="cropType"
-          placeholder="🌱 نوع المحصول"
-          value={
-            form.cropType
-          }
-          onChange={
-            handleChange
-          }
-        />
-
-
-        <input
-          name="irrigationType"
-          placeholder="💧 نوع الري"
-          value={
-            form.irrigationType
-          }
-          onChange={
-            handleChange
-          }
-        />
-
-
-        <input
-          name="plantingDate"
-          type="date"
-          value={
-            form.plantingDate
-          }
-          onChange={
-            handleChange
-          }
-        />
-
-
-        <textarea
-          name="notes"
-          placeholder="📝 ملاحظات"
-          value={
-            form.notes
-          }
-          onChange={
-            handleChange
-          }
-        />
-
-
-        <Button
-          onClick={
-            saveFarm
-          }
-        >
-
-          {
-            editId
-              ? "💾 حفظ التعديل"
-              : "🌱 إضافة المزرعة"
-          }
-
-        </Button>
-
-
-        {editId && (
-
-          <Button
-            onClick={
-              clearForm
-            }
-          >
-            إلغاء التعديل
-          </Button>
-
-        )}
-
-      </Card>
-
-
-      {/* ===================================================
-          Search
-      ==================================================== */}
-
-      <Card
-        title="🔎 البحث عن مزرعة"
-      >
-
-        <input
-
-          type="search"
-
-          placeholder="اكتب اسم المزرعة أو المالك"
-
-          value={
-            search
-          }
-
-          onChange={
-            (event) =>
-              setSearch(
-                event.target.value
-              )
-          }
-
-        />
-
-      </Card>
-
-
-      {/* ===================================================
-          Farms Count
-      ==================================================== */}
-
-      <div
-        className="farms-count"
-      >
-
-        🚜 عدد المزارع:
-        {" "}
-        <strong>
-          {filteredFarms.length}
-        </strong>
-
-      </div>
-
-
-      {/* ===================================================
-          Farms
-      ==================================================== */}
-
-      <div
-        className="farms-list"
-      >
-
-        {filteredFarms.length === 0 ? (
-
-          <Card>
-
-            <div
-              className="farms-empty"
+            <button
+              key={
+                farm.id ||
+                farm._id ||
+                farm.farmNumber
+              }
+              type="button"
+              className="farm-choice"
+              onClick={() =>
+                openFarm(farm)
+              }
+              aria-label={
+                `فتح ${farm.name || "المزرعة"}`
+              }
             >
 
-              🌱 لا توجد مزارع مطابقة للبحث.
+              <span
+                className="farm-choice-number"
+                aria-hidden="true"
+              >
 
-            </div>
+                {farm.farmNumber}
 
-          </Card>
+              </span>
 
-        ) : (
 
-          filteredFarms.map(
-            (farm, index) => {
+              <span className="farm-choice-label">
 
-              const isOpen =
-                openedFarmId ===
-                farm.id;
+                مزرعة
 
+              </span>
 
-              return (
 
-                <section
+              <span className="farm-choice-name">
 
-                  key={
-                    farm.id
-                  }
+                {farm.name ||
+                  "مزرعة بدون اسم"}
 
-                  className={
-                    isOpen
-                      ? "farm-card farm-card-open"
-                      : "farm-card"
-                  }
+              </span>
 
-                >
+            </button>
 
-                  {/* =======================================
-                      Farm Header
-                  ======================================== */}
-
-                  <button
-
-                    type="button"
-
-                    className="farm-card-main"
-
-                    onClick={() =>
-                      toggleFarm(
-                        farm.id
-                      )
-                    }
-
-                  >
-
-                    <div
-                      className="farm-card-icon"
-                    >
-                      🌾
-                    </div>
-
-
-                    <div
-                      className="farm-card-info"
-                    >
-
-                      <h2>
-
-                        {farm.name ||
-                          `المزرعة ${index + 1}`}
-
-                      </h2>
-
-
-                      <p>
-
-                        👤{" "}
-                        {farm.owner ||
-                          "مالك المزرعة"}
-
-                      </p>
-
-
-                      <div
-                        className="farm-card-summary"
-                      >
-
-                        {farm.area && (
-
-                          <span>
-                            📏 {farm.area} دونم
-                          </span>
-
-                        )}
-
-
-                        {farm.cropType && (
-
-                          <span>
-                            🌱 {farm.cropType}
-                          </span>
-
-                        )}
-
-                      </div>
-
-                    </div>
-
-
-                    <div
-                      className="farm-card-arrow"
-                    >
-
-                      {isOpen
-                        ? "⌃"
-                        : "⌄"}
-
-                    </div>
-
-                  </button>
-
-
-                  {/* =======================================
-                      Farm Details
-                  ======================================== */}
-
-                  {isOpen && (
-
-                    <div
-                      className="farm-card-content"
-                    >
-
-                      <div
-                        className="farm-details"
-                      >
-
-                        {farm.location && (
-
-                          <p>
-                            📍{" "}
-                            <strong>
-                              الموقع:
-                            </strong>{" "}
-                            {farm.location}
-                          </p>
-
-                        )}
-
-
-                        {farm.irrigationType && (
-
-                          <p>
-                            💧{" "}
-                            <strong>
-                              الري:
-                            </strong>{" "}
-                            {farm.irrigationType}
-                          </p>
-
-                        )}
-
-
-                        {farm.plantingDate && (
-
-                          <p>
-                            📅{" "}
-                            <strong>
-                              تاريخ الزراعة:
-                            </strong>{" "}
-                            {farm.plantingDate}
-                          </p>
-
-                        )}
-
-
-                        {farm.notes && (
-
-                          <p>
-                            📝{" "}
-                            {farm.notes}
-                          </p>
-
-                        )}
-
-                      </div>
-
-
-                      {/* =====================================
-                          Farm Modules
-                      ====================================== */}
-
-                      <h3
-                        className="farm-options-title"
-                      >
-                        🌿 ماذا تريد أن تدير؟
-                      </h3>
-
-
-                      <div
-                        className="farm-modules-grid"
-                      >
-
-                        <ModuleButton
-                          icon="🌱"
-                          label="المحاصيل"
-                          path="/crops"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="💧"
-                          label="الري"
-                          path="/irrigation"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="🧪"
-                          label="الأسمدة"
-                          path="/fertilizers"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="🛡️"
-                          label="المبيدات"
-                          path="/pesticides"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="🦠"
-                          label="الأمراض"
-                          path="/diseases"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="🌤️"
-                          label="الطقس"
-                          path="/weather"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="🗺️"
-                          label="الخريطة"
-                          path="/map"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="💰"
-                          label="المصروفات"
-                          path="/expenses"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="🌽"
-                          label="الحصاد"
-                          path="/harvest"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="📦"
-                          label="المخزون"
-                          path="/inventory"
-                          farm={farm}
-                        />
-
-
-                        <ModuleButton
-                          icon="👨‍🌾"
-                          label="المرشد الزراعي"
-                          path="/engineer"
-                          farm={farm}
-                        />
-
-                      </div>
-
-
-                      {/* =====================================
-                          Farm Actions
-                      ====================================== */}
-
-                      <div
-                        className="farm-card-actions"
-                      >
-
-                        <Button
-                          onClick={() =>
-                            editFarm(
-                              farm
-                            )
-                          }
-                        >
-                          ✏️ تعديل
-                        </Button>
-
-
-                        <Button
-                          onClick={() =>
-                            farmActions.delete(
-                              farm.id
-                            )
-                          }
-                        >
-                          🗑️ حذف
-                        </Button>
-
-                      </div>
-
-                    </div>
-
-                  )}
-
-                </section>
-
-              );
-
-            }
           )
-
         )}
 
-      </div>
+      </section>
 
-    </div>
+    </main>
 
   );
-
 }
