@@ -21,11 +21,17 @@ import farmService from "../services/farmService.js";
 // 6. إحصائيات المزارع
 //
 // المسار:
+//
 // Farms.jsx
 //    ↓
 // useFarms.js
 //    ↓
 // farmService.js
+//
+// ملاحظة:
+// هذا الـ Hook هو المصدر الوحيد لقائمة المزارع داخل Farms.jsx.
+// لا يستخدم FarmContext.
+// لا يصل مباشرة إلى DataModel.
 // =========================================================
 
 
@@ -33,7 +39,7 @@ export default function useFarms() {
 
 
   // =======================================================
-  // Farms State
+  // Farms
   // =======================================================
 
   const [
@@ -43,7 +49,7 @@ export default function useFarms() {
 
 
   // =======================================================
-  // Loading State
+  // Loading
   // =======================================================
 
   const [
@@ -53,7 +59,7 @@ export default function useFarms() {
 
 
   // =======================================================
-  // Error State
+  // Error
   // =======================================================
 
   const [
@@ -72,6 +78,7 @@ export default function useFarms() {
       try {
 
         setLoading(true);
+
         setError(null);
 
 
@@ -85,7 +92,9 @@ export default function useFarms() {
             : [];
 
 
-        setFarms(farmsData);
+        setFarms(
+          farmsData
+        );
 
 
         return farmsData;
@@ -94,7 +103,7 @@ export default function useFarms() {
 
         setError(err);
 
-        throw err;
+        return [];
 
       } finally {
 
@@ -117,19 +126,24 @@ export default function useFarms() {
       try {
 
         setLoading(true);
+
         setError(null);
 
 
         const created =
-          await farmService.createFarm(data);
+          await farmService.createFarm(
+            data
+          );
 
 
         if (created) {
 
-          setFarms((currentFarms) => [
-            ...currentFarms,
-            created,
-          ]);
+          setFarms(
+            (currentFarms) => [
+              ...currentFarms,
+              created,
+            ]
+          );
 
         }
 
@@ -158,11 +172,15 @@ export default function useFarms() {
   // =======================================================
 
   const updateFarm = useCallback(
-    async (id, data) => {
+    async (
+      id,
+      data
+    ) => {
 
       try {
 
         setLoading(true);
+
         setError(null);
 
 
@@ -175,28 +193,32 @@ export default function useFarms() {
 
         if (updated) {
 
-          setFarms((currentFarms) =>
-            currentFarms.map((farm) => {
+          setFarms(
+            (currentFarms) =>
 
-              const farmId =
-                farm?.id ??
-                farm?._id ??
-                farm?.farmId;
+              currentFarms.map(
+                (farm) => {
 
-
-              if (
-                String(farmId) ===
-                String(id)
-              ) {
-
-                return updated;
-
-              }
+                  const farmId =
+                    farm?.id ??
+                    farm?._id ??
+                    farm?.farmId;
 
 
-              return farm;
+                  if (
+                    String(farmId) ===
+                    String(id)
+                  ) {
 
-            })
+                    return updated;
+
+                  }
+
+
+                  return farm;
+
+                }
+              )
           );
 
         }
@@ -231,28 +253,35 @@ export default function useFarms() {
       try {
 
         setLoading(true);
+
         setError(null);
 
 
         const deleted =
-          await farmService.deleteFarm(id);
+          await farmService.deleteFarm(
+            id
+          );
 
 
-        setFarms((currentFarms) =>
-          currentFarms.filter((farm) => {
+        setFarms(
+          (currentFarms) =>
 
-            const farmId =
-              farm?.id ??
-              farm?._id ??
-              farm?.farmId;
+            currentFarms.filter(
+              (farm) => {
+
+                const farmId =
+                  farm?.id ??
+                  farm?._id ??
+                  farm?.farmId;
 
 
-            return (
-              String(farmId) !==
-              String(id)
-            );
+                return (
+                  String(farmId) !==
+                  String(id)
+                );
 
-          })
+              }
+            )
         );
 
 
@@ -280,7 +309,16 @@ export default function useFarms() {
   // =======================================================
 
   const searchFarms = useCallback(
-    (items = farms, text = "") => {
+    (
+      items,
+      text = ""
+    ) => {
+
+      const source =
+        Array.isArray(items)
+          ? items
+          : farms;
+
 
       const value =
         String(text)
@@ -290,12 +328,12 @@ export default function useFarms() {
 
       if (!value) {
 
-        return items;
+        return source;
 
       }
 
 
-      return items.filter(
+      return source.filter(
         (farm) => {
 
           const name =
@@ -322,23 +360,35 @@ export default function useFarms() {
   // =======================================================
 
   const getStatistics = useCallback(
-    (items = farms) => {
+    (
+      items
+    ) => {
+
+      const source =
+        Array.isArray(items)
+          ? items
+          : farms;
+
 
       return {
 
         total:
-          items.length,
+          source.length,
+
 
         active:
-          items.filter(
+          source.filter(
             (farm) =>
-              farm?.status === "active"
+              farm?.status ===
+              "active"
           ).length,
 
+
         inactive:
-          items.filter(
+          source.filter(
             (farm) =>
-              farm?.status === "inactive"
+              farm?.status ===
+              "inactive"
           ).length,
 
       };
@@ -349,23 +399,89 @@ export default function useFarms() {
 
 
   // =======================================================
-  // Statistics
+  // Current Statistics
   // =======================================================
 
-  const statistics = getStatistics(
-    farms
-  );
+  const statistics =
+    getStatistics(
+      farms
+    );
 
 
   // =======================================================
   // Initial Load
+  //
+  // التحميل يتم هنا فقط.
+  // لذلك Farms.jsx لا يحتاج إلى useEffect
+  // لتحميل المزارع مرة ثانية.
   // =======================================================
 
   useEffect(() => {
 
-    loadFarms();
+    let mounted = true;
 
-  }, [loadFarms]);
+
+    const loadInitialFarms =
+      async () => {
+
+        try {
+
+          setLoading(true);
+
+          setError(null);
+
+
+          const data =
+            await farmService.getAllFarms();
+
+
+          if (!mounted) {
+            return;
+          }
+
+
+          const farmsData =
+            Array.isArray(data)
+              ? data
+              : [];
+
+
+          setFarms(
+            farmsData
+          );
+
+        } catch (err) {
+
+          if (!mounted) {
+            return;
+          }
+
+
+          setError(err);
+
+        } finally {
+
+          if (mounted) {
+
+            setLoading(false);
+
+          }
+
+        }
+
+      };
+
+
+    loadInitialFarms();
+
+
+    return () => {
+
+      mounted = false;
+
+    };
+
+  }, []);
 
 
   // =======================================================
@@ -374,24 +490,24 @@ export default function useFarms() {
 
   return {
 
+    // البيانات
     farms,
 
+    // الحالة
     loading,
-
     error,
 
+    // العمليات
     loadFarms,
-
     addFarm,
-
     updateFarm,
-
     deleteFarm,
 
+    // البحث
     searchFarms,
 
+    // الإحصائيات
     getStatistics,
-
     statistics,
 
   };
