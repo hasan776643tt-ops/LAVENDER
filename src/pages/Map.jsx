@@ -1,16 +1,172 @@
 // src/pages/Map.jsx
 
+import {
+  useMemo,
+  useState,
+} from "react";
+
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+} from "react-leaflet";
+
+import L from "leaflet";
+
+import "leaflet/dist/leaflet.css";
+
 import useMap from "../hooks/useMap";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
-import { translate } from "../utils/translation";
-import { useSettings } from "../context/SettingsContext";
+import {
+  translate,
+} from "../utils/translation";
+
+import {
+  useSettings,
+} from "../context/SettingsContext";
+
+
+// =========================================================
+// Default Map Position
+// =========================================================
+
+const DEFAULT_POSITION = [
+  36.7,
+  38.7,
+];
+
+
+// =========================================================
+// Marker Icon
+// =========================================================
+
+const locationIcon =
+  L.divIcon({
+
+    className:
+      "lavender-map-marker",
+
+    html: `
+      <div
+        style="
+          width: 24px;
+          height: 24px;
+          background: #d32f2f;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        "
+      ></div>
+    `,
+
+    iconSize: [
+      24,
+      24,
+    ],
+
+    iconAnchor: [
+      12,
+      12,
+    ],
+
+  });
+
+
+// =========================================================
+// Manual Map Selector
+// الضغط على الخريطة لتحديد الأرض يدويًا
+// =========================================================
+
+function ManualLocationSelector({
+  enabled,
+  onSelect,
+}) {
+
+  useMapEvents({
+
+    click(event) {
+
+      if (!enabled) {
+
+        return;
+
+      }
+
+      const {
+        lat,
+        lng,
+      } = event.latlng;
+
+
+      onSelect(
+        lat,
+        lng
+      );
+
+    },
+
+  });
+
+
+  return null;
+
+}
+
+
+// =========================================================
+// Map View Controller
+// =========================================================
+
+function MapViewController({
+  latitude,
+  longitude,
+}) {
+
+  const map =
+    useMapEvents({});
+
+
+  if (
+    latitude !== null &&
+    latitude !== undefined &&
+    longitude !== null &&
+    longitude !== undefined
+  ) {
+
+    map.setView(
+      [
+        Number(latitude),
+        Number(longitude),
+      ],
+      Math.max(
+        map.getZoom(),
+        16
+      ),
+      {
+        animate: true,
+      }
+    );
+
+  }
+
+
+  return null;
+
+}
+
+
+// =========================================================
+// Page
+// =========================================================
 
 export default function Map() {
 
   const {
+
     farms = [],
     locations = [],
 
@@ -44,10 +200,15 @@ export default function Map() {
     addLocation,
     deleteLocation,
 
+    setLatitude,
+    setLongitude,
+
   } = useMap();
 
 
-  const { settings } = useSettings();
+  const {
+    settings,
+  } = useSettings();
 
 
   // =========================================================
@@ -70,6 +231,103 @@ export default function Map() {
 
 
   // =========================================================
+  // Location Mode
+  // =========================================================
+
+  const [
+    locationMode,
+    setLocationMode,
+  ] = useState("gps");
+
+
+  // =========================================================
+  // Current Map Position
+  // =========================================================
+
+  const mapPosition =
+    useMemo(() => {
+
+      if (
+        latitude !== "" &&
+        latitude !== null &&
+        longitude !== "" &&
+        longitude !== null
+      ) {
+
+        const lat =
+          Number(latitude);
+
+        const lng =
+          Number(longitude);
+
+
+        if (
+          Number.isFinite(lat) &&
+          Number.isFinite(lng)
+        ) {
+
+          return [
+            lat,
+            lng,
+          ];
+
+        }
+
+      }
+
+
+      return DEFAULT_POSITION;
+
+    }, [
+      latitude,
+      longitude,
+    ]);
+
+
+  // =========================================================
+  // Manual Location
+  // =========================================================
+
+  const handleManualLocation = (
+    lat,
+    lng
+  ) => {
+
+    setLocationMode(
+      "manual"
+    );
+
+
+    setLatitude(
+      Number(lat).toFixed(6)
+    );
+
+
+    setLongitude(
+      Number(lng).toFixed(6)
+    );
+
+  };
+
+
+  // =========================================================
+  // GPS
+  // =========================================================
+
+  const handleGPS =
+    async () => {
+
+      setLocationMode(
+        "gps"
+      );
+
+
+      await getCurrentLocation();
+
+    };
+
+
+  // =========================================================
   // Render
   // =========================================================
 
@@ -78,7 +336,7 @@ export default function Map() {
     <div>
 
       {/* =====================================================
-          Page Title
+          Title
       ====================================================== */}
 
       <h1>
@@ -91,34 +349,46 @@ export default function Map() {
       ====================================================== */}
 
       <Card
-        title={t("addLocation")}
+        title={
+          t("addLocation")
+        }
       >
 
-        {/* =================================================
+        {/* ===================================================
             Farm
-        ================================================== */}
+        ==================================================== */}
 
         <select
-          value={farmId || ""}
-          onChange={(e) =>
-            setFarmId(e.target.value)
+
+          value={
+            farmId || ""
           }
+
+          onChange={(event) =>
+            setFarmId(
+              event.target.value
+            )
+          }
+
         >
 
           <option value="">
             {t("selectFarm")}
           </option>
 
-          {farms.map((farm) => (
 
-            <option
-              key={farm.id}
-              value={farm.id}
-            >
-              {farm.name}
-            </option>
+          {farms.map(
+            (farm) => (
 
-          ))}
+              <option
+                key={farm.id}
+                value={farm.id}
+              >
+                {farm.name}
+              </option>
+
+            )
+          )}
 
         </select>
 
@@ -127,69 +397,23 @@ export default function Map() {
         <br />
 
 
-        {/* =================================================
-            Village
-        ================================================== */}
-
-        <input
-          type="text"
-          value={village || ""}
-          onChange={(e) =>
-            setVillage(e.target.value)
-          }
-          placeholder={t("village")}
-        />
-
-
-        <br />
-        <br />
-
-
-        {/* =================================================
-            Region
-        ================================================== */}
-
-        <input
-          type="text"
-          value={region || ""}
-          onChange={(e) =>
-            setRegion(e.target.value)
-          }
-          placeholder={t("region")}
-        />
-
-
-        <br />
-        <br />
-
-
-        {/* =================================================
-            Place Name
-        ================================================== */}
-
-        <input
-          type="text"
-          value={placeName || ""}
-          onChange={(e) =>
-            setPlaceName(e.target.value)
-          }
-          placeholder={t("placeName")}
-        />
-
-
-        <br />
-        <br />
-
-
-        {/* =================================================
+        {/* ===================================================
             Location Type
-        ================================================== */}
+        ==================================================== */}
 
         <select
-          value={locationType || "farm"}
-          onChange={(e) =>
-            setLocationType(e.target.value)
+
+          value={
+            locationType ||
+            "farm"
           }
+
+          onChange={(event) =>
+            setLocationType(
+              event.target.value
+            )
+          }
+
         >
 
           <option value="farm">
@@ -211,17 +435,26 @@ export default function Map() {
         <br />
 
 
-        {/* =================================================
-            GPS
-            تحديد الموقع الحالي
-        ================================================== */}
+        {/* ===================================================
+            Location Method
+        ==================================================== */}
+
+        <h3>
+          📍 {t("locationMethod")}
+        </h3>
+
 
         <Button
-          onClick={getCurrentLocation}
+          onClick={
+            handleGPS
+          }
         >
 
-          {loading
+          {loading &&
+          locationMode === "gps"
+
             ? `⏳ ${t("locating")}`
+
             : `📡 ${t("getGPS")}`}
 
         </Button>
@@ -231,17 +464,149 @@ export default function Map() {
         <br />
 
 
-        {/* =================================================
-            GPS Status
-            معلومات الموقع الحقيقية للاختبار
-        ================================================== */}
+        <Button
+          onClick={() =>
+            setLocationMode(
+              "manual"
+            )
+          }
+        >
 
-        {latitude && longitude && (
+          🗺️ {t("manualLocation")}
+
+        </Button>
+
+
+        <br />
+        <br />
+
+
+        {/* ===================================================
+            Interactive Map
+        ==================================================== */}
+
+        <div
+          style={{
+            width: "100%",
+            height: "420px",
+            borderRadius: "12px",
+            overflow: "hidden",
+            marginTop: "10px",
+          }}
+        >
+
+          <MapContainer
+
+            center={
+              mapPosition
+            }
+
+            zoom={15}
+
+            scrollWheelZoom={true}
+
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+
+          >
+
+            <TileLayer
+
+              attribution="
+                &copy; OpenStreetMap contributors
+              "
+
+              url="
+                https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+              "
+
+            />
+
+
+            <ManualLocationSelector
+
+              enabled={
+                locationMode ===
+                "manual"
+              }
+
+              onSelect={
+                handleManualLocation
+              }
+
+            />
+
+
+            <MapViewController
+
+              latitude={
+                latitude
+              }
+
+              longitude={
+                longitude
+              }
+
+            />
+
+
+            {latitude !== "" &&
+            longitude !== "" && (
+
+              <Marker
+
+                position={[
+                  Number(latitude),
+                  Number(longitude),
+                ]}
+
+                icon={
+                  locationIcon
+                }
+
+              />
+
+            )}
+
+          </MapContainer>
+
+        </div>
+
+
+        {/* ===================================================
+            Manual Instruction
+        ==================================================== */}
+
+        {locationMode ===
+          "manual" && (
+
+          <p>
+
+            👆 {t(
+              "manualLocationInstruction"
+            )}
+
+          </p>
+
+        )}
+
+
+        {/* ===================================================
+            GPS / Manual Status
+        ==================================================== */}
+
+        {latitude &&
+        longitude && (
 
           <div>
 
             <p>
-              📍 {t("locationDetected")}
+              📍{" "}
+              {t(
+                "locationDetected"
+              )}
             </p>
 
 
@@ -259,36 +624,75 @@ export default function Map() {
             </p>
 
 
-            <p>
-              {t("accuracy")}:
-              {" "}
-              {accuracy}
-              {" "}
-              {t("meters")}
-            </p>
+            {locationMode ===
+              "gps" && (
+
+              <p>
+                🎯{" "}
+                {t("accuracy")}:
+                {" "}
+                {accuracy}
+                {" "}
+                {t("meters")}
+              </p>
+
+            )}
 
 
-            <p>
-              {t("locationTime")}:
-              {" "}
-              {locationTime}
-            </p>
+            {locationMode ===
+              "manual" && (
+
+              <p>
+                🖐️{" "}
+                {t(
+                  "manualLocationSelected"
+                )}
+              </p>
+
+            )}
+
+
+            {locationTime && (
+
+              <p>
+                🕒{" "}
+                {t("locationTime")}:
+                {" "}
+                {locationTime}
+              </p>
+
+            )}
 
           </div>
 
         )}
 
 
-        {/* =================================================
-            Notes
-        ================================================== */}
+        <br />
 
-        <textarea
-          value={notes || ""}
-          onChange={(e) =>
-            setNotes(e.target.value)
+
+        {/* ===================================================
+            Address Information
+        ==================================================== */}
+
+        <input
+
+          type="text"
+
+          value={
+            village || ""
           }
-          placeholder={t("notesPlaceholder")}
+
+          onChange={(event) =>
+            setVillage(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("villagePlaceholder")
+          }
+
         />
 
 
@@ -296,14 +700,95 @@ export default function Map() {
         <br />
 
 
-        {/* =================================================
+        <input
+
+          type="text"
+
+          value={
+            region || ""
+          }
+
+          onChange={(event) =>
+            setRegion(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("regionPlaceholder")
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        <input
+
+          type="text"
+
+          value={
+            placeName || ""
+          }
+
+          onChange={(event) =>
+            setPlaceName(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("placeNamePlaceholder")
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        {/* ===================================================
+            Notes
+        ==================================================== */}
+
+        <textarea
+
+          value={
+            notes || ""
+          }
+
+          onChange={(event) =>
+            setNotes(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("notesPlaceholder")
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        {/* ===================================================
             Save
-        ================================================== */}
+        ==================================================== */}
 
         <Button
-          onClick={addLocation}
+          onClick={
+            addLocation
+          }
         >
+
           💾 {t("save")}
+
         </Button>
 
       </Card>
@@ -314,7 +799,8 @@ export default function Map() {
       ====================================================== */}
 
       <h2>
-        🗺️ {t("savedLocations")}
+        🗺️{" "}
+        {t("savedLocations")}
       </h2>
 
 
@@ -326,187 +812,166 @@ export default function Map() {
 
       ) : (
 
-        locations.map((item) => (
+        locations.map(
+          (item) => (
 
-          <Card
-            key={item.id}
-            title={
-              item.placeName ||
-              item.farmName ||
-              t("farm")
-            }
-          >
+            <Card
 
-            {/* =================================================
-                Farm
-            ================================================== */}
-
-            {item.farmName && (
-
-              <p>
-                🚜 {t("farm")}:{" "}
-                {item.farmName}
-              </p>
-
-            )}
-
-
-            {/* =================================================
-                Village
-            ================================================== */}
-
-            {item.village && (
-
-              <p>
-                🏘️ {t("village")}:{" "}
-                {item.village}
-              </p>
-
-            )}
-
-
-            {/* =================================================
-                Region
-            ================================================== */}
-
-            {item.region && (
-
-              <p>
-                📍 {t("region")}:{" "}
-                {item.region}
-              </p>
-
-            )}
-
-
-            {/* =================================================
-                Place
-            ================================================== */}
-
-            {item.placeName && (
-
-              <p>
-                📌 {t("placeName")}:{" "}
-                {item.placeName}
-              </p>
-
-            )}
-
-
-            {/* =================================================
-                Type
-            ================================================== */}
-
-            <p>
-              🌱 {t("type")}:{" "}
-              {item.type}
-            </p>
-
-
-            {/* =================================================
-                Accuracy
-            ================================================== */}
-
-            {item.accuracy !== undefined &&
-              item.accuracy !== null && (
-
-              <p>
-                🎯 {t("accuracy")}:{" "}
-                {item.accuracy}{" "}
-                {t("meters")}
-              </p>
-
-            )}
-
-
-            {/* =================================================
-                Coordinates
-            ================================================== */}
-
-            {item.latitude !== undefined &&
-              item.longitude !== undefined && (
-
-              <div>
-
-                <p>
-                  {t("latitude")}:{" "}
-                  {item.latitude}
-                </p>
-
-                <p>
-                  {t("longitude")}:{" "}
-                  {item.longitude}
-                </p>
-
-              </div>
-
-            )}
-
-
-            {/* =================================================
-                Location Time
-            ================================================== */}
-
-            {item.createdAt && (
-
-              <p>
-                🕒 {t("locationTime")}:{" "}
-                {item.createdAt}
-              </p>
-
-            )}
-
-
-            {/* =================================================
-                Notes
-            ================================================== */}
-
-            <p>
-              📝 {t("notes")}:{" "}
-              {item.notes || "-"}
-            </p>
-
-
-            {/* =================================================
-                Google Maps
-            ================================================== */}
-
-            {item.latitude &&
-              item.longitude && (
-
-              <a
-                href={
-                  `https://maps.google.com/?q=` +
-                  `${item.latitude},${item.longitude}`
-                }
-                target="_blank"
-                rel="noreferrer"
-              >
-                🗺️ {t("openGoogleMaps")}
-              </a>
-
-            )}
-
-
-            <br />
-            <br />
-
-
-            {/* =================================================
-                Delete
-            ================================================== */}
-
-            <Button
-              onClick={() =>
-                deleteLocation(item.id)
+              key={
+                item.id
               }
+
+              title={
+                item.placeName ||
+                item.farmName ||
+                t("farm")
+              }
+
             >
-              {t("delete")}
-            </Button>
 
-          </Card>
+              {item.farmName && (
 
-        ))
+                <p>
+                  🚜{" "}
+                  {t("farm")}:
+                  {" "}
+                  {item.farmName}
+                </p>
+
+              )}
+
+
+              {item.village && (
+
+                <p>
+                  🏘️{" "}
+                  {t("village")}:
+                  {" "}
+                  {item.village}
+                </p>
+
+              )}
+
+
+              {item.region && (
+
+                <p>
+                  📍{" "}
+                  {t("region")}:
+                  {" "}
+                  {item.region}
+                </p>
+
+              )}
+
+
+              {item.placeName && (
+
+                <p>
+                  📌{" "}
+                  {t("placeName")}:
+                  {" "}
+                  {item.placeName}
+                </p>
+
+              )}
+
+
+              <p>
+                🌱{" "}
+                {t("type")}:
+                {" "}
+                {item.type}
+              </p>
+
+
+              {item.accuracy !==
+                undefined &&
+              item.accuracy !==
+                null && (
+
+                <p>
+                  🎯{" "}
+                  {t("accuracy")}:
+                  {" "}
+                  {item.accuracy}
+                  {" "}
+                  {t("meters")}
+                </p>
+
+              )}
+
+
+              <p>
+                {t("latitude")}:
+                {" "}
+                {item.latitude}
+              </p>
+
+
+              <p>
+                {t("longitude")}:
+                {" "}
+                {item.longitude}
+              </p>
+
+
+              <p>
+                📝{" "}
+                {t("notes")}:
+                {" "}
+                {item.notes || "-"}
+              </p>
+
+
+              {item.latitude !==
+                undefined &&
+              item.longitude !==
+                undefined && (
+
+                <a
+
+                  href={
+                    `https://maps.google.com/?q=` +
+                    `${item.latitude},${item.longitude}`
+                  }
+
+                  target="_blank"
+
+                  rel="noreferrer"
+
+                >
+
+                  🗺️{" "}
+                  {t(
+                    "openGoogleMaps"
+                  )}
+
+                </a>
+
+              )}
+
+
+              <br />
+              <br />
+
+
+              <Button
+                onClick={() =>
+                  deleteLocation(
+                    item.id
+                  )
+                }
+              >
+
+                {t("delete")}
+
+              </Button>
+
+            </Card>
+
+          )
+        )
 
       )}
 
