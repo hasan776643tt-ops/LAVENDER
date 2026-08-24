@@ -63,7 +63,7 @@ export default function useMap() {
 
 
   // =========================================================
-  // Human-readable location data
+  // Human-readable location
   // =========================================================
 
   const [village, setVillage] =
@@ -77,9 +77,7 @@ export default function useMap() {
 
 
   // =========================================================
-  // GPS data
-  // الإحداثيات تبقى داخل النظام
-  // ولا نطلب من الفلاح إدخالها يدويًا
+  // GPS
   // =========================================================
 
   const [latitude, setLatitude] =
@@ -248,54 +246,143 @@ export default function useMap() {
 
     navigator.geolocation.getCurrentPosition(
 
-      (position) => {
+      async (position) => {
 
-        const {
-          latitude: currentLatitude,
-          longitude: currentLongitude,
-          accuracy: currentAccuracy
-        } = position.coords;
+        try {
 
-
-        setLatitude(
-          currentLatitude.toFixed(6)
-        );
+          const {
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+            accuracy: currentAccuracy
+          } = position.coords;
 
 
-        setLongitude(
-          currentLongitude.toFixed(6)
-        );
+          // =================================================
+          // Save GPS internally
+          // =================================================
+
+          const formattedLatitude =
+            currentLatitude.toFixed(6);
+
+          const formattedLongitude =
+            currentLongitude.toFixed(6);
 
 
-        setAccuracy(
-          Math.round(currentAccuracy)
-        );
+          setLatitude(
+            formattedLatitude
+          );
 
 
-        setLocationTime(
-
-          new Date().toLocaleString(
-
-            language === "tr"
-              ? "tr-TR"
-              : language === "en"
-              ? "en-US"
-              : "ar-SY"
-
-          )
-
-        );
+          setLongitude(
+            formattedLongitude
+          );
 
 
-        setLoading(false);
+          setAccuracy(
+            Math.round(currentAccuracy)
+          );
 
 
-        alert(
-          t("locationSuccess")
-        );
+          setLocationTime(
+
+            new Date().toLocaleString(
+
+              language === "tr"
+                ? "tr-TR"
+                : language === "en"
+                ? "en-US"
+                : "ar-SY"
+
+            )
+
+          );
+
+
+          // =================================================
+          // Reverse Geocoding
+          // تحويل GPS إلى اسم المكان
+          // =================================================
+
+          const address =
+            await mapService.reverseGeocode(
+              currentLatitude,
+              currentLongitude,
+              language
+            );
+
+
+          // =================================================
+          // Village
+          // =================================================
+
+          setVillage(
+            address?.village ||
+            address?.town ||
+            address?.municipality ||
+            address?.city ||
+            ""
+          );
+
+
+          // =================================================
+          // Region
+          // =================================================
+
+          setRegion(
+            address?.region ||
+            address?.state ||
+            address?.province ||
+            ""
+          );
+
+
+          // =================================================
+          // Place Name
+          // =================================================
+
+          setPlaceName(
+            address?.placeName ||
+            address?.displayName ||
+            ""
+          );
+
+
+          // =================================================
+          // Success
+          // =================================================
+
+          alert(
+            t("locationSuccess")
+          );
+
+
+        } catch (error) {
+
+          console.error(
+            "Reverse geocoding error:",
+            error
+          );
+
+
+          // GPS نجح لكن تحويل الإحداثيات
+          // إلى اسم المكان فشل
+
+          alert(
+            t("addressError")
+          );
+
+        } finally {
+
+          setLoading(false);
+
+        }
 
       },
 
+
+      // =====================================================
+      // GPS Error
+      // =====================================================
 
       (error) => {
 
@@ -351,11 +438,15 @@ export default function useMap() {
       },
 
 
+      // =====================================================
+      // GPS Options
+      // =====================================================
+
       {
 
         enableHighAccuracy: true,
 
-        timeout: 15000,
+        timeout: 30000,
 
         maximumAge: 0
 
@@ -406,7 +497,7 @@ export default function useMap() {
 
 
     // -------------------------------------------------------
-    // Place information
+    // Village
     // -------------------------------------------------------
 
     if (!village.trim()) {
@@ -420,6 +511,10 @@ export default function useMap() {
     }
 
 
+    // -------------------------------------------------------
+    // Region
+    // -------------------------------------------------------
+
     if (!region.trim()) {
 
       alert(
@@ -430,6 +525,10 @@ export default function useMap() {
 
     }
 
+
+    // -------------------------------------------------------
+    // Place
+    // -------------------------------------------------------
 
     if (!placeName.trim()) {
 
@@ -458,56 +557,67 @@ export default function useMap() {
 
     const locationData = {
 
-      farmId,
+      farmId:
+
+        String(farmId),
+
 
       farmName:
+
         farm?.name ||
         t("farm"),
 
 
-      // -----------------------------------------------
-      // Human readable location
-      // -----------------------------------------------
-
       village:
+
         village.trim(),
 
+
       region:
+
         region.trim(),
 
+
       placeName:
+
         placeName.trim(),
 
 
-      // -----------------------------------------------
-      // Location type
-      // -----------------------------------------------
-
       type:
+
         locationType,
 
 
-      // -----------------------------------------------
-      // GPS
-      // -----------------------------------------------
+      latitude:
 
-      latitude,
-
-      longitude,
-
-      accuracy,
+        Number(latitude),
 
 
-      // -----------------------------------------------
-      // Additional data
-      // -----------------------------------------------
+      longitude:
 
-      notes,
+        Number(longitude),
+
+
+      accuracy:
+
+        accuracy
+          ? Number(accuracy)
+          : null,
+
+
+      notes:
+
+        notes.trim(),
+
 
       createdAt:
-        locationTime,
+
+        locationTime ||
+        new Date().toISOString(),
+
 
       status:
+
         "active"
 
     };
@@ -544,20 +654,18 @@ export default function useMap() {
 
 
       // ===================================================
-      // Reset Form
+      // Reset
       // ===================================================
 
       setFarmId("");
 
       setLocationType("farm");
 
-
       setVillage("");
 
       setRegion("");
 
       setPlaceName("");
-
 
       setLatitude("");
 
@@ -696,9 +804,7 @@ export default function useMap() {
     setLocationType,
 
 
-    // -----------------------------------------------
     // Human readable location
-    // -----------------------------------------------
 
     village,
     setVillage,
@@ -710,9 +816,7 @@ export default function useMap() {
     setPlaceName,
 
 
-    // -----------------------------------------------
     // GPS
-    // -----------------------------------------------
 
     latitude,
     setLatitude,
@@ -725,9 +829,7 @@ export default function useMap() {
     locationTime,
 
 
-    // -----------------------------------------------
     // Notes
-    // -----------------------------------------------
 
     notes,
     setNotes,
