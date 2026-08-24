@@ -14,16 +14,88 @@ import useFarms from "../hooks/useFarms.js";
 
 
 // =========================================================
-// LAVENDER — Farms Page
+// LAVENDER — Farms
 // المزرعة الذكية
 //
-// الصفحة الأولى:
-// اختيار المزرعة
-//
-// عند اختيار مزرعة:
-// تظهر خدمات المزرعة
+// 1. عرض المزارع في شبكة 3 × N
+// 2. كل مزرعة لها رقم واسم المستخدم
+// 3. الضغط على المزرعة يفتح خدماتها
+// 4. الخدمات في شبكة 3 × N
+// 5. تمرير farmId إلى الصفحة المطلوبة
 // =========================================================
 
+
+const FARM_SERVICES = [
+
+  {
+    id: "fertilizers",
+    icon: "🧪",
+    title: "الأسمدة",
+    path: "/fertilizers",
+  },
+
+  {
+    id: "expenses",
+    icon: "💰",
+    title: "المصروفات",
+    path: "/expenses",
+  },
+
+  {
+    id: "weather",
+    icon: "☁️",
+    title: "الطقس",
+    path: "/weather",
+  },
+
+  {
+    id: "map",
+    icon: "🗺️",
+    title: "الخريطة",
+    path: "/map",
+  },
+
+  {
+    id: "engineer",
+    icon: "👨‍🌾",
+    title: "المستشار الزراعي",
+    path: "/engineer",
+  },
+
+  {
+    id: "irrigation",
+    icon: "💧",
+    title: "الري",
+    path: "/irrigation",
+  },
+
+  {
+    id: "crops",
+    icon: "🌱",
+    title: "المحاصيل",
+    path: "/crops",
+  },
+
+  {
+    id: "diseases",
+    icon: "🦠",
+    title: "الأمراض",
+    path: "/diseases",
+  },
+
+  {
+    id: "harvest",
+    icon: "🌽",
+    title: "الحصاد",
+    path: "/harvest",
+  },
+
+];
+
+
+// =========================================================
+// Component
+// =========================================================
 
 export default function Farms() {
 
@@ -31,7 +103,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Farms Hook
+  // Farms
   // =======================================================
 
   const {
@@ -53,151 +125,100 @@ export default function Farms() {
 
 
   // =======================================================
-  // Load Farms
+  // Load
   // =======================================================
 
   useEffect(() => {
 
-    if (typeof loadFarms === "function") {
+    if (
+      typeof loadFarms === "function"
+    ) {
+
       loadFarms();
+
     }
 
   }, [loadFarms]);
 
 
   // =======================================================
-  // Normalize Farms
+  // Normalize
   //
-  // لا نغير بيانات المزرعة الأصلية.
-  // فقط نضمن أن العرض يتعامل مع اختلاف أسماء الحقول.
+  // لا نعدل بيانات المزرعة الأصلية.
+  // نضيف فقط بيانات العرض.
   // =======================================================
 
   const normalizedFarms = useMemo(() => {
 
     if (!Array.isArray(farms)) {
+
       return [];
+
     }
 
-    return farms.map((farm, index) => {
 
-      const id =
-        farm?.id ??
-        farm?._id ??
-        farm?.farmId ??
-        index + 1;
+    return farms.map(
+      (farm, index) => {
 
-      const name =
-        farm?.name ??
-        farm?.farmName ??
-        farm?.title ??
-        `مزرعة ${index + 1}`;
+        const id =
+          farm?.id ??
+          farm?._id ??
+          farm?.farmId ??
+          `farm-${index + 1}`;
 
-      return {
-        ...farm,
-        __displayId: id,
-        __displayName: name,
-        __number: index + 1,
-      };
 
-    });
+        const name =
+          farm?.name ??
+          farm?.farmName ??
+          farm?.title ??
+          `مزرعة ${index + 1}`;
+
+
+        return {
+
+          ...farm,
+
+          __displayId:
+            id,
+
+          __displayName:
+            name,
+
+          __number:
+            index + 1,
+
+        };
+
+      }
+    );
 
   }, [farms]);
-
-
-  // =======================================================
-  // Farm Services
-  // =======================================================
-
-  const services = useMemo(() => {
-
-    return [
-
-      {
-        id: "fertilizers",
-        icon: "🧪",
-        title: "الأسمدة",
-        path: "/fertilizers",
-      },
-
-      {
-        id: "expenses",
-        icon: "💰",
-        title: "المصروفات",
-        path: "/expenses",
-      },
-
-      {
-        id: "weather",
-        icon: "☁️",
-        title: "الطقس",
-        path: "/weather",
-      },
-
-      {
-        id: "map",
-        icon: "🗺️",
-        title: "الخريطة",
-        path: "/map",
-      },
-
-      {
-        id: "engineer",
-        icon: "👨‍🌾",
-        title: "المستشار الزراعي",
-        path: "/engineer",
-      },
-
-      {
-        id: "irrigation",
-        icon: "💧",
-        title: "الري",
-        path: "/irrigation",
-      },
-
-      {
-        id: "crops",
-        icon: "🌱",
-        title: "المحاصيل",
-        path: "/crops",
-      },
-
-      {
-        id: "diseases",
-        icon: "🦠",
-        title: "الأمراض",
-        path: "/diseases",
-      },
-
-      {
-        id: "harvest",
-        icon: "🌽",
-        title: "الحصاد",
-        path: "/harvest",
-      },
-
-    ];
-
-  }, []);
 
 
   // =======================================================
   // Open Farm
   // =======================================================
 
-  const openFarm = (farm) => {
+  const openFarm = (
+    farm
+  ) => {
 
-    setSelectedFarm(farm);
+    setSelectedFarm(
+      farm
+    );
 
   };
 
 
   // =======================================================
-  // Back To Farms
+  // Back
   // =======================================================
 
   const backToFarms = () => {
 
-    setSelectedFarm(null);
+    setSelectedFarm(
+      null
+    );
 
   };
 
@@ -206,10 +227,14 @@ export default function Farms() {
   // Open Service
   // =======================================================
 
-  const openService = (service) => {
+  const openService = (
+    service
+  ) => {
 
     if (!selectedFarm) {
+
       return;
+
     }
 
 
@@ -236,7 +261,10 @@ export default function Farms() {
   // Loading
   // =======================================================
 
-  if (loading && normalizedFarms.length === 0) {
+  if (
+    loading &&
+    normalizedFarms.length === 0
+  ) {
 
     return (
 
@@ -249,9 +277,17 @@ export default function Farms() {
           className="farms-selector-header"
         >
 
+          <div className="farms-selector-symbol">
+            🌱
+          </div>
+
           <h1 className="farms-selector-title">
             المزرعة الذكية
           </h1>
+
+          <div className="farms-selector-brand">
+            LAVENDER
+          </div>
 
           <p className="farms-selector-subtitle">
             جاري تحميل مزارعك...
@@ -286,9 +322,17 @@ export default function Farms() {
           className="farms-selector-header"
         >
 
+          <div className="farms-selector-symbol">
+            🌾
+          </div>
+
           <h1 className="farms-selector-title">
             المزرعة الذكية
           </h1>
+
+          <div className="farms-selector-brand">
+            LAVENDER
+          </div>
 
           <p className="farms-selector-subtitle">
             تعذر تحميل المزارع
@@ -297,15 +341,31 @@ export default function Farms() {
         </section>
 
 
-        <div className="card card-smart">
+        <section className="farms-empty-card">
 
-          <div className="card-body">
-
-            حدث خطأ أثناء تحميل بيانات المزارع.
-
+          <div className="farms-empty-icon">
+            ⚠️
           </div>
 
-        </div>
+          <h2>
+            حدث خطأ
+          </h2>
+
+          <p>
+            تعذر تحميل بيانات المزارع حاليًا.
+          </p>
+
+          <button
+            type="button"
+            className="farms-retry-button"
+            onClick={() =>
+              loadFarms?.()
+            }
+          >
+            إعادة المحاولة
+          </button>
+
+        </section>
 
       </main>
 
@@ -334,50 +394,42 @@ export default function Farms() {
           className="farms-selector-header"
         >
 
+          <div className="farms-selector-symbol">
+            🌱
+          </div>
+
           <h1 className="farms-selector-title">
             المزرعة الذكية
           </h1>
 
-          <p className="farms-selector-subtitle">
+          <div className="farms-selector-brand">
+            LAVENDER
+          </div>
+
+          <div className="farms-selector-section-title">
             مزارعي
+          </div>
+
+          <p className="farms-selector-subtitle">
+            اختر المزرعة التي تريد الدخول إليها
           </p>
 
         </section>
 
 
-        <section
-          className="card card-smart"
-        >
+        <section className="farms-empty-card">
 
-          <div className="card-body">
-
-            <div
-              style={{
-                textAlign: "center",
-                padding: "25px 10px",
-              }}
-            >
-
-              <div
-                style={{
-                  fontSize: "48px",
-                  marginBottom: "10px",
-                }}
-              >
-                🌱
-              </div>
-
-              <h2>
-                لا توجد مزارع بعد
-              </h2>
-
-              <p>
-                أضف مزرعتك لتظهر هنا.
-              </p>
-
-            </div>
-
+          <div className="farms-empty-icon">
+            🌱
           </div>
+
+          <h2>
+            لا توجد مزارع بعد
+          </h2>
+
+          <p>
+            أضف مزرعتك لتظهر هنا.
+          </p>
 
         </section>
 
@@ -389,7 +441,7 @@ export default function Farms() {
 
 
   // =========================================================
-  // FARM SERVICES SCREEN
+  // FARM SERVICES
   // =========================================================
 
   if (selectedFarm) {
@@ -402,32 +454,21 @@ export default function Farms() {
       >
 
 
-        {/* =================================================
-            FARM HEADER
-        ================================================= */}
+        {/* ===============================================
+            TOP
+        =============================================== */}
 
-        <section
+        <header
           className="farm-services-header"
         >
 
           <button
             type="button"
-            onClick={backToFarms}
+            className="farms-back-button"
+            onClick={
+              backToFarms
+            }
             aria-label="العودة إلى المزارع"
-            style={{
-              position: "absolute",
-              top: "12px",
-              right: "12px",
-              width: "40px",
-              height: "40px",
-              border: "0",
-              borderRadius: "50%",
-              background: "#e5f2e7",
-              color: "#18532e",
-              fontSize: "20px",
-              cursor: "pointer",
-              fontWeight: "900",
-            }}
           >
             ←
           </button>
@@ -437,6 +478,11 @@ export default function Farms() {
             className="farm-services-number"
           >
             {selectedFarm.__number}
+          </div>
+
+
+          <div className="farm-services-label">
+            مزرعة
           </div>
 
 
@@ -450,48 +496,51 @@ export default function Farms() {
           <p
             className="farm-services-subtitle"
           >
-            اختر الخدمة التي تريد الدخول إليها
+            اختر الخدمة التي تريدها لهذه المزرعة
           </p>
 
-        </section>
+        </header>
 
 
-        {/* =================================================
+        {/* ===============================================
             SERVICES
-        ================================================= */}
+        =============================================== */}
 
         <section
           className="farm-services-grid"
+          aria-label="خدمات المزرعة"
         >
 
-          {services.map((service) => (
+          {FARM_SERVICES.map(
+            (service) => (
 
-            <button
-              key={service.id}
-              type="button"
-              className="farm-service-choice"
-              onClick={() =>
-                openService(service)
-              }
-            >
-
-              <span
-                className="farm-service-icon"
-                aria-hidden="true"
+              <button
+                key={service.id}
+                type="button"
+                className="farm-service-choice"
+                onClick={() =>
+                  openService(service)
+                }
               >
-                {service.icon}
-              </span>
+
+                <span
+                  className="farm-service-icon"
+                  aria-hidden="true"
+                >
+                  {service.icon}
+                </span>
 
 
-              <span
-                className="farm-service-name"
-              >
-                {service.title}
-              </span>
+                <span
+                  className="farm-service-name"
+                >
+                  {service.title}
+                </span>
 
-            </button>
+              </button>
 
-          ))}
+            )
+          )}
 
         </section>
 
@@ -504,7 +553,7 @@ export default function Farms() {
 
 
   // =========================================================
-  // FARMS SELECTION SCREEN
+  // FARMS SELECTOR
   // =========================================================
 
   return (
@@ -516,12 +565,20 @@ export default function Farms() {
 
 
       {/* ===================================================
-          HEADER
+          BRAND / HEADER
       =================================================== */}
 
-      <section
+      <header
         className="farms-selector-header"
       >
+
+        <div
+          className="farms-selector-symbol"
+          aria-hidden="true"
+        >
+          🌿
+        </div>
+
 
         <h1
           className="farms-selector-title"
@@ -530,27 +587,31 @@ export default function Farms() {
         </h1>
 
 
-        <p
-          className="farms-selector-subtitle"
+        <div
+          className="farms-selector-brand"
+        >
+          LAVENDER
+        </div>
+
+
+        <div
+          className="farms-selector-section-title"
         >
           مزارعي
-        </p>
+        </div>
 
 
         <p
           className="farms-selector-subtitle"
-          style={{
-            marginTop: "2px",
-          }}
         >
           اختر المزرعة التي تريد الدخول إليها
         </p>
 
-      </section>
+      </header>
 
 
       {/* ===================================================
-          FARMS GRID
+          FARM GRID
       =================================================== */}
 
       <section
@@ -558,57 +619,55 @@ export default function Farms() {
         aria-label="قائمة المزارع"
       >
 
-        {normalizedFarms.map((farm) => (
+        {normalizedFarms.map(
+          (farm) => (
 
-          <button
-            key={farm.__displayId}
-            type="button"
-            className="farm-choice"
-            onClick={() =>
-              openFarm(farm)
-            }
-            aria-label={
-              `فتح ${farm.__displayName}`
-            }
-          >
-
-
-            {/* =============================================
-                NUMBER
-            ============================================= */}
-
-            <span
-              className="farm-choice-number"
+            <button
+              key={
+                farm.__displayId
+              }
+              type="button"
+              className="farm-choice"
+              onClick={() =>
+                openFarm(farm)
+              }
+              aria-label={
+                `فتح ${farm.__displayName}`
+              }
             >
-              {farm.__number}
-            </span>
+
+              {/* NUMBER */}
+
+              <span
+                className="farm-choice-number"
+                aria-hidden="true"
+              >
+                {farm.__number}
+              </span>
 
 
-            {/* =============================================
-                LABEL
-            ============================================= */}
+              {/* FARM */}
 
-            <span
-              className="farm-choice-label"
-            >
-              مزرعة
-            </span>
+              <span
+                className="farm-choice-label"
+              >
+                مزرعة
+              </span>
 
 
-            {/* =============================================
-                FARM NAME
-            ============================================= */}
+              {/* NAME */}
 
-            <span
-              className="farm-choice-name"
-            >
-              {farm.__displayName}
-            </span>
+              <span
+                className="farm-choice-name"
+              >
+                {farm.__displayName}
+              </span>
 
 
-          </button>
+            </button>
 
-        ))}
+          )
+        )}
 
       </section>
 
