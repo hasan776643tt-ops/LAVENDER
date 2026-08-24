@@ -11,37 +11,66 @@ import {
 
 import useFarms from "../hooks/useFarms.js";
 
-import "../styles/farms.css";
-
 
 // =========================================================
-// LAVENDER — Farms Page
-// المزرعة الذكية
-//
-// Architecture:
-//
-// Farms.jsx
-//    ↓
-// useFarms.js
-//    ↓
-// farmService.js
-//
-// لا تستخدم FarmContext مباشرة.
-// لا تستخدم farmService مباشرة.
+// LAVENDER — FARMS
+// Mobile Full Screen Farm Selector
 // =========================================================
 
 
 // =========================================================
-// Farm Services
+// FARM SERVICES
 // =========================================================
 
 const FARM_SERVICES = [
+
+  {
+    id: "irrigation",
+    icon: "💧",
+    title: "الري",
+    path: "/irrigation",
+  },
+
+  {
+    id: "crops",
+    icon: "🌱",
+    title: "المحاصيل",
+    path: "/crops",
+  },
 
   {
     id: "fertilizers",
     icon: "🧪",
     title: "الأسمدة",
     path: "/fertilizers",
+  },
+
+  {
+    id: "diseases",
+    icon: "🦠",
+    title: "الأمراض",
+    path: "/diseases",
+  },
+
+  {
+    id: "engineer",
+    icon: "👨‍🌾",
+    title: "المستشار الزراعي",
+    path: "/engineer",
+  },
+
+  {
+    id: "map",
+    icon: "🗺️",
+    title: "الخريطة",
+    path: "/map",
+  },
+
+  {
+    id: "harvest",
+    icon: "🌽",
+    title: "الحصاد",
+    path: "/harvest",
   },
 
   {
@@ -59,52 +88,31 @@ const FARM_SERVICES = [
   },
 
   {
-    id: "map",
-    icon: "🗺️",
-    title: "الخريطة",
-    path: "/map",
+    id: "inventory",
+    icon: "📦",
+    title: "المخزون",
+    path: "/inventory",
   },
 
   {
-    id: "engineer",
-    icon: "👨‍🌾",
-    title: "المستشار الزراعي",
-    path: "/engineer",
+    id: "pesticides",
+    icon: "🛡️",
+    title: "المبيدات",
+    path: "/pesticides",
   },
 
   {
-    id: "irrigation",
-    icon: "💧",
-    title: "الري",
-    path: "/irrigation",
-  },
-
-  {
-    id: "crops",
-    icon: "🌱",
-    title: "المحاصيل",
-    path: "/crops",
-  },
-
-  {
-    id: "diseases",
-    icon: "🦠",
-    title: "الأمراض",
-    path: "/diseases",
-  },
-
-  {
-    id: "harvest",
-    icon: "🌽",
-    title: "الحصاد",
-    path: "/harvest",
+    id: "reports",
+    icon: "📊",
+    title: "التقارير",
+    path: "/reports",
   },
 
 ];
 
 
 // =========================================================
-// Helpers
+// HELPERS
 // =========================================================
 
 function getFarmId(
@@ -138,7 +146,7 @@ function getFarmName(
 
 
 // =========================================================
-// Component
+// COMPONENT
 // =========================================================
 
 export default function Farms() {
@@ -146,10 +154,6 @@ export default function Farms() {
   const navigate =
     useNavigate();
 
-
-  // =======================================================
-  // Farms Hook
-  // =======================================================
 
   const {
     farms = [],
@@ -159,10 +163,6 @@ export default function Farms() {
   } = useFarms();
 
 
-  // =======================================================
-  // Selected Farm
-  // =======================================================
-
   const [
     selectedFarm,
     setSelectedFarm,
@@ -170,7 +170,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Normalize Farms
+  // NORMALIZE FARMS
   // =======================================================
 
   const normalizedFarms =
@@ -185,35 +185,30 @@ export default function Farms() {
 
         }
 
-
         return farms.map(
           (
             farm,
             index
-          ) => {
+          ) => ({
 
-            return {
+            ...farm,
 
-              ...farm,
+            __displayId:
+              getFarmId(
+                farm,
+                index
+              ),
 
-              __displayId:
-                getFarmId(
-                  farm,
-                  index
-                ),
+            __displayName:
+              getFarmName(
+                farm,
+                index
+              ),
 
-              __displayName:
-                getFarmName(
-                  farm,
-                  index
-                ),
+            __number:
+              index + 1,
 
-              __number:
-                index + 1,
-
-            };
-
-          }
+          })
         );
 
       },
@@ -222,7 +217,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Select Farm
+  // SELECT FARM
   // =======================================================
 
   const openFarm = (
@@ -237,7 +232,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Back
+  // BACK
   // =======================================================
 
   const backToFarms = () => {
@@ -250,7 +245,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Open Service
+  // OPEN SERVICE
   // =======================================================
 
   const openService = (
@@ -295,7 +290,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Retry
+  // RETRY
   // =======================================================
 
   const retryLoad =
@@ -309,7 +304,6 @@ export default function Farms() {
         return;
 
       }
-
 
       try {
 
@@ -330,7 +324,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Loading
+  // LOADING
   // =======================================================
 
   if (
@@ -345,84 +339,83 @@ export default function Farms() {
         dir="rtl"
       >
 
-        <header
-          className="farms-selector-header"
+        <div
+          className="farms-page-content"
         >
 
-          <div
-            className="farms-selector-symbol"
-            aria-hidden="true"
+          <header
+            className="farms-selector-header"
           >
-            🌿
-          </div>
 
-          <h1
-            className="farms-selector-title"
+            <div
+              className="farms-selector-symbol"
+              aria-hidden="true"
+            >
+              🌿
+            </div>
+
+            <h1
+              className="farms-selector-title"
+            >
+              مزارعي
+            </h1>
+
+            <div
+              className="farms-selector-brand"
+            >
+              LAVENDER
+            </div>
+
+            <p
+              className="farms-selector-subtitle"
+            >
+              جاري تحميل مزارعك...
+            </p>
+
+          </header>
+
+
+          <section
+            className="farms-grid"
+            aria-label="تحميل المزارع"
           >
-            المزرعة الذكية
-          </h1>
 
-          <div
-            className="farms-selector-brand"
-          >
-            LAVENDER
-          </div>
+            {[1, 2, 3].map(
+              (
+                item
+              ) => (
 
-          <p
-            className="farms-selector-section-title"
-          >
-            مزارعي
-          </p>
-
-          <p
-            className="farms-selector-subtitle"
-          >
-            جاري تحميل مزارعك...
-          </p>
-
-        </header>
-
-
-        <section
-          className="farms-grid"
-          aria-label="تحميل المزارع"
-        >
-
-          {[1, 2, 3].map(
-            (
-              item
-            ) => (
-
-              <div
-                key={item}
-                className="farm-choice"
-                aria-hidden="true"
-              >
-
-                <span
-                  className="farm-choice-number"
+                <div
+                  key={item}
+                  className="farm-choice farm-choice-loading"
                 >
-                  …
-                </span>
 
-                <span
-                  className="farm-choice-label"
-                >
-                  مزرعة
-                </span>
+                  <span
+                    className="farm-choice-number"
+                  >
+                    …
+                  </span>
 
-                <span
-                  className="farm-choice-name"
-                >
-                  جاري التحميل
-                </span>
+                  <span
+                    className="farm-choice-label"
+                  >
+                    مزرعة
+                  </span>
 
-              </div>
+                  <span
+                    className="farm-choice-name"
+                  >
+                    جاري التحميل
+                  </span>
 
-            )
-          )}
+                </div>
 
-        </section>
+              )
+            )}
+
+          </section>
+
+        </div>
 
       </main>
 
@@ -432,7 +425,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Error
+  // ERROR
   // =======================================================
 
   if (
@@ -447,72 +440,72 @@ export default function Farms() {
         dir="rtl"
       >
 
-        <header
-          className="farms-selector-header"
+        <div
+          className="farms-page-content"
         >
 
-          <div
-            className="farms-selector-symbol"
-            aria-hidden="true"
+          <header
+            className="farms-selector-header"
           >
-            🌿
-          </div>
 
-          <h1
-            className="farms-selector-title"
+            <div
+              className="farms-selector-symbol"
+              aria-hidden="true"
+            >
+              🌿
+            </div>
+
+            <h1
+              className="farms-selector-title"
+            >
+              مزارعي
+            </h1>
+
+            <div
+              className="farms-selector-brand"
+            >
+              LAVENDER
+            </div>
+
+            <p
+              className="farms-selector-subtitle"
+            >
+              تعذر تحميل المزارع
+            </p>
+
+          </header>
+
+
+          <section
+            className="farms-empty-card"
           >
-            المزرعة الذكية
-          </h1>
 
-          <div
-            className="farms-selector-brand"
-          >
-            LAVENDER
-          </div>
+            <div
+              className="farms-empty-icon"
+              aria-hidden="true"
+            >
+              ⚠️
+            </div>
 
-          <p
-            className="farms-selector-section-title"
-          >
-            مزارعي
-          </p>
+            <h2>
+              حدث خطأ أثناء تحميل المزارع
+            </h2>
 
-          <p
-            className="farms-selector-subtitle"
-          >
-            تعذر تحميل المزارع
-          </p>
+            <p>
+              حاول تحميل البيانات مرة أخرى.
+            </p>
 
-        </header>
+            <button
+              type="button"
+              className="farms-retry-button"
+              onClick={retryLoad}
+            >
+              إعادة المحاولة
+            </button>
 
+          </section>
 
-        <section
-          className="farms-empty-card"
-        >
-
-          <div
-            className="farms-empty-icon"
-            aria-hidden="true"
-          >
-            ⚠️
-          </div>
-
-          <h2>
-            حدث خطأ أثناء تحميل المزارع
-          </h2>
-
-          <p>
-            حاول تحميل البيانات مرة أخرى.
-          </p>
-
-          <button
-            type="button"
-            className="farms-retry-button"
-            onClick={retryLoad}
-          >
-            إعادة المحاولة
-          </button>
-
-        </section>
+        </div>
 
       </main>
 
@@ -522,7 +515,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Empty
+  // EMPTY
   // =======================================================
 
   if (
@@ -537,64 +530,64 @@ export default function Farms() {
         dir="rtl"
       >
 
-        <header
-          className="farms-selector-header"
+        <div
+          className="farms-page-content"
         >
 
-          <div
-            className="farms-selector-symbol"
-            aria-hidden="true"
+          <header
+            className="farms-selector-header"
           >
-            🌿
-          </div>
 
-          <h1
-            className="farms-selector-title"
+            <div
+              className="farms-selector-symbol"
+              aria-hidden="true"
+            >
+              🌿
+            </div>
+
+            <h1
+              className="farms-selector-title"
+            >
+              مزارعي
+            </h1>
+
+            <div
+              className="farms-selector-brand"
+            >
+              LAVENDER
+            </div>
+
+            <p
+              className="farms-selector-subtitle"
+            >
+              لا توجد مزارع مضافة حاليًا
+            </p>
+
+          </header>
+
+
+          <section
+            className="farms-empty-card"
           >
-            المزرعة الذكية
-          </h1>
 
-          <div
-            className="farms-selector-brand"
-          >
-            LAVENDER
-          </div>
+            <div
+              className="farms-empty-icon"
+              aria-hidden="true"
+            >
+              🌱
+            </div>
 
-          <p
-            className="farms-selector-section-title"
-          >
-            مزارعي
-          </p>
+            <h2>
+              لا توجد مزارع بعد
+            </h2>
 
-          <p
-            className="farms-selector-subtitle"
-          >
-            لا توجد مزارع مضافة حاليًا
-          </p>
+            <p>
+              أضف مزرعتك لتظهر هنا.
+            </p>
 
-        </header>
+          </section>
 
-
-        <section
-          className="farms-empty-card"
-        >
-
-          <div
-            className="farms-empty-icon"
-            aria-hidden="true"
-          >
-            🌱
-          </div>
-
-          <h2>
-            لا توجد مزارع بعد
-          </h2>
-
-          <p>
-            أضف مزرعتك لتظهر هنا.
-          </p>
-
-        </section>
+        </div>
 
       </main>
 
@@ -604,7 +597,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Selected Farm — Services
+  // SELECTED FARM — SERVICES
   // =======================================================
 
   if (
@@ -618,106 +611,114 @@ export default function Farms() {
         dir="rtl"
       >
 
-        <header
-          className="farm-services-header"
+        <div
+          className="farms-page-content"
         >
 
-          <button
-            type="button"
-            className="farms-back-button"
-            onClick={backToFarms}
-            aria-label="العودة إلى المزارع"
+          <header
+            className="farm-services-header"
           >
-            ←
-          </button>
+
+            <button
+              type="button"
+              className="farms-back-button"
+              onClick={
+                backToFarms
+              }
+              aria-label="العودة إلى المزارع"
+            >
+              ←
+            </button>
 
 
-          <div
-            className="farm-services-number"
+            <div
+              className="farm-services-number"
+            >
+              {
+                selectedFarm.__number
+              }
+            </div>
+
+
+            <div
+              className="farm-services-label"
+            >
+              مزرعة
+            </div>
+
+
+            <h1
+              className="farm-services-title"
+            >
+              {
+                selectedFarm.__displayName
+              }
+            </h1>
+
+
+            <p
+              className="farm-services-subtitle"
+            >
+              مركز خدمات المزرعة
+            </p>
+
+          </header>
+
+
+          <section
+            className="farm-services-grid"
+            aria-label="خدمات المزرعة"
           >
+
             {
-              selectedFarm.__number
-            }
-          </div>
+              FARM_SERVICES.map(
+                (
+                  service
+                ) => (
 
-
-          <div
-            className="farm-services-label"
-          >
-            مزرعة
-          </div>
-
-
-          <h1
-            className="farm-services-title"
-          >
-            {
-              selectedFarm.__displayName
-            }
-          </h1>
-
-
-          <p
-            className="farm-services-subtitle"
-          >
-            اختر الخدمة التي تريدها لهذه المزرعة
-          </p>
-
-        </header>
-
-
-        <section
-          className="farm-services-grid"
-          aria-label="خدمات المزرعة"
-        >
-
-          {
-            FARM_SERVICES.map(
-              (
-                service
-              ) => (
-
-                <button
-                  key={
-                    service.id
-                  }
-                  type="button"
-                  className="farm-service-choice"
-                  onClick={() =>
-                    openService(
-                      service
-                    )
-                  }
-                  aria-label={
-                    `فتح ${service.title} لمزرعة ${selectedFarm.__displayName}`
-                  }
-                >
-
-                  <span
-                    className="farm-service-icon"
-                    aria-hidden="true"
-                  >
-                    {
-                      service.icon
+                  <button
+                    key={
+                      service.id
                     }
-                  </span>
-
-
-                  <span
-                    className="farm-service-name"
-                  >
-                    {
-                      service.title
+                    type="button"
+                    className="farm-service-choice"
+                    onClick={() =>
+                      openService(
+                        service
+                      )
                     }
-                  </span>
+                    aria-label={
+                      `فتح ${service.title}`
+                    }
+                  >
 
-                </button>
+                    <span
+                      className="farm-service-icon"
+                      aria-hidden="true"
+                    >
+                      {
+                        service.icon
+                      }
+                    </span>
 
+
+                    <span
+                      className="farm-service-name"
+                    >
+                      {
+                        service.title
+                      }
+                    </span>
+
+                  </button>
+
+                )
               )
-            )
-          }
+            }
 
-        </section>
+          </section>
+
+        </div>
 
       </main>
 
@@ -727,7 +728,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // Farms Selector
+  // FARMS SELECTOR
   // =======================================================
 
   return (
@@ -737,109 +738,174 @@ export default function Farms() {
       dir="rtl"
     >
 
-      <header
-        className="farms-selector-header"
+      <div
+        className="farms-page-content"
       >
 
-        <div
-          className="farms-selector-symbol"
-          aria-hidden="true"
+        <header
+          className="farms-selector-header"
         >
-          🌿
-        </div>
+
+          <div
+            className="farms-selector-symbol"
+            aria-hidden="true"
+          >
+            🌿
+          </div>
 
 
-        <h1
-          className="farms-selector-title"
+          <h1
+            className="farms-selector-title"
+          >
+            مزارعي
+          </h1>
+
+
+          <div
+            className="farms-selector-brand"
+          >
+            LAVENDER
+          </div>
+
+
+          <p
+            className="farms-selector-subtitle"
+          >
+            اختر المزرعة التي تريد الدخول إليها
+          </p>
+
+        </header>
+
+
+        <section
+          className="farms-selector-section"
         >
-          المزرعة الذكية
-        </h1>
+
+          <div
+            className="farms-selector-section-heading"
+          >
+
+            <h2
+              className="farms-selector-section-title"
+            >
+              مزارعك
+            </h2>
+
+            <span
+              className="farms-count"
+            >
+              {normalizedFarms.length}
+            </span>
+
+          </div>
 
 
-        <div
-          className="farms-selector-brand"
-        >
-          LAVENDER
-        </div>
+          <section
+            className="farms-grid"
+            aria-label="قائمة المزارع"
+          >
+
+            {
+              normalizedFarms.map(
+                (
+                  farm
+                ) => (
+
+                  <button
+                    key={
+                      String(
+                        farm.__displayId
+                      )
+                    }
+                    type="button"
+                    className="farm-choice"
+                    onClick={() =>
+                      openFarm(
+                        farm
+                      )
+                    }
+                    aria-label={
+                      `فتح ${farm.__displayName}`
+                    }
+                  >
+
+                    <span
+                      className="farm-choice-number"
+                      aria-hidden="true"
+                    >
+                      {
+                        farm.__number
+                      }
+                    </span>
 
 
-        <p
-          className="farms-selector-section-title"
-        >
-          مزارعي
-        </p>
+                    <span
+                      className="farm-choice-label"
+                    >
+                      مزرعة
+                    </span>
 
 
-        <p
-          className="farms-selector-subtitle"
-        >
-          اختر المزرعة التي تريد الدخول إليها
-        </p>
+                    <span
+                      className="farm-choice-name"
+                    >
+                      {
+                        farm.__displayName
+                      }
+                    </span>
 
-      </header>
+
+                    <span
+                      className="farm-choice-arrow"
+                      aria-hidden="true"
+                    >
+                      ←
+                    </span>
+
+                  </button>
+
+                )
+              )
+            }
 
 
-      <section
-        className="farms-grid"
-        aria-label="قائمة المزارع"
-      >
+            <button
+              type="button"
+              className="farm-choice farm-choice-add"
+              onClick={() =>
+                navigate("/farms/new")
+              }
+              aria-label="إضافة مزرعة جديدة"
+            >
 
-        {
-          normalizedFarms.map(
-            (
-              farm
-            ) => (
-
-              <button
-                key={
-                  String(
-                    farm.__displayId
-                  )
-                }
-                type="button"
-                className="farm-choice"
-                onClick={() =>
-                  openFarm(
-                    farm
-                  )
-                }
-                aria-label={
-                  `فتح ${farm.__displayName}`
-                }
+              <span
+                className="farm-choice-number"
+                aria-hidden="true"
               >
-
-                <span
-                  className="farm-choice-number"
-                  aria-hidden="true"
-                >
-                  {
-                    farm.__number
-                  }
-                </span>
+                +
+              </span>
 
 
-                <span
-                  className="farm-choice-label"
-                >
-                  مزرعة
-                </span>
+              <span
+                className="farm-choice-label"
+              >
+                إضافة
+              </span>
 
 
-                <span
-                  className="farm-choice-name"
-                >
-                  {
-                    farm.__displayName
-                  }
-                </span>
+              <span
+                className="farm-choice-name"
+              >
+                مزرعة جديدة
+              </span>
 
-              </button>
+            </button>
 
-            )
-          )
-        }
+          </section>
 
-      </section>
+        </section>
+
+      </div>
 
     </main>
 
