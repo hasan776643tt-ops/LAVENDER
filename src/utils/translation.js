@@ -1,4 +1,4 @@
- // src/utils/translation.js
+// src/utils/translation.js
 
 const translations = Object.freeze({
 
@@ -38,14 +38,20 @@ const translations = Object.freeze({
     // =======================================================
 
     home: Object.freeze({
-      title: "إدارة المزارع الذكية",
+      title:
+        "إدارة المزارع الذكية",
 
       description:
         "نظام ذكي لإدارة المزارع والمحاصيل والري والأسمدة.",
 
-      start: "ابدأ الآن",
-      login: "تسجيل دخول",
-      services: "الخدمات"
+      start:
+        "ابدأ الآن",
+
+      login:
+        "تسجيل دخول",
+
+      services:
+        "الخدمات"
     }),
 
     // =======================================================
@@ -53,18 +59,29 @@ const translations = Object.freeze({
     // =======================================================
 
     contact: Object.freeze({
-      title: "تواصل معنا",
+      title:
+        "تواصل معنا",
 
-      name: "الاسم",
-      namePlaceholder: "اكتب اسمك",
+      name:
+        "الاسم",
 
-      email: "البريد الإلكتروني",
-      emailPlaceholder: "example@email.com",
+      namePlaceholder:
+        "اكتب اسمك",
 
-      message: "الرسالة",
-      messagePlaceholder: "اكتب رسالتك هنا",
+      email:
+        "البريد الإلكتروني",
 
-      send: "إرسال",
+      emailPlaceholder:
+        "example@email.com",
+
+      message:
+        "الرسالة",
+
+      messagePlaceholder:
+        "اكتب رسالتك هنا",
+
+      send:
+        "إرسال",
 
       required:
         "يرجى تعبئة جميع الحقول.",
@@ -84,7 +101,8 @@ const translations = Object.freeze({
     // =======================================================
 
     settings: Object.freeze({
-      title: "إعدادات النظام",
+      title:
+        "إعدادات النظام",
 
       global:
         "الإعدادات العالمية",
@@ -116,9 +134,14 @@ const translations = Object.freeze({
     // =======================================================
 
     language: Object.freeze({
-      ar: "العربية",
-      en: "الإنجليزية",
-      tr: "التركية"
+      ar:
+        "العربية",
+
+      en:
+        "الإنجليزية",
+
+      tr:
+        "التركية"
     }),
 
     // =======================================================
@@ -126,12 +149,23 @@ const translations = Object.freeze({
     // =======================================================
 
     country: Object.freeze({
-      SY: "سوريا",
-      TR: "تركيا",
-      SA: "السعودية",
-      AE: "الإمارات",
-      US: "الولايات المتحدة",
-      FR: "فرنسا"
+      SY:
+        "سوريا",
+
+      TR:
+        "تركيا",
+
+      SA:
+        "السعودية",
+
+      AE:
+        "الإمارات",
+
+      US:
+        "الولايات المتحدة",
+
+      FR:
+        "فرنسا"
     }),
 
     // =======================================================
@@ -139,12 +173,23 @@ const translations = Object.freeze({
     // =======================================================
 
     currency: Object.freeze({
-      SYP: "الليرة السورية",
-      TRY: "الليرة التركية",
-      SAR: "الريال السعودي",
-      AED: "الدرهم الإماراتي",
-      USD: "الدولار الأمريكي",
-      EUR: "اليورو"
+      SYP:
+        "الليرة السورية",
+
+      TRY:
+        "الليرة التركية",
+
+      SAR:
+        "الريال السعودي",
+
+      AED:
+        "الدرهم الإماراتي",
+
+      USD:
+        "الدولار الأمريكي",
+
+      EUR:
+        "اليورو"
     }),
 
     // =======================================================
@@ -152,14 +197,29 @@ const translations = Object.freeze({
     // =======================================================
 
     unit: Object.freeze({
-      dunum: "دونم",
-      hectare: "هكتار",
-      acre: "فدان",
-      sqm: "متر مربع",
-      kg: "كيلوغرام",
-      ton: "طن",
-      liter: "لتر",
-      cubic_meter: "متر مكعب"
+      dunum:
+        "دونم",
+
+      hectare:
+        "هكتار",
+
+      acre:
+        "فدان",
+
+      sqm:
+        "متر مربع",
+
+      kg:
+        "كيلوغرام",
+
+      ton:
+        "طن",
+
+      liter:
+        "لتر",
+
+      cubic_meter:
+        "متر مكعب"
     }),
 
     // =======================================================
@@ -186,11 +246,40 @@ const translations = Object.freeze({
       waterSource:
         "مصدر المياه",
 
+      // =====================================================
+      // معلومات الموقع
+      // =====================================================
+
+      village:
+        "اسم القرية",
+
+      region:
+        "اسم المنطقة",
+
+      placeName:
+        "اسم المكان",
+
+      villagePlaceholder:
+        "اكتب اسم القرية",
+
+      regionPlaceholder:
+        "اكتب اسم المنطقة",
+
+      placeNamePlaceholder:
+        "اكتب اسم المكان",
+
+      // =====================================================
+      // GPS
+      // =====================================================
+
       getGPS:
         "تحديد موقعي الحالي",
 
       locating:
         "جارٍ تحديد الموقع...",
+
+      locationDetected:
+        "تم تحديد الموقع بنجاح.",
 
       latitude:
         "خط العرض",
@@ -207,11 +296,19 @@ const translations = Object.freeze({
       locationTime:
         "وقت تحديد الموقع",
 
+      // =====================================================
+      // الملاحظات
+      // =====================================================
+
       notes:
         "ملاحظات",
 
       notesPlaceholder:
         "اكتب ملاحظات حول الموقع",
+
+      // =====================================================
+      // الحفظ
+      // =====================================================
 
       save:
         "حفظ الموقع",
@@ -230,6 +327,10 @@ const translations = Object.freeze({
 
       noLocations:
         "لا توجد مواقع محفوظة حتى الآن.",
+
+      // =====================================================
+      // الرسائل
+      // =====================================================
 
       locationSuccess:
         "تم تحديد الموقع بنجاح.",
@@ -420,7 +521,9 @@ const translations = Object.freeze({
         "جميع الحقوق محفوظة"
     })
 
-  }),    // =========================================================
+  }),
+
+  // =========================================================
   // English
   // =========================================================
 
@@ -664,11 +767,40 @@ const translations = Object.freeze({
       waterSource:
         "Water Source",
 
+      // =====================================================
+      // Location Information
+      // =====================================================
+
+      village:
+        "Village Name",
+
+      region:
+        "Region Name",
+
+      placeName:
+        "Place Name",
+
+      villagePlaceholder:
+        "Enter village name",
+
+      regionPlaceholder:
+        "Enter region name",
+
+      placeNamePlaceholder:
+        "Enter place name",
+
+      // =====================================================
+      // GPS
+      // =====================================================
+
       getGPS:
         "Get My Current Location",
 
       locating:
         "Locating...",
+
+      locationDetected:
+        "Location detected successfully.",
 
       latitude:
         "Latitude",
@@ -685,11 +817,19 @@ const translations = Object.freeze({
       locationTime:
         "Location Time",
 
+      // =====================================================
+      // Notes
+      // =====================================================
+
       notes:
         "Notes",
 
       notesPlaceholder:
         "Write notes about the location",
+
+      // =====================================================
+      // Save
+      // =====================================================
 
       save:
         "Save Location",
@@ -708,6 +848,10 @@ const translations = Object.freeze({
 
       noLocations:
         "No saved locations yet.",
+
+      // =====================================================
+      // Messages
+      // =====================================================
 
       locationSuccess:
         "Location detected successfully.",
@@ -898,7 +1042,9 @@ const translations = Object.freeze({
         "All rights reserved"
     })
 
-  }),    // =========================================================
+  }),
+
+  // =========================================================
   // Türkçe
   // =========================================================
 
@@ -1142,11 +1288,40 @@ const translations = Object.freeze({
       waterSource:
         "Su Kaynağı",
 
+      // =====================================================
+      // Konum Bilgileri
+      // =====================================================
+
+      village:
+        "Köy Adı",
+
+      region:
+        "Bölge Adı",
+
+      placeName:
+        "Yer Adı",
+
+      villagePlaceholder:
+        "Köy adını yazın",
+
+      regionPlaceholder:
+        "Bölge adını yazın",
+
+      placeNamePlaceholder:
+        "Yer adını yazın",
+
+      // =====================================================
+      // GPS
+      // =====================================================
+
       getGPS:
         "Mevcut Konumumu Belirle",
 
       locating:
         "Konum belirleniyor...",
+
+      locationDetected:
+        "Konum başarıyla belirlendi.",
 
       latitude:
         "Enlem",
@@ -1163,11 +1338,19 @@ const translations = Object.freeze({
       locationTime:
         "Konum Zamanı",
 
+      // =====================================================
+      // Notlar
+      // =====================================================
+
       notes:
         "Notlar",
 
       notesPlaceholder:
         "Konum hakkında not yazın",
+
+      // =====================================================
+      // Kaydet
+      // =====================================================
 
       save:
         "Konumu Kaydet",
@@ -1186,6 +1369,10 @@ const translations = Object.freeze({
 
       noLocations:
         "Henüz kayıtlı konum yok.",
+
+      // =====================================================
+      // Mesajlar
+      // =====================================================
 
       locationSuccess:
         "Konum başarıyla belirlendi.",
@@ -1380,6 +1567,7 @@ const translations = Object.freeze({
 
 });
 
+
 // =========================================================
 // Nested Translation
 // =========================================================
@@ -1398,6 +1586,7 @@ const getNestedValue = (
     );
 
 };
+
 
 // =========================================================
 // Translate
@@ -1421,5 +1610,6 @@ export function translate(
   return value ?? key;
 
 }
+
 
 export default translate;
