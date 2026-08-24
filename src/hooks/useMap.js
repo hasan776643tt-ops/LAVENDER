@@ -61,6 +61,27 @@ export default function useMap() {
   const [locationType, setLocationType] =
     useState("farm");
 
+
+  // =========================================================
+  // Human-readable location data
+  // =========================================================
+
+  const [village, setVillage] =
+    useState("");
+
+  const [region, setRegion] =
+    useState("");
+
+  const [placeName, setPlaceName] =
+    useState("");
+
+
+  // =========================================================
+  // GPS data
+  // الإحداثيات تبقى داخل النظام
+  // ولا نطلب من الفلاح إدخالها يدويًا
+  // =========================================================
+
   const [latitude, setLatitude] =
     useState("");
 
@@ -72,6 +93,11 @@ export default function useMap() {
 
   const [locationTime, setLocationTime] =
     useState("");
+
+
+  // =========================================================
+  // Notes / Loading
+  // =========================================================
 
   const [notes, setNotes] =
     useState("");
@@ -144,7 +170,9 @@ export default function useMap() {
 
 
         if (!mounted) {
+
           return;
+
         }
 
 
@@ -344,6 +372,10 @@ export default function useMap() {
 
   const addLocation = async () => {
 
+    // -------------------------------------------------------
+    // Farm
+    // -------------------------------------------------------
+
     if (!farmId) {
 
       alert(
@@ -355,6 +387,10 @@ export default function useMap() {
     }
 
 
+    // -------------------------------------------------------
+    // GPS
+    // -------------------------------------------------------
+
     if (
       !latitude ||
       !longitude
@@ -362,6 +398,43 @@ export default function useMap() {
 
       alert(
         t("coordinatesRequired")
+      );
+
+      return;
+
+    }
+
+
+    // -------------------------------------------------------
+    // Place information
+    // -------------------------------------------------------
+
+    if (!village.trim()) {
+
+      alert(
+        t("villageRequired")
+      );
+
+      return;
+
+    }
+
+
+    if (!region.trim()) {
+
+      alert(
+        t("regionRequired")
+      );
+
+      return;
+
+    }
+
+
+    if (!placeName.trim()) {
+
+      alert(
+        t("placeNameRequired")
       );
 
       return;
@@ -379,6 +452,10 @@ export default function useMap() {
       );
 
 
+    // =======================================================
+    // Location Data
+    // =======================================================
+
     const locationData = {
 
       farmId,
@@ -388,30 +465,57 @@ export default function useMap() {
         t("farm"),
 
 
+      // -----------------------------------------------
+      // Human readable location
+      // -----------------------------------------------
+
+      village:
+        village.trim(),
+
+      region:
+        region.trim(),
+
+      placeName:
+        placeName.trim(),
+
+
+      // -----------------------------------------------
+      // Location type
+      // -----------------------------------------------
+
       type:
         locationType,
 
+
+      // -----------------------------------------------
+      // GPS
+      // -----------------------------------------------
 
       latitude,
 
       longitude,
 
-
       accuracy,
 
 
-      notes,
+      // -----------------------------------------------
+      // Additional data
+      // -----------------------------------------------
 
+      notes,
 
       createdAt:
         locationTime,
-
 
       status:
         "active"
 
     };
 
+
+    // =====================================================
+    // Save
+    // =====================================================
 
     try {
 
@@ -439,13 +543,21 @@ export default function useMap() {
       }
 
 
-      // =====================================================
+      // ===================================================
       // Reset Form
-      // =====================================================
+      // ===================================================
 
       setFarmId("");
 
       setLocationType("farm");
+
+
+      setVillage("");
+
+      setRegion("");
+
+      setPlaceName("");
+
 
       setLatitude("");
 
@@ -584,19 +696,38 @@ export default function useMap() {
     setLocationType,
 
 
+    // -----------------------------------------------
+    // Human readable location
+    // -----------------------------------------------
+
+    village,
+    setVillage,
+
+    region,
+    setRegion,
+
+    placeName,
+    setPlaceName,
+
+
+    // -----------------------------------------------
+    // GPS
+    // -----------------------------------------------
+
     latitude,
     setLatitude,
-
 
     longitude,
     setLongitude,
 
-
     accuracy,
-
 
     locationTime,
 
+
+    // -----------------------------------------------
+    // Notes
+    // -----------------------------------------------
 
     notes,
     setNotes,
