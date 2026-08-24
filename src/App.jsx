@@ -1,38 +1,46 @@
 // src/App.jsx
 
-
 import {
   Routes,
   Route
 } from "react-router-dom";
 
-
 import {
   Suspense
 } from "react";
 
-
 import MainLayout from "./layouts/MainLayout";
-
 
 import routes from "./routes";
 
 
-
-// صفحة تحميل مؤقتة
+// =========================================================
+// Loading Screen
+// =========================================================
 
 function Loading() {
 
   return (
 
     <div
-      style={{
-        padding: "2rem",
-        textAlign: "center"
-      }}
+      className="app-loading"
+      dir="rtl"
     >
 
-      جاري التحميل...
+      <div
+        className="app-loading-icon"
+        aria-hidden="true"
+      >
+        🌿
+      </div>
+
+      <h2>
+        LAVENDER
+      </h2>
+
+      <p>
+        جاري التحميل...
+      </p>
 
     </div>
 
@@ -41,19 +49,25 @@ function Loading() {
 }
 
 
-
-// صفحة غير موجودة
+// =========================================================
+// 404
+// =========================================================
 
 function NotFound() {
 
   return (
 
     <div
-      style={{
-        padding: "2rem",
-        textAlign: "center"
-      }}
+      className="app-not-found"
+      dir="rtl"
     >
+
+      <div
+        className="app-not-found-icon"
+        aria-hidden="true"
+      >
+        🌱
+      </div>
 
       <h1>
         404
@@ -70,30 +84,30 @@ function NotFound() {
 }
 
 
-
+// =========================================================
+// APP
+// =========================================================
 
 export default function App() {
-
 
   return (
 
     <MainLayout>
 
       <Suspense
-        fallback={<Loading />}
+        fallback={
+          <Loading />
+        }
       >
 
         <Routes>
 
-
           {
 
             routes.map(
-
               (route) => (
 
                 <Route
-
                   key={
                     route.path
                   }
@@ -103,37 +117,27 @@ export default function App() {
                   }
 
                   element={
-
                     <route.element />
-
                   }
 
                 />
 
               )
-
             )
 
           }
 
 
-
           <Route
-
             path="*"
-
             element={
               <NotFound />
             }
-
           />
-
 
         </Routes>
 
-
       </Suspense>
-
 
     </MainLayout>
 
