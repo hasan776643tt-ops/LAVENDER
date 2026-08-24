@@ -3,625 +3,1034 @@
 import {
   useContext,
   useState,
-  useMemo
+  useMemo,
 } from "react";
 
 import {
-  FarmContext
+  useNavigate,
+} from "react-router-dom";
+
+import {
+  FarmContext,
 } from "../context/FarmContext";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
 
-export default function Farms(){
+// =========================================================
+// Farm Page
+// =========================================================
 
-const {
+export default function Farms() {
 
-farms,
+  const navigate =
+    useNavigate();
 
-farmActions
 
-}=useContext(FarmContext);
+  const {
+    farms = [],
+    farmActions,
+  } =
+    useContext(FarmContext);
 
 
+  // =======================================================
+  // Empty Form
+  // =======================================================
 
-const emptyForm = {
+  const emptyForm = {
 
-name:"",
-owner:"",
-area:"",
-location:"",
-latitude:"",
-longitude:"",
-cropType:"",
-irrigationType:"",
-plantingDate:"",
-notes:""
+    name: "",
+    owner: "",
+    area: "",
+    location: "",
+    latitude: "",
+    longitude: "",
+    cropType: "",
+    irrigationType: "",
+    plantingDate: "",
+    notes: "",
 
-};
+  };
 
 
+  // =======================================================
+  // State
+  // =======================================================
 
-const [form,setForm]=
-useState(emptyForm);
+  const [
+    form,
+    setForm,
+  ] = useState(
+    emptyForm
+  );
 
 
+  const [
+    editId,
+    setEditId,
+  ] = useState(null);
 
-const [editId,setEditId]=
-useState(null);
 
+  const [
+    search,
+    setSearch,
+  ] = useState("");
 
 
-const [search,setSearch]=
-useState("");
+  const [
+    openedFarmId,
+    setOpenedFarmId,
+  ] = useState(null);
 
 
+  // =======================================================
+  // Change Handler
+  // =======================================================
 
+  const handleChange = (
+    event
+  ) => {
 
+    const {
+      name,
+      value,
+    } = event.target;
 
-// =====================
-// Change Handler
-// =====================
 
-const handleChange=(e)=>{
+    setForm(
+      (previous) => ({
 
-setForm({
+        ...previous,
 
-...form,
+        [name]:
+          value,
 
-[e.target.name]:
-e.target.value
+      })
+    );
 
-});
+  };
 
-};
 
+  // =======================================================
+  // GPS
+  // =======================================================
 
+  const getCurrentLocation =
+    () => {
 
+      if (
+        !navigator.geolocation
+      ) {
 
+        alert(
+          "GPS غير مدعوم في هذا الجهاز."
+        );
 
-// =====================
-// GPS
-// =====================
+        return;
 
-const getCurrentLocation=()=>{
+      }
 
 
-if(!navigator.geolocation){
+      navigator.geolocation.getCurrentPosition(
 
-alert(
-"GPS غير مدعوم"
-);
+        (position) => {
 
-return;
+          const {
+            latitude,
+            longitude,
+          } =
+            position.coords;
 
-}
 
+          setForm(
+            (previous) => ({
 
+              ...previous,
 
-navigator.geolocation.getCurrentPosition(
+              latitude:
+                latitude,
 
-(position)=>{
+              longitude:
+                longitude,
 
+              location:
+                `${latitude}, ${longitude}`,
 
-const {
+            })
+          );
 
-latitude,
+        },
 
-longitude
+        () => {
 
-}=position.coords;
+          alert(
+            "تعذر تحديد موقع المزرعة."
+          );
 
+        },
 
+        {
 
-setForm(prev=>({
+          enableHighAccuracy:
+            true,
 
-...prev,
+          timeout:
+            15000,
 
-latitude,
+          maximumAge:
+            0,
 
-longitude,
+        }
 
-location:
-`${latitude}, ${longitude}`
+      );
 
-}));
+    };
 
 
+  // =======================================================
+  // Reset Form
+  // =======================================================
 
-},
+  const clearForm = () => {
 
+    setForm(
+      emptyForm
+    );
 
-()=>{
+    setEditId(
+      null
+    );
 
-alert(
-"تعذر تحديد الموقع"
-);
+  };
 
-}
 
-);
+  // =======================================================
+  // Save Farm
+  // =======================================================
 
+  const saveFarm = () => {
 
-};
+    if (
+      !form.name ||
+      !form.owner
+    ) {
 
+      alert(
+        "يرجى كتابة اسم المزرعة واسم المالك."
+      );
 
+      return;
 
+    }
 
 
-// =====================
-// Reset
-// =====================
+    if (editId) {
 
-const clearForm=()=>{
+      farmActions.update(
+        editId,
+        form
+      );
 
-setForm(emptyForm);
+    } else {
 
-setEditId(null);
+      farmActions.create({
 
-};
+        ...form,
 
+        created:
+          new Date().toISOString(),
 
+      });
 
+    }
 
 
-// =====================
-// Save
-// =====================
+    clearForm();
 
-const saveFarm=()=>{
+  };
 
 
-if(
-!form.name ||
-!form.owner
-)
-return;
+  // =======================================================
+  // Edit Farm
+  // =======================================================
 
+  const editFarm = (
+    farm
+  ) => {
 
+    setForm({
 
-if(editId){
+      name:
+        farm.name || "",
 
+      owner:
+        farm.owner || "",
 
-farmActions.update(
-  editId,
-  form
-);
+      area:
+        farm.area || "",
 
+      location:
+        farm.location || "",
 
-}else{
+      latitude:
+        farm.latitude || "",
 
+      longitude:
+        farm.longitude || "",
 
-farmActions.create({
-  ...form,
-  created:
-  new Date().toISOString()
-});
+      cropType:
+        farm.cropType || "",
 
+      irrigationType:
+        farm.irrigationType || "",
 
-}
+      plantingDate:
+        farm.plantingDate || "",
 
+      notes:
+        farm.notes || "",
 
+    });
 
-clearForm();
 
+    setEditId(
+      farm.id
+    );
 
-};  // =====================
-// Edit Farm
-// =====================
 
-const editFarm = (farm)=>{
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
 
+  };
 
-setForm({
 
-name:farm.name || "",
+  // =======================================================
+  // Search
+  // =======================================================
 
-owner:farm.owner || "",
+  const filteredFarms =
+    useMemo(() => {
 
-area:farm.area || "",
+      const value =
+        search
+          .trim()
+          .toLowerCase();
 
-location:farm.location || "",
 
-latitude:farm.latitude || "",
+      if (!value) {
 
-longitude:farm.longitude || "",
+        return farms;
 
-cropType:farm.cropType || "",
+      }
 
-irrigationType:
-farm.irrigationType || "",
 
-plantingDate:
-farm.plantingDate || "",
+      return farms.filter(
+        (farm) => {
 
-notes:farm.notes || ""
+          const name =
+            String(
+              farm.name || ""
+            ).toLowerCase();
 
-});
 
+          const owner =
+            String(
+              farm.owner || ""
+            ).toLowerCase();
 
-setEditId(
-farm.id
-);
 
+          return (
+            name.includes(value) ||
+            owner.includes(value)
+          );
 
-};
+        }
+      );
 
+    }, [
+      farms,
+      search,
+    ]);
 
 
+  // =======================================================
+  // Toggle Farm
+  // =======================================================
 
+  const toggleFarm = (
+    farmId
+  ) => {
 
-// =====================
-// Search
-// =====================
+    setOpenedFarmId(
+      (currentId) =>
+        currentId === farmId
+          ? null
+          : farmId
+    );
 
-const filteredFarms =
+  };
 
-useMemo(()=>{
 
+  // =======================================================
+  // Open Farm Module
+  // =======================================================
 
-return farms.filter(farm=>
+  const openFarmModule = (
+    path,
+    farm
+  ) => {
 
+    /*
+     * نحفظ المزرعة المختارة مؤقتًا
+     * حتى تعرف الصفحات الأخرى أي مزرعة اختار المستخدم.
+     */
 
-farm.name
+    try {
 
-?.toLowerCase()
+      sessionStorage.setItem(
+        "lavender_selected_farm",
+        JSON.stringify({
+          id: farm.id,
+          name: farm.name,
+        })
+      );
 
-.includes(
+    } catch {
 
-search.toLowerCase()
+      // لا نوقف التطبيق إذا كان sessionStorage غير متاح.
 
-)
+    }
 
 
-);
+    navigate(
+      path
+    );
 
+  };
 
-},[
-farms,
-search
-]);
 
+  // =======================================================
+  // Render Module Button
+  // =======================================================
 
+  const ModuleButton = ({
+    icon,
+    label,
+    path,
+    farm,
+  }) => (
 
+    <button
 
+      type="button"
 
-// =====================
-// UI
-// =====================
+      className="farm-module-button"
 
+      onClick={() =>
+        openFarmModule(
+          path,
+          farm
+        )
+      }
 
-return (
+    >
 
-<div>
+      <span
+        className="farm-module-icon"
+      >
+        {icon}
+      </span>
 
+      <span
+        className="farm-module-label"
+      >
+        {label}
+      </span>
 
-<h1>
-🌱 إدارة المزارع الذكية
-</h1>
+    </button>
 
+  );
 
 
-<Card
+  // =======================================================
+  // UI
+  // =======================================================
 
-title={
+  return (
 
-editId
+    <div
+      className="farms-page"
+    >
 
-?
+      {/* ===================================================
+          Page Title
+      ==================================================== */}
 
-"✏️ تعديل المزرعة"
+      <div
+        className="farms-page-heading"
+      >
 
-:
+        <h1>
+          🌾 إدارة المزارع
+        </h1>
 
-"➕ إضافة مزرعة"
+        <p>
+          اختر المزرعة التي تريد إدارة أعمالها
+        </p>
 
-}
+      </div>
 
->
 
+      {/* ===================================================
+          Add / Edit Farm
+      ==================================================== */}
 
-<input
+      <Card
 
-name="name"
+        title={
+          editId
+            ? "✏️ تعديل المزرعة"
+            : "➕ إضافة مزرعة جديدة"
+        }
 
-placeholder="اسم المزرعة"
+      >
 
-value={form.name}
+        <input
+          name="name"
+          placeholder="اسم المزرعة"
+          value={
+            form.name
+          }
+          onChange={
+            handleChange
+          }
+        />
 
-onChange={handleChange}
 
-/>
+        <input
+          name="owner"
+          placeholder="اسم المالك"
+          value={
+            form.owner
+          }
+          onChange={
+            handleChange
+          }
+        />
 
 
+        <input
+          name="area"
+          type="number"
+          placeholder="📏 المساحة بالدونم"
+          value={
+            form.area
+          }
+          onChange={
+            handleChange
+          }
+        />
 
-<input
 
-name="owner"
+        <input
+          name="location"
+          placeholder="📍 موقع المزرعة"
+          value={
+            form.location
+          }
+          readOnly
+        />
 
-placeholder="اسم المالك"
 
-value={form.owner}
+        <Button
+          onClick={
+            getCurrentLocation
+          }
+        >
+          📍 تحديد موقع المزرعة
+        </Button>
 
-onChange={handleChange}
 
-/>
+        <input
+          name="cropType"
+          placeholder="🌱 نوع المحصول"
+          value={
+            form.cropType
+          }
+          onChange={
+            handleChange
+          }
+        />
 
 
+        <input
+          name="irrigationType"
+          placeholder="💧 نوع الري"
+          value={
+            form.irrigationType
+          }
+          onChange={
+            handleChange
+          }
+        />
 
-<input
 
-name="area"
+        <input
+          name="plantingDate"
+          type="date"
+          value={
+            form.plantingDate
+          }
+          onChange={
+            handleChange
+          }
+        />
 
-type="number"
 
-placeholder="المساحة بالدونم"
+        <textarea
+          name="notes"
+          placeholder="📝 ملاحظات"
+          value={
+            form.notes
+          }
+          onChange={
+            handleChange
+          }
+        />
 
-value={form.area}
 
-onChange={handleChange}
+        <Button
+          onClick={
+            saveFarm
+          }
+        >
 
-/>
+          {
+            editId
+              ? "💾 حفظ التعديل"
+              : "🌱 إضافة المزرعة"
+          }
 
+        </Button>
 
 
-<input
+        {editId && (
 
-name="location"
+          <Button
+            onClick={
+              clearForm
+            }
+          >
+            إلغاء التعديل
+          </Button>
 
-placeholder="📍 موقع المزرعة"
+        )}
 
-value={form.location}
+      </Card>
 
-readOnly
 
-/>
+      {/* ===================================================
+          Search
+      ==================================================== */}
 
+      <Card
+        title="🔎 البحث عن مزرعة"
+      >
 
+        <input
 
-<Button
+          type="search"
 
-onClick={getCurrentLocation}
+          placeholder="اكتب اسم المزرعة أو المالك"
 
->
+          value={
+            search
+          }
 
-📍 تحديد الموقع
+          onChange={
+            (event) =>
+              setSearch(
+                event.target.value
+              )
+          }
 
-</Button>
+        />
 
+      </Card>
 
 
+      {/* ===================================================
+          Farms Count
+      ==================================================== */}
 
-<input
+      <div
+        className="farms-count"
+      >
 
-name="cropType"
+        🚜 عدد المزارع:
+        {" "}
+        <strong>
+          {filteredFarms.length}
+        </strong>
 
-placeholder="🌱 نوع المحصول"
+      </div>
 
-value={form.cropType}
 
-onChange={handleChange}
+      {/* ===================================================
+          Farms
+      ==================================================== */}
 
-/>
+      <div
+        className="farms-list"
+      >
 
+        {filteredFarms.length === 0 ? (
 
+          <Card>
 
+            <div
+              className="farms-empty"
+            >
 
-<input
+              🌱 لا توجد مزارع مطابقة للبحث.
 
-name="irrigationType"
+            </div>
 
-placeholder="💧 نوع الري"
+          </Card>
 
-value={form.irrigationType}
+        ) : (
 
-onChange={handleChange}
+          filteredFarms.map(
+            (farm, index) => {
 
-/>
+              const isOpen =
+                openedFarmId ===
+                farm.id;
 
 
+              return (
 
-<input
+                <section
 
-name="plantingDate"
+                  key={
+                    farm.id
+                  }
 
-type="date"
+                  className={
+                    isOpen
+                      ? "farm-card farm-card-open"
+                      : "farm-card"
+                  }
 
-value={form.plantingDate}
+                >
 
-onChange={handleChange}
+                  {/* =======================================
+                      Farm Header
+                  ======================================== */}
 
-/>
+                  <button
 
+                    type="button"
 
+                    className="farm-card-main"
 
+                    onClick={() =>
+                      toggleFarm(
+                        farm.id
+                      )
+                    }
 
-<textarea
+                  >
 
-name="notes"
+                    <div
+                      className="farm-card-icon"
+                    >
+                      🌾
+                    </div>
 
-placeholder="ملاحظات"
 
-value={form.notes}
+                    <div
+                      className="farm-card-info"
+                    >
 
-onChange={handleChange}
+                      <h2>
 
-/>
+                        {farm.name ||
+                          `المزرعة ${index + 1}`}
 
+                      </h2>
 
 
+                      <p>
 
-<Button
+                        👤{" "}
+                        {farm.owner ||
+                          "مالك المزرعة"}
 
-onClick={saveFarm}
+                      </p>
 
->
 
-{
+                      <div
+                        className="farm-card-summary"
+                      >
 
-editId
+                        {farm.area && (
 
-?
+                          <span>
+                            📏 {farm.area} دونم
+                          </span>
 
-"حفظ التعديل"
+                        )}
 
-:
 
-"إضافة المزرعة"
+                        {farm.cropType && (
 
-}
+                          <span>
+                            🌱 {farm.cropType}
+                          </span>
 
-</Button>
+                        )}
 
+                      </div>
 
-</Card>
+                    </div>
 
 
+                    <div
+                      className="farm-card-arrow"
+                    >
 
+                      {isOpen
+                        ? "⌃"
+                        : "⌄"}
 
+                    </div>
 
-<Card
+                  </button>
 
-title="🔎 البحث"
 
->
+                  {/* =======================================
+                      Farm Details
+                  ======================================== */}
 
+                  {isOpen && (
 
-<input
+                    <div
+                      className="farm-card-content"
+                    >
 
-placeholder="ابحث عن مزرعة"
+                      <div
+                        className="farm-details"
+                      >
 
-value={search}
+                        {farm.location && (
 
-onChange={e=>
+                          <p>
+                            📍{" "}
+                            <strong>
+                              الموقع:
+                            </strong>{" "}
+                            {farm.location}
+                          </p>
 
-setSearch(
-e.target.value
-)
+                        )}
 
-}
 
-/>
+                        {farm.irrigationType && (
 
+                          <p>
+                            💧{" "}
+                            <strong>
+                              الري:
+                            </strong>{" "}
+                            {farm.irrigationType}
+                          </p>
 
-</Card>
+                        )}
 
 
+                        {farm.plantingDate && (
 
+                          <p>
+                            📅{" "}
+                            <strong>
+                              تاريخ الزراعة:
+                            </strong>{" "}
+                            {farm.plantingDate}
+                          </p>
 
+                        )}
 
-<h2>
-🚜 قائمة المزارع
-</h2>
 
+                        {farm.notes && (
 
+                          <p>
+                            📝{" "}
+                            {farm.notes}
+                          </p>
 
+                        )}
 
-{
+                      </div>
 
-filteredFarms.map(farm=>(
 
+                      {/* =====================================
+                          Farm Modules
+                      ====================================== */}
 
-<Card
+                      <h3
+                        className="farm-options-title"
+                      >
+                        🌿 ماذا تريد أن تدير؟
+                      </h3>
 
-key={farm.id}
 
-title={
-`🚜 ${farm.name}`
-}
+                      <div
+                        className="farm-modules-grid"
+                      >
 
->
+                        <ModuleButton
+                          icon="🌱"
+                          label="المحاصيل"
+                          path="/crops"
+                          farm={farm}
+                        />
 
 
-<p>
-👤 المالك:
-{farm.owner}
-</p>
+                        <ModuleButton
+                          icon="💧"
+                          label="الري"
+                          path="/irrigation"
+                          farm={farm}
+                        />
 
 
-<p>
-📏 المساحة:
-{farm.area} دونم
-</p>
+                        <ModuleButton
+                          icon="🧪"
+                          label="الأسمدة"
+                          path="/fertilizers"
+                          farm={farm}
+                        />
 
 
+                        <ModuleButton
+                          icon="🛡️"
+                          label="المبيدات"
+                          path="/pesticides"
+                          farm={farm}
+                        />
 
-<p>
-📍 الموقع:
-{farm.location}
-</p>
 
+                        <ModuleButton
+                          icon="🦠"
+                          label="الأمراض"
+                          path="/diseases"
+                          farm={farm}
+                        />
 
 
-<p>
-🌱 المحصول:
-{farm.cropType}
-</p>
+                        <ModuleButton
+                          icon="🌤️"
+                          label="الطقس"
+                          path="/weather"
+                          farm={farm}
+                        />
 
 
+                        <ModuleButton
+                          icon="🗺️"
+                          label="الخريطة"
+                          path="/map"
+                          farm={farm}
+                        />
 
-<p>
-💧 الري:
-{farm.irrigationType}
-</p>
 
+                        <ModuleButton
+                          icon="💰"
+                          label="المصروفات"
+                          path="/expenses"
+                          farm={farm}
+                        />
 
 
-<p>
-📅 تاريخ الزراعة:
-{farm.plantingDate}
-</p>
+                        <ModuleButton
+                          icon="🌽"
+                          label="الحصاد"
+                          path="/harvest"
+                          farm={farm}
+                        />
 
 
+                        <ModuleButton
+                          icon="📦"
+                          label="المخزون"
+                          path="/inventory"
+                          farm={farm}
+                        />
 
-<p>
-📝 {farm.notes}
-</p>
 
+                        <ModuleButton
+                          icon="👨‍🌾"
+                          label="المرشد الزراعي"
+                          path="/engineer"
+                          farm={farm}
+                        />
 
+                      </div>
 
 
-<Button
+                      {/* =====================================
+                          Farm Actions
+                      ====================================== */}
 
-onClick={()=>editFarm(farm)}
+                      <div
+                        className="farm-card-actions"
+                      >
 
->
+                        <Button
+                          onClick={() =>
+                            editFarm(
+                              farm
+                            )
+                          }
+                        >
+                          ✏️ تعديل
+                        </Button>
 
-تعديل
 
-</Button>
+                        <Button
+                          onClick={() =>
+                            farmActions.delete(
+                              farm.id
+                            )
+                          }
+                        >
+                          🗑️ حذف
+                        </Button>
 
+                      </div>
 
+                    </div>
 
+                  )}
 
-<Button
+                </section>
 
-onClick={() =>
-  farmActions.delete(farm.id)
-}
+              );
 
->
+            }
+          )
 
-حذف
+        )}
 
-</Button>
+      </div>
 
+    </div>
 
-
-</Card>
-
-
-))
-
-
-}
-
-
-
-</div>
-
-);
-
+  );
 
 }
