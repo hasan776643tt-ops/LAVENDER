@@ -2,7 +2,7 @@
 
 import {
   useEffect,
-  useState
+  useState,
 } from "react";
 
 import mapService
@@ -12,11 +12,11 @@ import farmService
   from "../services/farmService.js";
 
 import {
-  translate
+  translate,
 } from "../utils/translation";
 
 import {
-  useSettings
+  useSettings,
 } from "../context/SettingsContext";
 
 
@@ -27,7 +27,7 @@ export default function useMap() {
   // =========================================================
 
   const {
-    settings
+    settings,
   } = useSettings();
 
   const language =
@@ -70,8 +70,8 @@ export default function useMap() {
   // =========================================================
   // Location Mode
   //
-  // gps    = automatic phone location
-  // manual = user selects location on map
+  // gps    = phone GPS
+  // manual = user selected location on map
   // =========================================================
 
   const [locationMode, setLocationMode] =
@@ -81,8 +81,9 @@ export default function useMap() {
   // =========================================================
   // Human-readable Location
   //
-  // These are descriptive only.
-  // They are NOT the real geographic location.
+  // IMPORTANT:
+  // These values describe the location only.
+  // They NEVER determine the coordinates.
   // =========================================================
 
   const [village, setVillage] =
@@ -96,9 +97,9 @@ export default function useMap() {
 
 
   // =========================================================
-  // GPS / Coordinates
+  // REAL Coordinates
   //
-  // latitude + longitude are the authoritative location.
+  // These are authoritative.
   // =========================================================
 
   const [latitude, setLatitude] =
@@ -107,8 +108,18 @@ export default function useMap() {
   const [longitude, setLongitude] =
     useState("");
 
+
+  // =========================================================
+  // GPS Accuracy
+  // =========================================================
+
   const [accuracy, setAccuracy] =
     useState("");
+
+
+  // =========================================================
+  // Location Time
+  // =========================================================
 
   const [locationTime, setLocationTime] =
     useState("");
@@ -118,7 +129,7 @@ export default function useMap() {
   // Location Source
   //
   // gps    = phone GPS
-  // manual = map click
+  // manual = map selection
   // =========================================================
 
   const [locationSource, setLocationSource] =
@@ -170,6 +181,11 @@ export default function useMap() {
           return t("deleteError");
 
 
+        case "MAP_GEOCODING_FAILED":
+
+          return t("addressError");
+
+
         default:
 
           return t("saveError");
@@ -180,7 +196,7 @@ export default function useMap() {
 
 
   // =========================================================
-  // Load Farms + Saved Locations
+  // Load Farms + Locations
   // =========================================================
 
   useEffect(() => {
@@ -194,12 +210,12 @@ export default function useMap() {
 
         const [
           farmsData,
-          locationsData
+          locationsData,
         ] = await Promise.all([
 
           farmService.getAllFarms(),
 
-          mapService.getAllLocations()
+          mapService.getAllLocations(),
 
         ]);
 
@@ -262,13 +278,15 @@ export default function useMap() {
 
 
   // =========================================================
-  // Apply Selected Coordinates
+  // Apply Location
   //
-  // This is shared by:
+  // Shared by:
   //
-  // GPS
-  // Manual map click
+  // 1. Phone GPS
+  // 2. Manual map selection
   //
+  // IMPORTANT:
+  // Coordinates are NEVER replaced by reverse geocoding.
   // =========================================================
 
   const applyLocation =
@@ -276,8 +294,12 @@ export default function useMap() {
       latitude: selectedLatitude,
       longitude: selectedLongitude,
       accuracy: selectedAccuracy = null,
-      source = "gps"
+      source = "gps",
     }) => {
+
+      // -------------------------------------------------------
+      // Convert to numbers
+      // -------------------------------------------------------
 
       const lat =
         Number(selectedLatitude);
@@ -287,7 +309,7 @@ export default function useMap() {
 
 
       // -------------------------------------------------------
-      // Validate coordinates
+      // Validate
       // -------------------------------------------------------
 
       if (
@@ -306,21 +328,29 @@ export default function useMap() {
       }
 
 
-      // -------------------------------------------------------
-      // Save REAL coordinates
+      // =======================================================
+      // IMPORTANT
       //
-      // Do NOT use toFixed(6).
-      // We preserve the precision returned by GPS/map.
-      // -------------------------------------------------------
+      // Store the coordinates exactly as received.
+      //
+      // NO:
+      // toFixed()
+      //
+      // NO:
+      // rounding
+      //
+      // NO:
+      // conversion to village coordinates
+      // =======================================================
 
       setLatitude(lat);
 
       setLongitude(lon);
 
 
-      // -------------------------------------------------------
+      // =======================================================
       // Accuracy
-      // -------------------------------------------------------
+      // =======================================================
 
       if (
         selectedAccuracy !== null &&
@@ -341,21 +371,22 @@ export default function useMap() {
       }
 
 
-      // -------------------------------------------------------
+      // =======================================================
       // Source
-      // -------------------------------------------------------
+      // =======================================================
 
       setLocationSource(
         source
       );
 
 
-      // -------------------------------------------------------
+      // =======================================================
       // Time
-      // -------------------------------------------------------
+      // =======================================================
 
       const now =
         new Date();
+
 
       setLocationTime(
 
@@ -372,14 +403,16 @@ export default function useMap() {
       );
 
 
-      // =====================================================
+      // =======================================================
       // Reverse Geocoding
       //
-      // IMPORTANT:
+      // ONLY descriptive information.
       //
-      // Reverse geocoding only describes the coordinates.
-      // It does NOT replace the coordinates.
-      // =====================================================
+      // It cannot change:
+      //
+      // latitude
+      // longitude
+      // =======================================================
 
       try {
 
@@ -405,6 +438,7 @@ export default function useMap() {
         setRegion(
 
           address?.region ||
+          address?.district ||
           address?.state ||
           address?.province ||
           ""
@@ -423,17 +457,17 @@ export default function useMap() {
       } catch (error) {
 
         console.warn(
-          "Reverse geocoding failed. Coordinates remain valid:",
+          "Reverse geocoding failed:",
           error
         );
 
 
-        // ---------------------------------------------------
+        // -----------------------------------------------------
         // IMPORTANT
         //
-        // GPS/map coordinate is still valid even if
-        // the geographic name lookup fails.
-        // ---------------------------------------------------
+        // GPS remains valid.
+        // Only the descriptive name is unavailable.
+        // -----------------------------------------------------
 
         setVillage("");
 
@@ -443,13 +477,11 @@ export default function useMap() {
 
       }
 
-    };
+  };
 
 
   // =========================================================
   // Get Current GPS Location
-  //
-  // Automatic mode
   // =========================================================
 
   const getCurrentLocation = () => {
@@ -479,9 +511,17 @@ export default function useMap() {
           const {
             latitude: currentLatitude,
             longitude: currentLongitude,
-            accuracy: currentAccuracy
+            accuracy: currentAccuracy,
           } = position.coords;
 
+
+          // ---------------------------------------------------
+          // IMPORTANT
+          //
+          // Pass the ORIGINAL browser GPS values.
+          //
+          // No rounding.
+          // ---------------------------------------------------
 
           await applyLocation({
 
@@ -495,7 +535,7 @@ export default function useMap() {
               currentAccuracy,
 
             source:
-              "gps"
+              "gps",
 
           });
 
@@ -503,7 +543,6 @@ export default function useMap() {
           alert(
             t("locationSuccess")
           );
-
 
         } catch (error) {
 
@@ -597,7 +636,7 @@ export default function useMap() {
           30000,
 
         maximumAge:
-          0
+          0,
 
       }
 
@@ -607,17 +646,9 @@ export default function useMap() {
 
 
   // =========================================================
-  // Select Location Manually
+  // Manual Map Location
   //
-  // Called by Map.jsx when user clicks the Leaflet map.
-  //
-  // Example:
-  //
-  // selectManualLocation(
-  //   36.12345678,
-  //   38.12345678
-  // );
-  //
+  // Map.jsx can call this when the user taps the map.
   // =========================================================
 
   const selectManualLocation =
@@ -645,7 +676,7 @@ export default function useMap() {
             null,
 
           source:
-            "manual"
+            "manual",
 
         });
 
@@ -694,8 +725,6 @@ export default function useMap() {
 
       // -------------------------------------------------------
       // Coordinates
-      //
-      // Coordinates are the REAL required location.
       // -------------------------------------------------------
 
       if (
@@ -769,9 +798,7 @@ export default function useMap() {
 
 
         // -----------------------------------------------------
-        // Descriptive address
-        //
-        // These may be empty.
+        // Descriptive data
         // -----------------------------------------------------
 
         village:
@@ -787,7 +814,7 @@ export default function useMap() {
 
 
         // -----------------------------------------------------
-        // Location type
+        // Type
         // -----------------------------------------------------
 
         type:
@@ -795,7 +822,7 @@ export default function useMap() {
 
 
         // -----------------------------------------------------
-        // REAL LOCATION
+        // REAL coordinates
         // -----------------------------------------------------
 
         latitude:
@@ -807,9 +834,7 @@ export default function useMap() {
 
 
         // -----------------------------------------------------
-        // GPS accuracy
-        //
-        // Manual locations have null accuracy.
+        // Accuracy
         // -----------------------------------------------------
 
         accuracy:
@@ -840,19 +865,15 @@ export default function useMap() {
 
 
         // -----------------------------------------------------
-        // REAL ISO timestamp
+        // Real ISO timestamp
         // -----------------------------------------------------
 
         createdAt:
           new Date().toISOString(),
 
 
-        // -----------------------------------------------------
-        // Status
-        // -----------------------------------------------------
-
         status:
-          "active"
+          "active",
 
       };
 
@@ -880,7 +901,7 @@ export default function useMap() {
 
               ...current,
 
-              newLocation
+              newLocation,
 
             ]
 
@@ -890,7 +911,7 @@ export default function useMap() {
 
 
         // ===================================================
-        // Reset
+        // Reset form
         // ===================================================
 
         setFarmId("");
@@ -921,7 +942,6 @@ export default function useMap() {
         alert(
           t("saveSuccess")
         );
-
 
       } catch (error) {
 
@@ -991,7 +1011,6 @@ export default function useMap() {
             current.filter(
 
               (item) =>
-
                 String(item.id) !==
                 String(id)
 
@@ -1003,7 +1022,6 @@ export default function useMap() {
         alert(
           t("deleteSuccess")
         );
-
 
       } catch (error) {
 
@@ -1051,7 +1069,7 @@ export default function useMap() {
 
 
     // -------------------------------------------------------
-    // Location Type
+    // Location type
     // -------------------------------------------------------
 
     locationType,
@@ -1060,7 +1078,7 @@ export default function useMap() {
 
 
     // -------------------------------------------------------
-    // Location Mode
+    // Location mode
     // -------------------------------------------------------
 
     locationMode,
@@ -1069,18 +1087,16 @@ export default function useMap() {
 
 
     // -------------------------------------------------------
-    // Human-readable address
+    // Human-readable location
     // -------------------------------------------------------
 
     village,
 
     setVillage,
 
-
     region,
 
     setRegion,
-
 
     placeName,
 
@@ -1088,21 +1104,23 @@ export default function useMap() {
 
 
     // -------------------------------------------------------
-    // Coordinates
+    // REAL coordinates
     // -------------------------------------------------------
 
     latitude,
 
     setLatitude,
 
-
     longitude,
 
     setLongitude,
 
 
-    accuracy,
+    // -------------------------------------------------------
+    // Accuracy
+    // -------------------------------------------------------
 
+    accuracy,
 
     locationTime,
 
@@ -1140,7 +1158,7 @@ export default function useMap() {
 
     addLocation,
 
-    deleteLocation
+    deleteLocation,
 
   };
 
