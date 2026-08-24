@@ -1,1 +1,1186 @@
+/* =========================================================
+   LAVENDER — FARMS
+   Mobile First / Full Screen / Green Glass UI
+========================================================= */
 
+
+/* =========================================================
+   ROOT
+========================================================= */
+
+.farms-selector,
+.farm-services-page {
+  --lavender-dark: #0f5132;
+  --lavender-primary: #198754;
+  --lavender-soft: #20c997;
+  --lavender-light: #dff5e1;
+  --lavender-white: #ffffff;
+
+  width: 100%;
+  min-height: 100dvh;
+
+  margin: 0;
+  padding: 20px 14px 90px;
+
+  box-sizing: border-box;
+
+  color: var(--lavender-dark);
+
+  direction: rtl;
+
+  font-family:
+    "Cairo",
+    "Tajawal",
+    sans-serif;
+
+  background:
+    radial-gradient(
+      circle at 15% 5%,
+      rgba(32, 201, 151, .28),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 90% 25%,
+      rgba(223, 245, 225, .85),
+      transparent 34%
+    ),
+    linear-gradient(
+      145deg,
+      #0f5132 0%,
+      #146c43 28%,
+      #198754 58%,
+      #20c997 78%,
+      #dff5e1 100%
+    );
+
+  overflow: hidden;
+}
+
+
+/* =========================================================
+   TOP BRAND AREA
+========================================================= */
+
+.farms-selector-header {
+  position: relative;
+
+  width: 100%;
+  max-width: 720px;
+
+  margin: 0 auto 24px;
+
+  padding: 24px 18px 22px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .28);
+
+  border-radius: 32px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.20),
+      rgba(255,255,255,.08)
+    );
+
+  box-shadow:
+    0 20px 50px
+    rgba(5, 45, 28, .28),
+
+    inset 0 1px 0
+    rgba(255,255,255,.30);
+
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+
+/* =========================================================
+   BRAND SYMBOL
+========================================================= */
+
+.farms-selector-symbol {
+  width: 74px;
+  height: 74px;
+
+  margin: 0 auto 10px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 25px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.30),
+      rgba(255,255,255,.10)
+    );
+
+  border:
+    1px solid
+    rgba(255,255,255,.35);
+
+  box-shadow:
+    0 12px 25px
+    rgba(5, 55, 32, .24),
+
+    inset 0 1px 0
+    rgba(255,255,255,.40);
+
+  font-size: 38px;
+
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+
+/* =========================================================
+   MAIN TITLE
+========================================================= */
+
+.farms-selector-title {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size:
+    clamp(38px, 11vw, 64px);
+
+  font-weight: 700;
+
+  line-height: 1.05;
+
+  text-shadow:
+    0 4px 16px
+    rgba(0,0,0,.20);
+}
+
+
+/* =========================================================
+   BRAND
+========================================================= */
+
+.farms-selector-brand {
+  margin-top: 5px;
+
+  color:
+    rgba(255,255,255,.88);
+
+  font-family:
+    Georgia,
+    serif;
+
+  font-size: 17px;
+
+  font-weight: 800;
+
+  letter-spacing: 6px;
+}
+
+
+/* =========================================================
+   SECTION TITLE
+========================================================= */
+
+.farms-selector-section-title {
+  margin:
+    18px 0 0;
+
+  color: #ffffff;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: 31px;
+
+  font-weight: 700;
+
+  line-height: 1.2;
+}
+
+
+/* =========================================================
+   SUBTITLE
+========================================================= */
+
+.farms-selector-subtitle {
+  margin: 6px 0 0;
+
+  color:
+    rgba(255,255,255,.84);
+
+  font-family:
+    "Tajawal",
+    "Cairo",
+    sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 600;
+
+  line-height: 1.6;
+}
+
+
+/* =========================================================
+   FARMS GRID
+========================================================= */
+
+.farms-grid {
+  width: 100%;
+  max-width: 900px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   FARM CARD
+========================================================= */
+
+.farm-choice {
+  position: relative;
+
+  min-width: 0;
+  min-height: 180px;
+
+  padding: 14px 8px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  overflow: hidden;
+
+  border:
+    1px solid
+    rgba(255,255,255,.40);
+
+  border-radius: 30px;
+
+  cursor: pointer;
+
+  color: var(--lavender-dark);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.94),
+      rgba(223,245,225,.82)
+    );
+
+  box-shadow:
+    0 16px 35px
+    rgba(5, 60, 34, .20),
+
+    inset 0 1px 0
+    rgba(255,255,255,.95);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease,
+    filter .18s ease;
+}
+
+
+/* =========================================================
+   FARM CARD HOVER
+========================================================= */
+
+.farm-choice:hover {
+  transform:
+    translateY(-6px);
+
+  box-shadow:
+    0 22px 42px
+    rgba(5,60,34,.27);
+
+  filter:
+    saturate(1.08);
+}
+
+
+/* =========================================================
+   FARM CARD PRESS
+========================================================= */
+
+.farm-choice:active {
+  transform:
+    translateY(2px)
+    scale(.96);
+}
+
+
+/* =========================================================
+   FARM DECORATION
+========================================================= */
+
+.farm-choice::before {
+  content: "🌿";
+
+  position: absolute;
+
+  left: -12px;
+  bottom: -22px;
+
+  font-size: 82px;
+
+  opacity: .12;
+
+  transform:
+    rotate(-20deg);
+
+  pointer-events: none;
+}
+
+
+.farm-choice::after {
+  content: "";
+
+  position: absolute;
+
+  width: 125px;
+  height: 125px;
+
+  top: -65px;
+  right: -60px;
+
+  border-radius: 50%;
+
+  background:
+    rgba(255,255,255,.55);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FARM NUMBER
+========================================================= */
+
+.farm-choice-number {
+  position: relative;
+
+  z-index: 2;
+
+  width: 60px;
+  height: 60px;
+
+  margin-bottom: 8px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 21px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #20c997,
+      #198754 55%,
+      #0f5132
+    );
+
+  font-family:
+    "Cairo",
+    sans-serif;
+
+  font-size: 25px;
+
+  font-weight: 900;
+
+  box-shadow:
+    0 9px 20px
+    rgba(15,81,50,.30),
+
+    inset 0 2px 0
+    rgba(255,255,255,.35);
+}
+
+
+/* =========================================================
+   FARM LABEL
+========================================================= */
+
+.farm-choice-label {
+  position: relative;
+
+  z-index: 2;
+
+  margin: 0;
+
+  color:
+    rgba(15,81,50,.65);
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   FARM NAME
+========================================================= */
+
+.farm-choice-name {
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+
+  margin-top: 2px;
+
+  color:
+    #0f5132;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size:
+    clamp(17px, 4.5vw, 26px);
+
+  font-weight: 700;
+
+  line-height: 1.25;
+
+  overflow-wrap: anywhere;
+}
+
+
+/* =========================================================
+   SERVICES PAGE
+========================================================= */
+
+.farm-services-page {
+  position: relative;
+}
+
+
+/* =========================================================
+   SERVICES HEADER
+========================================================= */
+
+.farm-services-header {
+  position: relative;
+
+  width: 100%;
+  max-width: 720px;
+
+  margin: 0 auto 20px;
+
+  padding: 26px 16px 22px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(255,255,255,.30);
+
+  border-radius: 32px;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.22),
+      rgba(255,255,255,.08)
+    );
+
+  box-shadow:
+    0 20px 45px
+    rgba(5,45,28,.28),
+
+    inset 0 1px 0
+    rgba(255,255,255,.30);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+}
+
+
+/* =========================================================
+   SERVICES NUMBER
+========================================================= */
+
+.farm-services-number {
+  width: 64px;
+  height: 64px;
+
+  margin: 0 auto 6px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 22px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #20c997,
+      #198754,
+      #0f5132
+    );
+
+  font-family:
+    "Cairo",
+    sans-serif;
+
+  font-size: 26px;
+
+  font-weight: 900;
+
+  box-shadow:
+    0 10px 22px
+    rgba(5,60,34,.28);
+}
+
+
+/* =========================================================
+   SERVICES LABEL
+========================================================= */
+
+.farm-services-label {
+  color:
+    rgba(255,255,255,.76);
+
+  font-size: 11px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   SERVICES TITLE
+========================================================= */
+
+.farm-services-title {
+  margin: 2px 0 0;
+
+  color: #ffffff;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size:
+    clamp(32px, 9vw, 52px);
+
+  font-weight: 700;
+
+  line-height: 1.15;
+
+  text-shadow:
+    0 4px 16px
+    rgba(0,0,0,.18);
+}
+
+
+/* =========================================================
+   SERVICES SUBTITLE
+========================================================= */
+
+.farm-services-subtitle {
+  margin: 6px 0 0;
+
+  color:
+    rgba(255,255,255,.82);
+
+  font-family:
+    "Tajawal",
+    "Cairo",
+    sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   SERVICES GRID
+========================================================= */
+
+.farm-services-grid {
+  width: 100%;
+  max-width: 900px;
+
+  margin: 0 auto;
+
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 12px;
+}
+
+
+/* =========================================================
+   SERVICE CARD
+========================================================= */
+
+.farm-service-choice {
+  min-width: 0;
+  min-height: 145px;
+
+  padding: 13px 6px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(255,255,255,.70);
+
+  border-radius: 27px;
+
+  cursor: pointer;
+
+  color: var(--lavender-dark);
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(223,245,225,.84)
+    );
+
+  box-shadow:
+    0 13px 30px
+    rgba(5,60,34,.18),
+
+    inset 0 1px 0
+    rgba(255,255,255,.95);
+
+  transition:
+    transform .18s ease,
+    box-shadow .18s ease;
+}
+
+
+/* =========================================================
+   SERVICE HOVER
+========================================================= */
+
+.farm-service-choice:hover {
+  transform:
+    translateY(-5px);
+
+  box-shadow:
+    0 20px 38px
+    rgba(5,60,34,.25);
+}
+
+
+/* =========================================================
+   SERVICE ACTIVE
+========================================================= */
+
+.farm-service-choice:active {
+  transform:
+    scale(.95);
+}
+
+
+/* =========================================================
+   SERVICE ICON
+========================================================= */
+
+.farm-service-icon {
+  width: 58px;
+  height: 58px;
+
+  margin-bottom: 8px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 21px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #dff5e1,
+      #bce8c9
+    );
+
+  font-size: 29px;
+
+  box-shadow:
+    0 8px 16px
+    rgba(15,81,50,.10),
+
+    inset 0 1px 0
+    rgba(255,255,255,.90);
+}
+
+
+/* =========================================================
+   SERVICE NAME
+========================================================= */
+
+.farm-service-name {
+  margin: 0;
+
+  color:
+    #0f5132;
+
+  font-family:
+    "Cairo",
+    "Tajawal",
+    sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 800;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   BACK BUTTON
+========================================================= */
+
+.farms-back-button {
+  position: absolute;
+
+  top: 13px;
+  right: 13px;
+
+  z-index: 5;
+
+  width: 46px;
+  height: 46px;
+
+  padding: 0;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border: 1px solid
+    rgba(255,255,255,.45);
+
+  border-radius: 16px;
+
+  color:
+    #0f5132;
+
+  background:
+    rgba(255,255,255,.88);
+
+  font-size: 22px;
+
+  font-weight: 900;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 7px 18px
+    rgba(5,60,34,.16);
+
+  backdrop-filter:
+    blur(10px);
+
+  -webkit-backdrop-filter:
+    blur(10px);
+
+  transition:
+    transform .16s ease;
+}
+
+
+.farms-back-button:active {
+  transform:
+    scale(.90);
+}
+
+
+/* =========================================================
+   EMPTY / ERROR CARD
+========================================================= */
+
+.farms-empty-card {
+  width: 100%;
+  max-width: 600px;
+
+  margin: 20px auto 0;
+
+  padding: 40px 20px;
+
+  text-align: center;
+
+  border-radius: 30px;
+
+  border:
+    1px solid
+    rgba(255,255,255,.35);
+
+  background:
+    rgba(255,255,255,.16);
+
+  box-shadow:
+    0 20px 40px
+    rgba(5,45,28,.20);
+
+  backdrop-filter:
+    blur(18px);
+
+  -webkit-backdrop-filter:
+    blur(18px);
+}
+
+
+.farms-empty-icon {
+  margin-bottom: 10px;
+
+  font-size: 56px;
+}
+
+
+.farms-empty-card h2 {
+  margin: 0;
+
+  color: #ffffff;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: 30px;
+}
+
+
+.farms-empty-card p {
+  margin: 6px 0 20px;
+
+  color:
+    rgba(255,255,255,.82);
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   RETRY BUTTON
+========================================================= */
+
+.farms-retry-button {
+  min-height: 46px;
+
+  padding:
+    0 25px;
+
+  border: 0;
+
+  border-radius: 16px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #20c997,
+      #198754,
+      #0f5132
+    );
+
+  font-family:
+    "Cairo",
+    sans-serif;
+
+  font-size: 14px;
+
+  font-weight: 800;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 8px 18px
+    rgba(5,60,34,.24);
+}
+
+
+/* =========================================================
+   TABLET / DESKTOP
+========================================================= */
+
+@media (min-width: 768px) {
+
+  .farms-selector,
+  .farm-services-page {
+    padding:
+      35px 24px 60px;
+  }
+
+  .farms-grid,
+  .farm-services-grid {
+    gap: 18px;
+  }
+
+  .farm-choice {
+    min-height: 210px;
+  }
+
+  .farm-service-choice {
+    min-height: 170px;
+  }
+
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 600px) {
+
+  .farms-selector,
+  .farm-services-page {
+    min-height: 100dvh;
+
+    padding:
+      12px 8px 80px;
+  }
+
+  .farms-selector-header {
+    margin-bottom: 17px;
+
+    padding:
+      20px 12px 18px;
+
+    border-radius: 27px;
+  }
+
+  .farms-selector-symbol {
+    width: 58px;
+    height: 58px;
+
+    border-radius: 20px;
+
+    font-size: 31px;
+  }
+
+  .farms-selector-title {
+    font-size: 35px;
+  }
+
+  .farms-selector-brand {
+    font-size: 14px;
+
+    letter-spacing: 4px;
+  }
+
+  .farms-selector-section-title {
+    font-size: 27px;
+  }
+
+  .farms-selector-subtitle {
+    font-size: 11px;
+  }
+
+  .farms-grid {
+    gap: 8px;
+  }
+
+  .farm-choice {
+    min-height: 150px;
+
+    padding:
+      10px 4px;
+
+    border-radius: 22px;
+  }
+
+  .farm-choice-number {
+    width: 48px;
+    height: 48px;
+
+    border-radius: 16px;
+
+    font-size: 20px;
+  }
+
+  .farm-choice-name {
+    font-size: 15px;
+  }
+
+  .farm-choice-label {
+    font-size: 9px;
+  }
+
+  .farm-services-header {
+    margin-bottom: 15px;
+
+    padding:
+      21px 11px 18px;
+
+    border-radius: 27px;
+  }
+
+  .farm-services-number {
+    width: 52px;
+    height: 52px;
+
+    border-radius: 17px;
+
+    font-size: 21px;
+  }
+
+  .farm-services-title {
+    font-size: 34px;
+  }
+
+  .farm-services-subtitle {
+    font-size: 11px;
+  }
+
+  .farm-services-grid {
+    gap: 8px;
+  }
+
+  .farm-service-choice {
+    min-height: 115px;
+
+    padding:
+      8px 3px;
+
+    border-radius: 21px;
+  }
+
+  .farm-service-icon {
+    width: 45px;
+    height: 45px;
+
+    border-radius: 16px;
+
+    font-size: 23px;
+  }
+
+  .farm-service-name {
+    font-size: 11px;
+  }
+
+  .farms-back-button {
+    top: 10px;
+    right: 10px;
+
+    width: 40px;
+    height: 40px;
+
+    border-radius: 13px;
+
+    font-size: 19px;
+  }
+
+}
+
+
+/* =========================================================
+   SMALL PHONES
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .farms-selector,
+  .farm-services-page {
+    padding:
+      8px 6px 70px;
+  }
+
+  .farms-grid,
+  .farm-services-grid {
+    gap: 6px;
+  }
+
+  .farm-choice {
+    min-height: 136px;
+
+    border-radius: 19px;
+  }
+
+  .farm-choice-number {
+    width: 43px;
+    height: 43px;
+
+    border-radius: 14px;
+
+    font-size: 18px;
+  }
+
+  .farm-choice-name {
+    font-size: 13px;
+  }
+
+  .farm-service-choice {
+    min-height: 103px;
+
+    border-radius: 17px;
+  }
+
+  .farm-service-icon {
+    width: 39px;
+    height: 39px;
+
+    border-radius: 13px;
+
+    font-size: 20px;
+  }
+
+  .farm-service-name {
+    font-size: 10px;
+  }
+
+}
