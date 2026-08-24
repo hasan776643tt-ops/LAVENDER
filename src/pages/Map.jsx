@@ -1,15 +1,25 @@
-// src/hooks/useMap.js
+// src/pages/Map.jsx
 
 import {
   useEffect,
-  useState,
+  useMemo,
 } from "react";
 
-import mapService
-  from "../services/mapService.js";
+import {
+  MapContainer,
+  TileLayer,
+  Marker,
+  useMapEvents,
+} from "react-leaflet";
 
-import farmService
-  from "../services/farmService.js";
+import L from "leaflet";
+
+import "leaflet/dist/leaflet.css";
+
+import useMap from "../hooks/useMap";
+
+import Card from "../components/Card";
+import Button from "../components/Button";
 
 import {
   translate,
@@ -20,15 +30,228 @@ import {
 } from "../context/SettingsContext";
 
 
-export default function useMap() {
+// =========================================================
+// Default Map Position
+// =========================================================
 
-  // =========================================================
-  // Settings / Language
-  // =========================================================
+const DEFAULT_POSITION = [
+  36.7,
+  38.7,
+];
+
+
+// =========================================================
+// Marker Icon
+// =========================================================
+
+const locationIcon =
+  L.divIcon({
+
+    className:
+      "lavender-map-marker",
+
+    html: `
+      <div
+        style="
+          width: 24px;
+          height: 24px;
+          background: #d32f2f;
+          border: 3px solid white;
+          border-radius: 50%;
+          box-shadow: 0 2px 8px rgba(0,0,0,0.35);
+        "
+      ></div>
+    `,
+
+    iconSize: [
+      24,
+      24,
+    ],
+
+    iconAnchor: [
+      12,
+      12,
+    ],
+
+  });
+
+
+// =========================================================
+// Manual Map Selector
+// =========================================================
+
+function ManualLocationSelector({
+  enabled,
+  onSelect,
+}) {
+
+  useMapEvents({
+
+    click(event) {
+
+      if (!enabled) {
+
+        return;
+
+      }
+
+
+      const {
+        lat,
+        lng,
+      } = event.latlng;
+
+
+      onSelect(
+        lat,
+        lng
+      );
+
+    },
+
+  });
+
+
+  return null;
+
+}
+
+
+// =========================================================
+// Map View Controller
+//
+// IMPORTANT:
+// map.setView() must NOT run during render.
+// It runs inside useEffect.
+// =========================================================
+
+function MapViewController({
+  latitude,
+  longitude,
+}) {
+
+  const map =
+    useMapEvents({});
+
+
+  useEffect(() => {
+
+    if (
+      latitude === "" ||
+      latitude === null ||
+      latitude === undefined ||
+      longitude === "" ||
+      longitude === null ||
+      longitude === undefined
+    ) {
+
+      return;
+
+    }
+
+
+    const lat =
+      Number(latitude);
+
+    const lng =
+      Number(longitude);
+
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lng)
+    ) {
+
+      return;
+
+    }
+
+
+    map.setView(
+      [
+        lat,
+        lng,
+      ],
+      Math.max(
+        map.getZoom(),
+        16
+      ),
+      {
+        animate: true,
+      }
+    );
+
+  }, [
+    map,
+    latitude,
+    longitude,
+  ]);
+
+
+  return null;
+
+}
+
+
+// =========================================================
+// Page
+// =========================================================
+
+export default function Map() {
+
+  const {
+
+    farms = [],
+    locations = [],
+
+    farmId,
+    setFarmId,
+
+    locationType,
+    setLocationType,
+
+    locationMode,
+    setLocationMode,
+
+    village,
+    setVillage,
+
+    region,
+    setRegion,
+
+    placeName,
+    setPlaceName,
+
+    latitude,
+    longitude,
+
+    accuracy,
+    locationTime,
+
+    locationSource,
+
+    notes,
+    setNotes,
+
+    loading,
+
+    getCurrentLocation,
+    selectManualLocation,
+
+    addLocation,
+    deleteLocation,
+
+  } = useMap();
+
 
   const {
     settings,
   } = useSettings();
+
+
+  // =========================================================
+  // Language
+  // =========================================================
 
   const language =
     settings?.language || "ar";
@@ -46,972 +269,754 @@ export default function useMap() {
 
 
   // =========================================================
-  // Farms / Locations
+  // Current Map Position
   // =========================================================
 
-  const [farms, setFarms] =
-    useState([]);
-
-  const [locations, setLocations] =
-    useState([]);
-
-
-  // =========================================================
-  // Farm / Location Type
-  // =========================================================
-
-  const [farmId, setFarmId] =
-    useState("");
-
-  const [locationType, setLocationType] =
-    useState("farm");
-
-
-  // =========================================================
-  // Location Mode
-  //
-  // gps    = phone GPS
-  // manual = user clicks map
-  // =========================================================
-
-  const [locationMode, setLocationMode] =
-    useState("gps");
-
-
-  // =========================================================
-  // Human-readable address
-  //
-  // Descriptive only.
-  // NOT the real geographic position.
-  // =========================================================
-
-  const [village, setVillage] =
-    useState("");
-
-  const [region, setRegion] =
-    useState("");
-
-  const [placeName, setPlaceName] =
-    useState("");
-
-
-  // =========================================================
-  // REAL coordinates
-  //
-  // These are authoritative.
-  // =========================================================
-
-  const [latitude, setLatitude] =
-    useState("");
-
-  const [longitude, setLongitude] =
-    useState("");
-
-  const [accuracy, setAccuracy] =
-    useState("");
-
-  const [locationTime, setLocationTime] =
-    useState("");
-
-
-  // =========================================================
-  // Location source
-  // =========================================================
-
-  const [locationSource, setLocationSource] =
-    useState("gps");
-
-
-  // =========================================================
-  // Notes
-  // =========================================================
-
-  const [notes, setNotes] =
-    useState("");
-
-
-  // =========================================================
-  // Loading
-  // =========================================================
-
-  const [loading, setLoading] =
-    useState(false);
-
-
-  // =========================================================
-  // Error Translation
-  // =========================================================
-
-  const getMapErrorMessage =
-    (error) => {
-
-      switch (error?.message) {
-
-        case "MAP_DATA_REQUIRED":
-          return t("saveError");
-
-        case "MAP_FARM_REQUIRED":
-          return t("farmRequired");
-
-        case "MAP_COORDINATES_REQUIRED":
-          return t("coordinatesRequired");
-
-        case "MAP_ID_REQUIRED":
-          return t("deleteError");
-
-        case "MAP_GEOCODING_FAILED":
-          return t("addressError");
-
-        default:
-          return t("saveError");
-
-      }
-
-    };
-
-
-  // =========================================================
-  // Load Farms + Saved Locations
-  // =========================================================
-
-  useEffect(() => {
-
-    let mounted = true;
-
-
-    const loadData = async () => {
-
-      try {
-
-        const [
-          farmsData,
-          locationsData,
-        ] = await Promise.all([
-
-          farmService.getAllFarms(),
-
-          mapService.getAllLocations(),
-
-        ]);
-
-
-        if (!mounted) {
-          return;
-        }
-
-
-        setFarms(
-          Array.isArray(farmsData)
-            ? farmsData
-            : []
-        );
-
-
-        setLocations(
-          Array.isArray(locationsData)
-            ? locationsData
-            : []
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          "Failed to load map data:",
-          error
-        );
-
-
-        if (mounted) {
-
-          setFarms([]);
-
-          setLocations([]);
-
-        }
-
-      }
-
-    };
-
-
-    loadData();
-
-
-    return () => {
-
-      mounted = false;
-
-    };
-
-  }, []);
-
-
-  // =========================================================
-  // Apply REAL coordinates
-  //
-  // Used by GPS and manual map selection.
-  // =========================================================
-
-  const applyLocation =
-    async ({
-      latitude: selectedLatitude,
-      longitude: selectedLongitude,
-      accuracy: selectedAccuracy = null,
-      source = "gps",
-    }) => {
-
-      const lat =
-        Number(selectedLatitude);
-
-      const lon =
-        Number(selectedLongitude);
-
-
-      // -------------------------------------------------------
-      // Validate
-      // -------------------------------------------------------
+  const mapPosition =
+    useMemo(() => {
 
       if (
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lon) ||
-        lat < -90 ||
-        lat > 90 ||
-        lon < -180 ||
-        lon > 180
+        latitude !== "" &&
+        latitude !== null &&
+        longitude !== "" &&
+        longitude !== null
       ) {
 
-        throw new Error(
-          "MAP_COORDINATES_REQUIRED"
-        );
+        const lat =
+          Number(latitude);
 
-      }
-
-
-      // -------------------------------------------------------
-      // IMPORTANT
-      //
-      // Do NOT use toFixed().
-      // Preserve the coordinates received from GPS / map.
-      // -------------------------------------------------------
-
-      setLatitude(lat);
-
-      setLongitude(lon);
+        const lng =
+          Number(longitude);
 
 
-      // -------------------------------------------------------
-      // Accuracy
-      // -------------------------------------------------------
+        if (
+          Number.isFinite(lat) &&
+          Number.isFinite(lng)
+        ) {
 
-      if (
-        selectedAccuracy !== null &&
-        selectedAccuracy !== undefined &&
-        Number.isFinite(
-          Number(selectedAccuracy)
-        )
-      ) {
-
-        setAccuracy(
-          Number(selectedAccuracy)
-        );
-
-      } else {
-
-        setAccuracy("");
-
-      }
-
-
-      // -------------------------------------------------------
-      // Source
-      // -------------------------------------------------------
-
-      setLocationSource(
-        source
-      );
-
-
-      // -------------------------------------------------------
-      // Mode
-      // -------------------------------------------------------
-
-      setLocationMode(
-        source === "manual"
-          ? "manual"
-          : "gps"
-      );
-
-
-      // -------------------------------------------------------
-      // Time
-      // -------------------------------------------------------
-
-      const now =
-        new Date();
-
-
-      setLocationTime(
-        now.toLocaleString(
-          language === "tr"
-            ? "tr-TR"
-            : language === "en"
-            ? "en-US"
-            : "ar-SY"
-        )
-      );
-
-
-      // =====================================================
-      // Reverse Geocoding
-      //
-      // Only describes the location.
-      // Never changes lat/lon.
-      // =====================================================
-
-      try {
-
-        const address =
-          await mapService.reverseGeocode(
+          return [
             lat,
-            lon,
-            language
-          );
+            lng,
+          ];
 
-
-        setVillage(
-          address?.village ||
-          address?.town ||
-          address?.municipality ||
-          address?.city ||
-          ""
-        );
-
-
-        setRegion(
-          address?.region ||
-          address?.district ||
-          ""
-        );
-
-
-        setPlaceName(
-          address?.placeName ||
-          address?.displayName ||
-          ""
-        );
-
-
-      } catch (error) {
-
-        console.warn(
-          "Reverse geocoding failed:",
-          error
-        );
-
-
-        // GPS remains valid.
-        setVillage("");
-
-        setRegion("");
-
-        setPlaceName("");
+        }
 
       }
 
-    };
+
+      return DEFAULT_POSITION;
+
+    }, [
+      latitude,
+      longitude,
+    ]);
 
 
   // =========================================================
-  // Get Current GPS Location
+  // Manual Location
+  //
+  // IMPORTANT:
+  // Do not round coordinates.
+  // useMap.applyLocation() keeps full precision.
   // =========================================================
 
-  const getCurrentLocation = () => {
-
-    if (!navigator.geolocation) {
-
-      alert(
-        t("locationError")
-      );
-
-      return Promise.resolve();
-
-    }
-
-
-    setLocationMode("gps");
-
-    setLoading(true);
-
-
-    return new Promise((resolve) => {
-
-      navigator.geolocation.getCurrentPosition(
-
-        async (position) => {
-
-          try {
-
-            const {
-              latitude:
-                currentLatitude,
-
-              longitude:
-                currentLongitude,
-
-              accuracy:
-                currentAccuracy,
-
-            } = position.coords;
-
-
-            await applyLocation({
-
-              latitude:
-                currentLatitude,
-
-              longitude:
-                currentLongitude,
-
-              accuracy:
-                currentAccuracy,
-
-              source:
-                "gps",
-
-            });
-
-
-            alert(
-              t("locationSuccess")
-            );
-
-
-          } catch (error) {
-
-            console.error(
-              "GPS processing error:",
-              error
-            );
-
-
-            alert(
-              getMapErrorMessage(error)
-            );
-
-          } finally {
-
-            setLoading(false);
-
-            resolve();
-
-          }
-
-        },
-
-
-        (error) => {
-
-          console.error(
-            "GPS error:",
-            error
-          );
-
-
-          let message =
-            t("locationError");
-
-
-          switch (error?.code) {
-
-            case 1:
-
-              message =
-                t("permissionDenied");
-
-              break;
-
-
-            case 2:
-
-              message =
-                t("positionUnavailable");
-
-              break;
-
-
-            case 3:
-
-              message =
-                t("locationTimeout");
-
-              break;
-
-
-            default:
-
-              message =
-                t("locationError");
-
-          }
-
-
-          alert(message);
-
-
-          setLoading(false);
-
-          resolve();
-
-        },
-
-
-        {
-          enableHighAccuracy:
-            true,
-
-          timeout:
-            30000,
-
-          maximumAge:
-            0,
-        }
-
-      );
-
-    });
+  const handleManualLocation = async (
+    lat,
+    lng
+  ) => {
+
+    await selectManualLocation(
+      lat,
+      lng
+    );
 
   };
 
 
   // =========================================================
-  // Select Location Manually
-  //
-  // Called when user clicks Leaflet map.
+  // GPS
   // =========================================================
 
-  const selectManualLocation =
-    async (
-      selectedLatitude,
-      selectedLongitude
-    ) => {
-
-      try {
-
-        setLoading(true);
-
-        setLocationMode("manual");
-
-
-        await applyLocation({
-
-          latitude:
-            selectedLatitude,
-
-          longitude:
-            selectedLongitude,
-
-          accuracy:
-            null,
-
-          source:
-            "manual",
-
-        });
-
-
-      } catch (error) {
-
-        console.error(
-          "Manual location error:",
-          error
-        );
-
-
-        alert(
-          getMapErrorMessage(error)
-        );
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    };
-
-
-  // =========================================================
-  // Add Location
-  // =========================================================
-
-  const addLocation =
+  const handleGPS =
     async () => {
 
-      // -------------------------------------------------------
-      // Farm
-      // -------------------------------------------------------
+      setLocationMode(
+        "gps"
+      );
 
-      if (!farmId) {
 
-        alert(
-          t("farmRequired")
-        );
-
-        return;
-
-      }
-
-
-      // -------------------------------------------------------
-      // REAL coordinates
-      // -------------------------------------------------------
-
-      if (
-        latitude === "" ||
-        longitude === "" ||
-        latitude === null ||
-        longitude === null
-      ) {
-
-        alert(
-          t("coordinatesRequired")
-        );
-
-        return;
-
-      }
-
-
-      const numericLatitude =
-        Number(latitude);
-
-      const numericLongitude =
-        Number(longitude);
-
-
-      if (
-        !Number.isFinite(
-          numericLatitude
-        ) ||
-        !Number.isFinite(
-          numericLongitude
-        )
-      ) {
-
-        alert(
-          t("coordinatesRequired")
-        );
-
-        return;
-
-      }
-
-
-      // -------------------------------------------------------
-      // Farm
-      // -------------------------------------------------------
-
-      const farm =
-        farms.find(
-          (item) =>
-            String(item.id) ===
-            String(farmId)
-        );
-
-
-      // =======================================================
-      // Location Data
-      // =======================================================
-
-      const locationData = {
-
-        farmId:
-          String(farmId),
-
-
-        farmName:
-          farm?.name ||
-          t("farm"),
-
-
-        village:
-          village.trim(),
-
-
-        region:
-          region.trim(),
-
-
-        placeName:
-          placeName.trim(),
-
-
-        type:
-          locationType,
-
-
-        // REAL coordinates
-        latitude:
-          numericLatitude,
-
-        longitude:
-          numericLongitude,
-
-
-        accuracy:
-          accuracy !== "" &&
-          accuracy !== null &&
-          accuracy !== undefined
-            ? Number(accuracy)
-            : null,
-
-
-        source:
-          locationSource,
-
-
-        notes:
-          notes.trim(),
-
-
-        createdAt:
-          new Date().toISOString(),
-
-
-        status:
-          "active",
-
-      };
-
-
-      // =====================================================
-      // Save
-      // =====================================================
-
-      try {
-
-        setLoading(true);
-
-
-        const newLocation =
-          await mapService.createLocation(
-            locationData
-          );
-
-
-        if (newLocation) {
-
-          setLocations(
-            (current) => [
-              ...current,
-              newLocation,
-            ]
-          );
-
-        }
-
-
-        // ---------------------------------------------------
-        // Reset
-        // ---------------------------------------------------
-
-        setFarmId("");
-
-        setLocationMode("gps");
-
-        setLocationType("farm");
-
-        setVillage("");
-
-        setRegion("");
-
-        setPlaceName("");
-
-        setLatitude("");
-
-        setLongitude("");
-
-        setAccuracy("");
-
-        setLocationTime("");
-
-        setLocationSource("gps");
-
-        setNotes("");
-
-
-        alert(
-          t("saveSuccess")
-        );
-
-
-      } catch (error) {
-
-        console.error(
-          "Failed to create location:",
-          error
-        );
-
-
-        alert(
-          getMapErrorMessage(error)
-        );
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
+      await getCurrentLocation();
 
     };
 
 
   // =========================================================
-  // Delete Location
+  // Render
   // =========================================================
 
-  const deleteLocation =
-    async (id) => {
+  return (
 
-      if (!id) {
+    <div>
 
-        alert(
-          t("deleteError")
-        );
+      {/* =====================================================
+          Title
+      ====================================================== */}
 
-        return;
-
-      }
-
-
-      try {
-
-        setLoading(true);
+      <h1>
+        📍 {t("title")}
+      </h1>
 
 
-        const deleted =
-          await mapService.deleteLocation(
-            id
-          );
+      {/* =====================================================
+          Add Location
+      ====================================================== */}
 
-
-        if (!deleted) {
-
-          alert(
-            t("deleteError")
-          );
-
-          return;
-
+      <Card
+        title={
+          t("addLocation")
         }
+      >
 
+        {/* ===================================================
+            Farm
+        ==================================================== */}
 
-        setLocations(
-          (current) =>
-            current.filter(
-              (item) =>
-                String(item.id) !==
-                String(id)
+        <select
+
+          value={
+            farmId || ""
+          }
+
+          onChange={(event) =>
+            setFarmId(
+              event.target.value
             )
-        );
+          }
+
+        >
+
+          <option value="">
+            {t("selectFarm")}
+          </option>
 
 
-        alert(
-          t("deleteSuccess")
-        );
+          {farms.map(
+            (farm) => (
+
+              <option
+                key={farm.id}
+                value={farm.id}
+              >
+
+                {farm.name}
+
+              </option>
+
+            )
+          )}
+
+        </select>
 
 
-      } catch (error) {
-
-        console.error(
-          "Failed to delete location:",
-          error
-        );
+        <br />
+        <br />
 
 
-        alert(
-          getMapErrorMessage(error)
-        );
+        {/* ===================================================
+            Location Type
+        ==================================================== */}
+
+        <select
+
+          value={
+            locationType ||
+            "farm"
+          }
+
+          onChange={(event) =>
+            setLocationType(
+              event.target.value
+            )
+          }
+
+        >
+
+          <option value="farm">
+            {t("farm")}
+          </option>
+
+          <option value="field">
+            {t("field")}
+          </option>
+
+          <option value="waterSource">
+            {t("waterSource")}
+          </option>
+
+        </select>
 
 
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    };
+        <br />
+        <br />
 
 
-  // =========================================================
-  // Return
-  // =========================================================
+        {/* ===================================================
+            Location Method
+        ==================================================== */}
 
-  return {
-
-    farms,
-
-    locations,
+        <h3>
+          📍 {t("locationMethod")}
+        </h3>
 
 
-    farmId,
-    setFarmId,
+        <Button
+          onClick={
+            handleGPS
+          }
+        >
+
+          {loading &&
+          locationMode === "gps"
+
+            ? `⏳ ${t("locating")}`
+
+            : `📡 ${t("getGPS")}`}
+
+        </Button>
 
 
-    locationType,
-    setLocationType,
+        <br />
+        <br />
 
 
-    locationMode,
-    setLocationMode,
+        <Button
+          onClick={() => {
+
+            setLocationMode(
+              "manual"
+            );
+
+          }}
+        >
+
+          🗺️ {t("manualLocation")}
+
+        </Button>
 
 
-    village,
-    setVillage,
+        <br />
+        <br />
 
 
-    region,
-    setRegion,
+        {/* ===================================================
+            Interactive Map
+        ==================================================== */}
+
+        <div
+          style={{
+            width: "100%",
+            height: "420px",
+            borderRadius: "12px",
+            overflow: "hidden",
+            marginTop: "10px",
+          }}
+        >
+
+          <MapContainer
+
+            center={
+              mapPosition
+            }
+
+            zoom={15}
+
+            scrollWheelZoom={true}
+
+            style={{
+              width: "100%",
+              height: "100%",
+            }}
+
+          >
+
+            <TileLayer
+
+              attribution="
+                &copy; OpenStreetMap contributors
+              "
+
+              url="
+                https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
+              "
+
+            />
 
 
-    placeName,
-    setPlaceName,
+            <ManualLocationSelector
+
+              enabled={
+                locationMode ===
+                "manual"
+              }
+
+              onSelect={
+                handleManualLocation
+              }
+
+            />
 
 
-    latitude,
-    setLatitude,
+            <MapViewController
+
+              latitude={
+                latitude
+              }
+
+              longitude={
+                longitude
+              }
+
+            />
 
 
-    longitude,
-    setLongitude,
+            {latitude !== "" &&
+            longitude !== "" && (
+
+              <Marker
+
+                position={[
+                  Number(latitude),
+                  Number(longitude),
+                ]}
+
+                icon={
+                  locationIcon
+                }
+
+              />
+
+            )}
+
+          </MapContainer>
+
+        </div>
 
 
-    accuracy,
+        {/* ===================================================
+            Manual Instruction
+        ==================================================== */}
 
-    locationTime,
+        {locationMode ===
+          "manual" && (
+
+          <p>
+
+            👆{" "}
+            {t(
+              "manualLocationInstruction"
+            )}
+
+          </p>
+
+        )}
 
 
-    locationSource,
+        {/* ===================================================
+            Location Status
+        ==================================================== */}
+
+        {latitude !== "" &&
+        longitude !== "" && (
+
+          <div>
+
+            <p>
+              📍{" "}
+              {t(
+                "locationDetected"
+              )}
+            </p>
 
 
-    notes,
-    setNotes,
+            <p>
+              {t("latitude")}:
+              {" "}
+              {latitude}
+            </p>
 
 
-    loading,
+            <p>
+              {t("longitude")}:
+              {" "}
+              {longitude}
+            </p>
 
 
-    getCurrentLocation,
+            {locationMode ===
+              "gps" &&
+            accuracy !== "" && (
 
-    selectManualLocation,
+              <p>
+                🎯{" "}
+                {t("accuracy")}:
+                {" "}
+                {accuracy}
+                {" "}
+                {t("meters")}
+              </p>
 
-    addLocation,
+            )}
 
-    deleteLocation,
 
-  };
+            {locationMode ===
+              "manual" && (
+
+              <p>
+                🖐️{" "}
+                {t(
+                  "manualLocationSelected"
+                )}
+              </p>
+
+            )}
+
+
+            {locationSource && (
+
+              <p>
+                📡{" "}
+                {locationSource}
+              </p>
+
+            )}
+
+
+            {locationTime && (
+
+              <p>
+                🕒{" "}
+                {t("locationTime")}:
+                {" "}
+                {locationTime}
+              </p>
+
+            )}
+
+          </div>
+
+        )}
+
+
+        <br />
+
+
+        {/* ===================================================
+            Address Information
+        ==================================================== */}
+
+        <input
+
+          type="text"
+
+          value={
+            village || ""
+          }
+
+          onChange={(event) =>
+            setVillage(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("villagePlaceholder")
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        <input
+
+          type="text"
+
+          value={
+            region || ""
+          }
+
+          onChange={(event) =>
+            setRegion(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("regionPlaceholder")
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        <input
+
+          type="text"
+
+          value={
+            placeName || ""
+          }
+
+          onChange={(event) =>
+            setPlaceName(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("placeNamePlaceholder")
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        {/* ===================================================
+            Notes
+        ==================================================== */}
+
+        <textarea
+
+          value={
+            notes || ""
+          }
+
+          onChange={(event) =>
+            setNotes(
+              event.target.value
+            )
+          }
+
+          placeholder={
+            t("notesPlaceholder")
+          }
+
+        />
+
+
+        <br />
+        <br />
+
+
+        {/* ===================================================
+            Save
+        ==================================================== */}
+
+        <Button
+          onClick={
+            addLocation
+          }
+
+        >
+
+          💾 {t("save")}
+
+        </Button>
+
+      </Card>
+
+
+      {/* =====================================================
+          Saved Locations
+      ====================================================== */}
+
+      <h2>
+        🗺️{" "}
+        {t("savedLocations")}
+      </h2>
+
+
+      {locations.length === 0 ? (
+
+        <p>
+          {t("noLocations")}
+        </p>
+
+      ) : (
+
+        locations.map(
+          (item) => (
+
+            <Card
+
+              key={
+                item.id
+              }
+
+              title={
+                item.placeName ||
+                item.farmName ||
+                t("farm")
+              }
+
+            >
+
+              {item.farmName && (
+
+                <p>
+                  🚜{" "}
+                  {t("farm")}:
+                  {" "}
+                  {item.farmName}
+                </p>
+
+              )}
+
+
+              {item.village && (
+
+                <p>
+                  🏘️{" "}
+                  {t("village")}:
+                  {" "}
+                  {item.village}
+                </p>
+
+              )}
+
+
+              {item.region && (
+
+                <p>
+                  📍{" "}
+                  {t("region")}:
+                  {" "}
+                  {item.region}
+                </p>
+
+              )}
+
+
+              {item.placeName && (
+
+                <p>
+                  📌{" "}
+                  {t("placeName")}:
+                  {" "}
+                  {item.placeName}
+                </p>
+
+              )}
+
+
+              <p>
+                🌱{" "}
+                {t("type")}:
+                {" "}
+                {item.type}
+              </p>
+
+
+              {item.accuracy !==
+                undefined &&
+              item.accuracy !==
+                null && (
+
+                <p>
+                  🎯{" "}
+                  {t("accuracy")}:
+                  {" "}
+                  {item.accuracy}
+                  {" "}
+                  {t("meters")}
+                </p>
+
+              )}
+
+
+              <p>
+                {t("latitude")}:
+                {" "}
+                {item.latitude}
+              </p>
+
+
+              <p>
+                {t("longitude")}:
+                {" "}
+                {item.longitude}
+              </p>
+
+
+              <p>
+                📝{" "}
+                {t("notes")}:
+                {" "}
+                {item.notes || "-"}
+              </p>
+
+
+              {item.latitude !==
+                undefined &&
+              item.longitude !==
+                undefined && (
+
+                <a
+
+                  href={
+                    `https://maps.google.com/?q=` +
+                    `${item.latitude},${item.longitude}`
+                  }
+
+                  target="_blank"
+
+                  rel="noreferrer"
+
+                >
+
+                  🗺️{" "}
+                  {t(
+                    "openGoogleMaps"
+                  )}
+
+                </a>
+
+              )}
+
+
+              <br />
+              <br />
+
+
+              <Button
+                onClick={() =>
+                  deleteLocation(
+                    item.id
+                  )
+                }
+              >
+
+                {t("delete")}
+
+              </Button>
+
+            </Card>
+
+          )
+        )
+
+      )}
+
+    </div>
+
+  );
 
 }
