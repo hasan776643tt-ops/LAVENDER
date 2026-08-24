@@ -111,7 +111,10 @@ const FARM_SERVICES = [
 // Helpers
 // =========================================================
 
-function getFarmId(farm, index) {
+function getFarmId(
+  farm,
+  index
+) {
 
   return (
     farm?.id ??
@@ -123,7 +126,10 @@ function getFarmId(farm, index) {
 }
 
 
-function getFarmName(farm, index) {
+function getFarmName(
+  farm,
+  index
+) {
 
   return (
     farm?.name ??
@@ -141,7 +147,8 @@ function getFarmName(farm, index) {
 
 export default function Farms() {
 
-  const navigate = useNavigate();
+  const navigate =
+    useNavigate();
 
 
   // =======================================================
@@ -168,55 +175,67 @@ export default function Farms() {
 
   // =======================================================
   // Normalize Farms
-  //
-  // لا نغير البيانات الأصلية.
-  // نضيف فقط معلومات العرض.
   // =======================================================
 
-  const normalizedFarms = useMemo(() => {
+  const normalizedFarms =
+    useMemo(
+      () => {
 
-    if (!Array.isArray(farms)) {
-      return [];
-    }
+        if (
+          !Array.isArray(farms)
+        ) {
+
+          return [];
+
+        }
 
 
-    return farms.map(
-      (farm, index) => {
+        return farms.map(
+          (
+            farm,
+            index
+          ) => {
 
-        return {
+            return {
 
-          ...farm,
+              ...farm,
 
-          __displayId:
-            getFarmId(
-              farm,
-              index
-            ),
+              __displayId:
+                getFarmId(
+                  farm,
+                  index
+                ),
 
-          __displayName:
-            getFarmName(
-              farm,
-              index
-            ),
+              __displayName:
+                getFarmName(
+                  farm,
+                  index
+                ),
 
-          __number:
-            index + 1,
+              __number:
+                index + 1,
 
-        };
+            };
 
-      }
+          }
+        );
+
+      },
+      [farms]
     );
-
-  }, [farms]);
 
 
   // =======================================================
   // Select Farm
   // =======================================================
 
-  const openFarm = (farm) => {
+  const openFarm = (
+    farm
+  ) => {
 
-    setSelectedFarm(farm);
+    setSelectedFarm(
+      farm
+    );
 
   };
 
@@ -227,7 +246,9 @@ export default function Farms() {
 
   const backToFarms = () => {
 
-    setSelectedFarm(null);
+    setSelectedFarm(
+      null
+    );
 
   };
 
@@ -236,10 +257,16 @@ export default function Farms() {
   // Open Service
   // =======================================================
 
-  const openService = (service) => {
+  const openService = (
+    service
+  ) => {
 
-    if (!selectedFarm) {
+    if (
+      !selectedFarm
+    ) {
+
       return;
+
     }
 
 
@@ -247,8 +274,12 @@ export default function Farms() {
       selectedFarm.__displayId;
 
 
-    if (!farmId) {
+    if (
+      !farmId
+    ) {
+
       return;
+
     }
 
 
@@ -271,32 +302,35 @@ export default function Farms() {
   // Retry
   // =======================================================
 
-  const retryLoad = async () => {
+  const retryLoad =
+    async () => {
 
-    if (
-      typeof loadFarms !== "function"
-    ) {
-      return;
-    }
+      if (
+        typeof loadFarms !==
+        "function"
+      ) {
+
+        return;
+
+      }
 
 
-    try {
+      try {
 
-      await loadFarms();
+        await loadFarms();
 
-    } catch (err) {
-
-      // useFarms مسؤول عن تخزين الخطأ.
-      // لا نحتاج معالجة إضافية هنا.
-
-      console.error(
-        "Failed to reload farms:",
+      } catch (
         err
-      );
+      ) {
 
-    }
+        console.error(
+          "Failed to reload farms:",
+          err
+        );
 
-  };
+      }
+
+    };
 
 
   // =======================================================
@@ -559,7 +593,9 @@ export default function Farms() {
   // Selected Farm — Services
   // =======================================================
 
-  if (selectedFarm) {
+  if (
+    selectedFarm
+  ) {
 
     return (
 
@@ -589,12 +625,15 @@ export default function Farms() {
           <div
             className="farm-services-number"
           >
-            {selectedFarm.__number}
+            {
+              selectedFarm.__number
+            }
           </div>
 
 
+          {/* تم تصحيح اسم الـ class هنا */}
           <div
-            className="farm-choice-label"
+            className="farm-services-label"
           >
             مزرعة
           </div>
@@ -603,7 +642,9 @@ export default function Farms() {
           <h1
             className="farm-services-title"
           >
-            {selectedFarm.__displayName}
+            {
+              selectedFarm.__displayName
+            }
           </h1>
 
 
@@ -625,39 +666,51 @@ export default function Farms() {
           aria-label="خدمات المزرعة"
         >
 
-          {FARM_SERVICES.map(
-            (service) => (
+          {
+            FARM_SERVICES.map(
+              (
+                service
+              ) => (
 
-              <button
-                key={service.id}
-                type="button"
-                className="farm-service-choice"
-                onClick={() =>
-                  openService(service)
-                }
-                aria-label={
-                  `فتح ${service.title} لمزرعة ${selectedFarm.__displayName}`
-                }
-              >
-
-                <span
-                  className="farm-service-icon"
-                  aria-hidden="true"
+                <button
+                  key={
+                    service.id
+                  }
+                  type="button"
+                  className="farm-service-choice"
+                  onClick={() =>
+                    openService(
+                      service
+                    )
+                  }
+                  aria-label={
+                    `فتح ${service.title} لمزرعة ${selectedFarm.__displayName}`
+                  }
                 >
-                  {service.icon}
-                </span>
+
+                  <span
+                    className="farm-service-icon"
+                    aria-hidden="true"
+                  >
+                    {
+                      service.icon
+                    }
+                  </span>
 
 
-                <span
-                  className="farm-service-name"
-                >
-                  {service.title}
-                </span>
+                  <span
+                    className="farm-service-name"
+                  >
+                    {
+                      service.title
+                    }
+                  </span>
 
-              </button>
+                </button>
 
+              )
             )
-          )}
+          }
 
         </section>
 
@@ -719,50 +772,60 @@ export default function Farms() {
         aria-label="قائمة المزارع"
       >
 
-        {normalizedFarms.map(
-          (farm) => (
+        {
+          normalizedFarms.map(
+            (
+              farm
+            ) => (
 
-            <button
-              key={
-                String(
-                  farm.__displayId
-                )
-              }
-              type="button"
-              className="farm-choice"
-              onClick={() =>
-                openFarm(farm)
-              }
-              aria-label={
-                `فتح ${farm.__displayName}`
-              }
-            >
-
-              <span
-                className="farm-choice-number"
-                aria-hidden="true"
+              <button
+                key={
+                  String(
+                    farm.__displayId
+                  )
+                }
+                type="button"
+                className="farm-choice"
+                onClick={() =>
+                  openFarm(
+                    farm
+                  )
+                }
+                aria-label={
+                  `فتح ${farm.__displayName}`
+                }
               >
-                {farm.__number}
-              </span>
+
+                <span
+                  className="farm-choice-number"
+                  aria-hidden="true"
+                >
+                  {
+                    farm.__number
+                  }
+                </span>
 
 
-              <span
-                className="farm-choice-label"
-              >
-                مزرعة
-              </span>
+                <span
+                  className="farm-choice-label"
+                >
+                  مزرعة
+                </span>
 
 
-              <span
-                className="farm-choice-name"
-              >
-                {farm.__displayName}
-              </span>
+                <span
+                  className="farm-choice-name"
+                >
+                  {
+                    farm.__displayName
+                  }
+                </span>
 
-            </button>
+              </button>
 
+            )
           )
-        )}
+        }
 
       </section>
 
