@@ -1,10 +1,166 @@
- // src/services/mapService.js
+// src/services/mapService.js
 
 import mapRepository
   from "../repositories/mapRepository.js";
 
 
 class MapService {
+
+  // =========================================================
+  // Reverse Geocoding
+  // تحويل الإحداثيات إلى اسم المكان
+  // =========================================================
+
+  async reverseGeocode(
+    latitude,
+    longitude
+  ) {
+
+    if (
+      latitude === undefined ||
+      latitude === null ||
+      longitude === undefined ||
+      longitude === null
+    ) {
+
+      throw new Error(
+        "MAP_COORDINATES_REQUIRED"
+      );
+
+    }
+
+
+    const lat =
+      Number(latitude);
+
+    const lon =
+      Number(longitude);
+
+
+    if (
+      !Number.isFinite(lat) ||
+      !Number.isFinite(lon)
+    ) {
+
+      throw new Error(
+        "MAP_COORDINATES_REQUIRED"
+      );
+
+    }
+
+
+    if (
+      lat < -90 ||
+      lat > 90 ||
+      lon < -180 ||
+      lon > 180
+    ) {
+
+      throw new Error(
+        "MAP_COORDINATES_REQUIRED"
+      );
+
+    }
+
+
+    // -------------------------------------------------------
+    // OpenStreetMap / Nominatim
+    // -------------------------------------------------------
+
+    const url =
+      `https://nominatim.openstreetmap.org/reverse` +
+      `?format=json` +
+      `&lat=${encodeURIComponent(lat)}` +
+      `&lon=${encodeURIComponent(lon)}` +
+      `&zoom=18` +
+      `&addressdetails=1`;
+
+
+    const response =
+      await fetch(url, {
+
+        headers: {
+          Accept:
+            "application/json"
+        }
+
+      });
+
+
+    if (!response.ok) {
+
+      throw new Error(
+        "MAP_GEOCODING_FAILED"
+      );
+
+    }
+
+
+    const result =
+      await response.json();
+
+
+    const address =
+      result?.address || {};
+
+
+    // =======================================================
+    // استخراج أسماء المكان
+    // =======================================================
+
+    const village =
+      address.village ||
+      address.hamlet ||
+      address.locality ||
+      address.town ||
+      address.city ||
+      "";
+
+
+    const district =
+      address.county ||
+      address.district ||
+      address.municipality ||
+      "";
+
+
+    const region =
+      address.state ||
+      address.province ||
+      address.region ||
+      "";
+
+
+    const country =
+      address.country ||
+      "";
+
+
+    const displayName =
+      result?.display_name ||
+      "";
+
+
+    return {
+
+      village,
+
+      district,
+
+      region,
+
+      country,
+
+      displayName,
+
+      latitude: lat,
+
+      longitude: lon
+
+    };
+
+  }
+
 
   // =========================================================
   // Get All Locations
@@ -42,10 +198,6 @@ class MapService {
 
   async createLocation(data) {
 
-    // -------------------------------------------------------
-    // Validate Object
-    // -------------------------------------------------------
-
     if (
       !data ||
       typeof data !== "object"
@@ -58,10 +210,6 @@ class MapService {
     }
 
 
-    // -------------------------------------------------------
-    // Validate Farm
-    // -------------------------------------------------------
-
     if (!data.farmId) {
 
       throw new Error(
@@ -70,10 +218,6 @@ class MapService {
 
     }
 
-
-    // -------------------------------------------------------
-    // Validate Coordinates
-    // -------------------------------------------------------
 
     if (
       data.latitude === undefined ||
@@ -90,10 +234,6 @@ class MapService {
 
     }
 
-
-    // -------------------------------------------------------
-    // Validate Numeric Coordinates
-    // -------------------------------------------------------
 
     const latitude =
       Number(data.latitude);
@@ -114,10 +254,6 @@ class MapService {
     }
 
 
-    // -------------------------------------------------------
-    // Latitude Range
-    // -------------------------------------------------------
-
     if (
       latitude < -90 ||
       latitude > 90
@@ -130,10 +266,6 @@ class MapService {
     }
 
 
-    // -------------------------------------------------------
-    // Longitude Range
-    // -------------------------------------------------------
-
     if (
       longitude < -180 ||
       longitude > 180
@@ -145,10 +277,6 @@ class MapService {
 
     }
 
-
-    // -------------------------------------------------------
-    // Normalize Data
-    // -------------------------------------------------------
 
     const locationData = {
 
@@ -182,10 +310,6 @@ class MapService {
 
     };
 
-
-    // -------------------------------------------------------
-    // Create
-    // -------------------------------------------------------
 
     return mapRepository.create(
       locationData
@@ -228,10 +352,6 @@ class MapService {
       ...data
     };
 
-
-    // -------------------------------------------------------
-    // Validate Coordinates If Provided
-    // -------------------------------------------------------
 
     if (
       updateData.latitude !== undefined ||
