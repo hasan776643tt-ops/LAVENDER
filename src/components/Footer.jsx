@@ -1,7 +1,12 @@
-import { useSettings } from "../context/SettingsContext";
-import { translate } from "../utils/translation";
+// src/components/Footer.jsx
 
-const currentYear = new Date().getFullYear();
+import { useSettings } from "../context/SettingsContext.jsx";
+import { translate } from "../utils/translation.js";
+
+
+// =========================================================
+// LAVENDER — Mobile Footer
+// =========================================================
 
 export default function Footer() {
 
@@ -10,36 +15,64 @@ export default function Footer() {
   const language =
     settings?.language || "ar";
 
+  const currentYear =
+    new Date().getFullYear();
+
+
   return (
 
-    <footer className="app-footer">
+    <footer
+      className="app-footer"
+      dir="rtl"
+    >
 
-      <div className="footer-brand">
+      <div className="footer-inner">
 
-        المزرعة الذكية
+        {/* =================================================
+            BRAND
+        ================================================= */}
 
-      </div>
+        <div className="footer-brand-block">
 
-      <div
-        style={{
-          fontSize: "12px",
-          letterSpacing: "3px",
-          marginBottom: "10px",
-        }}
-      >
-        LAVENDER
-      </div>
+          <span
+            className="footer-symbol"
+            aria-hidden="true"
+          >
+            🌿
+          </span>
 
-      <div className="footer-copy">
 
-        © {currentYear}
+          <div className="footer-brand-text">
 
-        {" "}
+            <span className="footer-brand">
+              المزرعة الذكية
+            </span>
 
-        {translate(
-          "footer.rights",
-          language
-        )}
+            <span className="footer-lavender">
+              LAVENDER
+            </span>
+
+          </div>
+
+        </div>
+
+
+        {/* =================================================
+            COPYRIGHT
+        ================================================= */}
+
+        <div className="footer-copy">
+
+          © {currentYear}
+
+          {" "}
+
+          {translate(
+            "footer.rights",
+            language
+          )}
+
+        </div>
 
       </div>
 
