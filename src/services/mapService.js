@@ -7,28 +7,13 @@ import mapRepository
 class MapService {
 
   // =========================================================
-  // Reverse Geocoding
-  // تحويل الإحداثيات إلى اسم المكان
+  // Validate Coordinates
   // =========================================================
 
-  async reverseGeocode(
+  validateCoordinates(
     latitude,
     longitude
   ) {
-
-    if (
-      latitude === undefined ||
-      latitude === null ||
-      longitude === undefined ||
-      longitude === null
-    ) {
-
-      throw new Error(
-        "MAP_COORDINATES_REQUIRED"
-      );
-
-    }
-
 
     const lat =
       Number(latitude);
@@ -63,28 +48,75 @@ class MapService {
     }
 
 
+    return {
+      latitude: lat,
+      longitude: lon
+    };
+
+  }
+
+
+  // =========================================================
+  // Reverse Geocoding
+  //
+  // مهم:
+  // هذه الوظيفة لا تحدد موقع المزرعة.
+  // GPS هو الموقع الحقيقي.
+  // Nominatim يستخدم فقط لوصف المنطقة المحيطة.
+  // =========================================================
+
+  async reverseGeocode(
+    latitude,
+    longitude,
+    language = "ar"
+  ) {
+
+    const {
+      latitude: lat,
+      longitude: lon
+    } =
+      this.validateCoordinates(
+        latitude,
+        longitude
+      );
+
+
+    // -------------------------------------------------------
+    // Language
+    // -------------------------------------------------------
+
+    const acceptLanguage =
+      language === "tr"
+        ? "tr"
+        : language === "en"
+        ? "en"
+        : "ar";
+
+
     // -------------------------------------------------------
     // OpenStreetMap / Nominatim
     // -------------------------------------------------------
 
     const url =
       `https://nominatim.openstreetmap.org/reverse` +
-      `?format=json` +
+      `?format=jsonv2` +
       `&lat=${encodeURIComponent(lat)}` +
       `&lon=${encodeURIComponent(lon)}` +
       `&zoom=18` +
-      `&addressdetails=1`;
+      `&addressdetails=1` +
+      `&accept-language=${encodeURIComponent(acceptLanguage)}`;
 
 
     const response =
-      await fetch(url, {
-
-        headers: {
-          Accept:
-            "application/json"
+      await fetch(
+        url,
+        {
+          headers: {
+            Accept:
+              "application/json"
+          }
         }
-
-      });
+      );
 
 
     if (!response.ok) {
@@ -105,14 +137,27 @@ class MapService {
 
 
     // =======================================================
-    // استخراج أسماء المكان
+    // Administrative information
     // =======================================================
 
     const village =
       address.village ||
       address.hamlet ||
       address.locality ||
+      "";
+
+
+    const town =
       address.town ||
+      "";
+
+
+    const municipality =
+      address.municipality ||
+      "";
+
+
+    const city =
       address.city ||
       "";
 
@@ -120,7 +165,6 @@ class MapService {
     const district =
       address.county ||
       address.district ||
-      address.municipality ||
       "";
 
 
@@ -141,9 +185,43 @@ class MapService {
       "";
 
 
+    // =======================================================
+    // Nearest known place
+    //
+    // هذا وصف فقط وليس إحداثيات بديلة.
+    // =======================================================
+
+    const placeName =
+      village ||
+      town ||
+      municipality ||
+      city ||
+      district ||
+      "";
+
+
     return {
 
+      // -----------------------------------------------------
+      // GPS remains authoritative
+      // -----------------------------------------------------
+
+      latitude: lat,
+
+      longitude: lon,
+
+
+      // -----------------------------------------------------
+      // Human readable information
+      // -----------------------------------------------------
+
       village,
+
+      town,
+
+      municipality,
+
+      city,
 
       district,
 
@@ -151,11 +229,9 @@ class MapService {
 
       country,
 
-      displayName,
+      placeName,
 
-      latitude: lat,
-
-      longitude: lon
+      displayName
 
     };
 
@@ -186,6 +262,7 @@ class MapService {
       );
 
     }
+
 
     return mapRepository.getById(id);
 
@@ -235,72 +312,56 @@ class MapService {
     }
 
 
-    const latitude =
-      Number(data.latitude);
-
-    const longitude =
-      Number(data.longitude);
-
-
-    if (
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude)
-    ) {
-
-      throw new Error(
-        "MAP_COORDINATES_REQUIRED"
+    const {
+      latitude,
+      longitude
+    } =
+      this.validateCoordinates(
+        data.latitude,
+        data.longitude
       );
-
-    }
-
-
-    if (
-      latitude < -90 ||
-      latitude > 90
-    ) {
-
-      throw new Error(
-        "MAP_COORDINATES_REQUIRED"
-      );
-
-    }
-
-
-    if (
-      longitude < -180 ||
-      longitude > 180
-    ) {
-
-      throw new Error(
-        "MAP_COORDINATES_REQUIRED"
-      );
-
-    }
 
 
     const locationData = {
 
       ...data,
 
+
+      // =====================================================
+      // IMPORTANT
+      // GPS coordinates are stored exactly as numeric values.
+      // =====================================================
+
       latitude,
 
       longitude,
 
+
       farmId:
-        String(data.farmId),
+        String(
+          data.farmId
+        ),
+
 
       type:
-        data.type || "farm",
+        data.type ||
+        "farm",
+
 
       status:
-        data.status || "active",
+        data.status ||
+        "active",
+
 
       createdAt:
         data.createdAt ||
         new Date().toISOString(),
 
+
       notes:
-        data.notes || "",
+        data.notes ||
+        "",
+
 
       accuracy:
         data.accuracy !== undefined &&
@@ -370,55 +431,19 @@ class MapService {
       }
 
 
-      const latitude =
-        Number(
-          updateData.latitude
-        );
-
-      const longitude =
-        Number(
+      const {
+        latitude,
+        longitude
+      } =
+        this.validateCoordinates(
+          updateData.latitude,
           updateData.longitude
         );
 
 
-      if (
-        !Number.isFinite(latitude) ||
-        !Number.isFinite(longitude)
-      ) {
-
-        throw new Error(
-          "MAP_COORDINATES_REQUIRED"
-        );
-
-      }
-
-
-      if (
-        latitude < -90 ||
-        latitude > 90
-      ) {
-
-        throw new Error(
-          "MAP_COORDINATES_REQUIRED"
-        );
-
-      }
-
-
-      if (
-        longitude < -180 ||
-        longitude > 180
-      ) {
-
-        throw new Error(
-          "MAP_COORDINATES_REQUIRED"
-        );
-
-      }
-
-
       updateData.latitude =
         latitude;
+
 
       updateData.longitude =
         longitude;
