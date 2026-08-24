@@ -20,6 +20,15 @@ export default function Map() {
     locationType,
     setLocationType,
 
+    village,
+    setVillage,
+
+    region,
+    setRegion,
+
+    placeName,
+    setPlaceName,
+
     latitude,
     longitude,
 
@@ -85,7 +94,9 @@ export default function Map() {
         title={t("addLocation")}
       >
 
-        {/* Farm */}
+        {/* =================================================
+            Farm
+        ================================================== */}
 
         <select
           value={farmId || ""}
@@ -97,7 +108,6 @@ export default function Map() {
           <option value="">
             {t("selectFarm")}
           </option>
-
 
           {farms.map((farm) => (
 
@@ -118,15 +128,67 @@ export default function Map() {
 
 
         {/* =================================================
+            Village
+        ================================================== */}
+
+        <input
+          type="text"
+          value={village || ""}
+          onChange={(e) =>
+            setVillage(e.target.value)
+          }
+          placeholder={t("village")}
+        />
+
+
+        <br />
+        <br />
+
+
+        {/* =================================================
+            Region
+        ================================================== */}
+
+        <input
+          type="text"
+          value={region || ""}
+          onChange={(e) =>
+            setRegion(e.target.value)
+          }
+          placeholder={t("region")}
+        />
+
+
+        <br />
+        <br />
+
+
+        {/* =================================================
+            Place Name
+        ================================================== */}
+
+        <input
+          type="text"
+          value={placeName || ""}
+          onChange={(e) =>
+            setPlaceName(e.target.value)
+          }
+          placeholder={t("placeName")}
+        />
+
+
+        <br />
+        <br />
+
+
+        {/* =================================================
             Location Type
         ================================================== */}
 
         <select
           value={locationType || "farm"}
           onChange={(e) =>
-            setLocationType(
-              e.target.value
-            )
+            setLocationType(e.target.value)
           }
         >
 
@@ -151,6 +213,7 @@ export default function Map() {
 
         {/* =================================================
             GPS
+            الإحداثيات تبقى داخل النظام ولا نعرضها للفلاح
         ================================================== */}
 
         <Button
@@ -169,67 +232,16 @@ export default function Map() {
 
 
         {/* =================================================
-            Latitude
+            GPS Status
         ================================================== */}
 
-        <input
-          value={latitude || ""}
-          readOnly
-          placeholder={t("latitude")}
-        />
+        {latitude && longitude && (
 
+          <p>
+            📍 {t("locationDetected")}
+          </p>
 
-        <br />
-        <br />
-
-
-        {/* =================================================
-            Longitude
-        ================================================== */}
-
-        <input
-          value={longitude || ""}
-          readOnly
-          placeholder={t("longitude")}
-        />
-
-
-        <br />
-        <br />
-
-
-        {/* =================================================
-            Accuracy
-        ================================================== */}
-
-        <input
-          value={
-            accuracy
-              ? `${accuracy} ${t("meters")}`
-              : ""
-          }
-          readOnly
-          placeholder={t("accuracy")}
-        />
-
-
-        <br />
-        <br />
-
-
-        {/* =================================================
-            Location Time
-        ================================================== */}
-
-        <input
-          value={locationTime || ""}
-          readOnly
-          placeholder={t("locationTime")}
-        />
-
-
-        <br />
-        <br />
+        )}
 
 
         {/* =================================================
@@ -241,9 +253,7 @@ export default function Map() {
           onChange={(e) =>
             setNotes(e.target.value)
           }
-          placeholder={
-            t("notesPlaceholder")
-          }
+          placeholder={t("notesPlaceholder")}
         />
 
 
@@ -286,41 +296,65 @@ export default function Map() {
           <Card
             key={item.id}
             title={
+              item.placeName ||
               item.farmName ||
               t("farm")
             }
           >
 
+            {/* Farm */}
+
+            {item.farmName && (
+
+              <p>
+                🚜 {t("farm")}:{" "}
+                {item.farmName}
+              </p>
+
+            )}
+
+
+            {/* Village */}
+
+            {item.village && (
+
+              <p>
+                🏘️ {t("village")}:{" "}
+                {item.village}
+              </p>
+
+            )}
+
+
+            {/* Region */}
+
+            {item.region && (
+
+              <p>
+                📍 {t("region")}:{" "}
+                {item.region}
+              </p>
+
+            )}
+
+
+            {/* Place */}
+
+            {item.placeName && (
+
+              <p>
+                📌 {t("placeName")}:{" "}
+                {item.placeName}
+              </p>
+
+            )}
+
+
             {/* Type */}
 
             <p>
-              📌 {t("type")}:{" "}
+              🌱 {t("type")}:{" "}
               {item.type}
-            </p>
-
-
-            {/* Latitude */}
-
-            <p>
-              🌍 {t("latitude")}:{" "}
-              {item.latitude}
-            </p>
-
-
-            {/* Longitude */}
-
-            <p>
-              🌍 {t("longitude")}:{" "}
-              {item.longitude}
-            </p>
-
-
-            {/* Accuracy */}
-
-            <p>
-              🎯 {t("accuracy")}:{" "}
-              {item.accuracy}{" "}
-              {t("meters")}
             </p>
 
 
@@ -334,16 +368,21 @@ export default function Map() {
 
             {/* Google Maps */}
 
-            <a
-              href={
-                `https://maps.google.com/?q=` +
-                `${item.latitude},${item.longitude}`
-              }
-              target="_blank"
-              rel="noreferrer"
-            >
-              🗺️ {t("openGoogleMaps")}
-            </a>
+            {item.latitude &&
+              item.longitude && (
+
+              <a
+                href={
+                  `https://maps.google.com/?q=` +
+                  `${item.latitude},${item.longitude}`
+                }
+                target="_blank"
+                rel="noreferrer"
+              >
+                🗺️ {t("openGoogleMaps")}
+              </a>
+
+            )}
 
 
             <br />
