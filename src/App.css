@@ -1,6 +1,6 @@
 /* =========================================================
-   LAVENDER — APP GLOBAL STYLES
-   الأنماط العامة للتطبيق
+   LAVENDER — APP GLOBAL
+   src/App.css
 ========================================================= */
 
 * {
@@ -21,17 +21,22 @@ html {
 }
 
 body {
-  background: #f7faf7;
-  color: #164d2a;
-
   font-family:
     "Cairo",
     "Tajawal",
     Arial,
     sans-serif;
 
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
+  color: #164d2a;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f8fcf7 0%,
+      #eef7ed 100%
+    );
+
+  overflow-x: hidden;
 }
 
 
@@ -40,34 +45,17 @@ body {
 ========================================================= */
 
 .app-layout {
-  width: 100%;
   min-height: 100vh;
 
   display: flex;
   flex-direction: column;
 
-  background: #f7faf7;
-}
-
-.app-body {
-  width: 100%;
-  flex: 1;
-
-  display: flex;
-  align-items: stretch;
-
-  min-width: 0;
-}
-
-.app-content {
-  flex: 1;
-
-  width: 100%;
-  min-width: 0;
-
-  padding: 0;
-
-  overflow-x: hidden;
+  background:
+    linear-gradient(
+      180deg,
+      #f8fcf7,
+      #edf7ed
+    );
 }
 
 
@@ -76,10 +64,16 @@ body {
 ========================================================= */
 
 .app-header {
+  position: relative;
+
+  z-index: 900;
+
   width: 100%;
-  min-height: 64px;
+
+  min-height: 70px;
 
   display: flex;
+
   align-items: center;
   justify-content: center;
 
@@ -87,32 +81,37 @@ body {
 
   background:
     linear-gradient(
-      145deg,
+      135deg,
       #ffffff,
-      #edf7ec
+      #eef8ed
     );
 
-  border-bottom: 1px solid #dcebdd;
+  border-bottom:
+    1px solid
+    rgba(22, 77, 42, .08);
 
   box-shadow:
-    0 4px 16px rgba(31, 91, 45, .08);
-
-  position: relative;
-  z-index: 20;
+    0 5px 20px
+    rgba(22, 77, 42, .08);
 }
+
+
+/* =========================================================
+   BRAND
+========================================================= */
 
 .brand {
   text-align: center;
 }
 
 .brand-link {
-  display: inline-flex;
+  display: flex;
+
   flex-direction: column;
+
   align-items: center;
 
   text-decoration: none;
-
-  color: inherit;
 }
 
 .brand-arabic {
@@ -124,6 +123,7 @@ body {
     serif;
 
   font-size: 25px;
+
   font-weight: 700;
 
   line-height: 1.1;
@@ -138,10 +138,45 @@ body {
     Arial,
     sans-serif;
 
-  font-size: 10px;
+  font-size: 11px;
+
   font-weight: 800;
 
   letter-spacing: 4px;
+}
+
+
+/* =========================================================
+   APP BODY
+========================================================= */
+
+.app-body {
+  position: relative;
+
+  flex: 1;
+
+  width: 100%;
+
+  display: flex;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
+.app-content {
+  width: 100%;
+
+  min-width: 0;
+
+  flex: 1;
+
+  padding: 20px;
+
+  direction: rtl;
 }
 
 
@@ -152,108 +187,41 @@ body {
 .app-footer {
   width: 100%;
 
-  padding: 20px 12px;
+  padding:
+    20px 16px
+    25px;
 
   text-align: center;
 
+  color: #627468;
+
   background:
-    linear-gradient(
-      145deg,
-      #164d2a,
-      #0f3820
-    );
+    #f5faf4;
 
-  color: #ffffff;
-
-  margin-top: auto;
+  border-top:
+    1px solid
+    rgba(22, 77, 42, .08);
 }
 
 .footer-brand {
-  margin-bottom: 4px;
+  color: #164d2a;
 
   font-family:
     "Aref Ruqaa",
     "Cairo",
     serif;
 
-  font-size: 22px;
+  font-size: 20px;
+
   font-weight: 700;
+
+  margin-bottom: 2px;
 }
 
 .footer-copy {
   font-size: 12px;
 
-  color: rgba(255,255,255,.78);
-}
-
-
-/* =========================================================
-   BUTTONS — GLOBAL RESET
-========================================================= */
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-
-/* =========================================================
-   LINKS
-========================================================= */
-
-a {
-  color: inherit;
-}
-
-
-/* =========================================================
-   IMAGES
-========================================================= */
-
-img {
-  max-width: 100%;
-  height: auto;
-}
-
-
-/* =========================================================
-   CARDS
-========================================================= */
-
-.card {
-  width: 100%;
-  background: #ffffff;
-
-  border-radius: 20px;
-
-  border: 1px solid #e1eee1;
-
-  box-shadow:
-    0 8px 24px rgba(31, 91, 45, .08);
-}
-
-.card-body {
-  padding: 18px;
-}
-
-
-/* =========================================================
-   ACCESSIBILITY
-========================================================= */
-
-button:focus-visible,
-a:focus-visible,
-input:focus-visible,
-textarea:focus-visible,
-select:focus-visible {
-  outline: 3px solid rgba(59, 152, 85, .35);
-  outline-offset: 3px;
+  font-weight: 600;
 }
 
 
@@ -261,11 +229,12 @@ select:focus-visible {
    MOBILE
 ========================================================= */
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
 
   .app-header {
-    min-height: 58px;
-    padding: 8px 10px;
+    min-height: 62px;
+
+    padding: 8px 12px;
   }
 
   .brand-arabic {
@@ -274,19 +243,19 @@ select:focus-visible {
 
   .brand-english {
     font-size: 9px;
+
     letter-spacing: 3px;
   }
 
   .app-content {
-    width: 100%;
+    padding:
+      12px 8px 90px;
   }
 
   .app-footer {
-    padding: 16px 10px;
-  }
-
-  .footer-brand {
-    font-size: 19px;
+    padding:
+      16px 12px
+      90px;
   }
 
 }
@@ -302,8 +271,24 @@ select:focus-visible {
     font-size: 20px;
   }
 
-  .brand-english {
-    font-size: 8px;
+  .app-content {
+    padding:
+      10px 6px 86px;
+  }
+
+}
+
+
+/* =========================================================
+   DESKTOP
+========================================================= */
+
+@media (min-width: 768px) {
+
+  .app-content {
+    margin-right: 245px;
+
+    padding: 24px;
   }
 
 }
