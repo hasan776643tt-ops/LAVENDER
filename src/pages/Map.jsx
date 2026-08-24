@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useState,
 } from "react";
 
 import {
@@ -95,7 +96,6 @@ function ManualLocationSelector({
 
       }
 
-
       const {
         lat,
         lng,
@@ -121,8 +121,8 @@ function ManualLocationSelector({
 // Map View Controller
 //
 // IMPORTANT:
-// map.setView() must NOT run during render.
-// It runs inside useEffect.
+// map.setView MUST NOT run during render.
+// It runs inside useEffect only.
 // =========================================================
 
 function MapViewController({
@@ -228,8 +228,6 @@ export default function Map() {
     accuracy,
     locationTime,
 
-    locationSource,
-
     notes,
     setNotes,
 
@@ -316,16 +314,16 @@ export default function Map() {
   // Manual Location
   //
   // IMPORTANT:
-  // Do not round coordinates.
-  // useMap.applyLocation() keeps full precision.
+  // Use the hook function.
+  // Do NOT duplicate GPS/location state here.
   // =========================================================
 
-  const handleManualLocation = async (
+  const handleManualLocation = (
     lat,
     lng
   ) => {
 
-    await selectManualLocation(
+    selectManualLocation(
       lat,
       lng
     );
@@ -490,13 +488,11 @@ export default function Map() {
 
 
         <Button
-          onClick={() => {
-
+          onClick={() =>
             setLocationMode(
               "manual"
-            );
-
-          }}
+            )
+          }
         >
 
           🗺️ {t("manualLocation")}
@@ -622,11 +618,11 @@ export default function Map() {
 
 
         {/* ===================================================
-            Location Status
+            GPS / Manual Status
         ==================================================== */}
 
-        {latitude !== "" &&
-        longitude !== "" && (
+        {latitude &&
+        longitude && (
 
           <div>
 
@@ -653,16 +649,17 @@ export default function Map() {
 
 
             {locationMode ===
-              "gps" &&
-            accuracy !== "" && (
+              "gps" && (
 
               <p>
+
                 🎯{" "}
                 {t("accuracy")}:
                 {" "}
                 {accuracy}
                 {" "}
                 {t("meters")}
+
               </p>
 
             )}
@@ -672,20 +669,12 @@ export default function Map() {
               "manual" && (
 
               <p>
+
                 🖐️{" "}
                 {t(
                   "manualLocationSelected"
                 )}
-              </p>
 
-            )}
-
-
-            {locationSource && (
-
-              <p>
-                📡{" "}
-                {locationSource}
               </p>
 
             )}
@@ -694,10 +683,12 @@ export default function Map() {
             {locationTime && (
 
               <p>
+
                 🕒{" "}
                 {t("locationTime")}:
                 {" "}
                 {locationTime}
+
               </p>
 
             )}
@@ -824,7 +815,6 @@ export default function Map() {
           onClick={
             addLocation
           }
-
         >
 
           💾 {t("save")}
