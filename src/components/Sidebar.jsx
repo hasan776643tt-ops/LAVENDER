@@ -1,10 +1,6 @@
 // src/components/Sidebar.jsx
 
 import {
-  useState,
-} from "react";
-
-import {
   NavLink,
 } from "react-router-dom";
 
@@ -20,7 +16,13 @@ import {
 
 
 // =========================================================
-// LAVENDER — MOBILE SIDEBAR
+// LAVENDER — RESPONSIVE NAVIGATION
+//
+// Desktop:
+// Sidebar كامل
+//
+// Mobile:
+// Bottom Navigation — 5 عناصر فقط
 // =========================================================
 
 export default function Sidebar() {
@@ -34,11 +36,9 @@ export default function Sidebar() {
     settings?.language || "ar";
 
 
-  const [
-    isOpen,
-    setIsOpen,
-  ] = useState(false);
-
+  // =======================================================
+  // جميع عناصر القائمة — Desktop
+  // =======================================================
 
   const menuItems =
     menuConfig.filter(
@@ -47,69 +47,52 @@ export default function Sidebar() {
     );
 
 
-  const closeMenu = () => {
+  // =======================================================
+  // عناصر Bottom Navigation — Mobile
+  //
+  // نستخدم IDs الموجودة أصلًا في menuConfig
+  // ولا نغيّر menuConfig نفسه.
+  // =======================================================
 
-    setIsOpen(
-      false
-    );
+  const mobileIds = [
+    "dashboard",
+    "farms",
+    "fields",
+    "reports",
+    "settings",
+  ];
 
-  };
 
+  const mobileItems =
+    mobileIds
+      .map(
+        (id) =>
+          menuItems.find(
+            (item) =>
+              item.id === id
+          )
+      )
+      .filter(Boolean);
+
+
+  // =======================================================
+  // RENDER
+  // =======================================================
 
   return (
 
-    <>
+    <aside
+      className="sidebar"
+      aria-label="القائمة الرئيسية"
+    >
 
-      {/* =================================================
-          MOBILE MENU BUTTON
-      ================================================= */}
+      {/* ===================================================
+          DESKTOP NAVIGATION
+          تظهر من 768px فأعلى
+      =================================================== */}
 
-      <button
-        type="button"
-        className="mobile-menu-button"
-        onClick={() =>
-          setIsOpen(true)
-        }
-        aria-label="فتح القائمة"
-        aria-expanded={isOpen}
-      >
-
-        <span>
-          ☰
-        </span>
-
-      </button>
-
-
-      {/* =================================================
-          OVERLAY
-      ================================================= */}
-
-      {
-        isOpen && (
-
-          <button
-            type="button"
-            className="sidebar-overlay"
-            onClick={closeMenu}
-            aria-label="إغلاق القائمة"
-          />
-
-        )
-      }
-
-
-      {/* =================================================
-          SIDEBAR
-      ================================================= */}
-
-      <aside
-        className={
-          isOpen
-            ? "sidebar sidebar-open"
-            : "sidebar"
-        }
-        aria-label="القائمة الرئيسية"
+      <div
+        className="sidebar-desktop"
       >
 
         {/* =================================================
@@ -142,21 +125,11 @@ export default function Sidebar() {
 
           </div>
 
-
-          <button
-            type="button"
-            className="sidebar-close"
-            onClick={closeMenu}
-            aria-label="إغلاق القائمة"
-          >
-            ×
-          </button>
-
         </header>
 
 
         {/* =================================================
-            NAVIGATION
+            DESKTOP MENU
         ================================================= */}
 
         <nav
@@ -182,6 +155,7 @@ export default function Sidebar() {
                       to={
                         item.path
                       }
+
                       className={
                         ({
                           isActive,
@@ -190,12 +164,10 @@ export default function Sidebar() {
                             ? "sidebar-link active"
                             : "sidebar-link"
                       }
+
                       end={
                         item.path ===
                         "/dashboard"
-                      }
-                      onClick={
-                        closeMenu
                       }
                     >
 
@@ -270,7 +242,9 @@ export default function Sidebar() {
           className="sidebar-footer"
         >
 
-          <span>
+          <span
+            aria-hidden="true"
+          >
             🌱
           </span>
 
@@ -280,9 +254,87 @@ export default function Sidebar() {
 
         </footer>
 
-      </aside>
+      </div>
 
-    </>
+
+      {/* ===================================================
+          MOBILE BOTTOM NAVIGATION
+          5 عناصر فقط
+      =================================================== */}
+
+      <nav
+        className="mobile-bottom-nav"
+        aria-label="التنقل السريع"
+      >
+
+        <ul>
+
+          {
+            mobileItems.map(
+              (
+                item
+              ) => (
+
+                <li
+                  key={
+                    item.id
+                  }
+                >
+
+                  <NavLink
+                    to={
+                      item.path
+                    }
+
+                    className={
+                      ({
+                        isActive,
+                      }) =>
+                        isActive
+                          ? "mobile-nav-link active"
+                          : "mobile-nav-link"
+                    }
+
+                    end={
+                      item.path ===
+                      "/dashboard"
+                    }
+                  >
+
+                    <span
+                      className="mobile-nav-icon"
+                      aria-hidden="true"
+                    >
+                      {
+                        item.icon
+                      }
+                    </span>
+
+
+                    <span
+                      className="mobile-nav-label"
+                    >
+                      {
+                        translate(
+                          item.titleKey,
+                          language
+                        )
+                      }
+                    </span>
+
+                  </NavLink>
+
+                </li>
+
+              )
+            )
+          }
+
+        </ul>
+
+      </nav>
+
+    </aside>
 
   );
 
