@@ -1,14 +1,31 @@
 /* =========================================================
-   LAVENDER — SIDEBAR
-   Navigation
+   LAVENDER — RESPONSIVE NAVIGATION
    File: src/styles/sidebar.css
 ========================================================= */
 
-.sidebar {
+:root {
   --lavender-dark: #0f5132;
   --lavender-primary: #198754;
   --lavender-soft: #20c997;
   --lavender-light: #dff5e1;
+  --lavender-white: #ffffff;
+}
+
+
+/* =========================================================
+   MAIN SIDEBAR CONTAINER
+========================================================= */
+
+.sidebar {
+  direction: rtl;
+}
+
+
+/* =========================================================
+   DESKTOP SIDEBAR
+========================================================= */
+
+.sidebar-desktop {
 
   position: fixed;
 
@@ -23,6 +40,10 @@
   padding: 18px 12px;
 
   box-sizing: border-box;
+
+  display: flex;
+
+  flex-direction: column;
 
   direction: rtl;
 
@@ -46,53 +67,153 @@
   scrollbar-width: none;
 }
 
-.sidebar::-webkit-scrollbar {
+
+.sidebar-desktop::-webkit-scrollbar {
   display: none;
 }
 
 
 /* =========================================================
-   MENU
+   SIDEBAR HEADER
+========================================================= */
+
+.sidebar-header {
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 10px;
+
+  padding:
+    4px 4px 18px;
+
+  margin-bottom: 10px;
+
+  color: #ffffff;
+}
+
+
+.sidebar-logo {
+
+  width: 44px;
+  height: 44px;
+
+  flex: 0 0 44px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 14px;
+
+  font-size: 23px;
+
+  background:
+    rgba(255, 255, 255, .14);
+
+  border:
+    1px solid
+    rgba(255, 255, 255, .16);
+
+  box-shadow:
+    inset 0 1px 0
+    rgba(255, 255, 255, .18);
+}
+
+
+.sidebar-brand {
+
+  display: flex;
+
+  flex-direction: column;
+
+  min-width: 0;
+}
+
+
+.sidebar-brand strong {
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size: 15px;
+
+  letter-spacing: 1px;
+}
+
+
+.sidebar-brand span {
+
+  margin-top: 3px;
+
+  font-family:
+    "Cairo",
+    "Tajawal",
+    sans-serif;
+
+  font-size: 11px;
+
+  opacity: .82;
+}
+
+
+/* =========================================================
+   DESKTOP MENU
 ========================================================= */
 
 .sidebar-menu {
+
   width: 100%;
 
   margin: 0;
+
   padding: 0;
+
+  flex: 1;
 }
 
+
 .sidebar-menu ul {
+
   width: 100%;
 
   margin: 0;
+
   padding: 0;
 
   list-style: none;
 
   display: flex;
+
   flex-direction: column;
 
-  gap: 8px;
+  gap: 7px;
 }
 
 
 /* =========================================================
-   LINK
+   DESKTOP LINK
 ========================================================= */
 
 .sidebar-link {
+
   width: 100%;
+
   min-height: 54px;
 
-  padding: 8px 10px;
+  padding:
+    7px 9px;
 
   box-sizing: border-box;
 
   display: flex;
+
   align-items: center;
 
-  gap: 12px;
+  gap: 11px;
 
   text-decoration: none;
 
@@ -100,11 +221,13 @@
     rgba(255, 255, 255, .88);
 
   border:
-    1px solid transparent;
+    1px solid
+    transparent;
 
   border-radius: 18px;
 
-  background: transparent;
+  background:
+    transparent;
 
   transition:
     background .18s ease,
@@ -113,18 +236,15 @@
 }
 
 
-/* =========================================================
-   HOVER
-========================================================= */
-
 .sidebar-link:hover {
-  color: #fff;
+
+  color: #ffffff;
 
   background:
-    rgba(255, 255, 255, .12);
+    rgba(255, 255, 255, .11);
 
   border-color:
-    rgba(255, 255, 255, .12);
+    rgba(255, 255, 255, .10);
 
   transform:
     translateX(-3px);
@@ -132,11 +252,12 @@
 
 
 /* =========================================================
-   ACTIVE
+   ACTIVE DESKTOP
 ========================================================= */
 
 .sidebar-link.active {
-  color: #fff;
+
+  color: #ffffff;
 
   background:
     linear-gradient(
@@ -146,10 +267,11 @@
     );
 
   border-color:
-    rgba(255, 255, 255, .22);
+    rgba(255, 255, 255, .20);
 
   box-shadow:
-    0 8px 22px rgba(0, 0, 0, .18),
+    0 8px 22px
+    rgba(0, 0, 0, .18),
 
     inset 0 1px 0
     rgba(255, 255, 255, .22);
@@ -157,10 +279,11 @@
 
 
 /* =========================================================
-   ICON
+   DESKTOP ICON
 ========================================================= */
 
 .sidebar-icon {
+
   flex: 0 0 42px;
 
   width: 42px;
@@ -187,17 +310,20 @@
     rgba(255, 255, 255, .15);
 }
 
+
 .sidebar-link.active .sidebar-icon {
+
   background:
     rgba(255, 255, 255, .20);
 }
 
 
 /* =========================================================
-   LABEL
+   DESKTOP LABEL
 ========================================================= */
 
 .sidebar-label {
+
   min-width: 0;
 
   display: flex;
@@ -212,11 +338,8 @@
 }
 
 
-/* =========================================================
-   ARABIC
-========================================================= */
-
 .sidebar-arabic {
+
   font-family:
     "Cairo",
     "Tajawal",
@@ -230,24 +353,75 @@
 }
 
 
-/* =========================================================
-   HIDE ENGLISH
-   لا نريد dashboard / farms / fields...
-========================================================= */
-
 .sidebar-english {
+
   display: none;
 }
 
 
 /* =========================================================
-   DESKTOP
+   DESKTOP ARROW
+========================================================= */
+
+.sidebar-arrow {
+
+  margin-right: auto;
+
+  font-size: 14px;
+
+  opacity: .55;
+}
+
+
+/* =========================================================
+   SIDEBAR FOOTER
+========================================================= */
+
+.sidebar-footer {
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  gap: 7px;
+
+  padding:
+    15px 8px 4px;
+
+  color:
+    rgba(255, 255, 255, .70);
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size: 11px;
+
+  letter-spacing: 1px;
+}
+
+
+/* =========================================================
+   MOBILE BOTTOM NAVIGATION
+========================================================= */
+
+.mobile-bottom-nav {
+
+  display: none;
+}
+
+
+/* =========================================================
+   DESKTOP CONTENT
 ========================================================= */
 
 @media (min-width: 768px) {
 
   .app-content {
+
     margin-right: 245px;
+
   }
 
 }
@@ -255,113 +429,135 @@
 
 /* =========================================================
    MOBILE
-   شريط سفلي أفقي
 ========================================================= */
 
 @media (max-width: 767px) {
 
+  /* -------------------------------------------------------
+     Desktop Sidebar hidden
+  ------------------------------------------------------- */
+
+  .sidebar-desktop {
+
+    display: none;
+
+  }
+
+
+  /* -------------------------------------------------------
+     Sidebar container
+  ------------------------------------------------------- */
+
   .sidebar {
 
-    top: auto;
+    position: static;
+
+    width: 100%;
+
+    height: 0;
+
+  }
+
+
+  /* -------------------------------------------------------
+     Bottom Navigation
+  ------------------------------------------------------- */
+
+  .mobile-bottom-nav {
+
+    position: fixed;
+
     right: 0;
     bottom: 0;
     left: 0;
+
+    z-index: 2000;
+
+    display: block;
 
     width: 100%;
 
     height:
       calc(
-        72px +
+        76px +
         env(safe-area-inset-bottom)
       );
 
     padding:
-      6px 5px
+      7px 6px
       env(safe-area-inset-bottom);
+
+    box-sizing: border-box;
+
+    direction: rtl;
+
+    background:
+      rgba(15, 81, 50, .94);
 
     border-top:
       1px solid
-      rgba(255, 255, 255, .18);
-
-    border-left: 0;
-
-    background:
-      rgba(15, 81, 50, .96);
+      rgba(255, 255, 255, .16);
 
     box-shadow:
       0 -10px 30px
-      rgba(5, 45, 28, .22);
+      rgba(5, 45, 28, .24);
 
     backdrop-filter:
       blur(18px);
 
     -webkit-backdrop-filter:
       blur(18px);
-
-    overflow-x: auto;
-    overflow-y: hidden;
-
-    scrollbar-width: none;
   }
 
 
-  .sidebar::-webkit-scrollbar {
-    display: none;
-  }
+  /* -------------------------------------------------------
+     Bottom Navigation List
+  ------------------------------------------------------- */
 
+  .mobile-bottom-nav ul {
 
-  /* =======================================================
-     MENU
-  ======================================================= */
-
-  .sidebar-menu {
-    width: max-content;
-    min-width: 100%;
-    height: 100%;
-  }
-
-
-  .sidebar-menu ul {
-
-    width: max-content;
-    min-width: 100%;
-
+    width: 100%;
     height: 100%;
 
-    display: flex;
+    margin: 0;
+    padding: 0;
 
-    flex-direction: row;
+    list-style: none;
+
+    display: grid;
+
+    grid-template-columns:
+      repeat(5, 1fr);
 
     align-items: stretch;
 
-    justify-content: flex-start;
-
-    gap: 5px;
+    gap: 4px;
   }
 
 
-  .sidebar-menu li {
+  .mobile-bottom-nav li {
 
-    flex:
-      0 0 auto;
+    min-width: 0;
 
     height: 100%;
   }
 
 
-  /* =======================================================
-     LINK
-  ======================================================= */
+  /* -------------------------------------------------------
+     Mobile Navigation Link
+  ------------------------------------------------------- */
 
-  .sidebar-link {
+  .mobile-nav-link {
 
-    width: 64px;
-    min-width: 64px;
-
+    width: 100%;
     height: 100%;
-    min-height: 0;
 
-    padding: 4px 3px;
+    min-width: 0;
+
+    padding:
+      5px 3px;
+
+    box-sizing: border-box;
 
     display: flex;
 
@@ -370,87 +566,128 @@
     align-items: center;
     justify-content: center;
 
-    gap: 2px;
+    gap: 3px;
 
-    border-radius: 15px;
+    text-decoration: none;
 
-    transform: none;
+    color:
+      rgba(255, 255, 255, .72);
+
+    border:
+      1px solid
+      transparent;
+
+    border-radius: 16px;
+
+    transition:
+      background .18s ease,
+      transform .18s ease,
+      color .18s ease;
   }
 
 
-  .sidebar-link:hover {
+  /* -------------------------------------------------------
+     Mobile Icon
+  ------------------------------------------------------- */
 
-    transform: none;
+  .mobile-nav-icon {
 
-  }
+    width: 36px;
+    height: 36px;
 
-
-  /* =======================================================
-     ICON
-  ======================================================= */
-
-  .sidebar-icon {
-
-    flex: 0 0 auto;
-
-    width: 35px;
-    height: 35px;
-
-    border-radius: 11px;
-
-    font-size: 18px;
-  }
-
-
-  /* =======================================================
-     LABEL
-  ======================================================= */
-
-  .sidebar-label {
-
-    width: 100%;
+    flex: 0 0 36px;
 
     display: flex;
 
     align-items: center;
     justify-content: center;
 
-    text-align: center;
+    border-radius: 12px;
+
+    font-size: 19px;
+
+    background:
+      rgba(255, 255, 255, .10);
+
+    border:
+      1px solid
+      rgba(255, 255, 255, .10);
+
+    transition:
+      background .18s ease,
+      transform .18s ease;
   }
 
 
-  .sidebar-arabic {
+  /* -------------------------------------------------------
+     Mobile Label
+  ------------------------------------------------------- */
 
-    max-width: 100%;
+  .mobile-nav-label {
 
-    font-size: 9px;
-
-    line-height: 1.1;
+    width: 100%;
 
     overflow: hidden;
 
     text-overflow: ellipsis;
 
     white-space: nowrap;
+
+    text-align: center;
+
+    font-family:
+      "Cairo",
+      "Tajawal",
+      sans-serif;
+
+    font-size: 9px;
+
+    font-weight: 700;
+
+    line-height: 1.1;
   }
 
 
-  /* =======================================================
-     ACTIVE
-  ======================================================= */
+  /* -------------------------------------------------------
+     Active Mobile Item
+  ------------------------------------------------------- */
 
-  .sidebar-link.active {
+  .mobile-nav-link.active {
+
+    color: #ffffff;
+
+    background:
+      rgba(32, 201, 151, .22);
+
+    border-color:
+      rgba(255, 255, 255, .14);
 
     transform:
       translateY(-2px);
-
-    border-radius: 15px;
   }
 
 
-  /* =======================================================
-     CONTENT
-  ======================================================= */
+  .mobile-nav-link.active .mobile-nav-icon {
+
+    background:
+      linear-gradient(
+        135deg,
+        #20c997,
+        #198754
+      );
+
+    transform:
+      translateY(-1px);
+
+    box-shadow:
+      0 6px 14px
+      rgba(0, 0, 0, .18);
+  }
+
+
+  /* -------------------------------------------------------
+     Mobile Content
+  ------------------------------------------------------- */
 
   .app-content {
 
@@ -458,9 +695,10 @@
 
     padding-bottom:
       calc(
-        78px +
+        88px +
         env(safe-area-inset-bottom)
       );
+
   }
 
 }
@@ -472,27 +710,33 @@
 
 @media (max-width: 380px) {
 
-  .sidebar {
+  .mobile-bottom-nav {
 
     height:
       calc(
-        68px +
+        72px +
         env(safe-area-inset-bottom)
       );
+
+    padding:
+      6px 4px
+      env(safe-area-inset-bottom);
   }
 
 
-  .sidebar-link {
+  .mobile-nav-link {
 
-    width: 57px;
-    min-width: 57px;
+    border-radius: 14px;
+
   }
 
 
-  .sidebar-icon {
+  .mobile-nav-icon {
 
-    width: 31px;
-    height: 31px;
+    width: 32px;
+    height: 32px;
+
+    flex-basis: 32px;
 
     border-radius: 10px;
 
@@ -500,9 +744,10 @@
   }
 
 
-  .sidebar-arabic {
+  .mobile-nav-label {
 
     font-size: 8px;
+
   }
 
 
@@ -510,9 +755,10 @@
 
     padding-bottom:
       calc(
-        74px +
+        84px +
         env(safe-area-inset-bottom)
       );
+
   }
 
 }
@@ -524,19 +770,22 @@
 
 @media (max-width: 340px) {
 
-  .sidebar-link {
-
-    width: 53px;
-    min-width: 53px;
-  }
-
-
-  .sidebar-icon {
+  .mobile-nav-icon {
 
     width: 29px;
     height: 29px;
 
+    flex-basis: 29px;
+
     font-size: 16px;
+
+  }
+
+
+  .mobile-nav-label {
+
+    font-size: 7px;
+
   }
 
 }
