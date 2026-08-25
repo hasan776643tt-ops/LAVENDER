@@ -1,78 +1,774 @@
 /* =========================================================
-   LAVENDER — FARM GRID FINAL OVERRIDE
-   3 FARM CARDS PER ROW
-   MOBILE + TABLET + DESKTOP
+   LAVENDER SMART FARM
+   GLOBAL DESIGN SYSTEM
+   src/App.css
+
+   المصدر المركزي للهوية البصرية
+   لا يحتاج إلى farms.css أو sidebar.css
 ========================================================= */
 
-.farms-selector .farms-grid,
-.farm-services-page .farm-services-grid {
 
-  width: 100% !important;
+/* =========================================================
+   01 — RESET
+========================================================= */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  direction: rtl;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+
+  font-family:
+    "Cairo",
+    "Tajawal",
+    Arial,
+    sans-serif;
+
+  color: #183d27;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f7fbf5 0%,
+      #edf6ea 45%,
+      #e3f0df 100%
+    );
+
+  overflow-x: hidden;
+
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+a {
+  color: inherit;
+}
+
+
+/* =========================================================
+   02 — APP LAYOUT
+========================================================= */
+
+.app-layout {
+  position: relative;
+
+  min-height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f8fcf6 0%,
+      #eef7eb 50%,
+      #e5f1e0 100%
+    );
+}
+
+
+/* =========================================================
+   03 — AGRICULTURAL ATMOSPHERE
+========================================================= */
+
+.app-layout::before {
+  content: "";
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 0;
+
+  pointer-events: none;
+
+  opacity: .72;
+
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(110, 169, 92, .16) 0,
+      transparent 28%
+    ),
+
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(190, 164, 67, .11) 0,
+      transparent 24%
+    ),
+
+    radial-gradient(
+      circle at 50% 80%,
+      rgba(62, 126, 67, .12) 0,
+      transparent 32%
+    ),
+
+    repeating-linear-gradient(
+      168deg,
+      rgba(55, 112, 57, .035) 0,
+      rgba(55, 112, 57, .035) 2px,
+      transparent 2px,
+      transparent 19px
+    );
+}
+
+
+/* =========================================================
+   04 — HEADER
+========================================================= */
+
+.app-header {
+  position: relative;
+
+  z-index: 900;
+
+  width: 100%;
+
+  min-height: 72px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 10px 16px;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255,255,255,.97),
+      rgba(237,247,232,.96)
+    );
+
+  border-bottom:
+    1px solid
+    rgba(34, 91, 48, .10);
+
+  box-shadow:
+    0 7px 28px
+    rgba(33, 83, 43, .09);
+
+  backdrop-filter: blur(14px);
+}
+
+
+/* =========================================================
+   05 — BRAND
+========================================================= */
+
+.brand {
+  text-align: center;
+}
+
+.brand-link {
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-decoration: none;
+}
+
+.brand-arabic {
+  color: #164d2a;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: 27px;
+
+  font-weight: 700;
+
+  line-height: 1.05;
+
+  letter-spacing: .2px;
+}
+
+.brand-english {
+  margin-top: 4px;
+
+  color: #4c9b57;
+
+  font-family:
+    Arial,
+    sans-serif;
+
+  font-size: 10px;
+
+  font-weight: 900;
+
+  letter-spacing: 5px;
+}
+
+
+/* =========================================================
+   06 — APP BODY
+========================================================= */
+
+.app-body {
+  position: relative;
+
+  z-index: 1;
+
+  flex: 1;
+
+  width: 100%;
+
+  min-width: 0;
+
+  display: flex;
+}
+
+.app-content {
+  position: relative;
+
+  width: 100%;
+
+  min-width: 0;
+
+  flex: 1;
+
+  padding: 20px;
+
+  direction: rtl;
+
+  z-index: 2;
+}
+
+
+/* =========================================================
+   07 — FOOTER
+========================================================= */
+
+.app-footer {
+  position: relative;
+
+  z-index: 5;
+
+  width: 100%;
+
+  padding:
+    22px 16px
+    28px;
+
+  text-align: center;
+
+  color: #627468;
+
+  background:
+    rgba(247, 251, 245, .94);
+
+  border-top:
+    1px solid
+    rgba(28, 81, 42, .09);
+}
+
+.footer-brand {
+  color: #164d2a;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: 21px;
+
+  font-weight: 700;
+
+  margin-bottom: 3px;
+}
+
+.footer-copy {
+  font-size: 12px;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   =========================================================
+   08 — LAVENDER FARMS
+   شاشة اختيار المزرعة
+   =========================================================
+========================================================= */
+
+.farms-selector {
+  position: relative;
+
+  width: 100%;
+
+  min-height: calc(100vh - 72px);
+
+  display: flex;
+
+  justify-content: center;
+
+  overflow: hidden;
+
+  padding:
+    24px 14px
+    40px;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(239,248,235,.94),
+      rgba(220,238,215,.97)
+    );
+}
+
+
+/* =========================================================
+   FIELD BACKGROUND
+========================================================= */
+
+.farms-selector::before {
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: .75;
+
+  background:
+
+    radial-gradient(
+      ellipse at 50% 100%,
+      rgba(52, 112, 53, .22),
+      transparent 55%
+    ),
+
+    repeating-linear-gradient(
+      172deg,
+      transparent 0,
+      transparent 28px,
+      rgba(44, 108, 49, .075) 29px,
+      rgba(44, 108, 49, .075) 31px,
+      transparent 32px,
+      transparent 58px
+    ),
+
+    linear-gradient(
+      180deg,
+      rgba(255,255,255,.30),
+      transparent 42%
+    );
+}
+
+
+/* =========================================================
+   DECORATIVE AGRICULTURAL LIGHT
+========================================================= */
+
+.farms-selector::after {
+  content: "🌿";
+
+  position: absolute;
+
+  top: 30px;
+  left: 20px;
+
+  font-size: 72px;
+
+  opacity: .08;
+
+  transform: rotate(-14deg);
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FARMS CONTENT
+========================================================= */
+
+.farms-page-content {
+  position: relative;
+
+  z-index: 3;
+
+  width: 100%;
+
+  max-width: 980px;
+
+  margin: 0 auto;
+}
+
+
+/* =========================================================
+   FARMS HEADER
+========================================================= */
+
+.farms-selector-header {
+  text-align: center;
+
+  margin:
+    0 auto
+    25px;
+
+  padding:
+    4px 8px
+    0;
+}
+
+.farms-selector-symbol {
+  width: 58px;
+
+  height: 58px;
+
+  margin:
+    0 auto
+    8px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  font-size: 30px;
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #e4f3df
+    );
+
+  border:
+    1px solid
+    rgba(46, 112, 57, .14);
+
+  box-shadow:
+    0 8px 24px
+    rgba(44, 105, 51, .14);
+}
+
+
+/* =========================================================
+   ARABIC FARM TITLE
+========================================================= */
+
+.farms-selector-title {
+  margin: 0;
+
+  color: #164d2a;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: clamp(
+    38px,
+    8vw,
+    58px
+  );
+
+  font-weight: 700;
+
+  line-height: 1;
+
+  letter-spacing: 0;
+
+  text-shadow:
+    0 3px 12px
+    rgba(25, 82, 39, .10);
+}
+
+
+/* =========================================================
+   LAVENDER BRAND
+========================================================= */
+
+.farms-selector-brand {
+  margin-top: 8px;
+
+  color: #479252;
+
+  font-family:
+    Georgia,
+    Arial,
+    sans-serif;
+
+  font-size: clamp(
+    13px,
+    3vw,
+    17px
+  );
+
+  font-weight: 900;
+
+  letter-spacing: 6px;
+}
+
+.farms-selector-subtitle {
+  margin:
+    10px auto
+    0;
+
+  color: #5e7565;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  line-height: 1.8;
+}
+
+
+/* =========================================================
+   FARMS SECTION
+========================================================= */
+
+.farms-selector-section {
+  width: 100%;
+
+  padding:
+    0 2px;
+}
+
+.farms-selector-section-heading {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 9px;
+
+  margin-bottom: 15px;
+}
+
+.farms-selector-section-title {
+  margin: 0;
+
+  color: #285d35;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: 27px;
+
+  font-weight: 700;
+}
+
+.farms-count {
+  min-width: 34px;
+
+  height: 34px;
+
+  display: inline-flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #3e8c4d,
+      #246b35
+    );
+
+  font-size: 13px;
+
+  font-weight: 900;
+
+  box-shadow:
+    0 5px 13px
+    rgba(36, 107, 53, .20);
+}
+
+
+/* =========================================================
+   =========================================================
+   09 — FARM GRID
+   3 COLUMNS ALWAYS
+========================================================= */
+
+.farms-selector .farms-grid {
+
+  width: 100%;
 
   display: grid !important;
 
   grid-template-columns:
     repeat(3, minmax(0, 1fr)) !important;
 
-  grid-auto-flow: row !important;
+  grid-auto-rows: auto;
 
-  gap: 10px !important;
+  gap: 13px;
 
-  flex-direction: unset !important;
+  align-items: stretch;
 
-  flex-wrap: unset !important;
+  justify-content: stretch;
 
-  align-items: stretch !important;
-
-  justify-content: stretch !important;
-
+  direction: rtl;
 }
 
 
 /* =========================================================
-   FARM CARDS
+   FARM CARD
 ========================================================= */
 
 .farms-selector .farm-choice {
 
-  width: 100% !important;
+  position: relative;
 
-  min-width: 0 !important;
+  width: 100%;
 
-  max-width: none !important;
+  min-width: 0;
 
-  min-height: 145px !important;
+  min-height: 155px;
 
-  margin: 0 !important;
+  margin: 0;
 
-  display: flex !important;
+  padding:
+    14px 8px
+    12px;
 
-  flex-direction: column !important;
+  display: flex;
 
-  align-items: center !important;
+  flex-direction: column;
 
-  justify-content: center !important;
+  align-items: center;
 
+  justify-content: center;
+
+  gap: 4px;
+
+  border:
+    1px solid
+    rgba(44, 105, 51, .14);
+
+  border-radius: 24px;
+
+  color: #245733;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.96),
+      rgba(235,247,231,.94)
+    );
+
+  box-shadow:
+    0 10px 27px
+    rgba(38, 91, 44, .11);
+
+  cursor: pointer;
+
+  overflow: hidden;
+
+  transition:
+    transform .22s ease,
+    box-shadow .22s ease,
+    border-color .22s ease,
+    background .22s ease;
 }
 
 
 /* =========================================================
-   FARM NAME
+   FARM CARD LIGHT
 ========================================================= */
 
-.farms-selector .farm-choice-name {
+.farms-selector .farm-choice::before {
+  content: "";
 
-  width: 100% !important;
+  position: absolute;
 
-  max-width: 100% !important;
+  top: -45px;
+  right: -40px;
 
-  overflow: hidden;
+  width: 105px;
+  height: 105px;
 
-  text-overflow: ellipsis;
+  border-radius: 50%;
 
-  white-space: nowrap;
+  background:
+    rgba(102, 164, 91, .10);
 
-  text-align: center !important;
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FARM CARD HOVER
+========================================================= */
+
+.farms-selector .farm-choice:hover {
+  transform:
+    translateY(-4px);
+
+  border-color:
+    rgba(49, 123, 61, .28);
+
+  background:
+    linear-gradient(
+      145deg,
+      #ffffff,
+      #e7f5e2
+    );
+
+  box-shadow:
+    0 15px 32px
+    rgba(38, 91, 44, .17);
+}
+
+
+/* =========================================================
+   FARM CARD PRESS
+========================================================= */
+
+.farms-selector .farm-choice:active {
+  transform:
+    translateY(-1px)
+    scale(.985);
 }
 
 
@@ -82,150 +778,903 @@
 
 .farms-selector .farm-choice-number {
 
-  flex:
-    0 0 auto;
+  position: relative;
 
+  z-index: 2;
+
+  width: 43px;
+
+  height: 43px;
+
+  flex:
+    0 0 43px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #58a65e,
+      #28743a
+    );
+
+  border:
+    3px solid
+    rgba(255,255,255,.88);
+
+  box-shadow:
+    0 5px 13px
+    rgba(40, 116, 58, .22);
+
+  font-family:
+    "Cairo",
+    Arial,
+    sans-serif;
+
+  font-size: 15px;
+
+  font-weight: 900;
 }
 
 
 /* =========================================================
-   SERVICES
-   3 × 3 STYLE
+   FARM LABEL
+========================================================= */
+
+.farms-selector .farm-choice-label {
+
+  position: relative;
+
+  z-index: 2;
+
+  margin-top: 4px;
+
+  color: #78907c;
+
+  font-size: 10px;
+
+  font-weight: 800;
+}
+
+
+/* =========================================================
+   FARM NAME
+========================================================= */
+
+.farms-selector .farm-choice-name {
+
+  position: relative;
+
+  z-index: 2;
+
+  width: 100%;
+
+  min-width: 0;
+
+  color: #174c29;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: clamp(
+    15px,
+    3.5vw,
+    21px
+  );
+
+  font-weight: 700;
+
+  line-height: 1.35;
+
+  text-align: center;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   FARM ARROW
+========================================================= */
+
+.farms-selector .farm-choice-arrow {
+
+  position: relative;
+
+  z-index: 2;
+
+  margin-top: 4px;
+
+  color: #4c9756;
+
+  font-size: 16px;
+
+  font-weight: 900;
+
+  transition:
+    transform .2s ease;
+}
+
+.farms-selector .farm-choice:hover
+.farm-choice-arrow {
+  transform:
+    translateX(-4px);
+}
+
+
+/* =========================================================
+   ADD FARM CARD
+========================================================= */
+
+.farms-selector .farm-choice-add {
+
+  border:
+    2px dashed
+    rgba(57, 126, 66, .28);
+
+  background:
+    rgba(246, 251, 244, .72);
+
+  box-shadow:
+    none;
+}
+
+.farms-selector .farm-choice-add
+.farm-choice-number {
+
+  background:
+    linear-gradient(
+      145deg,
+      #76ad72,
+      #438a4a
+    );
+
+  font-size: 22px;
+}
+
+.farms-selector .farm-choice-add
+.farm-choice-name {
+  color: #3c7947;
+}
+
+
+/* =========================================================
+   =========================================================
+   10 — FARM SERVICES
+========================================================= */
+
+.farm-services-page {
+
+  position: relative;
+
+  width: 100%;
+
+  min-height: calc(100vh - 72px);
+
+  padding:
+    22px 14px
+    40px;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f0f8ed,
+      #e3f0df
+    );
+}
+
+.farm-services-page::before {
+
+  content: "";
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  background:
+    repeating-linear-gradient(
+      171deg,
+      transparent 0,
+      transparent 30px,
+      rgba(46, 111, 52, .06) 31px,
+      rgba(46, 111, 52, .06) 33px,
+      transparent 34px,
+      transparent 62px
+    );
+}
+
+
+/* =========================================================
+   SERVICE HEADER
+========================================================= */
+
+.farm-services-header {
+
+  position: relative;
+
+  z-index: 3;
+
+  text-align: center;
+
+  margin:
+    0 auto
+    22px;
+
+  padding:
+    4px 45px
+    0;
+}
+
+.farms-back-button {
+
+  position: absolute;
+
+  top: 0;
+  right: 0;
+
+  width: 43px;
+  height: 43px;
+
+  border: 0;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #4e9656,
+      #286e38
+    );
+
+  font-size: 21px;
+
+  font-weight: 900;
+
+  cursor: pointer;
+
+  box-shadow:
+    0 7px 18px
+    rgba(42, 104, 52, .20);
+}
+
+.farm-services-number {
+
+  width: 48px;
+
+  height: 48px;
+
+  margin:
+    0 auto
+    7px;
+
+  display: flex;
+
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #5aa45e,
+      #2d743c
+    );
+
+  font-size: 16px;
+
+  font-weight: 900;
+
+  box-shadow:
+    0 7px 18px
+    rgba(42, 104, 52, .20);
+}
+
+.farm-services-label {
+
+  color: #7b907e;
+
+  font-size: 11px;
+
+  font-weight: 800;
+}
+
+.farm-services-title {
+
+  margin:
+    2px 0
+    0;
+
+  color: #164d2a;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: clamp(
+    31px,
+    7vw,
+    48px
+  );
+
+  line-height: 1.15;
+}
+
+.farm-services-subtitle {
+
+  margin:
+    6px 0
+    0;
+
+  color: #617767;
+
+  font-size: 13px;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   SERVICES GRID — 3 COLUMNS
+========================================================= */
+
+.farm-services-page .farm-services-grid {
+
+  position: relative;
+
+  z-index: 3;
+
+  width: 100%;
+
+  max-width: 900px;
+
+  margin: 0 auto;
+
+  display: grid !important;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr)) !important;
+
+  gap: 12px;
+
+  direction: rtl;
+}
+
+
+/* =========================================================
+   SERVICE CARD
 ========================================================= */
 
 .farm-services-page .farm-service-choice {
 
-  width: 100% !important;
+  min-width: 0;
 
-  min-width: 0 !important;
+  min-height: 116px;
 
-  max-width: none !important;
+  padding:
+    12px 6px;
 
-  margin: 0 !important;
+  display: flex;
 
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 7px;
+
+  border:
+    1px solid
+    rgba(44, 105, 51, .13);
+
+  border-radius: 21px;
+
+  color: #245733;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(255,255,255,.97),
+      rgba(233,246,229,.95)
+    );
+
+  box-shadow:
+    0 9px 24px
+    rgba(38, 91, 44, .10);
+
+  cursor: pointer;
+
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease,
+    border-color .2s ease;
+}
+
+.farm-services-page .farm-service-choice:hover {
+
+  transform:
+    translateY(-3px);
+
+  border-color:
+    rgba(49, 123, 61, .28);
+
+  box-shadow:
+    0 13px 28px
+    rgba(38, 91, 44, .15);
+}
+
+.farm-service-icon {
+
+  font-size: 30px;
+
+  line-height: 1;
+}
+
+.farm-service-name {
+
+  color: #285d35;
+
+  font-family:
+    "Cairo",
+    sans-serif;
+
+  font-size: 13px;
+
+  font-weight: 800;
+
+  line-height: 1.35;
+
+  text-align: center;
 }
 
 
 /* =========================================================
-   MOBILE — KEEP THREE COLUMNS
+   =========================================================
+   11 — EMPTY / ERROR / LOADING
+========================================================= */
+
+.farms-empty-card {
+
+  position: relative;
+
+  z-index: 3;
+
+  width: 100%;
+
+  max-width: 560px;
+
+  margin:
+    25px auto;
+
+  padding:
+    34px 20px;
+
+  text-align: center;
+
+  border:
+    1px solid
+    rgba(44, 105, 51, .13);
+
+  border-radius: 26px;
+
+  background:
+    rgba(255,255,255,.88);
+
+  box-shadow:
+    0 12px 32px
+    rgba(38, 91, 44, .11);
+}
+
+.farms-empty-icon {
+
+  font-size: 42px;
+
+  margin-bottom: 10px;
+}
+
+.farms-empty-card h2 {
+
+  margin:
+    0 0 7px;
+
+  color: #245733;
+
+  font-family:
+    "Aref Ruqaa",
+    "Cairo",
+    serif;
+
+  font-size: 25px;
+}
+
+.farms-empty-card p {
+
+  margin:
+    0;
+
+  color: #6c7f70;
+
+  font-size: 13px;
+
+  font-weight: 600;
+}
+
+.farms-retry-button {
+
+  margin-top: 18px;
+
+  padding:
+    11px 22px;
+
+  border: 0;
+
+  border-radius: 14px;
+
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      145deg,
+      #4d9956,
+      #286e38
+    );
+
+  font-weight: 800;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+.farm-choice-loading {
+
+  pointer-events: none;
+
+  animation:
+    lavenderPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes lavenderPulse {
+
+  0%,
+  100% {
+    opacity: .62;
+  }
+
+  50% {
+    opacity: 1;
+  }
+}
+
+
+/* =========================================================
+   =========================================================
+   12 — DASHBOARD GENERAL CARDS
+========================================================= */
+
+.app-content > main {
+
+  width: 100%;
+
+  min-width: 0;
+}
+
+
+/* =========================================================
+   =========================================================
+   13 — MOBILE
 ========================================================= */
 
 @media (max-width: 767px) {
 
-  .farms-selector .farms-grid,
+  .app-header {
+    min-height: 62px;
+
+    padding:
+      8px 12px;
+  }
+
+  .brand-arabic {
+    font-size: 23px;
+  }
+
+  .brand-english {
+    font-size: 9px;
+
+    letter-spacing: 3px;
+  }
+
+  .app-content {
+    padding:
+      10px 7px;
+  }
+
+  .app-footer {
+    padding:
+      16px 12px
+      88px;
+  }
+
+
+  /* -----------------------------
+     FARMS
+  ----------------------------- */
+
+  .farms-selector {
+
+    min-height:
+      calc(100vh - 62px);
+
+    padding:
+      20px 8px
+      30px;
+  }
+
+  .farms-selector-header {
+
+    margin-bottom:
+      20px;
+  }
+
+  .farms-selector-symbol {
+
+    width: 52px;
+    height: 52px;
+
+    font-size: 27px;
+  }
+
+  .farms-selector-title {
+
+    font-size: 43px;
+  }
+
+  .farms-selector-brand {
+
+    font-size: 11px;
+
+    letter-spacing: 4px;
+  }
+
+  .farms-selector-subtitle {
+
+    font-size: 12px;
+  }
+
+  .farms-selector-section-title {
+
+    font-size: 23px;
+  }
+
+  .farms-selector .farms-grid {
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 8px;
+  }
+
+  .farms-selector .farm-choice {
+
+    min-height: 136px;
+
+    padding:
+      10px 4px;
+
+    border-radius: 19px;
+  }
+
+  .farms-selector .farm-choice-number {
+
+    width: 37px;
+    height: 37px;
+
+    flex-basis: 37px;
+
+    font-size: 13px;
+  }
+
+  .farms-selector .farm-choice-label {
+
+    font-size: 8px;
+  }
+
+  .farms-selector .farm-choice-name {
+
+    font-size: 13px;
+  }
+
+  .farms-selector .farm-choice-arrow {
+
+    font-size: 13px;
+  }
+
+
+  /* -----------------------------
+     SERVICES
+  ----------------------------- */
+
+  .farm-services-page {
+
+    min-height:
+      calc(100vh - 62px);
+
+    padding:
+      18px 8px
+      30px;
+  }
+
+  .farm-services-header {
+
+    padding:
+      4px 40px
+      0;
+
+    margin-bottom:
+      18px;
+  }
+
+  .farm-services-title {
+
+    font-size: 34px;
+  }
+
   .farm-services-page .farm-services-grid {
 
     grid-template-columns:
       repeat(3, minmax(0, 1fr)) !important;
 
-    gap:
-      8px !important;
-
+    gap: 8px;
   }
 
-  .farms-selector .farm-choice {
+  .farm-services-page .farm-service-choice {
 
-    min-height:
-      138px !important;
+    min-height: 105px;
 
     padding:
-      10px 5px !important;
+      9px 3px;
 
-    border-radius:
-      18px !important;
-
+    border-radius: 17px;
   }
 
-  .farms-selector .farm-choice-number {
+  .farm-service-icon {
 
-    width:
-      36px !important;
-
-    height:
-      36px !important;
-
-    margin-bottom:
-      6px !important;
-
+    font-size: 25px;
   }
 
-  .farms-selector .farm-choice-label {
+  .farm-service-name {
 
-    font-size:
-      9px !important;
-
-  }
-
-  .farms-selector .farm-choice-name {
-
-    font-size:
-      14px !important;
-
+    font-size: 10px;
   }
 
 }
 
 
 /* =========================================================
-   SMALL PHONES — STILL THREE COLUMNS
+   =========================================================
+   14 — SMALL PHONES
 ========================================================= */
 
 @media (max-width: 380px) {
 
-  .farms-selector .farms-grid,
+  .app-content {
+    padding:
+      8px 5px;
+  }
+
+  .farms-selector {
+
+    padding:
+      17px 6px
+      25px;
+  }
+
+  .farms-selector-title {
+
+    font-size: 38px;
+  }
+
+  .farms-selector .farms-grid {
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr)) !important;
+
+    gap: 6px;
+  }
+
+  .farms-selector .farm-choice {
+
+    min-height: 125px;
+
+    padding:
+      8px 2px;
+
+    border-radius: 16px;
+  }
+
+  .farms-selector .farm-choice-number {
+
+    width: 33px;
+    height: 33px;
+
+    flex-basis: 33px;
+
+    font-size: 12px;
+  }
+
+  .farms-selector .farm-choice-label {
+
+    font-size: 7px;
+  }
+
+  .farms-selector .farm-choice-name {
+
+    font-size: 11px;
+  }
+
+  .farms-selector .farm-choice-arrow {
+
+    font-size: 12px;
+  }
+
+
   .farm-services-page .farm-services-grid {
 
     grid-template-columns:
       repeat(3, minmax(0, 1fr)) !important;
 
-    gap:
-      6px !important;
-
+    gap: 6px;
   }
 
-  .farms-selector .farm-choice {
+  .farm-services-page .farm-service-choice {
 
-    min-height:
-      128px !important;
+    min-height: 94px;
 
-    padding:
-      8px 3px !important;
-
+    border-radius: 15px;
   }
 
-  .farms-selector .farm-choice-number {
+  .farm-service-icon {
 
-    width:
-      32px !important;
-
-    height:
-      32px !important;
-
-    font-size:
-      13px !important;
-
+    font-size: 22px;
   }
 
-  .farms-selector .farm-choice-label {
+  .farm-service-name {
 
-    font-size:
-      8px !important;
-
-  }
-
-  .farms-selector .farm-choice-name {
-
-    font-size:
-      12px !important;
-
+    font-size: 9px;
   }
 
 }
 
 
 /* =========================================================
-   VERY SMALL PHONES
-   NEVER COLLAPSE TO ONE COLUMN
+   =========================================================
+   15 — VERY SMALL PHONES
+   STILL THREE COLUMNS
 ========================================================= */
 
 @media (max-width: 330px) {
@@ -236,23 +1685,106 @@
     grid-template-columns:
       repeat(3, minmax(0, 1fr)) !important;
 
-    gap:
-      5px !important;
-
+    gap: 5px !important;
   }
 
   .farms-selector .farm-choice {
 
-    min-height:
-      120px !important;
+    min-height: 116px;
 
+    padding:
+      7px 1px;
   }
 
   .farms-selector .farm-choice-name {
 
-    font-size:
-      11px !important;
+    font-size: 10px;
+  }
 
+  .farm-services-page .farm-service-choice {
+
+    min-height: 88px;
+
+    padding:
+      6px 2px;
+  }
+
+  .farm-service-icon {
+
+    font-size: 20px;
+  }
+
+  .farm-service-name {
+
+    font-size: 8px;
   }
 
 }
+
+
+/* =========================================================
+   =========================================================
+   16 — DESKTOP
+========================================================= */
+
+@media (min-width: 768px) {
+
+  .app-content {
+    padding: 24px;
+  }
+
+  .farms-selector {
+
+    padding:
+      35px 24px
+      55px;
+  }
+
+  .farms-selector .farms-grid {
+
+    gap: 17px;
+  }
+
+  .farms-selector .farm-choice {
+
+    min-height: 175px;
+  }
+
+  .farm-services-page {
+
+    padding:
+      35px 24px
+      55px;
+  }
+
+  .farm-services-page .farm-services-grid {
+
+    gap: 16px;
+  }
+
+  .farm-services-page .farm-service-choice {
+
+    min-height: 135px;
+  }
+
+}
+
+
+/* =========================================================
+   17 — ACCESSIBILITY
+========================================================= */
+
+button:focus-visible,
+a:focus-visible {
+
+  outline:
+    3px solid
+    rgba(74, 145, 82, .45);
+
+  outline-offset: 3px;
+}
+
+
+/* =========================================================
+   END — LAVENDER DESIGN SYSTEM
+========================================================= */
