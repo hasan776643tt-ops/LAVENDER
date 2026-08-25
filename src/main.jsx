@@ -11,15 +11,7 @@ import { SettingsProvider } from "./context/SettingsContext.jsx";
 
 
 // =========================================================
-// GLOBAL STYLES
-// =========================================================
-//
-// App.css أصبح المصدر المركزي للهوية البصرية.
-// تم حذف استدعاءات:
-// src/styles/farms.css
-// src/styles/sidebar.css
-//
-// لأن هذه الملفات تم حذفها.
+// LAVENDER — GLOBAL STYLES
 // =========================================================
 
 import "./App.css";
