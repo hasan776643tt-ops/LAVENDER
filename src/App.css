@@ -249,7 +249,7 @@ body {
 
   .app-content {
     padding:
-      12px 8px 90px;
+      12px 8px;
   }
 
   .app-footer {
@@ -273,7 +273,7 @@ body {
 
   .app-content {
     padding:
-      10px 6px 86px;
+      10px 6px;
   }
 
 }
@@ -286,8 +286,6 @@ body {
 @media (min-width: 768px) {
 
   .app-content {
-    margin-right: 245px;
-
     padding: 24px;
   }
 
