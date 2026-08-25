@@ -11,17 +11,22 @@ import { SettingsProvider } from "./context/SettingsContext.jsx";
 
 
 // =========================================================
-// Global Styles
+// GLOBAL STYLES
+// =========================================================
+//
+// App.css أصبح المصدر المركزي للهوية البصرية.
+// تم حذف استدعاءات:
+// src/styles/farms.css
+// src/styles/sidebar.css
+//
+// لأن هذه الملفات تم حذفها.
 // =========================================================
 
 import "./App.css";
 
-import "./styles/farms.css";
-import "./styles/sidebar.css";
-
 
 // =========================================================
-// Render
+// RENDER
 // =========================================================
 
 ReactDOM.createRoot(
