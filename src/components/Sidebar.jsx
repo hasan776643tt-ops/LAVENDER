@@ -2,6 +2,7 @@
 
 import {
   NavLink,
+  useLocation,
 } from "react-router-dom";
 
 import menuConfig from "../config/menuConfig.js";
@@ -18,11 +19,12 @@ import {
 // =========================================================
 // LAVENDER — RESPONSIVE NAVIGATION
 //
-// Desktop:
-// Sidebar كامل
+// صفحة المزارع:
+// لا يظهر Sidebar ولا Bottom Navigation
 //
-// Mobile:
-// Bottom Navigation — 5 عناصر فقط
+// باقي الصفحات:
+// Desktop  → Sidebar
+// Mobile   → Bottom Navigation
 // =========================================================
 
 export default function Sidebar() {
@@ -32,8 +34,30 @@ export default function Sidebar() {
   } = useSettings();
 
 
+  const location =
+    useLocation();
+
+
   const language =
     settings?.language || "ar";
+
+
+  // =======================================================
+  // FARMS PAGE
+  //
+  // في صفحة /farms نريد واجهة المزارع فقط.
+  // لا نعرض القائمة الجانبية ولا شريط الهاتف.
+  // =======================================================
+
+  const isFarmsPage =
+    location.pathname === "/farms";
+
+
+  if (isFarmsPage) {
+
+    return null;
+
+  }
 
 
   // =======================================================
@@ -49,9 +73,6 @@ export default function Sidebar() {
 
   // =======================================================
   // عناصر Bottom Navigation — Mobile
-  //
-  // نستخدم IDs الموجودة أصلًا في menuConfig
-  // ولا نغيّر menuConfig نفسه.
   // =======================================================
 
   const mobileIds = [
@@ -88,7 +109,6 @@ export default function Sidebar() {
 
       {/* ===================================================
           DESKTOP NAVIGATION
-          تظهر من 768px فأعلى
       =================================================== */}
 
       <div
@@ -259,7 +279,6 @@ export default function Sidebar() {
 
       {/* ===================================================
           MOBILE BOTTOM NAVIGATION
-          5 عناصر فقط
       =================================================== */}
 
       <nav
