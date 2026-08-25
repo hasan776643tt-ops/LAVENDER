@@ -1,20 +1,16 @@
 /* =========================================================
-   LAVENDER SMART FARM
-   GLOBAL DESIGN SYSTEM
+   LAVENDER — GLOBAL DESIGN SYSTEM
    src/App.css
 
-   المصدر المركزي للهوية البصرية
-   لا يحتاج إلى farms.css أو sidebar.css
+   الهوية البصرية العامة للمزرعة الذكية
 ========================================================= */
 
 
 /* =========================================================
-   01 — RESET
+   RESET
 ========================================================= */
 
-*,
-*::before,
-*::after {
+* {
   box-sizing: border-box;
 }
 
@@ -41,120 +37,55 @@ body {
     Arial,
     sans-serif;
 
-  color: #183d27;
+  color: #163d25;
 
   background:
     linear-gradient(
       180deg,
-      #f7fbf5 0%,
-      #edf6ea 45%,
-      #e3f0df 100%
+      #f7fbf4 0%,
+      #e8f3e4 48%,
+      #dcebd7 100%
     );
 
   overflow-x: hidden;
 
   -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
-}
-
-button,
-input,
-textarea,
-select {
-  font: inherit;
-}
-
-button {
-  -webkit-tap-highlight-color: transparent;
-}
-
-a {
-  color: inherit;
 }
 
 
 /* =========================================================
-   02 — APP LAYOUT
+   APP
 ========================================================= */
 
 .app-layout {
-  position: relative;
-
+  width: 100%;
   min-height: 100vh;
 
   display: flex;
   flex-direction: column;
 
-  overflow: hidden;
-
   background:
     linear-gradient(
       180deg,
       #f8fcf6 0%,
-      #eef7eb 50%,
-      #e5f1e0 100%
+      #edf6e9 50%,
+      #e3efdf 100%
     );
 }
 
 
 /* =========================================================
-   03 — AGRICULTURAL ATMOSPHERE
-========================================================= */
-
-.app-layout::before {
-  content: "";
-
-  position: fixed;
-
-  inset: 0;
-
-  z-index: 0;
-
-  pointer-events: none;
-
-  opacity: .72;
-
-  background:
-    radial-gradient(
-      circle at 15% 15%,
-      rgba(110, 169, 92, .16) 0,
-      transparent 28%
-    ),
-
-    radial-gradient(
-      circle at 85% 20%,
-      rgba(190, 164, 67, .11) 0,
-      transparent 24%
-    ),
-
-    radial-gradient(
-      circle at 50% 80%,
-      rgba(62, 126, 67, .12) 0,
-      transparent 32%
-    ),
-
-    repeating-linear-gradient(
-      168deg,
-      rgba(55, 112, 57, .035) 0,
-      rgba(55, 112, 57, .035) 2px,
-      transparent 2px,
-      transparent 19px
-    );
-}
-
-
-/* =========================================================
-   04 — HEADER
+   HEADER
 ========================================================= */
 
 .app-header {
   position: relative;
 
-  z-index: 900;
+  z-index: 1000;
 
   width: 100%;
 
-  min-height: 72px;
+  min-height: 76px;
 
   display: flex;
 
@@ -166,24 +97,22 @@ a {
   background:
     linear-gradient(
       135deg,
-      rgba(255,255,255,.97),
-      rgba(237,247,232,.96)
+      rgba(255,255,255,.98),
+      rgba(235,247,231,.98)
     );
 
   border-bottom:
     1px solid
-    rgba(34, 91, 48, .10);
+    rgba(34, 93, 49, .10);
 
   box-shadow:
-    0 7px 28px
-    rgba(33, 83, 43, .09);
-
-  backdrop-filter: blur(14px);
+    0 8px 28px
+    rgba(35, 92, 47, .09);
 }
 
 
 /* =========================================================
-   05 — BRAND
+   HEADER BRAND
 ========================================================= */
 
 .brand {
@@ -203,10 +132,11 @@ a {
 }
 
 .brand-arabic {
-  color: #164d2a;
+  color: #164c29;
 
   font-family:
     "Aref Ruqaa",
+    "Amiri",
     "Cairo",
     serif;
 
@@ -214,36 +144,37 @@ a {
 
   font-weight: 700;
 
-  line-height: 1.05;
+  line-height: 1.1;
 
-  letter-spacing: .2px;
+  text-shadow:
+    0 2px 8px
+    rgba(22, 76, 41, .10);
 }
 
 .brand-english {
-  margin-top: 4px;
+  margin-top: 3px;
 
-  color: #4c9b57;
+  color: #429454;
 
   font-family:
+    Georgia,
     Arial,
     sans-serif;
 
   font-size: 10px;
 
-  font-weight: 900;
+  font-weight: 800;
 
-  letter-spacing: 5px;
+  letter-spacing: 4px;
 }
 
 
 /* =========================================================
-   06 — APP BODY
+   BODY
 ========================================================= */
 
 .app-body {
   position: relative;
-
-  z-index: 1;
 
   flex: 1;
 
@@ -254,6 +185,11 @@ a {
   display: flex;
 }
 
+
+/* =========================================================
+   CONTENT
+========================================================= */
+
 .app-content {
   position: relative;
 
@@ -263,46 +199,41 @@ a {
 
   flex: 1;
 
-  padding: 20px;
+  padding: 0;
 
   direction: rtl;
-
-  z-index: 2;
 }
 
 
 /* =========================================================
-   07 — FOOTER
+   FOOTER
 ========================================================= */
 
 .app-footer {
-  position: relative;
-
-  z-index: 5;
-
   width: 100%;
 
   padding:
-    22px 16px
+    20px 16px
     28px;
 
   text-align: center;
 
-  color: #627468;
+  color: #637767;
 
   background:
-    rgba(247, 251, 245, .94);
+    rgba(246, 251, 244, .94);
 
   border-top:
     1px solid
-    rgba(28, 81, 42, .09);
+    rgba(30, 82, 43, .08);
 }
 
 .footer-brand {
-  color: #164d2a;
+  color: #164c29;
 
   font-family:
     "Aref Ruqaa",
+    "Amiri",
     "Cairo",
     serif;
 
@@ -321,43 +252,44 @@ a {
 
 
 /* =========================================================
-   =========================================================
-   08 — LAVENDER FARMS
-   شاشة اختيار المزرعة
-   =========================================================
+   GLOBAL BUTTONS
 ========================================================= */
 
-.farms-selector {
-  position: relative;
-
-  width: 100%;
-
-  min-height: calc(100vh - 72px);
-
-  display: flex;
-
-  justify-content: center;
-
-  overflow: hidden;
-
-  padding:
-    24px 14px
-    40px;
-
-  background:
-    linear-gradient(
-      180deg,
-      rgba(239,248,235,.94),
-      rgba(220,238,215,.97)
-    );
+button {
+  font-family: inherit;
 }
 
 
 /* =========================================================
-   FIELD BACKGROUND
+   FARMS — AGRICULTURAL BACKGROUND
 ========================================================= */
 
-.farms-selector::before {
+.farms-selector,
+.farm-services-page {
+  position: relative;
+
+  width: 100%;
+
+  min-height: calc(100vh - 76px);
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      180deg,
+      rgba(241, 250, 236, .93),
+      rgba(214, 234, 207, .96)
+    );
+}
+
+
+/*
+   طبقة حقول زراعية مجردة.
+   لا تحتاج صورة خارجية.
+*/
+
+.farms-selector::before,
+.farm-services-page::before {
   content: "";
 
   position: absolute;
@@ -366,70 +298,39 @@ a {
 
   pointer-events: none;
 
-  opacity: .75;
+  opacity: .48;
 
   background:
-
-    radial-gradient(
-      ellipse at 50% 100%,
-      rgba(52, 112, 53, .22),
-      transparent 55%
-    ),
-
     repeating-linear-gradient(
-      172deg,
+      168deg,
       transparent 0,
-      transparent 28px,
-      rgba(44, 108, 49, .075) 29px,
-      rgba(44, 108, 49, .075) 31px,
-      transparent 32px,
-      transparent 58px
-    ),
-
-    linear-gradient(
-      180deg,
-      rgba(255,255,255,.30),
-      transparent 42%
+      transparent 46px,
+      rgba(74, 137, 67, .055) 47px,
+      rgba(74, 137, 67, .055) 49px
     );
+
+  z-index: 0;
 }
 
 
 /* =========================================================
-   DECORATIVE AGRICULTURAL LIGHT
-========================================================= */
-
-.farms-selector::after {
-  content: "🌿";
-
-  position: absolute;
-
-  top: 30px;
-  left: 20px;
-
-  font-size: 72px;
-
-  opacity: .08;
-
-  transform: rotate(-14deg);
-
-  pointer-events: none;
-}
-
-
-/* =========================================================
-   FARMS CONTENT
+   FARMS PAGE CONTAINER
 ========================================================= */
 
 .farms-page-content {
   position: relative;
 
-  z-index: 3;
+  z-index: 2;
 
   width: 100%;
 
-  max-width: 980px;
+  max-width: 760px;
 
   margin: 0 auto;
+
+  padding:
+    28px 14px
+    38px;
 }
 
 
@@ -438,25 +339,23 @@ a {
 ========================================================= */
 
 .farms-selector-header {
+  position: relative;
+
   text-align: center;
 
-  margin:
-    0 auto
-    25px;
-
-  padding:
-    4px 8px
-    0;
+  margin-bottom: 24px;
 }
+
+
+/* =========================================================
+   DECORATIVE LEAF
+========================================================= */
 
 .farms-selector-symbol {
   width: 58px;
-
   height: 58px;
 
-  margin:
-    0 auto
-    8px;
+  margin: 0 auto 8px;
 
   display: flex;
 
@@ -468,51 +367,44 @@ a {
   font-size: 30px;
 
   background:
-    linear-gradient(
-      145deg,
-      #ffffff,
-      #e4f3df
-    );
+    rgba(255,255,255,.76);
 
   border:
     1px solid
-    rgba(46, 112, 57, .14);
+    rgba(39, 108, 51, .12);
 
   box-shadow:
     0 8px 24px
-    rgba(44, 105, 51, .14);
+    rgba(35, 93, 43, .12);
 }
 
 
 /* =========================================================
-   ARABIC FARM TITLE
+   MAIN FARM TITLE
 ========================================================= */
 
 .farms-selector-title {
   margin: 0;
 
-  color: #164d2a;
+  color: #164b29;
 
   font-family:
     "Aref Ruqaa",
+    "Amiri",
     "Cairo",
     serif;
 
-  font-size: clamp(
-    38px,
-    8vw,
-    58px
-  );
+  font-size: clamp(34px, 9vw, 54px);
 
   font-weight: 700;
 
-  line-height: 1;
+  line-height: 1.05;
 
-  letter-spacing: 0;
+  letter-spacing: .2px;
 
   text-shadow:
     0 3px 12px
-    rgba(25, 82, 39, .10);
+    rgba(24, 75, 37, .12);
 }
 
 
@@ -521,51 +413,55 @@ a {
 ========================================================= */
 
 .farms-selector-brand {
-  margin-top: 8px;
+  margin-top: 5px;
 
-  color: #479252;
+  color: #4b9b58;
 
   font-family:
     Georgia,
-    Arial,
-    sans-serif;
+    serif;
 
-  font-size: clamp(
-    13px,
-    3vw,
-    17px
-  );
+  font-size: 14px;
 
-  font-weight: 900;
+  font-weight: 800;
 
-  letter-spacing: 6px;
+  letter-spacing: 5px;
 }
+
+
+/* =========================================================
+   SUBTITLE
+========================================================= */
 
 .farms-selector-subtitle {
   margin:
     10px auto
     0;
 
-  color: #5e7565;
+  max-width: 420px;
+
+  color: #58715d;
 
   font-size: 14px;
 
-  font-weight: 700;
+  font-weight: 600;
 
-  line-height: 1.8;
+  line-height: 1.7;
 }
 
 
 /* =========================================================
-   FARMS SECTION
+   FARM SECTION
 ========================================================= */
 
 .farms-selector-section {
   width: 100%;
-
-  padding:
-    0 2px;
 }
+
+
+/* =========================================================
+   SECTION HEADING
+========================================================= */
 
 .farms-selector-section-heading {
   display: flex;
@@ -576,28 +472,28 @@ a {
 
   gap: 9px;
 
-  margin-bottom: 15px;
+  margin-bottom: 14px;
 }
 
 .farms-selector-section-title {
   margin: 0;
 
-  color: #285d35;
+  color: #244f30;
 
   font-family:
     "Aref Ruqaa",
+    "Amiri",
     "Cairo",
     serif;
 
-  font-size: 27px;
+  font-size: 23px;
 
   font-weight: 700;
 }
 
 .farms-count {
-  min-width: 34px;
-
-  height: 34px;
+  min-width: 30px;
+  height: 30px;
 
   display: inline-flex;
 
@@ -610,45 +506,40 @@ a {
 
   background:
     linear-gradient(
-      145deg,
-      #3e8c4d,
-      #246b35
+      135deg,
+      #2e7d43,
+      #55a761
     );
 
   font-size: 13px;
 
-  font-weight: 900;
+  font-weight: 800;
 
   box-shadow:
     0 5px 13px
-    rgba(36, 107, 53, .20);
+    rgba(39, 105, 49, .18);
 }
 
 
 /* =========================================================
-   =========================================================
-   09 — FARM GRID
-   3 COLUMNS ALWAYS
+   THE IMPORTANT PART
+   3 × 3 FARM GRID
 ========================================================= */
 
-.farms-selector .farms-grid {
-
+.farms-grid {
   width: 100%;
 
-  display: grid !important;
+  display: grid;
 
   grid-template-columns:
-    repeat(3, minmax(0, 1fr)) !important;
+    repeat(3, minmax(0, 1fr));
 
-  grid-auto-rows: auto;
+  grid-template-rows:
+    repeat(3, auto);
 
-  gap: 13px;
+  gap: 11px;
 
   align-items: stretch;
-
-  justify-content: stretch;
-
-  direction: rtl;
 }
 
 
@@ -656,20 +547,17 @@ a {
    FARM CARD
 ========================================================= */
 
-.farms-selector .farm-choice {
-
+.farm-choice {
   position: relative;
 
   width: 100%;
 
   min-width: 0;
 
-  min-height: 155px;
-
-  margin: 0;
+  min-height: 142px;
 
   padding:
-    14px 8px
+    13px 7px
     12px;
 
   display: flex;
@@ -677,122 +565,97 @@ a {
   flex-direction: column;
 
   align-items: center;
-
   justify-content: center;
 
-  gap: 4px;
+  text-align: center;
 
-  border:
-    1px solid
-    rgba(44, 105, 51, .14);
+  border: 1px solid
+    rgba(42, 104, 51, .14);
 
-  border-radius: 24px;
-
-  color: #245733;
-
-  background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.96),
-      rgba(235,247,231,.94)
-    );
-
-  box-shadow:
-    0 10px 27px
-    rgba(38, 91, 44, .11);
+  border-radius: 19px;
 
   cursor: pointer;
 
-  overflow: hidden;
+  color: #214d2d;
+
+  background:
+    linear-gradient(
+      155deg,
+      rgba(255,255,255,.96),
+      rgba(239,248,235,.96)
+    );
+
+  box-shadow:
+    0 8px 22px
+    rgba(35, 91, 43, .10);
 
   transition:
-    transform .22s ease,
-    box-shadow .22s ease,
-    border-color .22s ease,
-    background .22s ease;
+    transform .18s ease,
+    box-shadow .18s ease,
+    border-color .18s ease;
+
+  overflow: hidden;
 }
 
 
-/* =========================================================
-   FARM CARD LIGHT
-========================================================= */
+/* decorative top glow */
 
-.farms-selector .farm-choice::before {
+.farm-choice::before {
   content: "";
 
   position: absolute;
 
-  top: -45px;
-  right: -40px;
+  top: -38px;
+  left: 50%;
 
-  width: 105px;
-  height: 105px;
+  width: 90px;
+  height: 90px;
+
+  transform: translateX(-50%);
 
   border-radius: 50%;
 
   background:
-    rgba(102, 164, 91, .10);
-
-  pointer-events: none;
+    rgba(88, 167, 91, .08);
 }
 
 
-/* =========================================================
-   FARM CARD HOVER
-========================================================= */
+/* hover / press */
 
-.farms-selector .farm-choice:hover {
-  transform:
-    translateY(-4px);
+.farm-choice:hover {
+  transform: translateY(-3px);
 
   border-color:
-    rgba(49, 123, 61, .28);
-
-  background:
-    linear-gradient(
-      145deg,
-      #ffffff,
-      #e7f5e2
-    );
+    rgba(42, 112, 53, .30);
 
   box-shadow:
-    0 15px 32px
-    rgba(38, 91, 44, .17);
+    0 13px 28px
+    rgba(35, 91, 43, .15);
+}
+
+.farm-choice:active {
+  transform: scale(.97);
 }
 
 
 /* =========================================================
-   FARM CARD PRESS
+   NUMBER
 ========================================================= */
 
-.farms-selector .farm-choice:active {
-  transform:
-    translateY(-1px)
-    scale(.985);
-}
-
-
-/* =========================================================
-   FARM NUMBER
-========================================================= */
-
-.farms-selector .farm-choice-number {
-
+.farm-choice-number {
   position: relative;
 
   z-index: 2;
 
-  width: 43px;
-
-  height: 43px;
-
-  flex:
-    0 0 43px;
+  width: 37px;
+  height: 37px;
 
   display: flex;
 
   align-items: center;
   justify-content: center;
+
+  margin-bottom: 7px;
 
   border-radius: 50%;
 
@@ -801,26 +664,21 @@ a {
   background:
     linear-gradient(
       145deg,
-      #58a65e,
-      #28743a
+      #26733b,
+      #54a65b
     );
-
-  border:
-    3px solid
-    rgba(255,255,255,.88);
-
-  box-shadow:
-    0 5px 13px
-    rgba(40, 116, 58, .22);
 
   font-family:
     "Cairo",
-    Arial,
     sans-serif;
 
-  font-size: 15px;
+  font-size: 17px;
 
-  font-weight: 900;
+  font-weight: 800;
+
+  box-shadow:
+    0 5px 12px
+    rgba(39, 108, 49, .22);
 }
 
 
@@ -828,19 +686,18 @@ a {
    FARM LABEL
 ========================================================= */
 
-.farms-selector .farm-choice-label {
-
+.farm-choice-label {
   position: relative;
 
   z-index: 2;
 
-  margin-top: 4px;
+  color: #6b806f;
 
-  color: #78907c;
+  font-size: 11px;
 
-  font-size: 10px;
+  font-weight: 700;
 
-  font-weight: 800;
+  line-height: 1.2;
 }
 
 
@@ -848,69 +705,53 @@ a {
    FARM NAME
 ========================================================= */
 
-.farms-selector .farm-choice-name {
-
+.farm-choice-name {
   position: relative;
 
   z-index: 2;
 
+  display: block;
+
   width: 100%;
 
-  min-width: 0;
+  margin-top: 4px;
 
-  color: #174c29;
+  padding:
+    0 3px;
+
+  color: #173f24;
 
   font-family:
     "Aref Ruqaa",
+    "Amiri",
     "Cairo",
     serif;
 
-  font-size: clamp(
-    15px,
-    3.5vw,
-    21px
-  );
+  font-size: clamp(16px, 4.5vw, 22px);
 
   font-weight: 700;
 
   line-height: 1.35;
 
-  text-align: center;
-
-  overflow: hidden;
-
-  text-overflow: ellipsis;
-
-  white-space: nowrap;
+  overflow-wrap: anywhere;
 }
 
 
 /* =========================================================
-   FARM ARROW
+   ARROW
 ========================================================= */
 
-.farms-selector .farm-choice-arrow {
-
-  position: relative;
-
-  z-index: 2;
-
-  margin-top: 4px;
-
-  color: #4c9756;
-
-  font-size: 16px;
-
-  font-weight: 900;
-
-  transition:
-    transform .2s ease;
-}
-
-.farms-selector .farm-choice:hover
 .farm-choice-arrow {
-  transform:
-    translateX(-4px);
+  position: absolute;
+
+  bottom: 7px;
+  left: 9px;
+
+  color: #5a9d61;
+
+  font-size: 14px;
+
+  opacity: .7;
 }
 
 
@@ -918,152 +759,197 @@ a {
    ADD FARM CARD
 ========================================================= */
 
-.farms-selector .farm-choice-add {
+.farm-choice-add {
+  border:
+    1.5px dashed
+    rgba(47, 126, 58, .30);
+
+  background:
+    linear-gradient(
+      155deg,
+      rgba(247,253,244,.95),
+      rgba(227,243,222,.92)
+    );
+}
+
+.farm-choice-add .farm-choice-number {
+  color: #2d7840;
+
+  background:
+    rgba(255,255,255,.9);
 
   border:
-    2px dashed
-    rgba(57, 126, 66, .28);
+    2px solid
+    rgba(48, 124, 59, .26);
 
-  background:
-    rgba(246, 251, 244, .72);
+  box-shadow: none;
 
-  box-shadow:
-    none;
+  font-size: 23px;
 }
 
-.farms-selector .farm-choice-add
-.farm-choice-number {
+.farm-choice-add .farm-choice-name {
+  color: #367c45;
 
-  background:
-    linear-gradient(
-      145deg,
-      #76ad72,
-      #438a4a
-    );
+  font-family:
+    "Cairo",
+    sans-serif;
 
-  font-size: 22px;
-}
-
-.farms-selector .farm-choice-add
-.farm-choice-name {
-  color: #3c7947;
+  font-size: 14px;
 }
 
 
 /* =========================================================
-   =========================================================
-   10 — FARM SERVICES
+   EMPTY / ERROR
 ========================================================= */
 
-.farm-services-page {
-
-  position: relative;
-
+.farms-empty-card {
   width: 100%;
 
-  min-height: calc(100vh - 72px);
+  max-width: 500px;
 
-  padding:
-    22px 14px
-    40px;
+  margin:
+    20px auto;
 
-  overflow: hidden;
-
-  background:
-    linear-gradient(
-      180deg,
-      #f0f8ed,
-      #e3f0df
-    );
-}
-
-.farm-services-page::before {
-
-  content: "";
-
-  position: absolute;
-
-  inset: 0;
-
-  pointer-events: none;
-
-  background:
-    repeating-linear-gradient(
-      171deg,
-      transparent 0,
-      transparent 30px,
-      rgba(46, 111, 52, .06) 31px,
-      rgba(46, 111, 52, .06) 33px,
-      transparent 34px,
-      transparent 62px
-    );
-}
-
-
-/* =========================================================
-   SERVICE HEADER
-========================================================= */
-
-.farm-services-header {
-
-  position: relative;
-
-  z-index: 3;
+  padding: 30px 20px;
 
   text-align: center;
 
-  margin:
-    0 auto
-    22px;
+  border-radius: 24px;
+
+  background:
+    rgba(255,255,255,.88);
+
+  border:
+    1px solid
+    rgba(42, 105, 51, .12);
+
+  box-shadow:
+    0 12px 35px
+    rgba(35, 91, 43, .10);
+}
+
+.farms-empty-icon {
+  font-size: 42px;
+
+  margin-bottom: 8px;
+}
+
+.farms-empty-card h2 {
+  margin: 0 0 8px;
+
+  color: #214f2d;
+
+  font-family:
+    "Aref Ruqaa",
+    "Amiri",
+    "Cairo",
+    serif;
+
+  font-size: 24px;
+}
+
+.farms-empty-card p {
+  margin: 0;
+
+  color: #68796b;
+
+  font-size: 14px;
+}
+
+
+/* =========================================================
+   RETRY
+========================================================= */
+
+.farms-retry-button {
+  margin-top: 18px;
 
   padding:
-    4px 45px
-    0;
+    11px 24px;
+
+  border: 0;
+
+  border-radius: 13px;
+
+  color: white;
+
+  background:
+    linear-gradient(
+      135deg,
+      #28763d,
+      #55a45c
+    );
+
+  font-family: inherit;
+
+  font-size: 14px;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+/* =========================================================
+   SELECTED FARM SERVICES
+========================================================= */
+
+.farm-services-page {
+  min-height: calc(100vh - 76px);
+}
+
+.farm-services-page
+.farms-page-content {
+  padding-top: 22px;
+}
+
+
+/* =========================================================
+   SERVICES HEADER
+========================================================= */
+
+.farm-services-header {
+  position: relative;
+
+  text-align: center;
+
+  margin-bottom: 22px;
+
+  padding-top: 4px;
 }
 
 .farms-back-button {
-
   position: absolute;
 
   top: 0;
   right: 0;
 
-  width: 43px;
-  height: 43px;
+  width: 42px;
+  height: 42px;
 
   border: 0;
 
   border-radius: 50%;
 
-  color: #ffffff;
+  color: #245b32;
 
   background:
-    linear-gradient(
-      145deg,
-      #4e9656,
-      #286e38
-    );
-
-  font-size: 21px;
-
-  font-weight: 900;
-
-  cursor: pointer;
+    rgba(255,255,255,.88);
 
   box-shadow:
-    0 7px 18px
-    rgba(42, 104, 52, .20);
+    0 6px 18px
+    rgba(35, 91, 43, .12);
+
+  font-size: 22px;
+
+  cursor: pointer;
 }
 
 .farm-services-number {
+  width: 44px;
+  height: 44px;
 
-  width: 48px;
-
-  height: 48px;
-
-  margin:
-    0 auto
-    7px;
+  margin: 0 auto 7px;
 
   display: flex;
 
@@ -1077,273 +963,131 @@ a {
   background:
     linear-gradient(
       145deg,
-      #5aa45e,
-      #2d743c
+      #27763d,
+      #5ba862
     );
 
-  font-size: 16px;
+  font-size: 18px;
 
-  font-weight: 900;
+  font-weight: 800;
 
   box-shadow:
     0 7px 18px
-    rgba(42, 104, 52, .20);
+    rgba(38, 105, 48, .20);
 }
 
 .farm-services-label {
+  color: #6c806f;
 
-  color: #7b907e;
+  font-size: 12px;
 
-  font-size: 11px;
-
-  font-weight: 800;
+  font-weight: 700;
 }
 
 .farm-services-title {
-
   margin:
-    2px 0
-    0;
+    3px 0 0;
 
-  color: #164d2a;
+  color: #164b29;
 
   font-family:
     "Aref Ruqaa",
+    "Amiri",
     "Cairo",
     serif;
 
-  font-size: clamp(
-    31px,
-    7vw,
-    48px
-  );
+  font-size: clamp(30px, 8vw, 48px);
 
   line-height: 1.15;
 }
 
 .farm-services-subtitle {
-
   margin:
-    6px 0
-    0;
+    5px 0 0;
 
-  color: #617767;
+  color: #617462;
 
   font-size: 13px;
-
-  font-weight: 700;
 }
 
 
 /* =========================================================
-   SERVICES GRID — 3 COLUMNS
+   SERVICES GRID
 ========================================================= */
 
-.farm-services-page .farm-services-grid {
-
-  position: relative;
-
-  z-index: 3;
-
+.farm-services-grid {
   width: 100%;
 
-  max-width: 900px;
-
-  margin: 0 auto;
-
-  display: grid !important;
+  display: grid;
 
   grid-template-columns:
-    repeat(3, minmax(0, 1fr)) !important;
+    repeat(3, minmax(0, 1fr));
 
-  gap: 12px;
-
-  direction: rtl;
+  gap: 11px;
 }
 
+.farm-service-choice {
+  min-height: 105px;
 
-/* =========================================================
-   SERVICE CARD
-========================================================= */
-
-.farm-services-page .farm-service-choice {
-
-  min-width: 0;
-
-  min-height: 116px;
-
-  padding:
-    12px 6px;
+  padding: 12px 6px;
 
   display: flex;
 
   flex-direction: column;
 
   align-items: center;
-
   justify-content: center;
 
   gap: 7px;
 
   border:
     1px solid
-    rgba(44, 105, 51, .13);
+    rgba(42, 105, 51, .13);
 
-  border-radius: 21px;
+  border-radius: 17px;
 
-  color: #245733;
+  color: #234d2d;
 
   background:
-    linear-gradient(
-      145deg,
-      rgba(255,255,255,.97),
-      rgba(233,246,229,.95)
-    );
+    rgba(255,255,255,.90);
 
   box-shadow:
-    0 9px 24px
-    rgba(38, 91, 44, .10);
+    0 7px 20px
+    rgba(35, 91, 43, .08);
+
+  font-family: inherit;
 
   cursor: pointer;
 
   transition:
-    transform .2s ease,
-    box-shadow .2s ease,
-    border-color .2s ease;
+    transform .18s ease,
+    box-shadow .18s ease;
 }
 
-.farm-services-page .farm-service-choice:hover {
-
-  transform:
-    translateY(-3px);
-
-  border-color:
-    rgba(49, 123, 61, .28);
+.farm-service-choice:hover {
+  transform: translateY(-3px);
 
   box-shadow:
-    0 13px 28px
-    rgba(38, 91, 44, .15);
+    0 12px 25px
+    rgba(35, 91, 43, .13);
+}
+
+.farm-service-choice:active {
+  transform: scale(.96);
 }
 
 .farm-service-icon {
-
-  font-size: 30px;
+  font-size: 28px;
 
   line-height: 1;
 }
 
 .farm-service-name {
-
-  color: #285d35;
-
-  font-family:
-    "Cairo",
-    sans-serif;
-
-  font-size: 13px;
+  font-size: 12px;
 
   font-weight: 800;
 
-  line-height: 1.35;
-
-  text-align: center;
-}
-
-
-/* =========================================================
-   =========================================================
-   11 — EMPTY / ERROR / LOADING
-========================================================= */
-
-.farms-empty-card {
-
-  position: relative;
-
-  z-index: 3;
-
-  width: 100%;
-
-  max-width: 560px;
-
-  margin:
-    25px auto;
-
-  padding:
-    34px 20px;
-
-  text-align: center;
-
-  border:
-    1px solid
-    rgba(44, 105, 51, .13);
-
-  border-radius: 26px;
-
-  background:
-    rgba(255,255,255,.88);
-
-  box-shadow:
-    0 12px 32px
-    rgba(38, 91, 44, .11);
-}
-
-.farms-empty-icon {
-
-  font-size: 42px;
-
-  margin-bottom: 10px;
-}
-
-.farms-empty-card h2 {
-
-  margin:
-    0 0 7px;
-
-  color: #245733;
-
-  font-family:
-    "Aref Ruqaa",
-    "Cairo",
-    serif;
-
-  font-size: 25px;
-}
-
-.farms-empty-card p {
-
-  margin:
-    0;
-
-  color: #6c7f70;
-
-  font-size: 13px;
-
-  font-weight: 600;
-}
-
-.farms-retry-button {
-
-  margin-top: 18px;
-
-  padding:
-    11px 22px;
-
-  border: 0;
-
-  border-radius: 14px;
-
-  color: #ffffff;
-
-  background:
-    linear-gradient(
-      145deg,
-      #4d9956,
-      #286e38
-    );
-
-  font-weight: 800;
-
-  cursor: pointer;
+  line-height: 1.4;
 }
 
 
@@ -1352,48 +1096,89 @@ a {
 ========================================================= */
 
 .farm-choice-loading {
-
   pointer-events: none;
 
   animation:
-    lavenderPulse 1.5s ease-in-out infinite;
+    lavenderPulse 1.4s
+    ease-in-out
+    infinite;
 }
 
 @keyframes lavenderPulse {
 
   0%,
   100% {
-    opacity: .62;
+    opacity: .55;
   }
 
   50% {
     opacity: 1;
   }
+
 }
 
 
 /* =========================================================
-   =========================================================
-   12 — DASHBOARD GENERAL CARDS
+   LOADING / 404
 ========================================================= */
 
-.app-content > main {
+.app-loading,
+.app-not-found {
+  min-height: 100vh;
 
-  width: 100%;
+  display: flex;
 
-  min-width: 0;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  padding: 30px;
+
+  text-align: center;
+
+  color: #244f30;
+
+  background:
+    linear-gradient(
+      180deg,
+      #f7fbf4,
+      #e3efdf
+    );
+}
+
+.app-loading-icon,
+.app-not-found-icon {
+  font-size: 48px;
+
+  margin-bottom: 8px;
+}
+
+.app-loading h2,
+.app-not-found h1 {
+  margin: 0;
+
+  font-family:
+    "Aref Ruqaa",
+    "Amiri",
+    "Cairo",
+    serif;
+}
+
+.app-loading p,
+.app-not-found p {
+  color: #6b7d6d;
 }
 
 
 /* =========================================================
-   =========================================================
-   13 — MOBILE
+   MOBILE — 3 × 3 MUST STAY 3 COLUMNS
 ========================================================= */
 
 @media (max-width: 767px) {
 
   .app-header {
-    min-height: 62px;
+    min-height: 68px;
 
     padding:
       8px 12px;
@@ -1409,262 +1194,179 @@ a {
     letter-spacing: 3px;
   }
 
-  .app-content {
-    padding:
-      10px 7px;
+  .farms-selector,
+  .farm-services-page {
+    min-height: calc(100vh - 68px);
   }
 
-  .app-footer {
+  .farms-page-content {
     padding:
-      16px 12px
-      88px;
-  }
-
-
-  /* -----------------------------
-     FARMS
-  ----------------------------- */
-
-  .farms-selector {
-
-    min-height:
-      calc(100vh - 62px);
-
-    padding:
-      20px 8px
+      20px 9px
       30px;
   }
 
   .farms-selector-header {
-
-    margin-bottom:
-      20px;
+    margin-bottom: 18px;
   }
 
   .farms-selector-symbol {
+    width: 50px;
+    height: 50px;
 
-    width: 52px;
-    height: 52px;
-
-    font-size: 27px;
+    font-size: 26px;
   }
 
   .farms-selector-title {
-
-    font-size: 43px;
+    font-size: 38px;
   }
 
   .farms-selector-brand {
-
-    font-size: 11px;
+    font-size: 12px;
 
     letter-spacing: 4px;
   }
 
   .farms-selector-subtitle {
-
     font-size: 12px;
+
+    margin-top: 7px;
   }
 
   .farms-selector-section-title {
-
-    font-size: 23px;
+    font-size: 20px;
   }
 
-  .farms-selector .farms-grid {
+  /*
+     لا نسمح بالتحول إلى عمود واحد.
+     الهاتف أيضًا = 3 أعمدة.
+  */
 
+  .farms-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr)) !important;
+      repeat(3, minmax(0, 1fr));
 
     gap: 8px;
   }
 
-  .farms-selector .farm-choice {
-
-    min-height: 136px;
+  .farm-choice {
+    min-height: 132px;
 
     padding:
       10px 4px;
-
-    border-radius: 19px;
-  }
-
-  .farms-selector .farm-choice-number {
-
-    width: 37px;
-    height: 37px;
-
-    flex-basis: 37px;
-
-    font-size: 13px;
-  }
-
-  .farms-selector .farm-choice-label {
-
-    font-size: 8px;
-  }
-
-  .farms-selector .farm-choice-name {
-
-    font-size: 13px;
-  }
-
-  .farms-selector .farm-choice-arrow {
-
-    font-size: 13px;
-  }
-
-
-  /* -----------------------------
-     SERVICES
-  ----------------------------- */
-
-  .farm-services-page {
-
-    min-height:
-      calc(100vh - 62px);
-
-    padding:
-      18px 8px
-      30px;
-  }
-
-  .farm-services-header {
-
-    padding:
-      4px 40px
-      0;
-
-    margin-bottom:
-      18px;
-  }
-
-  .farm-services-title {
-
-    font-size: 34px;
-  }
-
-  .farm-services-page .farm-services-grid {
-
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr)) !important;
-
-    gap: 8px;
-  }
-
-  .farm-services-page .farm-service-choice {
-
-    min-height: 105px;
-
-    padding:
-      9px 3px;
-
-    border-radius: 17px;
-  }
-
-  .farm-service-icon {
-
-    font-size: 25px;
-  }
-
-  .farm-service-name {
-
-    font-size: 10px;
-  }
-
-}
-
-
-/* =========================================================
-   =========================================================
-   14 — SMALL PHONES
-========================================================= */
-
-@media (max-width: 380px) {
-
-  .app-content {
-    padding:
-      8px 5px;
-  }
-
-  .farms-selector {
-
-    padding:
-      17px 6px
-      25px;
-  }
-
-  .farms-selector-title {
-
-    font-size: 38px;
-  }
-
-  .farms-selector .farms-grid {
-
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr)) !important;
-
-    gap: 6px;
-  }
-
-  .farms-selector .farm-choice {
-
-    min-height: 125px;
-
-    padding:
-      8px 2px;
-
+    
     border-radius: 16px;
   }
 
-  .farms-selector .farm-choice-number {
+  .farm-choice-number {
+    width: 32px;
+    height: 32px;
 
-    width: 33px;
-    height: 33px;
+    font-size: 15px;
 
-    flex-basis: 33px;
-
-    font-size: 12px;
+    margin-bottom: 6px;
   }
 
-  .farms-selector .farm-choice-label {
-
-    font-size: 7px;
+  .farm-choice-label {
+    font-size: 9px;
   }
 
-  .farms-selector .farm-choice-name {
+  .farm-choice-name {
+    font-size: clamp(13px, 4vw, 17px);
+
+    line-height: 1.3;
+  }
+
+  .farm-choice-arrow {
+    bottom: 5px;
+    left: 6px;
 
     font-size: 11px;
   }
 
-  .farms-selector .farm-choice-arrow {
-
-    font-size: 12px;
-  }
-
-
-  .farm-services-page .farm-services-grid {
-
+  .farm-services-grid {
     grid-template-columns:
-      repeat(3, minmax(0, 1fr)) !important;
+      repeat(3, minmax(0, 1fr));
 
-    gap: 6px;
+    gap: 8px;
   }
 
-  .farm-services-page .farm-service-choice {
-
+  .farm-service-choice {
     min-height: 94px;
 
     border-radius: 15px;
   }
 
   .farm-service-icon {
-
-    font-size: 22px;
+    font-size: 24px;
   }
 
   .farm-service-name {
+    font-size: 10px;
+  }
 
+  .app-footer {
+    padding:
+      15px 10px
+      28px;
+  }
+
+}
+
+
+/* =========================================================
+   VERY SMALL PHONES
+   STILL 3 COLUMNS
+========================================================= */
+
+@media (max-width: 380px) {
+
+  .farms-page-content {
+    padding:
+      17px 7px
+      25px;
+  }
+
+  .farms-selector-title {
+    font-size: 34px;
+  }
+
+  .farms-grid,
+  .farm-services-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 6px;
+  }
+
+  .farm-choice {
+    min-height: 119px;
+
+    border-radius: 14px;
+  }
+
+  .farm-choice-number {
+    width: 29px;
+    height: 29px;
+
+    font-size: 14px;
+  }
+
+  .farm-choice-name {
+    font-size: 12px;
+  }
+
+  .farm-service-choice {
+    min-height: 88px;
+
+    padding:
+      8px 3px;
+  }
+
+  .farm-service-icon {
+    font-size: 21px;
+  }
+
+  .farm-service-name {
     font-size: 9px;
   }
 
@@ -1672,119 +1374,23 @@ a {
 
 
 /* =========================================================
-   =========================================================
-   15 — VERY SMALL PHONES
-   STILL THREE COLUMNS
-========================================================= */
-
-@media (max-width: 330px) {
-
-  .farms-selector .farms-grid,
-  .farm-services-page .farm-services-grid {
-
-    grid-template-columns:
-      repeat(3, minmax(0, 1fr)) !important;
-
-    gap: 5px !important;
-  }
-
-  .farms-selector .farm-choice {
-
-    min-height: 116px;
-
-    padding:
-      7px 1px;
-  }
-
-  .farms-selector .farm-choice-name {
-
-    font-size: 10px;
-  }
-
-  .farm-services-page .farm-service-choice {
-
-    min-height: 88px;
-
-    padding:
-      6px 2px;
-  }
-
-  .farm-service-icon {
-
-    font-size: 20px;
-  }
-
-  .farm-service-name {
-
-    font-size: 8px;
-  }
-
-}
-
-
-/* =========================================================
-   =========================================================
-   16 — DESKTOP
+   DESKTOP
 ========================================================= */
 
 @media (min-width: 768px) {
 
-  .app-content {
-    padding: 24px;
-  }
-
-  .farms-selector {
-
+  .farms-page-content {
     padding:
-      35px 24px
-      55px;
+      34px 24px
+      50px;
   }
 
-  .farms-selector .farms-grid {
-
-    gap: 17px;
+  .farms-grid {
+    gap: 14px;
   }
 
-  .farms-selector .farm-choice {
-
-    min-height: 175px;
-  }
-
-  .farm-services-page {
-
-    padding:
-      35px 24px
-      55px;
-  }
-
-  .farm-services-page .farm-services-grid {
-
-    gap: 16px;
-  }
-
-  .farm-services-page .farm-service-choice {
-
-    min-height: 135px;
+  .farm-choice {
+    min-height: 160px;
   }
 
 }
-
-
-/* =========================================================
-   17 — ACCESSIBILITY
-========================================================= */
-
-button:focus-visible,
-a:focus-visible {
-
-  outline:
-    3px solid
-    rgba(74, 145, 82, .45);
-
-  outline-offset: 3px;
-}
-
-
-/* =========================================================
-   END — LAVENDER DESIGN SYSTEM
-========================================================= */
