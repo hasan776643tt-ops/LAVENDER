@@ -1,4 +1,4 @@
-// src/components/Sidebar.jsx
+ // src/components/Sidebar.jsx
 
 import {
   NavLink,
@@ -19,12 +19,13 @@ import {
 // =========================================================
 // LAVENDER — RESPONSIVE NAVIGATION
 //
-// صفحة المزارع:
-// لا يظهر Sidebar ولا Bottom Navigation
+// FARMS SCREEN:
+// /       → لا Sidebar ولا Bottom Navigation
+// /farms  → لا Sidebar ولا Bottom Navigation
 //
 // باقي الصفحات:
-// Desktop  → Sidebar
-// Mobile   → Bottom Navigation
+// Desktop → Sidebar
+// Mobile  → Bottom Navigation
 // =========================================================
 
 export default function Sidebar() {
@@ -43,13 +44,15 @@ export default function Sidebar() {
 
 
   // =======================================================
-  // FARMS PAGE
+  // FARMS FULL-SCREEN PAGE
   //
-  // في صفحة /farms نريد واجهة المزارع فقط.
-  // لا نعرض القائمة الجانبية ولا شريط الهاتف.
+  // الصفحة الرئيسية للتطبيق هي Farms.
+  // سواء دخل المستخدم من "/" أو "/farms"
+  // لا نعرض أي Navigation.
   // =======================================================
 
   const isFarmsPage =
+    location.pathname === "/" ||
     location.pathname === "/farms";
 
 
@@ -61,7 +64,7 @@ export default function Sidebar() {
 
 
   // =======================================================
-  // جميع عناصر القائمة — Desktop
+  // DESKTOP MENU
   // =======================================================
 
   const menuItems =
@@ -72,7 +75,7 @@ export default function Sidebar() {
 
 
   // =======================================================
-  // عناصر Bottom Navigation — Mobile
+  // MOBILE BOTTOM NAVIGATION
   // =======================================================
 
   const mobileIds = [
