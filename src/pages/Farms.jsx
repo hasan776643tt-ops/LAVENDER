@@ -14,7 +14,23 @@ import useFarms from "../hooks/useFarms.js";
 
 // =========================================================
 // LAVENDER — FARMS
-// 3 × 3 FARM SELECTOR
+// =========================================================
+// الصفحة الأولى للتطبيق
+//
+// /
+// ↓
+// Farms.jsx
+//
+// الوضع الأول:
+// اختيار المزرعة
+//
+// الوضع الثاني:
+// بعد الضغط على المزرعة → خدمات المزرعة
+//
+// التصميم:
+// 3 أعمدة دائمًا
+// 9 خانات على الأقل
+// + إضافة مزارع بلا حد عملي
 // =========================================================
 
 
@@ -170,7 +186,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // NORMALIZE
+  // NORMALIZE FARMS
   // =======================================================
 
   const normalizedFarms =
@@ -184,6 +200,7 @@ export default function Farms() {
           return [];
 
         }
+
 
         return farms.map(
           (
@@ -217,13 +234,42 @@ export default function Farms() {
 
 
   // =======================================================
-  // 9 FIXED SLOTS
+  // GRID SIZE
   // =======================================================
+  //
+  // نحافظ على 9 خانات على الأقل.
+  //
+  // إذا كان عدد المزارع أقل من 9:
+  //
+  // 1  2  3
+  // 4  5  6
+  // 7  8  9
+  //       +
+  //
+  // إذا تجاوز المستخدم 9 مزارع:
+  //
+  // 1   2   3
+  // 4   5   6
+  // 7   8   9
+  // 10  11  12
+  // ...
+  //       +
+  //
+  // الزر + يبقى دائمًا بعد آخر مزرعة.
+  // =======================================================
+
+  const farmSlotCount =
+    Math.max(
+      9,
+      normalizedFarms.length
+    );
+
 
   const farmSlots =
     Array.from(
       {
-        length: 9,
+        length:
+          farmSlotCount,
       },
       (
         _,
@@ -257,6 +303,7 @@ export default function Farms() {
 
     }
 
+
     setSelectedFarm(
       farm
     );
@@ -265,7 +312,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // BACK
+  // BACK TO FARMS
   // =======================================================
 
   const backToFarms = () => {
@@ -278,7 +325,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // SERVICE
+  // OPEN FARM SERVICE
   // =======================================================
 
   const openService = (
@@ -292,6 +339,7 @@ export default function Farms() {
       return;
 
     }
+
 
     const farmId =
       selectedFarm.__displayId;
@@ -336,6 +384,7 @@ export default function Farms() {
         return;
 
       }
+
 
       try {
 
@@ -385,17 +434,20 @@ export default function Farms() {
               🌿
             </div>
 
+
             <h1
               className="farms-selector-title"
             >
               المزرعة الذكية
             </h1>
 
+
             <div
               className="farms-selector-brand"
             >
               LAVENDER
             </div>
+
 
             <p
               className="farms-selector-subtitle"
@@ -411,14 +463,19 @@ export default function Farms() {
           >
 
             {
-              farmSlots.map(
+              Array.from(
+                {
+                  length: 9,
+                },
                 (
                   _,
                   index
                 ) => (
 
                   <div
-                    key={index}
+                    key={
+                      `loading-${index + 1}`
+                    }
                     className="farm-choice farm-choice-loading"
                   >
 
@@ -428,11 +485,13 @@ export default function Farms() {
                       {index + 1}
                     </span>
 
+
                     <span
                       className="farm-choice-label"
                     >
                       مزرعة
                     </span>
+
 
                     <span
                       className="farm-choice-name"
@@ -487,17 +546,20 @@ export default function Farms() {
               🌿
             </div>
 
+
             <h1
               className="farms-selector-title"
             >
               المزرعة الذكية
             </h1>
 
+
             <div
               className="farms-selector-brand"
             >
               LAVENDER
             </div>
+
 
             <p
               className="farms-selector-subtitle"
@@ -518,13 +580,16 @@ export default function Farms() {
               ⚠️
             </div>
 
+
             <h2>
               حدث خطأ أثناء تحميل المزارع
             </h2>
 
+
             <p>
               حاول تحميل البيانات مرة أخرى.
             </p>
+
 
             <button
               type="button"
@@ -648,6 +713,7 @@ export default function Farms() {
                       }
                     </span>
 
+
                     <span
                       className="farm-service-name"
                     >
@@ -674,7 +740,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // MAIN 3 × 3 FARM SELECTOR
+  // MAIN FARM SELECTOR
   // =======================================================
 
   return (
@@ -687,6 +753,10 @@ export default function Farms() {
       <div
         className="farms-page-content"
       >
+
+        {/* =================================================
+            HEADER
+        ================================================= */}
 
         <header
           className="farms-selector-header"
@@ -723,6 +793,10 @@ export default function Farms() {
         </header>
 
 
+        {/* =================================================
+            FARM SECTION
+        ================================================= */}
+
         <section
           className="farms-selector-section"
         >
@@ -737,17 +811,22 @@ export default function Farms() {
               مزارعي
             </h2>
 
+
             <span
               className="farms-count"
             >
-              9
+              {
+                normalizedFarms.length
+              }
             </span>
 
           </div>
 
 
           {/* =================================================
-              3 × 3
+              FARM GRID
+              3 COLUMNS
+              UNLIMITED PRACTICAL FARMS
           ================================================= */}
 
           <section
@@ -765,6 +844,10 @@ export default function Farms() {
                   const number =
                     index + 1;
 
+
+                  // =========================================
+                  // EXISTING FARM
+                  // =========================================
 
                   if (
                     farm
@@ -819,6 +902,7 @@ export default function Farms() {
 
                         <span
                           className="farm-choice-arrow"
+                          aria-hidden="true"
                         >
                           ←
                         </span>
@@ -829,6 +913,10 @@ export default function Farms() {
 
                   }
 
+
+                  // =========================================
+                  // EMPTY SLOT
+                  // =========================================
 
                   return (
 
@@ -844,7 +932,7 @@ export default function Farms() {
                         )
                       }
                       aria-label={
-                        `إضافة اسم المزرعة رقم ${number}`
+                        `إضافة مزرعة رقم ${number}`
                       }
                     >
 
@@ -875,6 +963,47 @@ export default function Farms() {
                 }
               )
             }
+
+
+            {/* =================================================
+                ADD FARM BUTTON
+                =================================================
+                هذا الزر لا يدخل ضمن الحد 9.
+                يبقى دائمًا بعد آخر خانة.
+            ================================================= */}
+
+            <button
+              type="button"
+              className="farm-choice farm-choice-add farm-choice-add-new"
+              onClick={() =>
+                navigate(
+                  "/farms/new"
+                )
+              }
+              aria-label="إضافة مزرعة جديدة"
+            >
+
+              <span
+                className="farm-choice-number"
+              >
+                +
+              </span>
+
+
+              <span
+                className="farm-choice-label"
+              >
+                مزرعة جديدة
+              </span>
+
+
+              <span
+                className="farm-choice-name"
+              >
+                إضافة مزرعة
+              </span>
+
+            </button>
 
           </section>
 
