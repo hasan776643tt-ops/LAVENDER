@@ -150,32 +150,21 @@ export default function useMap() {
       switch (error?.message) {
 
         case "MAP_DATA_REQUIRED":
-
           return t("saveError");
 
-
         case "MAP_FARM_REQUIRED":
-
           return t("farmRequired");
 
-
         case "MAP_COORDINATES_REQUIRED":
-
           return t("coordinatesRequired");
 
-
         case "MAP_ID_REQUIRED":
-
           return t("deleteError");
 
-
         case "MAP_GEOCODING_FAILED":
-
           return t("addressError");
 
-
         default:
-
           return t("saveError");
 
       }
@@ -209,27 +198,21 @@ export default function useMap() {
 
 
         if (!mounted) {
-
           return;
-
         }
 
 
         setFarms(
-
           Array.isArray(farmsData)
             ? farmsData
             : []
-
         );
 
 
         setLocations(
-
           Array.isArray(locationsData)
             ? locationsData
             : []
-
         );
 
       } catch (error) {
@@ -268,9 +251,8 @@ export default function useMap() {
   // =========================================================
   // Apply Location
   //
-  // GPS / Manual
-  //
-  // الإحداثيات هي المصدر الحقيقي للموقع.
+  // GPS coordinates remain authoritative.
+  // Reverse geocoding is descriptive only.
   // =========================================================
 
   const applyLocation =
@@ -281,6 +263,10 @@ export default function useMap() {
       source = "gps",
     }) => {
 
+      // -------------------------------------------------------
+      // Coordinates
+      // -------------------------------------------------------
+
       const lat =
         Number(selectedLatitude);
 
@@ -289,7 +275,7 @@ export default function useMap() {
 
 
       // -------------------------------------------------------
-      // Validate Coordinates
+      // Validate
       // -------------------------------------------------------
 
       if (
@@ -308,19 +294,21 @@ export default function useMap() {
       }
 
 
-      // -------------------------------------------------------
-      // REAL coordinates
-      // لا تقريب ولا تحويل
-      // -------------------------------------------------------
+      // =======================================================
+      // REAL LOCATION
+      //
+      // Do not round.
+      // Do not replace with village coordinates.
+      // =======================================================
 
       setLatitude(lat);
 
       setLongitude(lon);
 
 
-      // -------------------------------------------------------
+      // =======================================================
       // Accuracy
-      // -------------------------------------------------------
+      // =======================================================
 
       if (
         selectedAccuracy !== null &&
@@ -341,18 +329,18 @@ export default function useMap() {
       }
 
 
-      // -------------------------------------------------------
+      // =======================================================
       // Source
-      // -------------------------------------------------------
+      // =======================================================
 
       setLocationSource(
         source
       );
 
 
-      // -------------------------------------------------------
+      // =======================================================
       // Time
-      // -------------------------------------------------------
+      // =======================================================
 
       const now =
         new Date();
@@ -376,8 +364,10 @@ export default function useMap() {
       // =======================================================
       // Reverse Geocoding
       //
-      // وصفي فقط.
-      // لا يغير الإحداثيات.
+      // IMPORTANT:
+      //
+      // This describes the GPS position.
+      // It NEVER changes latitude/longitude.
       // =======================================================
 
       try {
@@ -390,33 +380,87 @@ export default function useMap() {
           );
 
 
-        setVillage(
+        console.log(
+          "📍 Reverse geocoding result:",
+          address
+        );
+
+
+        // =====================================================
+        // Village
+        //
+        // Prefer actual village/hamlet.
+        // If unavailable, use town/municipality/city
+        // as a descriptive fallback.
+        // =====================================================
+
+        const detectedVillage =
 
           address?.village ||
-          address?.hamlet ||
-          ""
 
+          address?.hamlet ||
+
+          address?.town ||
+
+          address?.municipality ||
+
+          address?.city ||
+
+          "";
+
+
+        setVillage(
+          detectedVillage
         );
+
+
+        // =====================================================
+        // Region
+        // =====================================================
+
+        const detectedRegion =
+
+          address?.region ||
+
+          address?.district ||
+
+          address?.state ||
+
+          address?.province ||
+
+          address?.county ||
+
+          "";
 
 
         setRegion(
-
-          address?.region ||
-          address?.district ||
-          address?.state ||
-          address?.province ||
-          ""
-
+          detectedRegion
         );
+
+
+        // =====================================================
+        // Place Name
+        //
+        // Prefer a specific returned name.
+        // Otherwise use nearest known place.
+        // Otherwise full display name.
+        // =====================================================
+
+        const detectedPlaceName =
+
+          address?.placeName ||
+
+          address?.nearestPlace ||
+
+          address?.displayName ||
+
+          "";
 
 
         setPlaceName(
-
-          address?.displayName ||
-          address?.nearestPlace ||
-          ""
-
+          detectedPlaceName
         );
+
 
       } catch (error) {
 
@@ -426,8 +470,10 @@ export default function useMap() {
         );
 
 
+        // -----------------------------------------------------
         // GPS remains valid.
-        // فقط المعلومات الوصفية غير متوفرة.
+        // Only descriptive information is unavailable.
+        // -----------------------------------------------------
 
         setVillage("");
 
@@ -442,328 +488,164 @@ export default function useMap() {
 
   // =========================================================
   // Get Current GPS Location
-  //
-  // IMPORTANT
-  //
-  // المتصفح يستطيع طلب صلاحية الموقع.
-  // لكنه لا يستطيع تشغيل مفتاح GPS في الهاتف بالقوة.
-  //
-  // لذلك:
-  //
-  // 1. نفحص دعم Geolocation.
-  // 2. نفحص Permission API إن كان مدعومًا.
-  // 3. إذا كانت الصلاحية denied نوضح للمستخدم المشكلة.
-  // 4. إذا كانت prompt نطلب الموقع من المتصفح.
-  // 5. إذا كانت granted نبدأ تحديد الموقع.
   // =========================================================
 
-  const getCurrentLocation =
-    async () => {
+  const getCurrentLocation = () => {
 
-      // -------------------------------------------------------
-      // Browser support
-      // -------------------------------------------------------
+    if (!navigator.geolocation) {
 
-      if (
-        typeof navigator === "undefined" ||
-        !navigator.geolocation
-      ) {
+      alert(
+        t("locationError")
+      );
 
-        alert(
-          t("locationError")
-        );
+      return;
 
-        return;
-
-      }
+    }
 
 
-      // -------------------------------------------------------
-      // منع الضغط المتكرر
-      // -------------------------------------------------------
+    setLocationMode("gps");
 
-      if (loading) {
-
-        return;
-
-      }
+    setLoading(true);
 
 
-      setLocationMode("gps");
+    navigator.geolocation.getCurrentPosition(
 
-      setLoading(true);
+      async (position) => {
 
+        try {
 
-      try {
-
-        // =====================================================
-        // Permission API
-        // =====================================================
-
-        if (
-          navigator.permissions &&
-          typeof navigator.permissions.query ===
-            "function"
-        ) {
-
-          try {
-
-            const permission =
-              await navigator.permissions.query({
-                name: "geolocation",
-              });
+          const {
+            latitude: currentLatitude,
+            longitude: currentLongitude,
+            accuracy: currentAccuracy,
+          } = position.coords;
 
 
-            // -------------------------------------------------
-            // Permission permanently denied
-            // -------------------------------------------------
+          // ---------------------------------------------------
+          // Keep ORIGINAL GPS coordinates.
+          // ---------------------------------------------------
 
-            if (
-              permission.state ===
-              "denied"
-            ) {
+          await applyLocation({
 
-              alert(
-                language === "en"
-                  ? "Location permission is blocked. Please allow location permission for this website from your browser settings, then try again."
-                  : language === "tr"
-                  ? "Konum izni engellendi. Lütfen tarayıcı ayarlarından bu site için konum iznini etkinleştirin ve tekrar deneyin."
-                  : "تم رفض صلاحية الموقع. يرجى السماح للموقع بالوصول إلى موقع الهاتف من إعدادات المتصفح، ثم حاول مرة أخرى."
-              );
+            latitude:
+              currentLatitude,
 
-              setLoading(false);
+            longitude:
+              currentLongitude,
 
-              return;
+            accuracy:
+              currentAccuracy,
 
-            }
+            source:
+              "gps",
 
-          } catch (permissionError) {
+          });
 
-            // -------------------------------------------------
-            // بعض المتصفحات لا تدعم Permission API بشكل كامل.
-            // نكمل باستخدام getCurrentPosition.
-            // -------------------------------------------------
 
-            console.warn(
-              "Location permission check unavailable:",
-              permissionError
-            );
+          alert(
+            t("locationSuccess")
+          );
 
-          }
+
+        } catch (error) {
+
+          console.error(
+            "GPS processing error:",
+            error
+          );
+
+
+          alert(
+            getMapErrorMessage(error)
+          );
+
+
+        } finally {
+
+          setLoading(false);
 
         }
 
+      },
 
-        // =====================================================
-        // Request browser / phone location
-        // =====================================================
 
-        navigator.geolocation.getCurrentPosition(
+      // =====================================================
+      // GPS Error
+      // =====================================================
 
-          // ===================================================
-          // SUCCESS
-          // ===================================================
-
-          async (position) => {
-
-            try {
-
-              const {
-                latitude:
-                  currentLatitude,
-
-                longitude:
-                  currentLongitude,
-
-                accuracy:
-                  currentAccuracy,
-
-              } = position.coords;
-
-
-              // -----------------------------------------------
-              // Apply original GPS coordinates
-              // -----------------------------------------------
-
-              await applyLocation({
-
-                latitude:
-                  currentLatitude,
-
-                longitude:
-                  currentLongitude,
-
-                accuracy:
-                  currentAccuracy,
-
-                source:
-                  "gps",
-
-              });
-
-
-              alert(
-                t("locationSuccess")
-              );
-
-            } catch (error) {
-
-              console.error(
-                "GPS processing error:",
-                error
-              );
-
-
-              alert(
-                getMapErrorMessage(error)
-              );
-
-            } finally {
-
-              setLoading(false);
-
-            }
-
-          },
-
-
-          // ===================================================
-          // ERROR
-          // ===================================================
-
-          (error) => {
-
-            console.error(
-              "GPS error:",
-              error
-            );
-
-
-            let message;
-
-
-            // -------------------------------------------------
-            // PERMISSION_DENIED
-            // -------------------------------------------------
-
-            if (
-              error?.code ===
-              1
-            ) {
-
-              message =
-                language === "en"
-                  ? "Location permission was denied. Please allow location access for this website from the browser settings, then try again."
-                  : language === "tr"
-                  ? "Konum izni reddedildi. Lütfen tarayıcı ayarlarından bu site için konum erişimine izin verin ve tekrar deneyin."
-                  : "تم رفض صلاحية الوصول إلى الموقع. يرجى السماح لهذا الموقع بالوصول إلى الموقع من إعدادات المتصفح، ثم المحاولة مرة أخرى.";
-
-            }
-
-
-            // -------------------------------------------------
-            // POSITION_UNAVAILABLE
-            //
-            // غالبًا:
-            // GPS مغلق
-            // أو الهاتف لا يستطيع تحديد الموقع.
-            // -------------------------------------------------
-
-            else if (
-              error?.code ===
-              2
-            ) {
-
-              message =
-                language === "en"
-                  ? "Your phone could not determine your location. Please turn ON Location/GPS on your phone and try again."
-                  : language === "tr"
-                  ? "Telefonunuz konumunuzu belirleyemedi. Lütfen telefonunuzun Konum/GPS özelliğini açın ve tekrar deneyin."
-                  : "تعذر تحديد موقع الهاتف. يرجى تشغيل «الموقع / GPS» في الهاتف ثم الضغط على تحديد الموقع مرة أخرى.";
-
-            }
-
-
-            // -------------------------------------------------
-            // TIMEOUT
-            // -------------------------------------------------
-
-            else if (
-              error?.code ===
-              3
-            ) {
-
-              message =
-                language === "en"
-                  ? "Location detection timed out. Please turn ON Location/GPS, make sure you have a clear signal, and try again."
-                  : language === "tr"
-                  ? "Konum belirleme zaman aşımına uğradı. Lütfen Konum/GPS özelliğini açın ve tekrar deneyin."
-                  : "انتهى وقت تحديد الموقع. يرجى تشغيل «الموقع / GPS» والتأكد من توفر إشارة جيدة ثم المحاولة مرة أخرى.";
-
-            }
-
-
-            // -------------------------------------------------
-            // UNKNOWN
-            // -------------------------------------------------
-
-            else {
-
-              message =
-                t("locationError");
-
-            }
-
-
-            alert(message);
-
-
-            setLoading(false);
-
-          },
-
-
-          // ===================================================
-          // GPS OPTIONS
-          // ===================================================
-
-          {
-
-            enableHighAccuracy:
-              true,
-
-            timeout:
-              30000,
-
-            maximumAge:
-              0,
-
-          }
-
-        );
-
-      } catch (error) {
+      (error) => {
 
         console.error(
-          "Location request error:",
+          "GPS error:",
           error
         );
 
 
-        alert(
-          language === "en"
-            ? "Unable to request your location. Please check your browser and phone location settings."
-            : language === "tr"
-            ? "Konum isteği yapılamadı. Lütfen tarayıcı ve telefon konum ayarlarınızı kontrol edin."
-            : "تعذر طلب الموقع. يرجى التحقق من إعدادات الموقع في المتصفح والهاتف."
-        );
+        let message =
+          t("locationError");
 
+
+        switch (error?.code) {
+
+          case 1:
+
+            message =
+              t("permissionDenied");
+
+            break;
+
+
+          case 2:
+
+            message =
+              t("positionUnavailable");
+
+            break;
+
+
+          case 3:
+
+            message =
+              t("locationTimeout");
+
+            break;
+
+
+          default:
+
+            message =
+              t("locationError");
+
+        }
+
+
+        alert(message);
 
         setLoading(false);
 
+      },
+
+
+      // =====================================================
+      // GPS Options
+      // =====================================================
+
+      {
+
+        enableHighAccuracy:
+          true,
+
+        timeout:
+          30000,
+
+        maximumAge:
+          0,
+
       }
 
-    };
+    );
+
+  };
 
 
   // =========================================================
@@ -888,7 +770,7 @@ export default function useMap() {
 
 
       // -------------------------------------------------------
-      // Find Farm
+      // Farm
       // -------------------------------------------------------
 
       const farm =
@@ -932,10 +814,6 @@ export default function useMap() {
           locationType,
 
 
-        // -----------------------------------------------------
-        // REAL coordinates
-        // -----------------------------------------------------
-
         latitude:
           numericLatitude,
 
@@ -943,10 +821,6 @@ export default function useMap() {
         longitude:
           numericLongitude,
 
-
-        // -----------------------------------------------------
-        // Accuracy
-        // -----------------------------------------------------
 
         accuracy:
 
@@ -959,25 +833,13 @@ export default function useMap() {
             : null,
 
 
-        // -----------------------------------------------------
-        // Source
-        // -----------------------------------------------------
-
         source:
           locationSource,
 
 
-        // -----------------------------------------------------
-        // Notes
-        // -----------------------------------------------------
-
         notes:
           notes.trim(),
 
-
-        // -----------------------------------------------------
-        // Timestamp
-        // -----------------------------------------------------
 
         createdAt:
           new Date().toISOString(),
@@ -1011,6 +873,7 @@ export default function useMap() {
             (current) => [
 
               ...current,
+
               newLocation,
 
             ]
@@ -1053,6 +916,7 @@ export default function useMap() {
           t("saveSuccess")
         );
 
+
       } catch (error) {
 
         console.error(
@@ -1064,6 +928,7 @@ export default function useMap() {
         alert(
           getMapErrorMessage(error)
         );
+
 
       } finally {
 
@@ -1133,6 +998,7 @@ export default function useMap() {
           t("deleteSuccess")
         );
 
+
       } catch (error) {
 
         console.error(
@@ -1144,6 +1010,7 @@ export default function useMap() {
         alert(
           getMapErrorMessage(error)
         );
+
 
       } finally {
 
@@ -1166,39 +1033,34 @@ export default function useMap() {
 
 
     farmId,
-
     setFarmId,
 
 
     locationType,
-
     setLocationType,
 
 
     locationMode,
-
     setLocationMode,
 
 
     village,
-
     setVillage,
 
-    region,
 
+    region,
     setRegion,
 
-    placeName,
 
+    placeName,
     setPlaceName,
 
 
     latitude,
-
     setLatitude,
 
-    longitude,
 
+    longitude,
     setLongitude,
 
 
@@ -1211,7 +1073,6 @@ export default function useMap() {
 
 
     notes,
-
     setNotes,
 
 
