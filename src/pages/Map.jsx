@@ -1,7 +1,9 @@
+// src/pages/Map.jsx
+
 import {
-  useEffect,
   useMemo,
   useState,
+  useEffect,
 } from "react";
 
 import {
@@ -28,6 +30,33 @@ import {
 import {
   useSettings,
 } from "../context/SettingsContext";
+
+
+// =========================================================
+// LAVENDER — MAP
+// =========================================================
+//
+// طريقة تحديد موقع الأرض:
+//
+// 1. كتابة الموقع يدويًا
+//    البلد
+//    المحافظة / المنطقة
+//    القرية / البلدة
+//    وصف الموقع والجهات المحيطة
+//
+// 2. الخريطة
+//    فتح الخريطة
+//    تكبير وتصغير
+//    الوصول إلى الأرض
+//    تحديد نقاط حول الأرض
+//    حساب المساحة والمحيط
+//    حفظ الإحداثيات والنقاط
+//
+// مهم:
+// الخريطة لا تستبدل موقع المستخدم.
+// الإحداثيات المحفوظة هي النقاط التي يحددها المستخدم.
+//
+// =========================================================
 
 
 // =========================================================
@@ -61,7 +90,7 @@ function toNumber(value) {
 
 
 // =========================================================
-// GEO RADIANS
+// RADIANS
 // =========================================================
 
 function toRadians(value) {
@@ -76,7 +105,7 @@ function toRadians(value) {
 
 
 // =========================================================
-// DISTANCE METERS
+// DISTANCE
 // =========================================================
 
 function distanceMeters(
@@ -95,11 +124,16 @@ function distanceMeters(
 
   }
 
+
   const lat1 =
-    toRadians(pointA[0]);
+    toRadians(
+      pointA[0]
+    );
 
   const lat2 =
-    toRadians(pointB[0]);
+    toRadians(
+      pointB[0]
+    );
 
   const deltaLat =
     toRadians(
@@ -113,8 +147,10 @@ function distanceMeters(
       pointA[1]
     );
 
+
   const earthRadius =
     6371008.8;
+
 
   const a =
     Math.sin(
@@ -123,9 +159,11 @@ function distanceMeters(
 
     Math.cos(lat1) *
     Math.cos(lat2) *
+
     Math.sin(
       deltaLng / 2
     ) ** 2;
+
 
   const c =
     2 *
@@ -134,7 +172,11 @@ function distanceMeters(
       Math.sqrt(1 - a)
     );
 
-  return earthRadius * c;
+
+  return (
+    earthRadius *
+    c
+  );
 
 }
 
@@ -156,7 +198,9 @@ function calculatePerimeter(
 
   }
 
+
   let total = 0;
+
 
   for (
     let index = 0;
@@ -173,14 +217,19 @@ function calculatePerimeter(
         points.length
       ];
 
+
+    // نقطتان فقط:
+    // نحسب المسافة بينهما مرة واحدة.
+
     if (
-      points.length < 3 &&
-      index === points.length - 1
+      points.length === 2 &&
+      index === 1
     ) {
 
       break;
 
     }
+
 
     total +=
       distanceMeters(
@@ -189,6 +238,7 @@ function calculatePerimeter(
       );
 
   }
+
 
   return total;
 
@@ -212,8 +262,10 @@ function calculateArea(
 
   }
 
+
   const earthRadius =
     6378137;
+
 
   const validPoints =
     points.filter(
@@ -228,6 +280,7 @@ function calculateArea(
         )
     );
 
+
   if (
     validPoints.length < 3
   ) {
@@ -236,6 +289,7 @@ function calculateArea(
 
   }
 
+
   const referenceLatitude =
     validPoints.reduce(
       (
@@ -243,15 +297,19 @@ function calculateArea(
         point
       ) =>
         total +
-        toRadians(point[0]),
+        toRadians(
+          point[0]
+        ),
       0
     ) /
     validPoints.length;
+
 
   const cosLatitude =
     Math.cos(
       referenceLatitude
     );
+
 
   const projected =
     validPoints.map(
@@ -267,6 +325,7 @@ function calculateArea(
             point[1]
           );
 
+
         return [
 
           earthRadius *
@@ -281,7 +340,9 @@ function calculateArea(
       }
     );
 
+
   let area = 0;
+
 
   for (
     let index = 0;
@@ -298,6 +359,7 @@ function calculateArea(
         projected.length
       ];
 
+
     area +=
       (
         current[0] *
@@ -309,6 +371,7 @@ function calculateArea(
       );
 
   }
+
 
   return Math.abs(
     area / 2
@@ -328,6 +391,7 @@ function formatArea(
   const value =
     Number(area);
 
+
   if (
     !Number.isFinite(value) ||
     value <= 0
@@ -336,6 +400,7 @@ function formatArea(
     return "0 م²";
 
   }
+
 
   if (
     value >= 10000
@@ -348,6 +413,7 @@ function formatArea(
     );
 
   }
+
 
   return (
     `${value.toFixed(1)} م²`
@@ -367,6 +433,7 @@ function formatDistance(
   const value =
     Number(distance);
 
+
   if (
     !Number.isFinite(value) ||
     value <= 0
@@ -375,6 +442,7 @@ function formatDistance(
     return "0 م";
 
   }
+
 
   if (
     value >= 1000
@@ -388,6 +456,7 @@ function formatDistance(
 
   }
 
+
   return (
     `${value.toFixed(1)} م`
   );
@@ -396,7 +465,7 @@ function formatDistance(
 
 
 // =========================================================
-// MAP TILE LAYER
+// MAP TILE
 // =========================================================
 
 function MapLayers() {
@@ -410,7 +479,11 @@ function MapLayers() {
         © Esri
       "
 
-      url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+      url="
+        https://server.arcgisonline.com/
+        ArcGIS/rest/services/
+        World_Imagery/MapServer/tile/{z}/{y}/{x}
+      "
 
       maxZoom={19}
 
@@ -430,6 +503,7 @@ function MapResizeHandler() {
   const map =
     useMap();
 
+
   useEffect(() => {
 
     const timer =
@@ -442,6 +516,7 @@ function MapResizeHandler() {
         300
       );
 
+
     return () => {
 
       window.clearTimeout(
@@ -451,6 +526,7 @@ function MapResizeHandler() {
     };
 
   }, [map]);
+
 
   return null;
 
@@ -468,6 +544,7 @@ function MapCenterController({
   const map =
     useMap();
 
+
   useEffect(() => {
 
     if (
@@ -479,6 +556,7 @@ function MapCenterController({
 
     }
 
+
     const latitude =
       toNumber(
         center[0]
@@ -489,6 +567,7 @@ function MapCenterController({
         center[1]
       );
 
+
     if (
       latitude === null ||
       longitude === null
@@ -497,6 +576,7 @@ function MapCenterController({
       return;
 
     }
+
 
     map.setView(
       [
@@ -514,13 +594,14 @@ function MapCenterController({
     center,
   ]);
 
+
   return null;
 
 }
 
 
 // =========================================================
-// MAP CLICK SELECTOR
+// MAP CLICK
 // =========================================================
 
 function BoundaryPointSelector({
@@ -541,6 +622,7 @@ function BoundaryPointSelector({
           event.latlng.lng
         );
 
+
       if (
         !Number.isFinite(
           latitude
@@ -554,6 +636,7 @@ function BoundaryPointSelector({
 
       }
 
+
       onAddPoint([
         latitude,
         longitude,
@@ -563,13 +646,14 @@ function BoundaryPointSelector({
 
   });
 
+
   return null;
 
 }
 
 
 // =========================================================
-// FIELD MEASUREMENTS
+// MEASUREMENTS
 // =========================================================
 
 function FieldMeasurements({
@@ -582,6 +666,7 @@ function FieldMeasurements({
       ? points
       : [];
 
+
   const area =
     useMemo(
       () =>
@@ -591,6 +676,7 @@ function FieldMeasurements({
       [safePoints]
     );
 
+
   const perimeter =
     useMemo(
       () =>
@@ -599,6 +685,7 @@ function FieldMeasurements({
         ),
       [safePoints]
     );
+
 
   const sides =
     useMemo(() => {
@@ -610,6 +697,7 @@ function FieldMeasurements({
         return [];
 
       }
+
 
       if (
         safePoints.length === 2
@@ -624,6 +712,7 @@ function FieldMeasurements({
 
       }
 
+
       return safePoints.map(
         (
           point,
@@ -636,6 +725,7 @@ function FieldMeasurements({
               safePoints.length
             ];
 
+
           return distanceMeters(
             point,
             next
@@ -645,6 +735,7 @@ function FieldMeasurements({
       );
 
     }, [safePoints]);
+
 
   if (
     safePoints.length < 2
@@ -681,6 +772,7 @@ function FieldMeasurements({
     );
 
   }
+
 
   return (
 
@@ -726,6 +818,7 @@ function FieldMeasurements({
 
           </div>
 
+
           <strong
             style={{
               display: "block",
@@ -760,6 +853,7 @@ function FieldMeasurements({
             {t("fieldPerimeter")}
 
           </div>
+
 
           <strong
             style={{
@@ -834,6 +928,7 @@ function FieldMeasurements({
 
                   </span>
 
+
                   <strong>
 
                     {formatDistance(
@@ -861,7 +956,7 @@ function FieldMeasurements({
 
 
 // =========================================================
-// LARGE TEXT INPUT
+// LARGE INPUT
 // =========================================================
 
 function LargeTextField({
@@ -878,10 +973,9 @@ function LargeTextField({
     width: "100%",
 
     minHeight:
-
       textarea
         ? minHeight
-        : "62px",
+        : "68px",
 
     boxSizing:
       "border-box",
@@ -914,6 +1008,7 @@ function LargeTextField({
 
   };
 
+
   return (
 
     <label
@@ -927,7 +1022,7 @@ function LargeTextField({
         style={{
           display: "block",
           marginBottom: "8px",
-          fontSize: "17px",
+          fontSize: "18px",
         }}
       >
 
@@ -939,38 +1034,53 @@ function LargeTextField({
       {textarea ? (
 
         <textarea
-          value={value}
+
+          value={
+            value
+          }
+
           onChange={
             (event) =>
               onChange(
                 event.target.value
               )
           }
+
           placeholder={
             placeholder
           }
+
           style={
             inputStyle
           }
+
         />
 
       ) : (
 
         <input
+
           type="text"
-          value={value}
+
+          value={
+            value
+          }
+
           onChange={
             (event) =>
               onChange(
                 event.target.value
               )
           }
+
           placeholder={
             placeholder
           }
+
           style={
             inputStyle
           }
+
         />
 
       )}
@@ -1005,7 +1115,7 @@ function LocationTextForm({
     <div
       style={{
         display: "grid",
-        gap: "18px",
+        gap: "20px",
         direction: "rtl",
       }}
     >
@@ -1025,9 +1135,7 @@ function LocationTextForm({
         }
 
         placeholder={
-          t(
-            "countryPlaceholder"
-          )
+          t("countryPlaceholder")
         }
 
       />
@@ -1048,9 +1156,7 @@ function LocationTextForm({
         }
 
         placeholder={
-          t(
-            "provincePlaceholder"
-          )
+          t("provincePlaceholder")
         }
 
       />
@@ -1071,9 +1177,7 @@ function LocationTextForm({
         }
 
         placeholder={
-          t(
-            "townPlaceholder"
-          )
+          t("townPlaceholder")
         }
 
       />
@@ -1083,7 +1187,7 @@ function LocationTextForm({
 
         textarea
 
-        minHeight="160px"
+        minHeight="180px"
 
         label={
           `📍 ${t("fieldDescription")}`
@@ -1110,7 +1214,7 @@ function LocationTextForm({
 
         textarea
 
-        minHeight="220px"
+        minHeight="260px"
 
         label={
           `🧭 ${t("surroundingDescription")}`
@@ -1140,7 +1244,7 @@ function LocationTextForm({
 
 
 // =========================================================
-// FULL SCREEN FIELD MAP EDITOR
+// FULL SCREEN MAP EDITOR
 // =========================================================
 
 function FieldMapEditor({
@@ -1156,6 +1260,7 @@ function FieldMapEditor({
       ? points
       : [];
 
+
   const [center, setCenter] =
     useState(
       safePoints.length > 0
@@ -1165,6 +1270,10 @@ function FieldMapEditor({
         : DEFAULT_POSITION
     );
 
+
+  // -------------------------------------------------------
+  // ADD POINT
+  // -------------------------------------------------------
 
   const addPoint =
     (point) => {
@@ -1179,12 +1288,17 @@ function FieldMapEditor({
         ]
       );
 
+
       setCenter(
         point
       );
 
     };
 
+
+  // -------------------------------------------------------
+  // UNDO
+  // -------------------------------------------------------
 
   const removeLastPoint =
     () => {
@@ -1200,6 +1314,10 @@ function FieldMapEditor({
     };
 
 
+  // -------------------------------------------------------
+  // CLEAR
+  // -------------------------------------------------------
+
   const clearPoints =
     () => {
 
@@ -1211,6 +1329,10 @@ function FieldMapEditor({
 
     };
 
+
+  // -------------------------------------------------------
+  // SAVE
+  // -------------------------------------------------------
 
   const save =
     () => {
@@ -1229,6 +1351,7 @@ function FieldMapEditor({
 
       }
 
+
       onSave();
 
     };
@@ -1241,7 +1364,8 @@ function FieldMapEditor({
         position: "fixed",
         inset: 0,
         zIndex: 9999,
-        background: "#ffffff",
+        background:
+          "#ffffff",
       }}
     >
 
@@ -1261,9 +1385,9 @@ function FieldMapEditor({
             : DEFAULT_ZOOM
         }
 
-        scrollWheelZoom
+        scrollWheelZoom={true}
 
-        zoomControl
+        zoomControl={true}
 
         style={{
           width: "100%",
@@ -1287,6 +1411,8 @@ function FieldMapEditor({
         />
 
 
+        {/* POLYGON */}
+
         {safePoints.length >= 3 && (
 
           <Polygon
@@ -1307,6 +1433,8 @@ function FieldMapEditor({
         )}
 
 
+        {/* LINE */}
+
         {safePoints.length === 2 && (
 
           <Polyline
@@ -1324,6 +1452,8 @@ function FieldMapEditor({
 
         )}
 
+
+        {/* POINTS */}
 
         {safePoints.map(
           (
@@ -1358,7 +1488,9 @@ function FieldMapEditor({
       </MapContainer>
 
 
-      {/* TOP BAR */}
+      {/* ===================================================
+          TOP BAR
+      =================================================== */}
 
       <div
         style={{
@@ -1379,18 +1511,27 @@ function FieldMapEditor({
         <div
           style={{
             flex: 1,
+
             padding:
-              "13px 16px",
+              "14px 16px",
+
             borderRadius:
               "16px",
+
             background:
               "rgba(255,255,255,0.96)",
+
             boxShadow:
               "0 3px 15px rgba(0,0,0,0.25)",
+
             fontSize:
-              "17px",
+              "18px",
+
             fontWeight:
-              "800",
+              "900",
+
+            textAlign:
+              "center",
           }}
         >
 
@@ -1401,24 +1542,36 @@ function FieldMapEditor({
 
 
         <button
+
           type="button"
+
           onClick={
             onClose
           }
+
           style={{
-            width: "50px",
-            height: "50px",
-            border: "none",
-            borderRadius: "50%",
+            width: "52px",
+            height: "52px",
+
+            border:
+              "none",
+
+            borderRadius:
+              "50%",
+
             background:
               "rgba(255,255,255,0.96)",
+
             boxShadow:
               "0 3px 15px rgba(0,0,0,0.25)",
+
             fontSize:
               "24px",
+
             cursor:
               "pointer",
           }}
+
         >
 
           ✕
@@ -1428,7 +1581,9 @@ function FieldMapEditor({
       </div>
 
 
-      {/* INSTRUCTION */}
+      {/* ===================================================
+          INSTRUCTION
+      =================================================== */}
 
       <div
         style={{
@@ -1436,10 +1591,11 @@ function FieldMapEditor({
           top: "78px",
           left: "12px",
           right: "12px",
+
           zIndex: 1000,
 
           padding:
-            "12px 15px",
+            "14px 15px",
 
           borderRadius:
             "16px",
@@ -1457,7 +1613,7 @@ function FieldMapEditor({
             "16px",
 
           fontWeight:
-            "700",
+            "800",
 
           direction:
             "rtl",
@@ -1475,7 +1631,9 @@ function FieldMapEditor({
       </div>
 
 
-      {/* POINT COUNT */}
+      {/* ===================================================
+          POINT COUNT
+      =================================================== */}
 
       <div
         style={{
@@ -1507,7 +1665,7 @@ function FieldMapEditor({
             "rtl",
 
           fontWeight:
-            "800",
+            "900",
 
           fontSize:
             "15px",
@@ -1521,7 +1679,9 @@ function FieldMapEditor({
       </div>
 
 
-      {/* BOTTOM BUTTONS */}
+      {/* ===================================================
+          BOTTOM BUTTONS
+      =================================================== */}
 
       <div
         style={{
@@ -1555,29 +1715,40 @@ function FieldMapEditor({
       >
 
         <button
+
           type="button"
+
           onClick={
             removeLastPoint
           }
+
           disabled={
             safePoints.length === 0
           }
+
           style={{
             minHeight:
-              "54px",
+              "56px",
+
             border:
               "none",
+
             borderRadius:
               "14px",
+
             fontSize:
               "16px",
+
             fontWeight:
-              "800",
+              "900",
+
             background:
               "#ffffff",
+
             cursor:
               "pointer",
           }}
+
         >
 
           ↩️{" "}
@@ -1587,29 +1758,40 @@ function FieldMapEditor({
 
 
         <button
+
           type="button"
+
           onClick={
             clearPoints
           }
+
           disabled={
             safePoints.length === 0
           }
+
           style={{
             minHeight:
-              "54px",
+              "56px",
+
             border:
               "none",
+
             borderRadius:
               "14px",
+
             fontSize:
               "16px",
+
             fontWeight:
-              "800",
+              "900",
+
             background:
               "#ffffff",
+
             cursor:
               "pointer",
           }}
+
         >
 
           🗑️{" "}
@@ -1619,22 +1801,30 @@ function FieldMapEditor({
 
 
         <button
+
           type="button"
+
           onClick={
             save
           }
+
           disabled={
             safePoints.length < 3
           }
+
           style={{
             minHeight:
-              "54px",
+              "56px",
+
             border:
               "none",
+
             borderRadius:
               "14px",
+
             fontSize:
               "16px",
+
             fontWeight:
               "900",
 
@@ -1651,6 +1841,7 @@ function FieldMapEditor({
                 ? "pointer"
                 : "not-allowed",
           }}
+
         >
 
           💾{" "}
@@ -1680,17 +1871,21 @@ export default function Map() {
     locations = [],
 
     farmId,
+
     setFarmId,
 
     locationType,
+
     setLocationType,
 
     notes,
+
     setNotes,
 
     loading,
 
     addLocation,
+
     deleteLocation,
 
   } = useMapHook();
@@ -1733,20 +1928,24 @@ export default function Map() {
     setCountry,
   ] = useState("");
 
+
   const [
     province,
     setProvince,
   ] = useState("");
+
 
   const [
     town,
     setTown,
   ] = useState("");
 
+
   const [
     description,
     setDescription,
   ] = useState("");
+
 
   const [
     surroundingDescription,
@@ -1755,7 +1954,7 @@ export default function Map() {
 
 
   // =======================================================
-  // FIELD POINTS
+  // MAP POINTS
   // =======================================================
 
   const [
@@ -1775,7 +1974,7 @@ export default function Map() {
 
 
   // =======================================================
-  // OPEN EDITOR
+  // OPEN MAP
   // =======================================================
 
   const openMapEditor =
@@ -1793,7 +1992,7 @@ export default function Map() {
 
 
   // =======================================================
-  // CLOSE EDITOR
+  // CLOSE MAP
   // =======================================================
 
   const closeMapEditor =
@@ -1807,7 +2006,7 @@ export default function Map() {
 
 
   // =======================================================
-  // SAVE FROM EDITOR
+  // MAP SAVE
   // =======================================================
 
   const saveMapEditor =
@@ -1826,6 +2025,7 @@ export default function Map() {
         return;
 
       }
+
 
       setMapEditor(
         false
@@ -1874,7 +2074,7 @@ export default function Map() {
 
 
       // ---------------------------------------------------
-      // TEXT MODE
+      // TEXT VALIDATION
       // ---------------------------------------------------
 
       if (
@@ -1882,7 +2082,8 @@ export default function Map() {
         !country.trim() &&
         !province.trim() &&
         !town.trim() &&
-        !description.trim()
+        !description.trim() &&
+        !surroundingDescription.trim()
       ) {
 
         alert(
@@ -1897,7 +2098,7 @@ export default function Map() {
 
 
       // ---------------------------------------------------
-      // MAP MODE
+      // MAP VALIDATION
       // ---------------------------------------------------
 
       if (
@@ -1932,6 +2133,13 @@ export default function Map() {
           : 0;
 
 
+      // ---------------------------------------------------
+      // FIRST POINT
+      //
+      // نقطة مرجعية للموقع.
+      // النقاط كلها محفوظة أيضًا.
+      // ---------------------------------------------------
+
       const firstPoint =
         fieldPoints.length > 0
           ? fieldPoints[0]
@@ -1939,7 +2147,7 @@ export default function Map() {
 
 
       // ---------------------------------------------------
-      // UNIFIED LOCATION DATA
+      // LOCATION DATA
       // ---------------------------------------------------
 
       const locationData = {
@@ -1947,44 +2155,52 @@ export default function Map() {
         farmId:
           String(farmId),
 
+
         farmName:
           selectedFarm?.name ||
           t("farm"),
+
 
         type:
           locationType ||
           "farm",
 
+
         source:
           locationMethod,
 
 
-        // -----------------------------------------------
-        // TEXT LOCATION
-        // -----------------------------------------------
+        // ===============================================
+        // WRITTEN LOCATION
+        // ===============================================
 
         country:
           country.trim(),
 
+
         region:
           province.trim(),
+
 
         village:
           town.trim(),
 
+
         placeName:
           town.trim(),
 
+
         locationDescription:
           description.trim(),
+
 
         surroundingDescription:
           surroundingDescription.trim(),
 
 
-        // -----------------------------------------------
+        // ===============================================
         // MAP LOCATION
-        // -----------------------------------------------
+        // ===============================================
 
         points:
           fieldPoints.map(
@@ -2011,6 +2227,7 @@ export default function Map() {
               )
             : null,
 
+
         longitude:
           firstPoint
             ? Number(
@@ -2031,6 +2248,7 @@ export default function Map() {
 
         status:
           "active",
+
 
         createdAt:
           new Date().toISOString(),
@@ -2076,6 +2294,7 @@ export default function Map() {
           error
         );
 
+
         alert(
           error?.message ||
           t("saveError")
@@ -2087,65 +2306,7 @@ export default function Map() {
 
 
   // =======================================================
-  // SAVED MAP CENTER
-  // =======================================================
-
-  const savedCenter =
-    useMemo(() => {
-
-      const location =
-        locations.find(
-          (item) => {
-
-            const latitude =
-              toNumber(
-                item?.latitude
-              );
-
-            const longitude =
-              toNumber(
-                item?.longitude
-              );
-
-            return (
-              latitude !== null &&
-              longitude !== null
-            );
-
-          }
-        );
-
-
-      if (!location) {
-
-        return DEFAULT_POSITION;
-
-      }
-
-
-      return [
-
-        Number(
-          location.latitude
-        ),
-
-        Number(
-          location.longitude
-        ),
-
-      ];
-
-    }, [
-      locations,
-    ]);
-
-
-  // Prevent unused calculation warnings
-  void savedCenter;
-
-
-  // =======================================================
-  // FULLSCREEN EDITOR
+  // FULL SCREEN MAP
   // =======================================================
 
   if (mapEditor) {
@@ -2189,15 +2350,24 @@ export default function Map() {
 
     <div
       style={{
-        padding: "12px",
-        direction: "rtl",
+        padding:
+          "12px",
+        direction:
+          "rtl",
       }}
     >
 
+      {/* ===================================================
+          TITLE
+      =================================================== */}
+
       <h1
         style={{
-          fontSize: "28px",
-          marginBottom: "18px",
+          fontSize:
+            "28px",
+
+          marginBottom:
+            "18px",
         }}
       >
 
@@ -2207,7 +2377,9 @@ export default function Map() {
       </h1>
 
 
-      {/* FARM */}
+      {/* ===================================================
+          FARM
+      =================================================== */}
 
       <Card
         title={
@@ -2216,30 +2388,49 @@ export default function Map() {
       >
 
         <select
+
           value={
             farmId || ""
           }
+
           onChange={
             (event) =>
               setFarmId(
                 event.target.value
               )
           }
+
           style={{
-            width: "100%",
-            minHeight: "62px",
-            padding: "12px",
-            borderRadius: "16px",
+            width:
+              "100%",
+
+            minHeight:
+              "64px",
+
+            padding:
+              "12px",
+
+            borderRadius:
+              "16px",
+
             border:
               "2px solid #d7ded9",
-            fontSize: "18px",
+
+            fontSize:
+              "18px",
+
             background:
               "#ffffff",
           }}
+
         >
 
           <option value="">
-            {t("selectFarm")}
+
+            {t(
+              "selectFarm"
+            )}
+
           </option>
 
 
@@ -2247,12 +2438,15 @@ export default function Map() {
             (farm) => (
 
               <option
+
                 key={
                   farm.id
                 }
+
                 value={
                   farm.id
                 }
+
               >
 
                 {farm.name}
@@ -2267,45 +2461,67 @@ export default function Map() {
 
         <div
           style={{
-            height: "16px",
+            height:
+              "16px",
           }}
         />
 
 
         <select
+
           value={
             locationType ||
             "farm"
           }
+
           onChange={
             (event) =>
               setLocationType(
                 event.target.value
               )
           }
+
           style={{
-            width: "100%",
-            minHeight: "62px",
-            padding: "12px",
-            borderRadius: "16px",
+            width:
+              "100%",
+
+            minHeight:
+              "64px",
+
+            padding:
+              "12px",
+
+            borderRadius:
+              "16px",
+
             border:
               "2px solid #d7ded9",
-            fontSize: "18px",
+
+            fontSize:
+              "18px",
+
             background:
               "#ffffff",
           }}
+
         >
 
           <option value="farm">
+
             {t("farm")}
+
           </option>
 
           <option value="field">
+
             {t("field")}
+
           </option>
 
           <option value="waterSource">
+
             {t("waterSource")}
+
           </option>
 
         </select>
@@ -2315,64 +2531,99 @@ export default function Map() {
 
       <div
         style={{
-          height: "14px",
+          height:
+            "14px",
         }}
       />
 
 
-      {/* LOCATION METHOD */}
+      {/* ===================================================
+          LOCATION METHOD
+      =================================================== */}
 
       <Card
         title={
-          t("chooseLocationMethod")
+          t(
+            "chooseLocationMethod"
+          )
         }
       >
 
         <div
           style={{
-            display: "grid",
-            gap: "12px",
+            display:
+              "grid",
+
+            gap:
+              "12px",
           }}
         >
 
+          {/* =============================================
+              TEXT
+          ============================================= */}
+
           <button
+
             type="button"
+
             onClick={() =>
               setLocationMethod(
                 "text"
               )
             }
+
             style={{
-              minHeight: "86px",
+              minHeight:
+                "100px",
 
               border:
                 locationMethod === "text"
                   ? "3px solid #1b7f3a"
                   : "2px solid #d7ded9",
 
-              borderRadius: "16px",
+              borderRadius:
+                "16px",
 
               background:
                 locationMethod === "text"
                   ? "#edf8f0"
                   : "#ffffff",
 
-              fontSize: "19px",
-              fontWeight: "800",
-              textAlign: "right",
-              padding: "14px 16px",
+              fontSize:
+                "19px",
+
+              fontWeight:
+                "900",
+
+              textAlign:
+                "right",
+
+              padding:
+                "16px",
             }}
+
           >
 
             ✍️{" "}
-            {t("writeLocation")}
+            {t(
+              "writeLocation"
+            )}
+
 
             <div
               style={{
-                fontSize: "14px",
-                fontWeight: "400",
-                marginTop: "6px",
-                lineHeight: "1.7",
+                fontSize:
+                  "15px",
+
+                fontWeight:
+                  "400",
+
+                marginTop:
+                  "7px",
+
+                lineHeight:
+                  "1.8",
               }}
             >
 
@@ -2385,42 +2636,70 @@ export default function Map() {
           </button>
 
 
+          {/* =============================================
+              MAP
+          ============================================= */}
+
           <button
+
             type="button"
+
             onClick={
               openMapEditor
             }
+
             style={{
-              minHeight: "86px",
+              minHeight:
+                "100px",
 
               border:
                 locationMethod === "map"
                   ? "3px solid #1b7f3a"
                   : "2px solid #d7ded9",
 
-              borderRadius: "16px",
+              borderRadius:
+                "16px",
 
               background:
                 locationMethod === "map"
                   ? "#edf8f0"
                   : "#ffffff",
 
-              fontSize: "19px",
-              fontWeight: "800",
-              textAlign: "right",
-              padding: "14px 16px",
+              fontSize:
+                "19px",
+
+              fontWeight:
+                "900",
+
+              textAlign:
+                "right",
+
+              padding:
+                "16px",
+
             }}
+
           >
 
             🗺️{" "}
-            {t("drawLocation")}
+            {t(
+              "drawLocation"
+            )}
+
 
             <div
               style={{
-                fontSize: "14px",
-                fontWeight: "400",
-                marginTop: "6px",
-                lineHeight: "1.7",
+                fontSize:
+                  "15px",
+
+                fontWeight:
+                  "400",
+
+                marginTop:
+                  "7px",
+
+                lineHeight:
+                  "1.8",
               }}
             >
 
@@ -2439,12 +2718,15 @@ export default function Map() {
 
       <div
         style={{
-          height: "14px",
+          height:
+            "14px",
         }}
       />
 
 
-      {/* TEXT MODE */}
+      {/* ===================================================
+          TEXT LOCATION
+      =================================================== */}
 
       {locationMethod === "text" && (
 
@@ -2509,7 +2791,9 @@ export default function Map() {
       )}
 
 
-      {/* MAP MODE */}
+      {/* ===================================================
+          MAP MODE
+      =================================================== */}
 
       {locationMethod === "map" && (
 
@@ -2523,24 +2807,39 @@ export default function Map() {
 
           <div
             style={{
-              padding: "18px",
-              borderRadius: "16px",
-              background: "#f2f7f3",
-              direction: "rtl",
-              fontSize: "17px",
-              lineHeight: "1.8",
+              padding:
+                "18px",
+
+              borderRadius:
+                "16px",
+
+              background:
+                "#f2f7f3",
+
+              direction:
+                "rtl",
+
+              fontSize:
+                "17px",
+
+              lineHeight:
+                "1.9",
             }}
           >
 
             <strong>
+
               {t(
                 "drawLocationDescription"
               )}
+
             </strong>
+
 
             <p
               style={{
-                marginBottom: "12px",
+                marginBottom:
+                  "14px",
               }}
             >
 
@@ -2549,6 +2848,7 @@ export default function Map() {
               )}
 
             </p>
+
 
             <Button
               onClick={
@@ -2585,12 +2885,15 @@ export default function Map() {
 
       <div
         style={{
-          height: "14px",
+          height:
+            "14px",
         }}
       />
 
 
-      {/* NOTES */}
+      {/* ===================================================
+          NOTES
+      =================================================== */}
 
       <Card
         title={
@@ -2601,62 +2904,69 @@ export default function Map() {
       >
 
         <textarea
+
           value={
             notes || ""
           }
+
           onChange={
             (event) =>
               setNotes(
                 event.target.value
               )
           }
+
           placeholder={
             t(
               "notesPlaceholder"
             )
           }
+
           style={{
-            width: "100%",
-            minHeight: "160px",
-            boxSizing: "border-box",
-            padding: "16px",
+            width:
+              "100%",
+
+            minHeight:
+              "180px",
+
+            boxSizing:
+              "border-box",
+
+            padding:
+              "16px",
+
             border:
               "2px solid #d7ded9",
-            borderRadius: "16px",
-            fontSize: "18px",
-            lineHeight: "1.8",
-            resize: "vertical",
+
+            borderRadius:
+              "16px",
+
+            fontSize:
+              "18px",
+
+            lineHeight:
+              "1.8",
+
+            resize:
+              "vertical",
           }}
+
         />
 
       </Card>
 
 
-      {locationMethod === "map" && (
-
-        <FieldMeasurements
-
-          points={
-            fieldPoints
-          }
-
-          t={
-            t
-          }
-
-        />
-
-      )}
-
-
       <div
         style={{
-          height: "18px",
+          height:
+            "18px",
         }}
       />
 
 
-      {/* SAVE */}
+      {/* ===================================================
+          SAVE
+      =================================================== */}
 
       <Button
         onClick={
@@ -2671,12 +2981,17 @@ export default function Map() {
       </Button>
 
 
-      {/* SAVED LOCATIONS */}
+      {/* ===================================================
+          SAVED LOCATIONS
+      =================================================== */}
 
       <h2
         style={{
-          marginTop: "28px",
-          fontSize: "23px",
+          marginTop:
+            "28px",
+
+          fontSize:
+            "23px",
         }}
       >
 
@@ -2692,7 +3007,8 @@ export default function Map() {
 
         <p
           style={{
-            fontSize: "17px",
+            fontSize:
+              "17px",
           }}
         >
 
@@ -2706,8 +3022,11 @@ export default function Map() {
 
         <div
           style={{
-            display: "grid",
-            gap: "14px",
+            display:
+              "grid",
+
+            gap:
+              "14px",
           }}
         >
 
@@ -2733,8 +3052,10 @@ export default function Map() {
                 {item.farmName && (
 
                   <p>
+
                     🚜{" "}
                     {item.farmName}
+
                   </p>
 
                 )}
@@ -2743,8 +3064,10 @@ export default function Map() {
                 {item.country && (
 
                   <p>
+
                     🌍{" "}
                     {item.country}
+
                   </p>
 
                 )}
@@ -2753,8 +3076,10 @@ export default function Map() {
                 {item.region && (
 
                   <p>
+
                     🏛️{" "}
                     {item.region}
+
                   </p>
 
                 )}
@@ -2763,8 +3088,10 @@ export default function Map() {
                 {item.village && (
 
                   <p>
+
                     🏘️{" "}
                     {item.village}
+
                   </p>
 
                 )}
@@ -2776,12 +3103,15 @@ export default function Map() {
                     style={{
                       whiteSpace:
                         "pre-wrap",
+
                       lineHeight:
                         "1.8",
                     }}
                   >
+
                     📍{" "}
                     {item.locationDescription}
+
                   </p>
 
                 )}
@@ -2793,16 +3123,21 @@ export default function Map() {
                     style={{
                       marginTop:
                         "12px",
+
                       padding:
-                        "14px",
+                        "16px",
+
                       borderRadius:
                         "14px",
+
                       background:
                         "#f2f7f3",
+
                       whiteSpace:
                         "pre-wrap",
+
                       lineHeight:
-                        "1.8",
+                        "1.9",
                     }}
                   >
 
@@ -2814,6 +3149,7 @@ export default function Map() {
                       )}
 
                     </strong>
+
 
                     <div
                       style={{
@@ -2836,16 +3172,20 @@ export default function Map() {
                 {Number(item.area) > 0 && (
 
                   <p>
+
                     📐{" "}
                     {t(
                       "fieldArea"
                     )}
+
                     :{" "}
+
                     {formatArea(
                       Number(
                         item.area
                       )
                     )}
+
                   </p>
 
                 )}
@@ -2854,16 +3194,20 @@ export default function Map() {
                 {Number(item.perimeter) > 0 && (
 
                   <p>
+
                     📏{" "}
                     {t(
                       "fieldPerimeter"
                     )}
+
                     :{" "}
+
                     {formatDistance(
                       Number(
                         item.perimeter
                       )
                     )}
+
                   </p>
 
                 )}
@@ -2875,14 +3219,18 @@ export default function Map() {
                 item.points.length >= 3 && (
 
                   <p>
+
                     📍{" "}
                     {t(
                       "points"
                     )}
+
                     :{" "}
+
                     {
                       item.points.length
                     }
+
                   </p>
 
                 )}
@@ -2896,8 +3244,10 @@ export default function Map() {
                         "pre-wrap",
                     }}
                   >
+
                     📝{" "}
                     {item.notes}
+
                   </p>
 
                 )}
@@ -2909,15 +3259,21 @@ export default function Map() {
                 item.longitude !== undefined && (
 
                   <a
+
                     href={
                       `https://maps.google.com/?q=` +
                       `${item.latitude},${item.longitude}`
                     }
+
                     target="_blank"
+
                     rel="noreferrer"
+
                     style={{
-                      fontSize: "17px",
+                      fontSize:
+                        "17px",
                     }}
+
                   >
 
                     🗺️{" "}
@@ -2932,7 +3288,8 @@ export default function Map() {
 
                 <div
                   style={{
-                    height: "12px",
+                    height:
+                      "12px",
                   }}
                 />
 
