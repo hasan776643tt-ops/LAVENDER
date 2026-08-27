@@ -4,7 +4,20 @@ import mapRepository
   from "../repositories/mapRepository.js";
 
 
+// =========================================================
+// Map Service
+// =========================================================
+// GPS coordinates = authoritative
+//
+// Nominatim = address description
+// Overpass = nearby named places / roads / POIs
+//
+// IMPORTANT:
+// Reverse geocoding NEVER changes GPS coordinates.
+// =========================================================
+
 class MapService {
+
 
   // =========================================================
   // Validate Coordinates
@@ -49,8 +62,11 @@ class MapService {
 
 
     return {
+
       latitude: lat,
-      longitude: lon
+
+      longitude: lon,
+
     };
 
   }
@@ -59,13 +75,9 @@ class MapService {
   // =========================================================
   // Reverse Geocoding
   //
-  // مهم جدًا:
+  // Gives the address of the GPS position.
   //
-  // GPS = الموقع الحقيقي للمزرعة.
-  //
-  // Nominatim = وصف جغرافي فقط.
-  //
-  // لا نعتبر أقرب قرية هي قرية المزرعة.
+  // It does NOT give every nearby object.
   // =========================================================
 
   async reverseGeocode(
@@ -76,7 +88,7 @@ class MapService {
 
     const {
       latitude: lat,
-      longitude: lon
+      longitude: lon,
     } =
       this.validateCoordinates(
         latitude,
@@ -90,14 +102,17 @@ class MapService {
 
     const acceptLanguage =
       language === "tr"
-        ? "tr"
+        ? "tr,en"
         : language === "en"
         ? "en"
-        : "ar";
+        : "ar,en";
 
 
     // =======================================================
-    // Nominatim
+    // Nominatim URL
+    //
+    // zoom=18 = building-level reverse geocoding
+    // namedetails=1 = additional names
     // =======================================================
 
     const url =
@@ -107,6 +122,8 @@ class MapService {
       `&lon=${encodeURIComponent(lon)}` +
       `&zoom=18` +
       `&addressdetails=1` +
+      `&namedetails=1` +
+      `&extratags=1` +
       `&accept-language=${encodeURIComponent(acceptLanguage)}`;
 
 
@@ -115,9 +132,11 @@ class MapService {
         url,
         {
           headers: {
+
             Accept:
-              "application/json"
-          }
+              "application/json",
+
+          },
         }
       );
 
@@ -140,21 +159,26 @@ class MapService {
 
 
     // =======================================================
-    // القرية الحقيقية كما سجلها Nominatim
-    //
-    // مهم:
-    // لا نستخدم locality / town / city كقرية.
+    // Address parts
     // =======================================================
+
+    const houseNumber =
+      address.house_number ||
+      "";
+
+
+    const road =
+      address.road ||
+      address.pedestrian ||
+      address.footway ||
+      "";
+
 
     const village =
       address.village ||
       address.hamlet ||
       "";
 
-
-    // =======================================================
-    // أماكن أخرى
-    // =======================================================
 
     const town =
       address.town ||
@@ -171,9 +195,15 @@ class MapService {
       "";
 
 
+    const neighbourhood =
+      address.neighbourhood ||
+      address.suburb ||
+      "";
+
+
     const district =
-      address.county ||
       address.district ||
+      address.county ||
       "";
 
 
@@ -190,9 +220,9 @@ class MapService {
 
 
     // =======================================================
-    // أقرب مكان معروف
+    // Nearest settlement
     //
-    // هذا ليس بالضرورة قرية المزرعة.
+    // Descriptive only.
     // =======================================================
 
     const nearestPlace =
@@ -200,13 +230,19 @@ class MapService {
       town ||
       municipality ||
       city ||
+      neighbourhood ||
       district ||
       "";
 
 
     // =======================================================
-    // الاسم الكامل الذي أعاده Nominatim
+    // Result name
     // =======================================================
+
+    const resultName =
+      result?.name ||
+      "";
+
 
     const displayName =
       result?.display_name ||
@@ -220,7 +256,7 @@ class MapService {
     return {
 
       // -----------------------------------------------------
-      // الموقع الحقيقي
+      // REAL GPS
       // -----------------------------------------------------
 
       latitude:
@@ -231,23 +267,22 @@ class MapService {
 
 
       // -----------------------------------------------------
-      // القرية
-      //
-      // لا نضع town أو city هنا.
+      // Address
       // -----------------------------------------------------
+
+      houseNumber,
+
+      road,
 
       village,
-
-
-      // -----------------------------------------------------
-      // باقي المعلومات
-      // -----------------------------------------------------
 
       town,
 
       municipality,
 
       city,
+
+      neighbourhood,
 
       district,
 
@@ -257,21 +292,702 @@ class MapService {
 
 
       // -----------------------------------------------------
-      // أقرب مكان معروف
-      //
-      // للعرض فقط.
+      // Place
       // -----------------------------------------------------
 
       nearestPlace,
 
+      placeName:
+        resultName ||
+        nearestPlace ||
+        "",
+
+      displayName,
+
 
       // -----------------------------------------------------
-      // الاسم الكامل
+      // Raw result
+      //
+      // Useful for future improvements.
       // -----------------------------------------------------
 
-      displayName
+      osmType:
+        result?.osm_type ||
+        null,
+
+      osmId:
+        result?.osm_id ||
+        null,
+
+      category:
+        result?.category ||
+        null,
+
+      type:
+        result?.type ||
+        null,
+
+      namedetails:
+        result?.namedetails ||
+        {},
 
     };
+
+  }
+
+
+  // =========================================================
+  // Nearby Places
+  //
+  // IMPORTANT:
+  //
+  // This is what was missing before.
+  //
+  // We search around the REAL GPS position for:
+  //
+  // - mosques
+  // - schools
+  // - government buildings
+  // - hospitals
+  // - roads
+  // - villages / settlements
+  // - shops
+  // - named places
+  //
+  // Overpass reads OpenStreetMap objects around the point.
+  // =========================================================
+
+  async getNearbyPlaces(
+    latitude,
+    longitude,
+    radius = 1000,
+    language = "ar"
+  ) {
+
+    const {
+      latitude: lat,
+      longitude: lon,
+    } =
+      this.validateCoordinates(
+        latitude,
+        longitude
+      );
+
+
+    // =======================================================
+    // Overpass Query
+    //
+    // Search only named objects.
+    // =======================================================
+
+    const query = `
+      [out:json][timeout:25];
+
+      (
+        nwr["name"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="school"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="college"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="university"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="place_of_worship"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="hospital"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="clinic"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="townhall"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="police"](around:${Number(radius)},${lat},${lon});
+
+        nwr["amenity"="fire_station"](around:${Number(radius)},${lat},${lon});
+
+        nwr["office"="government"](around:${Number(radius)},${lat},${lon});
+
+        nwr["highway"](around:${Number(radius)},${lat},${lon});
+
+        nwr["place"="village"](around:${Number(radius)},${lat},${lon});
+
+        nwr["place"="hamlet"](around:${Number(radius)},${lat},${lon});
+
+        nwr["place"="town"](around:${Number(radius)},${lat},${lon});
+
+        nwr["place"="city"](around:${Number(radius)},${lat},${lon});
+      );
+
+      out center tags;
+    `;
+
+
+    // =======================================================
+    // Overpass servers
+    //
+    // First server
+    // Second server = fallback
+    // =======================================================
+
+    const endpoints = [
+
+      "https://overpass-api.de/api/interpreter",
+
+      "https://overpass.kumi.systems/api/interpreter",
+
+    ];
+
+
+    let result = null;
+
+
+    for (
+      const endpoint of endpoints
+    ) {
+
+      try {
+
+        const response =
+          await fetch(
+            endpoint,
+            {
+
+              method:
+                "POST",
+
+              headers: {
+
+                "Content-Type":
+                  "application/x-www-form-urlencoded",
+
+                Accept:
+                  "application/json",
+
+              },
+
+              body:
+                `data=${encodeURIComponent(query)}`,
+
+            }
+          );
+
+
+        if (
+          !response.ok
+        ) {
+
+          continue;
+
+        }
+
+
+        result =
+          await response.json();
+
+
+        break;
+
+      } catch (error) {
+
+        console.warn(
+          "Overpass server failed:",
+          endpoint,
+          error
+        );
+
+      }
+
+    }
+
+
+    // =======================================================
+    // No result
+    //
+    // GPS must remain valid even if nearby search fails.
+    // =======================================================
+
+    if (
+      !result ||
+      !Array.isArray(
+        result.elements
+      )
+    ) {
+
+      return [];
+
+    }
+
+
+    // =======================================================
+    // Convert OSM objects
+    // =======================================================
+
+    const places =
+      result.elements
+        .map(
+          (item) => {
+
+            const tags =
+              item.tags || {};
+
+
+            // -------------------------------------------------
+            // Coordinates
+            // -------------------------------------------------
+
+            let itemLatitude =
+              item.lat;
+
+            let itemLongitude =
+              item.lon;
+
+
+            if (
+              itemLatitude === undefined &&
+              item.center
+            ) {
+
+              itemLatitude =
+                item.center.lat;
+
+            }
+
+
+            if (
+              itemLongitude === undefined &&
+              item.center
+            ) {
+
+              itemLongitude =
+                item.center.lon;
+
+            }
+
+
+            if (
+              !Number.isFinite(
+                Number(itemLatitude)
+              ) ||
+              !Number.isFinite(
+                Number(itemLongitude)
+              )
+            ) {
+
+              return null;
+
+            }
+
+
+            // -------------------------------------------------
+            // Name
+            //
+            // Prefer language-specific name.
+            // -------------------------------------------------
+
+            const localizedName =
+
+              language === "ar"
+
+                ? (
+                    tags["name:ar"] ||
+                    tags.name ||
+                    ""
+                  )
+
+                : language === "tr"
+
+                ? (
+                    tags["name:tr"] ||
+                    tags.name ||
+                    ""
+                  )
+
+                : (
+                    tags["name:en"] ||
+                    tags.name ||
+                    ""
+                  );
+
+
+            // -------------------------------------------------
+            // Type
+            // -------------------------------------------------
+
+            let category =
+              "place";
+
+
+            let label =
+              "مكان";
+
+
+            if (
+              tags.amenity ===
+              "place_of_worship"
+            ) {
+
+              category =
+                "worship";
+
+              label =
+                "مكان عبادة";
+
+            } else if (
+              tags.amenity ===
+              "school"
+            ) {
+
+              category =
+                "school";
+
+              label =
+                "مدرسة";
+
+            } else if (
+              tags.amenity ===
+              "college"
+            ) {
+
+              category =
+                "college";
+
+              label =
+                "كلية";
+
+            } else if (
+              tags.amenity ===
+              "university"
+            ) {
+
+              category =
+                "university";
+
+              label =
+                "جامعة";
+
+            } else if (
+              tags.amenity ===
+              "hospital"
+            ) {
+
+              category =
+                "hospital";
+
+              label =
+                "مشفى";
+
+            } else if (
+              tags.amenity ===
+              "clinic"
+            ) {
+
+              category =
+                "clinic";
+
+              label =
+                "عيادة";
+
+            } else if (
+              tags.amenity ===
+              "police"
+            ) {
+
+              category =
+                "police";
+
+              label =
+                "شرطة";
+
+            } else if (
+              tags.amenity ===
+              "townhall"
+            ) {
+
+              category =
+                "government";
+
+              label =
+                "مركز حكومي";
+
+            } else if (
+              tags.office ===
+              "government"
+            ) {
+
+              category =
+                "government";
+
+              label =
+                "جهة حكومية";
+
+            } else if (
+              tags.highway
+            ) {
+
+              category =
+                "road";
+
+              label =
+                "طريق";
+
+            } else if (
+              tags.place ===
+              "village"
+            ) {
+
+              category =
+                "village";
+
+              label =
+                "قرية";
+
+            } else if (
+              tags.place ===
+              "hamlet"
+            ) {
+
+              category =
+                "hamlet";
+
+              label =
+                "تجمع سكني";
+
+            } else if (
+              tags.place ===
+              "town"
+            ) {
+
+              category =
+                "town";
+
+              label =
+                "بلدة";
+
+            } else if (
+              tags.place ===
+              "city"
+            ) {
+
+              category =
+                "city";
+
+              label =
+                "مدينة";
+
+            }
+
+
+            // -------------------------------------------------
+            // Return normalized object
+            // -------------------------------------------------
+
+            return {
+
+              id:
+                `${item.type}-${item.id}`,
+
+              osmType:
+                item.type,
+
+              osmId:
+                item.id,
+
+
+              name:
+                localizedName,
+
+
+              category,
+
+              label,
+
+
+              latitude:
+                Number(itemLatitude),
+
+              longitude:
+                Number(itemLongitude),
+
+
+              highway:
+                tags.highway ||
+                "",
+
+
+              amenity:
+                tags.amenity ||
+                "",
+
+
+              place:
+                tags.place ||
+                "",
+
+
+              religion:
+                tags.religion ||
+                "",
+
+
+              denomination:
+                tags.denomination ||
+                "",
+
+
+              tags,
+
+            };
+
+          }
+        )
+        .filter(
+          Boolean
+        )
+        .filter(
+          (item) =>
+            item.name
+        );
+
+
+    // =======================================================
+    // Remove duplicates
+    // =======================================================
+
+    const unique =
+      Array.from(
+        new Map(
+
+          places.map(
+            (item) => [
+
+              `${item.name}|${item.latitude}|${item.longitude}`,
+
+              item,
+
+            ]
+          )
+
+        ).values()
+      );
+
+
+    // =======================================================
+    // Calculate distance
+    //
+    // Sort nearest objects first.
+    // =======================================================
+
+    const withDistance =
+      unique.map(
+        (item) => ({
+
+          ...item,
+
+          distance:
+            this.calculateDistance(
+              lat,
+              lon,
+              item.latitude,
+              item.longitude
+            ),
+
+        })
+      );
+
+
+    withDistance.sort(
+      (a, b) =>
+        a.distance -
+        b.distance
+    );
+
+
+    // =======================================================
+    // Limit results
+    //
+    // Prevent thousands of labels.
+    // =======================================================
+
+    return withDistance.slice(
+      0,
+      80
+    );
+
+  }
+
+
+  // =========================================================
+  // Distance
+  // =========================================================
+
+  calculateDistance(
+    latitude1,
+    longitude1,
+    latitude2,
+    longitude2
+  ) {
+
+    const earthRadius =
+      6371000;
+
+
+    const toRadians =
+      (value) =>
+        value *
+        Math.PI /
+        180;
+
+
+    const dLatitude =
+      toRadians(
+        latitude2 -
+        latitude1
+      );
+
+
+    const dLongitude =
+      toRadians(
+        longitude2 -
+        longitude1
+      );
+
+
+    const a =
+
+      Math.sin(
+        dLatitude / 2
+      ) ** 2
+
+      +
+
+      Math.cos(
+        toRadians(latitude1)
+      )
+
+      *
+
+      Math.cos(
+        toRadians(latitude2)
+      )
+
+      *
+
+      Math.sin(
+        dLongitude / 2
+      ) ** 2;
+
+
+    const c =
+      2 *
+      Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
+      );
+
+
+    return (
+      earthRadius *
+      c
+    );
 
   }
 
@@ -301,7 +1017,10 @@ class MapService {
 
     }
 
-    return mapRepository.getById(id);
+
+    return mapRepository.getById(
+      id
+    );
 
   }
 
@@ -351,7 +1070,7 @@ class MapService {
 
     const {
       latitude,
-      longitude
+      longitude,
     } =
       this.validateCoordinates(
         data.latitude,
@@ -363,10 +1082,6 @@ class MapService {
 
       ...data,
 
-
-      // =====================================================
-      // GPS coordinates
-      // =====================================================
 
       latitude,
 
@@ -400,10 +1115,18 @@ class MapService {
 
 
       accuracy:
-        data.accuracy !== undefined &&
-        data.accuracy !== null
-          ? Number(data.accuracy)
-          : null
+
+        data.accuracy !==
+          undefined &&
+
+        data.accuracy !==
+          null
+
+          ? Number(
+              data.accuracy
+            )
+
+          : null,
 
     };
 
@@ -446,18 +1169,24 @@ class MapService {
 
 
     const updateData = {
-      ...data
+      ...data,
     };
 
 
     if (
-      updateData.latitude !== undefined ||
-      updateData.longitude !== undefined
+      updateData.latitude !==
+        undefined ||
+
+      updateData.longitude !==
+        undefined
     ) {
 
       if (
-        updateData.latitude === undefined ||
-        updateData.longitude === undefined
+        updateData.latitude ===
+          undefined ||
+
+        updateData.longitude ===
+          undefined
       ) {
 
         throw new Error(
@@ -469,7 +1198,7 @@ class MapService {
 
       const {
         latitude,
-        longitude
+        longitude,
       } =
         this.validateCoordinates(
           updateData.latitude,
