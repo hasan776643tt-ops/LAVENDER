@@ -4,6 +4,7 @@ import {
   useMemo,
   useState,
   useEffect,
+  useRef,
 } from "react";
 
 import {
@@ -33,32 +34,53 @@ import Button
 // LAVENDER — MAP
 // =========================================================
 //
-// تحديد موقع الأرض:
+// النسخة الحالية تحافظ على:
 //
-// 1. الكتابة
-//    - البلد
-//    - المحافظة / المنطقة
-//    - المدينة
-//    - البلدة / القرية
-//    - وصف الأرض
-//    - الجهات المحيطة
+// Map.jsx
+//    ↓
+// useMap.js
+//    ↓
+// mapService
+//    ↓
+// mapRepository
+//    ↓
+// DataModel
 //
-// 2. الخريطة
-//    - صور أقمار صناعية / جوية
-//    - طرق
-//    - أسماء المدن والقرى والبلدات والأماكن
-//    - GPS الهاتف
-//    - تحديد زوايا الأرض يدويًا
-//    - حساب المساحة
-//    - حساب المحيط
+// لا يتم تغيير طبقات المشروع الأخرى.
 //
-// مهم:
-// لا نغيّر useMapHook أو farmService أو نظام الحفظ.
+// =========================================================
 //
-// التعديل الحالي محصور في:
-// 1. تحسين طبقة الأسماء والمراجع فوق صور الأقمار الصناعية.
-// 2. جعل طلب GPS صريحًا عند ضغط المستخدم.
-// 3. منع GPS من إعادة تحريك الخريطة بعد تحديد الموقع.
+// إصلاحات هذه النسخة:
+//
+// 1. GPS يعمل فقط عند ضغط المستخدم على:
+//    "📍 تحديد موقعي الآن"
+//
+// 2. navigator.geolocation.getCurrentPosition()
+//    يعمل مرة واحدة لكل طلب.
+//
+// 3. لا يوجد watchPosition.
+//
+// 4. لا يوجد مركز GPS دائم للخريطة.
+//
+// 5. بعد تحديد GPS تنتقل الخريطة للموقع مرة واحدة فقط.
+//
+// 6. بعد ذلك المستخدم حر تمامًا في:
+//    - السحب يمينًا
+//    - السحب يسارًا
+//    - السحب شمالًا
+//    - السحب جنوبًا
+//    - التكبير
+//    - التصغير
+//    - الذهاب إلى بلد آخر
+//
+// 7. النقطة الزرقاء تبقى في موقع الهاتف فقط.
+//    لا تسحب الخريطة معها.
+//
+// 8. إضافة طبقة مستقلة للطرق والتسميات فوق صور الأقمار.
+//
+// 9. لا يوجد MapCenterController دائم.
+//
+// 10. لا يتم إعادة طلب GPS بسبب إعادة تصيير React.
 //
 // =========================================================
 
@@ -74,7 +96,6 @@ const DEFAULT_POSITION = [
 
 const DEFAULT_ZOOM = 14;
 
-// تكبير مناسب عند طلب موقع الهاتف
 const GPS_ZOOM = 19;
 
 const EDITOR_ZOOM = 18;
@@ -413,19 +434,14 @@ function formatDistance(
 // MAP BASE LAYERS
 // =========================================================
 //
-// الطبقة 1:
-// صور الأقمار الصناعية / الجوية
+// الطبقة الأولى:
+// صور أقمار صناعية.
 //
-// الطبقة 2:
-// الطرق
+// الطبقة الثانية:
+// الطرق.
 //
-// الطبقة 3:
-// المراجع والأسماء والحدود والأماكن
-//
-// ملاحظة مهمة:
-// World_Reference_Overlay مصمم ليكون طبقة مرجعية
-// فوق الصور الجوية، لذلك لا نستبدل صور الأقمار الصناعية
-// بخريطة بيضاء.
+// الطبقة الثالثة:
+// المدن والقرى والبلدات والأماكن والحدود.
 //
 // =========================================================
 
@@ -436,7 +452,7 @@ function MapLayers() {
     <>
 
       {/* =================================================
-          1 — SATELLITE / AERIAL IMAGERY
+          1 — SATELLITE IMAGERY
           ================================================= */}
 
       <TileLayer
@@ -468,11 +484,23 @@ function MapLayers() {
 
         detectRetina
 
+        keepBuffer={
+          4
+        }
+
+        updateWhenIdle={
+          true
+        }
+
+        updateWhenZooming={
+          false
+        }
+
       />
 
 
       {/* =================================================
-          2 — ROADS / TRANSPORTATION
+          2 — TRANSPORTATION / ROADS
           ================================================= */}
 
       <TileLayer
@@ -507,26 +535,36 @@ function MapLayers() {
 
         detectRetina
 
+        keepBuffer={
+          4
+        }
+
+        updateWhenIdle={
+          true
+        }
+
+        updateWhenZooming={
+          false
+        }
+
       />
 
 
       {/* =================================================
-          3 — PLACE NAMES / CITIES / VILLAGES / PLACES
-          =================================================
-          
-          هذه الطبقة شفافة نسبيًا وتعمل فوق صور الأقمار
-          الصناعية، وتضيف:
-          
-          - أسماء المدن
-          - أسماء البلدات
-          - أسماء القرى
-          - أسماء الأماكن
-          - المراجع الجغرافية
-          - الحدود
-          
-          بدل طبقة World_Boundaries_and_Places السابقة.
-          
+          3 — PLACE NAMES / BOUNDARIES
           ================================================= */}
+      {/*
+        هذه الطبقة هي التي تضيف السياق الجغرافي
+        فوق صور الأقمار الصناعية:
+
+        - المدن
+        - البلدات
+        - القرى
+        - الأماكن
+        - الحدود
+
+        ولا تحرك الخريطة.
+      */}
 
       <TileLayer
 
@@ -538,7 +576,7 @@ function MapLayers() {
         url={
           "https://server.arcgisonline.com/" +
           "ArcGIS/rest/services/" +
-          "Reference/World_Reference_Overlay/" +
+          "Reference/World_Boundaries_and_Places/" +
           "MapServer/tile/{z}/{y}/{x}"
         }
 
@@ -560,8 +598,16 @@ function MapLayers() {
 
         detectRetina
 
-        zIndex={
-          500
+        keepBuffer={
+          4
+        }
+
+        updateWhenIdle={
+          true
+        }
+
+        updateWhenZooming={
+          false
         }
 
       />
@@ -587,27 +633,33 @@ function MapResizeHandler() {
 
       window.setTimeout(
         () => {
+
           map.invalidateSize(
-            true
+            false
           );
+
         },
-        100
+        150
       ),
 
       window.setTimeout(
         () => {
+
           map.invalidateSize(
-            true
+            false
           );
+
         },
         500
       ),
 
       window.setTimeout(
         () => {
+
           map.invalidateSize(
-            true
+            false
           );
+
         },
         1000
       ),
@@ -684,17 +736,30 @@ function BoundaryPointSelector({
 //
 // مهم جدًا:
 //
-// هذا المكوّن لا يعمل إلا عندما يتغير requestId.
+// هذا المكون لا يستخدم watchPosition.
 //
-// لا يوجد watchPosition دائم.
-// لا يوجد تتبع مستمر للهاتف.
-// لا يوجد إعادة مركز للخريطة أثناء تحريك المستخدم.
+// getCurrentPosition يعمل مرة واحدة فقط
+// عندما يتغير requestId.
 //
-// عند الضغط على:
-// "📍 تحديد موقعي الآن"
+// لذلك:
 //
-// يتم طلب GPS مرة واحدة.
+// ضغط المستخدم
+//      ↓
+// requestGPS()
+//      ↓
+// requestId + 1
+//      ↓
+// getCurrentPosition()
+//      ↓
+// تحديد الموقع
+//      ↓
+// flyTo مرة واحدة
+//      ↓
+// انتهاء العملية
 //
+// لا توجد حلقة GPS.
+// لا توجد عودة تلقائية.
+// لا يوجد تتبع مستمر.
 // =========================================================
 
 function GPSController({
@@ -706,6 +771,47 @@ function GPSController({
   const map =
     useMap();
 
+
+  // -------------------------------------------------------
+  // نحفظ آخر callbacks بدون جعلها سببًا
+  // لإعادة تشغيل GPS.
+  // -------------------------------------------------------
+
+  const onPositionRef =
+    useRef(
+      onPosition
+    );
+
+  const onStatusRef =
+    useRef(
+      onStatus
+    );
+
+
+  useEffect(() => {
+
+    onPositionRef.current =
+      onPosition;
+
+  }, [
+    onPosition,
+  ]);
+
+
+  useEffect(() => {
+
+    onStatusRef.current =
+      onStatus;
+
+  }, [
+    onStatus,
+  ]);
+
+
+  // -------------------------------------------------------
+  // GPS REQUEST
+  // -------------------------------------------------------
+
   useEffect(() => {
 
     if (
@@ -715,85 +821,68 @@ function GPSController({
       return undefined;
     }
 
+
     if (
-      typeof window ===
-      "undefined" ||
       typeof navigator ===
-      "undefined"
-    ) {
-
-      onStatus({
-        type:
-          "error",
-
-        message:
-          "المتصفح غير قادر على الوصول إلى خدمات الموقع."
-      });
-
-      return undefined;
-    }
-
-
-    if (
+      "undefined" ||
       !navigator.geolocation
     ) {
 
-      onStatus({
+      onStatusRef.current?.({
         type:
           "error",
 
         message:
-          "الهاتف أو المتصفح لا يدعم تحديد الموقع."
+          "📍 الهاتف أو المتصفح لا يدعم تحديد الموقع.",
       });
 
       return undefined;
     }
 
 
-    // -----------------------------------------------------
-    // بداية طلب GPS فعلي
-    // -----------------------------------------------------
+    let cancelled =
+      false;
 
-    onStatus({
+
+    onStatusRef.current?.({
       type:
         "loading",
 
       message:
-        "📍 جارٍ طلب إذن الموقع من الهاتف..."
+        "⏳ جارٍ طلب إذن الموقع وتحديد موقعك بدقة...",
     });
 
 
-    let finished =
-      false;
+    // =====================================================
+    // IMPORTANT:
+    // لا نستخدم watchPosition.
+    // =====================================================
 
+    navigator.geolocation.getCurrentPosition(
 
-    const handleSuccess =
       position => {
 
         if (
-          finished
+          cancelled
         ) {
 
           return;
         }
 
-        finished =
-          true;
-
 
         const latitude =
           Number(
-            position?.coords?.latitude
+            position.coords.latitude
           );
 
         const longitude =
           Number(
-            position?.coords?.longitude
+            position.coords.longitude
           );
 
         const accuracy =
           Number(
-            position?.coords?.accuracy
+            position.coords.accuracy
           );
 
 
@@ -806,12 +895,12 @@ function GPSController({
           )
         ) {
 
-          onStatus({
+          onStatusRef.current?.({
             type:
               "error",
 
             message:
-              "تعذر قراءة إحداثيات الموقع من الهاتف."
+              "📍 تعذر قراءة إحداثيات الموقع.",
           });
 
           return;
@@ -836,7 +925,7 @@ function GPSController({
         // إرسال الموقع للأب
         // -------------------------------------------------
 
-        onPosition({
+        onPositionRef.current?.({
           point:
             gpsPoint,
 
@@ -846,71 +935,72 @@ function GPSController({
 
 
         // -------------------------------------------------
-        // نقل الخريطة مرة واحدة فقط
+        // تحريك الخريطة مرة واحدة فقط.
         //
-        // مهم:
-        // بعد هذه العملية لا يوجد أي كود يتابع GPS
-        // أو يعيد الخريطة إلى الهاتف.
+        // بعد هذه العملية لا يوجد أي كود
+        // يعيد الخريطة إلى GPS.
         // -------------------------------------------------
 
         map.flyTo(
           gpsPoint,
-          GPS_ZOOM,
+          Math.max(
+            map.getZoom(),
+            GPS_ZOOM
+          ),
           {
             animate:
               true,
 
             duration:
-              0.9,
+              0.8,
+
+            easeLinearity:
+              0.25,
           }
         );
 
 
         // -------------------------------------------------
-        // نجاح
+        // الحالة
         // -------------------------------------------------
 
         if (
           safeAccuracy !== null
         ) {
 
-          onStatus({
+          onStatusRef.current?.({
             type:
               "success",
 
             message:
-              `📍 تم تحديد موقعك — الدقة التقريبية ±${Math.round(
+              `📍 تم تحديد موقعك — دقة تقريبية ±${Math.round(
                 safeAccuracy
-              )} م`
+              )} م`,
           });
 
         } else {
 
-          onStatus({
+          onStatusRef.current?.({
             type:
               "success",
 
             message:
-              "📍 تم تحديد موقعك بنجاح."
+              "📍 تم تحديد موقعك بنجاح.",
           });
 
         }
 
-      };
+      },
 
 
-    const handleError =
       error => {
 
         if (
-          finished
+          cancelled
         ) {
 
           return;
         }
-
-        finished =
-          true;
 
 
         console.error(
@@ -920,12 +1010,8 @@ function GPSController({
 
 
         let message =
-          "تعذر تحديد موقعك.";
+          "📍 تعذر تحديد موقعك.";
 
-
-        // -------------------------------------------------
-        // المستخدم رفض الإذن
-        // -------------------------------------------------
 
         if (
           error.code ===
@@ -933,63 +1019,36 @@ function GPSController({
         ) {
 
           message =
-            "📍 لم يُسمح للموقع بالوصول إلى GPS. اسمح للموقع من إعدادات المتصفح/الموقع ثم اضغط «تحديد موقعي الآن» مرة أخرى.";
+            "📍 لم يتم السماح للموقع. اسمح للمتصفح باستخدام موقع الهاتف ثم اضغط تحديد موقعي مرة أخرى.";
 
-        }
-
-
-        // -------------------------------------------------
-        // خدمات الموقع / GPS غير متاحة
-        // -------------------------------------------------
-
-        else if (
+        } else if (
           error.code ===
           error.POSITION_UNAVAILABLE
         ) {
 
           message =
-            "📡 موقع الهاتف غير متاح. شغّل «الموقع/GPS» في الهاتف وتأكد من أن المتصفح لديه إذن الموقع، ثم حاول مرة أخرى.";
+            "📍 موقع الهاتف غير متاح حاليًا. تأكد من تشغيل خدمات الموقع وGPS.";
 
-        }
-
-
-        // -------------------------------------------------
-        // Timeout
-        // -------------------------------------------------
-
-        else if (
+        } else if (
           error.code ===
           error.TIMEOUT
         ) {
 
           message =
-            "⏳ لم يصل GPS إلى موقع دقيق خلال الوقت المحدد. تأكد من تشغيل الموقع ثم حاول مرة أخرى.";
+            "⏳ انتهى وقت تحديد الموقع. تأكد من تشغيل GPS وخدمات الموقع ثم حاول مرة أخرى.";
 
         }
 
 
-        onStatus({
+        onStatusRef.current?.({
           type:
             "error",
 
           message,
         });
 
-      };
+      },
 
-
-    // -----------------------------------------------------
-    // الطلب الفعلي
-    //
-    // هذا هو الاستدعاء الذي يسمح للمتصفح بإظهار
-    // نافذة طلب إذن الموقع عندما تكون حالة الإذن = prompt.
-    // -----------------------------------------------------
-
-    navigator.geolocation.getCurrentPosition(
-
-      handleSuccess,
-
-      handleError,
 
       {
         enableHighAccuracy:
@@ -1005,17 +1064,9 @@ function GPSController({
     );
 
 
-    // -----------------------------------------------------
-    // لا يوجد watchPosition
-    //
-    // وهذا مقصود لمنع:
-    // الخريطة تتحرك خلف المستخدم
-    // أو تعيده إلى موقع الهاتف.
-    // -----------------------------------------------------
-
     return () => {
 
-      finished =
+      cancelled =
         true;
 
     };
@@ -1023,9 +1074,8 @@ function GPSController({
   }, [
     requestId,
     map,
-    onPosition,
-    onStatus,
   ]);
+
 
   return null;
 }
@@ -1033,6 +1083,15 @@ function GPSController({
 
 // =========================================================
 // GPS LOCATION VISUAL
+// =========================================================
+//
+// هذه النقطة بصرية فقط.
+//
+// لا تحرك الخريطة.
+// لا تستدعي flyTo.
+// لا تستدعي setView.
+// لا تستدعي panTo.
+//
 // =========================================================
 
 function GPSLocationVisual({
@@ -1061,10 +1120,6 @@ function GPSLocationVisual({
 
     <>
 
-      {/* =================================================
-          GPS ACCURACY CIRCLE
-          ================================================= */}
-
       {Number.isFinite(
         safeAccuracy
       ) &&
@@ -1091,17 +1146,13 @@ function GPSLocationVisual({
               "#2196f3",
 
             fillOpacity:
-              0.12,
+              0.10,
           }}
 
         />
 
       )}
 
-
-      {/* =================================================
-          GPS POINT
-          ================================================= */}
 
       <CircleMarker
 
@@ -1110,7 +1161,7 @@ function GPSLocationVisual({
         }
 
         radius={
-          10
+          9
         }
 
         pathOptions={{
@@ -1546,7 +1597,7 @@ function GPSButton({
     >
 
       {loading
-        ? "⏳ جارٍ طلب الموقع..."
+        ? "⏳ جارٍ تحديد الموقع..."
         : "📍 تحديد موقعي الآن"}
 
     </button>
@@ -1642,6 +1693,7 @@ function FieldMapEditor({
       setGpsLoading(
         false
       );
+
     };
 
 
@@ -1671,7 +1723,9 @@ function FieldMapEditor({
         setGpsLoading(
           false
         );
+
       }
+
     };
 
 
@@ -1682,12 +1736,20 @@ function FieldMapEditor({
   const requestGPS =
     () => {
 
+      // ---------------------------------------------------
+      // لا نغير center.
+      //
+      // GPS يطلب مرة واحدة فقط.
+      // GPSController هو الذي ينقل الخريطة
+      // مرة واحدة عند نجاح الطلب.
+      // ---------------------------------------------------
+
       setGpsStatus({
         type:
           "loading",
 
         message:
-          "📍 جارٍ طلب إذن الموقع من الهاتف..."
+          "⏳ جارٍ طلب إذن الموقع من الهاتف...",
       });
 
 
@@ -1696,18 +1758,11 @@ function FieldMapEditor({
       );
 
 
-      // ---------------------------------------------------
-      // تشغيل طلب GPS جديد.
-      //
-      // لا نغيّر مركز الخريطة هنا.
-      // GPSController هو الذي ينقل الخريطة مرة واحدة
-      // بعد وصول الموقع الحقيقي.
-      // ---------------------------------------------------
-
       setGpsRequestId(
         current =>
           current + 1
       );
+
     };
 
 
@@ -1725,11 +1780,6 @@ function FieldMapEditor({
         ]
       );
 
-      // ---------------------------------------------------
-      // لا يوجد setCenter هنا.
-      //
-      // هذا مقصود حتى لا تتحرك الخريطة تلقائيًا مع كل نقطة.
-      // ---------------------------------------------------
     };
 
 
@@ -1747,6 +1797,7 @@ function FieldMapEditor({
             -1
           )
       );
+
     };
 
 
@@ -1782,7 +1833,26 @@ function FieldMapEditor({
 
 
       onSave();
+
     };
+
+
+  // =======================================================
+  // INITIAL MAP POSITION
+  // =======================================================
+
+  const initialCenter =
+    safePoints.length
+      ? safePoints[
+          safePoints.length - 1
+        ]
+      : DEFAULT_POSITION;
+
+
+  const initialZoom =
+    safePoints.length
+      ? EDITOR_ZOOM
+      : DEFAULT_ZOOM;
 
 
   // =======================================================
@@ -1810,17 +1880,11 @@ function FieldMapEditor({
       <MapContainer
 
         center={
-          safePoints.length
-            ? safePoints[
-                safePoints.length - 1
-              ]
-            : DEFAULT_POSITION
+          initialCenter
         }
 
         zoom={
-          safePoints.length
-            ? EDITOR_ZOOM
-            : DEFAULT_ZOOM
+          initialZoom
         }
 
         scrollWheelZoom={
@@ -1832,6 +1896,34 @@ function FieldMapEditor({
         }
 
         doubleClickZoom={
+          false
+        }
+
+        dragging={
+          true
+        }
+
+        touchZoom={
+          true
+        }
+
+        boxZoom={
+          true
+        }
+
+        keyboard={
+          true
+        }
+
+        zoomAnimation={
+          true
+        }
+
+        fadeAnimation={
+          false
+        }
+
+        markerZoomAnimation={
           false
         }
 
@@ -1848,6 +1940,7 @@ function FieldMapEditor({
         <MapLayers />
 
         <MapResizeHandler />
+
 
         <BoundaryPointSelector
           onAddPoint={
@@ -2262,8 +2355,7 @@ function FieldMapEditor({
           }}
         >
 
-          🛰️ حرّك الخريطة بحرية، وكبّرها لرؤية الأرض
-          والطرق والمباني والأسماء بدقة أكبر
+          🛰️ تحرك بالخريطة بحرية وابحث عن الأرض ثم كبّر وحدد زواياها
 
         </div>
 
@@ -2726,6 +2818,7 @@ export default function Map() {
       setMapEditor(
         true
       );
+
     };
 
 
@@ -2739,6 +2832,7 @@ export default function Map() {
       setMapEditor(
         false
       );
+
     };
 
 
@@ -2760,6 +2854,7 @@ export default function Map() {
         return;
       }
 
+
       setLocationMethod(
         "map"
       );
@@ -2767,6 +2862,7 @@ export default function Map() {
       setMapEditor(
         false
       );
+
     };
 
 
@@ -2802,6 +2898,7 @@ export default function Map() {
       setLocationMethod(
         "text"
       );
+
     };
 
 
@@ -3009,7 +3106,9 @@ export default function Map() {
           error?.message ||
           "حدث خطأ أثناء حفظ موقع الأرض."
         );
+
       }
+
     };
 
 
@@ -3042,6 +3141,7 @@ export default function Map() {
       />
 
     );
+
   }
 
 
@@ -3136,6 +3236,7 @@ export default function Map() {
                 key={
                   farm.id
                 }
+
                 value={
                   farm.id
                 }
@@ -3372,7 +3473,7 @@ export default function Map() {
               }}
             >
 
-              صور أقمار صناعية + طرق + مدن + قرى + بلدات + GPS + تحديد يدوي
+              صور أقمار صناعية + طرق + مدن وقرى وأماكن + GPS + تحديد يدوي
 
             </div>
 
