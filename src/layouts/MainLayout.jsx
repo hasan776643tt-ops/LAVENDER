@@ -9,8 +9,51 @@ import { useLocation } from "react-router-dom";
 // =========================================================
 // LAVENDER — Main Layout
 // =========================================================
-// Farms is the application's full-screen entry page.
-// Header / Sidebar / Footer are hidden there.
+// Farms + Farm Services = Full Screen
+//
+// الصفحة الرئيسية:
+// /
+// /farms
+//
+// خدمات المزرعة:
+// /crops
+// /irrigation
+// /fertilizers
+// /diseases
+// /engineer
+// /map
+// /harvest
+// /expenses
+// /weather
+// /inventory
+// /pesticides
+// /reports
+//
+// هذه الصفحات تظهر محتواها الخاص فقط.
+// لا يتم عرض Header / Sidebar / Footer معها.
+// =========================================================
+
+
+const FARM_SERVICE_PATHS = Object.freeze([
+
+  "/crops",
+  "/irrigation",
+  "/fertilizers",
+  "/diseases",
+  "/engineer",
+  "/map",
+  "/harvest",
+  "/expenses",
+  "/weather",
+  "/inventory",
+  "/pesticides",
+  "/reports",
+
+]);
+
+
+// =========================================================
+// COMPONENT
 // =========================================================
 
 export default function MainLayout({
@@ -19,25 +62,72 @@ export default function MainLayout({
 
   const location = useLocation();
 
-  // Farms is the first screen of the application.
-  // It can be reached through "/" or "/farms".
+
+  // =======================================================
+  // PATH
+  // =======================================================
+
+  const pathname =
+    location.pathname;
+
+
+  // =======================================================
+  // FARMS SCREEN
+  // =======================================================
+
   const isFarmsScreen =
-    location.pathname === "/" ||
-    location.pathname === "/farms";
+    pathname === "/" ||
+    pathname === "/farms";
 
 
   // =======================================================
-  // FULL SCREEN FARMS MODE
+  // FARM SERVICE SCREEN
   // =======================================================
 
-  if (isFarmsScreen) {
+  const isFarmServiceScreen =
+    FARM_SERVICE_PATHS.includes(
+      pathname
+    );
+
+
+  // =======================================================
+  // FULL SCREEN MODE
+  // =======================================================
+  //
+  // Farms والخدمات الخاصة بالمزرعة
+  // لا تعرض Header / Sidebar / Footer.
+  //
+  // هذا يمنع ظهور القوائم العامة داخل:
+  // الطقس
+  // الأمراض
+  // الأسمدة
+  // المصروفات
+  // الخريطة
+  // الحصاد
+  // وغيرها.
+  // =======================================================
+
+  if (
+    isFarmsScreen ||
+    isFarmServiceScreen
+  ) {
 
     return (
 
-      <div className="app-layout farms-fullscreen">
+      <div
+        className={
+          isFarmsScreen
+            ? "app-layout farms-fullscreen"
+            : "app-layout farm-service-fullscreen"
+        }
+      >
 
         <main
-          className="app-content farms-fullscreen-content"
+          className={
+            isFarmsScreen
+              ? "app-content farms-fullscreen-content"
+              : "app-content farm-service-fullscreen-content"
+          }
           role="main"
         >
 
@@ -54,6 +144,16 @@ export default function MainLayout({
 
   // =======================================================
   // NORMAL APPLICATION MODE
+  // =======================================================
+  //
+  // الصفحات العامة تبقى كما هي.
+  //
+  // مثال:
+  // Dashboard
+  // Users
+  // Settings
+  // Login
+  // وغيرها.
   // =======================================================
 
   return (
