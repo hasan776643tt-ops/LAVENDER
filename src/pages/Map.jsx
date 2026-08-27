@@ -43,14 +43,15 @@ const DEFAULT_POSITION = [
 
 
 // =========================================================
-// GPS ZOOM
+// ZOOM LEVELS
 // =========================================================
 
 const GPS_ZOOM = 18;
+const DEFAULT_ZOOM = 15;
 
 
 // =========================================================
-// MARKER
+// LOCATION MARKER
 // =========================================================
 
 const locationIcon =
@@ -67,8 +68,7 @@ const locationIcon =
           background: #d32f2f;
           border: 4px solid #ffffff;
           border-radius: 50%;
-          box-shadow:
-            0 2px 12px rgba(0,0,0,0.50);
+          box-shadow: 0 2px 12px rgba(0,0,0,0.50);
         "
       ></div>
     `,
@@ -137,7 +137,7 @@ function MapController({
 
 
   // =======================================================
-  // MOVE TO GPS LOCATION
+  // MOVE TO SELECTED LOCATION
   // =======================================================
 
   useEffect(() => {
@@ -192,7 +192,7 @@ function MapController({
 
 
   // =======================================================
-  // FIX LEAFLET SIZE AFTER FULLSCREEN
+  // LEAFLET SIZE
   // =======================================================
 
   useEffect(() => {
@@ -284,7 +284,11 @@ function RecenterButton({
 
     <button
       type="button"
-      onClick={recenter}
+
+      onClick={
+        recenter
+      }
+
       style={{
         position: "absolute",
         right: "12px",
@@ -324,7 +328,7 @@ function RecenterButton({
 
 
 // =========================================================
-// FULLSCREEN STATUS
+// MAP STATUS
 // =========================================================
 
 function MapStatus({
@@ -344,9 +348,9 @@ function MapStatus({
 
     <>
 
-      {/* =================================================
-          TOP PANEL
-      ================================================= */}
+      {/* ===================================================
+          TOP INFORMATION PANEL
+      =================================================== */}
 
       <div
         style={{
@@ -375,7 +379,7 @@ function MapStatus({
 
         {/* =================================================
             LOCATION INFORMATION
-        ================================================= */}
+        ================================================== */}
 
         <div
           style={{
@@ -441,10 +445,6 @@ function MapStatus({
               </div>
 
 
-              {/* =========================================
-                  PLACE
-              ========================================== */}
-
               {placeName && (
 
                 <div>
@@ -456,10 +456,6 @@ function MapStatus({
 
               )}
 
-
-              {/* =========================================
-                  VILLAGE
-              ========================================== */}
 
               {village && (
 
@@ -473,10 +469,6 @@ function MapStatus({
               )}
 
 
-              {/* =========================================
-                  REGION
-              ========================================== */}
-
               {region && (
 
                 <div>
@@ -488,10 +480,6 @@ function MapStatus({
 
               )}
 
-
-              {/* =========================================
-                  ACCURACY
-              ========================================== */}
 
               {accuracy !== "" &&
               accuracy !== null &&
@@ -508,7 +496,9 @@ function MapStatus({
                 >
 
                   🎯{" "}
-                  {accuracy}{" "}
+                  {Number(
+                    accuracy
+                  ).toFixed(1)}{" "}
                   {t("meters")}
 
                 </div>
@@ -524,7 +514,7 @@ function MapStatus({
 
         {/* =================================================
             CLOSE
-        ================================================= */}
+        ================================================== */}
 
         <button
           type="button"
@@ -570,12 +560,12 @@ function MapStatus({
       </div>
 
 
-      {/* =================================================
+      {/* ===================================================
           COORDINATES
-      ================================================= */}
+      =================================================== */}
 
-      {latitude &&
-      longitude && (
+      {latitude !== "" &&
+      longitude !== "" && (
 
         <div
           style={{
@@ -651,38 +641,23 @@ function MapLayers() {
 
   return (
 
-    <>
+    <TileLayer
 
-      {/* =================================================
-          ESRI WORLD STREET MAP
-          
-          Roads
-          Villages
-          Cities
-          Buildings
-          Landmarks
-          Administrative boundaries
-      ================================================== */}
+      attribution="
+        Sources: Esri, TomTom, Garmin, FAO, NOAA,
+        USGS, © OpenStreetMap contributors,
+        GIS User Community
+      "
 
-      <TileLayer
+      url="
+        https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}
+      "
 
-        attribution="
-          Sources: Esri, TomTom, Garmin, FAO, NOAA,
-          USGS, © OpenStreetMap contributors,
-          GIS User Community
-        "
+      maxZoom={
+        19
+      }
 
-        url="
-          https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}
-        "
-
-        maxZoom={
-          19
-        }
-
-      />
-
-    </>
+    />
 
   );
 
@@ -758,7 +733,6 @@ export default function Map() {
 
   const t =
     (key) =>
-
       translate(
         `map.${key}`,
         language
@@ -776,7 +750,7 @@ export default function Map() {
 
 
   // =========================================================
-  // CURRENT MAP POSITION
+  // MAP POSITION
   // =========================================================
 
   const mapPosition =
@@ -845,21 +819,11 @@ export default function Map() {
   const handleGPS =
     async () => {
 
-      // -----------------------------------------------
-      // Open map FIRST
-      // -----------------------------------------------
-
       openFullscreenMap();
-
 
       setLocationMode(
         "gps"
       );
-
-
-      // -----------------------------------------------
-      // Start phone GPS
-      // -----------------------------------------------
 
       await getCurrentLocation();
 
@@ -867,7 +831,7 @@ export default function Map() {
 
 
   // =========================================================
-  // MANUAL
+  // MANUAL LOCATION
   // =========================================================
 
   const handleManualLocation =
@@ -885,55 +849,59 @@ export default function Map() {
 
 
   // =========================================================
-  // MAP STYLE
+  // NORMAL MAP STYLE
   // =========================================================
 
   const mapStyle =
-    fullscreen
+    {
 
-      ? {
+      position:
+        "relative",
 
-          position:
-            "fixed",
+      width:
+        "100%",
 
-          inset:
-            "0",
+      height:
+        "480px",
 
-          width:
-            "100vw",
+      borderRadius:
+        "14px",
 
-          height:
-            "100vh",
+      overflow:
+        "hidden",
 
-          zIndex:
-            9999,
+      marginTop:
+        "10px",
 
-          background:
-            "#ffffff",
+    };
 
-        }
 
-      : {
+  // =========================================================
+  // FULLSCREEN MAP STYLE
+  // =========================================================
 
-          position:
-            "relative",
+  const fullscreenStyle =
+    {
 
-          width:
-            "100%",
+      position:
+        "fixed",
 
-          height:
-            "480px",
+      inset:
+        "0",
 
-          borderRadius:
-            "14px",
+      width:
+        "100vw",
 
-          overflow:
-            "hidden",
+      height:
+        "100vh",
 
-          marginTop:
-            "10px",
+      zIndex:
+        9999,
 
-        };
+      background:
+        "#ffffff",
+
+    };
 
 
   // =========================================================
@@ -1049,7 +1017,7 @@ export default function Map() {
 
 
             {/* =================================================
-                GPS BUTTON
+                GPS
             ================================================== */}
 
             <Button
@@ -1059,8 +1027,7 @@ export default function Map() {
             >
 
               {loading &&
-              locationMode ===
-                "gps"
+              locationMode === "gps"
 
                 ? `⏳ ${t("locating")}`
 
@@ -1118,10 +1085,14 @@ export default function Map() {
                 }
 
                 zoom={
-                  latitude &&
-                  longitude
+                  Number.isFinite(
+                    Number(latitude)
+                  ) &&
+                  Number.isFinite(
+                    Number(longitude)
+                  )
                     ? GPS_ZOOM
-                    : 15
+                    : DEFAULT_ZOOM
                 }
 
                 scrollWheelZoom={
@@ -1208,8 +1179,8 @@ export default function Map() {
                 LOCATION INFORMATION
             ================================================== */}
 
-            {latitude &&
-            longitude && (
+            {latitude !== "" &&
+            longitude !== "" && (
 
               <div
                 style={{
@@ -1293,7 +1264,9 @@ export default function Map() {
                   <p>
 
                     🎯{" "}
-                    {accuracy}{" "}
+                    {Number(
+                      accuracy
+                    ).toFixed(1)}{" "}
                     {t("meters")}
 
                   </p>
@@ -1486,6 +1459,10 @@ export default function Map() {
             <br />
 
 
+            {/* =================================================
+                SAVE
+            ================================================== */}
+
             <Button
               onClick={
                 addLocation
@@ -1604,7 +1581,9 @@ export default function Map() {
                       🎯{" "}
                       {t("accuracy")}:
                       {" "}
-                      {item.accuracy}
+                      {Number(
+                        item.accuracy
+                      ).toFixed(1)}
                       {" "}
                       {t("meters")}
                     </p>
@@ -1700,25 +1679,9 @@ export default function Map() {
       {fullscreen && (
 
         <div
-          style={{
-            position:
-              "fixed",
-
-            inset:
-              "0",
-
-            width:
-              "100vw",
-
-            height:
-              "100vh",
-
-            zIndex:
-              9999,
-
-            background:
-              "#ffffff",
-          }}
+          style={
+            fullscreenStyle
+          }
         >
 
           <MapContainer
@@ -1728,10 +1691,14 @@ export default function Map() {
             }
 
             zoom={
-              latitude &&
-              longitude
+              Number.isFinite(
+                Number(latitude)
+              ) &&
+              Number.isFinite(
+                Number(longitude)
+              )
                 ? GPS_ZOOM
-                : 15
+                : DEFAULT_ZOOM
             }
 
             scrollWheelZoom={
@@ -1752,15 +1719,11 @@ export default function Map() {
 
           >
 
-            {/* =================================================
-                DETAILED STREET MAP
-            ================================================== */}
-
             <MapLayers />
 
 
             {/* =================================================
-                MANUAL SELECTOR
+                MANUAL LOCATION
             ================================================== */}
 
             <ManualLocationSelector
@@ -1778,7 +1741,7 @@ export default function Map() {
 
 
             {/* =================================================
-                CONTROLLER
+                MAP CONTROLLER
             ================================================== */}
 
             <MapController
