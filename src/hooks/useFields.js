@@ -6,14 +6,14 @@ import {
   useState,
 } from "react";
 
-import fieldService from "../services/fieldService.js";
+import fieldService
+  from "../services/fieldService.js";
 
 
 // =========================================================
 // LAVENDER — useFields
-// =========================================================
-// مسؤول عن:
 //
+// مسؤول عن:
 // 1. تحميل الحقول
 // 2. إضافة حقل
 // 3. تعديل حقل
@@ -21,22 +21,22 @@ import fieldService from "../services/fieldService.js";
 // 5. البحث في الحقول
 // 6. إحصائيات الحقول
 //
-// المسار:
+// Architecture:
 //
-// Fields.jsx / Crops.jsx
-//        ↓
+// Fields.jsx
+//     ↓
 // useFields.js
-//        ↓
+//     ↓
 // fieldService.js
-//        ↓
+//     ↓
 // fieldRepository.js
 //
 // مهم:
-// - لا يستخدم FarmContext
-// - لا يصل مباشرة إلى DataModel
-// - لا يحتوي على GPS
-// - لا يحتوي على Nominatim
-// - لا يحتوي على useGeoLocation
+// هذا الـ Hook لا يصل مباشرة إلى:
+// DataModel
+// storageService
+// fieldRepository
+//
 // =========================================================
 
 
@@ -83,11 +83,12 @@ export default function useFields() {
       try {
 
         setLoading(true);
+
         setError(null);
 
 
         const data =
-          await fieldService.getAllFields();
+          await fieldService.getAll();
 
 
         const fieldsData =
@@ -105,16 +106,9 @@ export default function useFields() {
 
       } catch (err) {
 
-        console.error(
-          "useFields loadFields error:",
-          err
-        );
-
-
         setError(err);
 
-
-        return [];
+        throw err;
 
       } finally {
 
@@ -128,22 +122,57 @@ export default function useFields() {
 
 
   // =======================================================
+  // Get Field By ID
+  // =======================================================
+
+  const getFieldById = useCallback(
+    async (id) => {
+
+      try {
+
+        if (!id) {
+
+          return null;
+
+        }
+
+
+        setError(null);
+
+
+        return await fieldService.getById(
+          id
+        );
+
+      } catch (err) {
+
+        setError(err);
+
+        throw err;
+
+      }
+
+    },
+    []
+  );
+
+
+  // =======================================================
   // Add Field
   // =======================================================
 
   const addField = useCallback(
-    async (
-      data
-    ) => {
+    async (data) => {
 
       try {
 
         setLoading(true);
+
         setError(null);
 
 
         const created =
-          await fieldService.createField(
+          await fieldService.create(
             data
           );
 
@@ -152,11 +181,8 @@ export default function useFields() {
 
           setFields(
             (currentFields) => [
-
               ...currentFields,
-
               created,
-
             ]
           );
 
@@ -166,12 +192,6 @@ export default function useFields() {
         return created;
 
       } catch (err) {
-
-        console.error(
-          "useFields addField error:",
-          err
-        );
-
 
         setError(err);
 
@@ -201,11 +221,12 @@ export default function useFields() {
       try {
 
         setLoading(true);
+
         setError(null);
 
 
         const updated =
-          await fieldService.updateField(
+          await fieldService.update(
             id,
             data
           );
@@ -239,7 +260,6 @@ export default function useFields() {
 
                 }
               )
-
           );
 
         }
@@ -248,12 +268,6 @@ export default function useFields() {
         return updated;
 
       } catch (err) {
-
-        console.error(
-          "useFields updateField error:",
-          err
-        );
-
 
         setError(err);
 
@@ -275,20 +289,18 @@ export default function useFields() {
   // =======================================================
 
   const deleteField = useCallback(
-    async (
-      id
-    ) => {
+    async (id) => {
 
       try {
 
         setLoading(true);
+
         setError(null);
 
 
-        const deleted =
-          await fieldService.deleteField(
-            id
-          );
+        await fieldService.delete(
+          id
+        );
 
 
         setFields(
@@ -310,19 +322,12 @@ export default function useFields() {
 
               }
             )
-
         );
 
 
-        return deleted;
+        return true;
 
       } catch (err) {
-
-        console.error(
-          "useFields deleteField error:",
-          err
-        );
-
 
         setError(err);
 
@@ -378,7 +383,45 @@ export default function useFields() {
             "";
 
 
-          const farmId =
+          return String(name)
+            .toLowerCase()
+            .includes(value);
+
+        }
+      );
+
+    },
+    [fields]
+  );
+
+
+  // =======================================================
+  // Get Fields By Farm
+  // =======================================================
+
+  const getFieldsByFarm = useCallback(
+    (
+      farmId,
+      items = fields
+    ) => {
+
+      if (!farmId) {
+
+        return [];
+
+      }
+
+
+      const source =
+        Array.isArray(items)
+          ? items
+          : [];
+
+
+      return source.filter(
+        (field) => {
+
+          const fieldFarmId =
             field?.farmId ??
             field?.farm_id ??
             field?.farm?.id ??
@@ -386,17 +429,8 @@ export default function useFields() {
 
 
           return (
-
-            String(name)
-              .toLowerCase()
-              .includes(value)
-
-            ||
-
+            String(fieldFarmId) ===
             String(farmId)
-              .toLowerCase()
-              .includes(value)
-
           );
 
         }
@@ -427,22 +461,6 @@ export default function useFields() {
         total:
           source.length,
 
-
-        active:
-          source.filter(
-            (field) =>
-              field?.status ===
-              "active"
-          ).length,
-
-
-        inactive:
-          source.filter(
-            (field) =>
-              field?.status ===
-              "inactive"
-          ).length,
-
       };
 
     },
@@ -462,6 +480,8 @@ export default function useFields() {
 
   // =======================================================
   // Initial Load
+  //
+  // يتم تحميل الحقول مرة واحدة عند تشغيل Hook.
   // =======================================================
 
   useEffect(() => {
@@ -475,11 +495,12 @@ export default function useFields() {
         try {
 
           setLoading(true);
+
           setError(null);
 
 
           const data =
-            await fieldService.getAllFields();
+            await fieldService.getAll();
 
 
           if (!mounted) {
@@ -506,12 +527,6 @@ export default function useFields() {
             return;
 
           }
-
-
-          console.error(
-            "useFields initial load error:",
-            err
-          );
 
 
           setError(err);
@@ -554,14 +569,18 @@ export default function useFields() {
     loading,
     error,
 
-    // العمليات
+    // العمليات الأساسية
     loadFields,
+    getFieldById,
     addField,
     updateField,
     deleteField,
 
     // البحث
     searchFields,
+
+    // الحقول حسب المزرعة
+    getFieldsByFarm,
 
     // الإحصائيات
     getStatistics,
