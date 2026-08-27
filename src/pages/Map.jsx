@@ -1,5 +1,3 @@
-// src/pages/Map.jsx
-
 import {
   useEffect,
   useMemo,
@@ -175,7 +173,6 @@ function calculatePerimeter(
         points.length
       ];
 
-    // لا نغلق الشكل إلا عندما توجد 3 نقاط أو أكثر.
     if (
       points.length < 3 &&
       index === points.length - 1
@@ -658,7 +655,7 @@ function FieldMeasurements({
       <div
         style={{
           marginTop: "14px",
-          padding: "18px",
+          padding: "20px",
           borderRadius: "18px",
           background:
             "rgba(255,255,255,0.97)",
@@ -864,7 +861,129 @@ function FieldMeasurements({
 
 
 // =========================================================
-// LOCATION TEXT FORM
+// LARGE TEXT INPUT
+// =========================================================
+
+function LargeTextField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  textarea = false,
+  minHeight = "150px",
+}) {
+
+  const inputStyle = {
+
+    width: "100%",
+
+    minHeight:
+
+      textarea
+        ? minHeight
+        : "62px",
+
+    boxSizing:
+      "border-box",
+
+    padding:
+      "16px",
+
+    border:
+      "2px solid #d7ded9",
+
+    borderRadius:
+      "16px",
+
+    fontSize:
+      "18px",
+
+    background:
+      "#ffffff",
+
+    outline:
+      "none",
+
+    lineHeight:
+      "1.8",
+
+    resize:
+      textarea
+        ? "vertical"
+        : "none",
+
+  };
+
+  return (
+
+    <label
+      style={{
+        display: "block",
+        direction: "rtl",
+      }}
+    >
+
+      <strong
+        style={{
+          display: "block",
+          marginBottom: "8px",
+          fontSize: "17px",
+        }}
+      >
+
+        {label}
+
+      </strong>
+
+
+      {textarea ? (
+
+        <textarea
+          value={value}
+          onChange={
+            (event) =>
+              onChange(
+                event.target.value
+              )
+          }
+          placeholder={
+            placeholder
+          }
+          style={
+            inputStyle
+          }
+        />
+
+      ) : (
+
+        <input
+          type="text"
+          value={value}
+          onChange={
+            (event) =>
+              onChange(
+                event.target.value
+              )
+          }
+          placeholder={
+            placeholder
+          }
+          style={
+            inputStyle
+          }
+        />
+
+      )}
+
+    </label>
+
+  );
+
+}
+
+
+// =========================================================
+// TEXT LOCATION FORM
 // =========================================================
 
 function LocationTextForm({
@@ -876,168 +995,142 @@ function LocationTextForm({
   setTown,
   description,
   setDescription,
+  surroundingDescription,
+  setSurroundingDescription,
   t,
 }) {
-
-  const inputStyle = {
-
-    width: "100%",
-
-    minHeight: "58px",
-
-    boxSizing:
-      "border-box",
-
-    padding:
-      "14px 16px",
-
-    border:
-      "2px solid #d7ded9",
-
-    borderRadius:
-      "14px",
-
-    fontSize:
-      "18px",
-
-    background:
-      "#ffffff",
-
-    outline:
-      "none",
-
-  };
 
   return (
 
     <div
       style={{
         display: "grid",
-        gap: "14px",
+        gap: "18px",
         direction: "rtl",
       }}
     >
 
-      <label>
+      <LargeTextField
 
-        <strong>
-          🌍{" "}
-          {t("country")}
-        </strong>
+        label={
+          `🌍 ${t("country")}`
+        }
 
-        <input
-          type="text"
-          value={country}
-          onChange={
-            (event) =>
-              setCountry(
-                event.target.value
-              )
-          }
-          placeholder={
-            t(
-              "countryPlaceholder"
-            )
-          }
-          style={{
-            ...inputStyle,
-            marginTop: "7px",
-          }}
-        />
+        value={
+          country
+        }
 
-      </label>
+        onChange={
+          setCountry
+        }
+
+        placeholder={
+          t(
+            "countryPlaceholder"
+          )
+        }
+
+      />
 
 
-      <label>
+      <LargeTextField
 
-        <strong>
-          🏛️{" "}
-          {t("province")}
-        </strong>
+        label={
+          `🏛️ ${t("province")}`
+        }
 
-        <input
-          type="text"
-          value={province}
-          onChange={
-            (event) =>
-              setProvince(
-                event.target.value
-              )
-          }
-          placeholder={
-            t(
-              "provincePlaceholder"
-            )
-          }
-          style={{
-            ...inputStyle,
-            marginTop: "7px",
-          }}
-        />
+        value={
+          province
+        }
 
-      </label>
+        onChange={
+          setProvince
+        }
+
+        placeholder={
+          t(
+            "provincePlaceholder"
+          )
+        }
+
+      />
 
 
-      <label>
+      <LargeTextField
 
-        <strong>
-          🏘️{" "}
-          {t("town")}
-        </strong>
+        label={
+          `🏘️ ${t("town")}`
+        }
 
-        <input
-          type="text"
-          value={town}
-          onChange={
-            (event) =>
-              setTown(
-                event.target.value
-              )
-          }
-          placeholder={
-            t(
-              "townPlaceholder"
-            )
-          }
-          style={{
-            ...inputStyle,
-            marginTop: "7px",
-          }}
-        />
+        value={
+          town
+        }
 
-      </label>
+        onChange={
+          setTown
+        }
+
+        placeholder={
+          t(
+            "townPlaceholder"
+          )
+        }
+
+      />
 
 
-      <label>
+      <LargeTextField
 
-        <strong>
-          📍{" "}
-          {t("fieldDescription")}
-        </strong>
+        textarea
 
-        <textarea
-          value={description}
-          onChange={
-            (event) =>
-              setDescription(
-                event.target.value
-              )
-          }
-          placeholder={
-            t(
-              "fieldDescriptionPlaceholder"
-            )
-          }
-          style={{
-            ...inputStyle,
-            minHeight: "130px",
-            resize: "vertical",
-            lineHeight: "1.8",
-            marginTop: "7px",
-          }}
-        />
+        minHeight="160px"
 
-      </label>
+        label={
+          `📍 ${t("fieldDescription")}`
+        }
+
+        value={
+          description
+        }
+
+        onChange={
+          setDescription
+        }
+
+        placeholder={
+          t(
+            "fieldDescriptionPlaceholder"
+          )
+        }
+
+      />
+
+
+      <LargeTextField
+
+        textarea
+
+        minHeight="220px"
+
+        label={
+          `🧭 ${t("surroundingDescription")}`
+        }
+
+        value={
+          surroundingDescription
+        }
+
+        onChange={
+          setSurroundingDescription
+        }
+
+        placeholder={
+          t(
+            "surroundingDescriptionPlaceholder"
+          )
+        }
+
+      />
 
     </div>
 
@@ -1073,10 +1166,6 @@ function FieldMapEditor({
     );
 
 
-  // ---------------------------------------------------------
-  // ADD POINT
-  // ---------------------------------------------------------
-
   const addPoint =
     (point) => {
 
@@ -1097,10 +1186,6 @@ function FieldMapEditor({
     };
 
 
-  // ---------------------------------------------------------
-  // UNDO
-  // ---------------------------------------------------------
-
   const removeLastPoint =
     () => {
 
@@ -1115,10 +1200,6 @@ function FieldMapEditor({
     };
 
 
-  // ---------------------------------------------------------
-  // CLEAR
-  // ---------------------------------------------------------
-
   const clearPoints =
     () => {
 
@@ -1130,10 +1211,6 @@ function FieldMapEditor({
 
     };
 
-
-  // ---------------------------------------------------------
-  // SAVE
-  // ---------------------------------------------------------
 
   const save =
     () => {
@@ -1184,9 +1261,9 @@ function FieldMapEditor({
             : DEFAULT_ZOOM
         }
 
-        scrollWheelZoom={true}
+        scrollWheelZoom
 
-        zoomControl={true}
+        zoomControl
 
         style={{
           width: "100%",
@@ -1210,10 +1287,6 @@ function FieldMapEditor({
         />
 
 
-        {/* ===============================================
-            POLYGON
-        ================================================ */}
-
         {safePoints.length >= 3 && (
 
           <Polygon
@@ -1234,10 +1307,6 @@ function FieldMapEditor({
         )}
 
 
-        {/* ===============================================
-            OPEN LINE
-        ================================================ */}
-
         {safePoints.length === 2 && (
 
           <Polyline
@@ -1255,10 +1324,6 @@ function FieldMapEditor({
 
         )}
 
-
-        {/* ===============================================
-            POINTS
-        ================================================ */}
 
         {safePoints.map(
           (
@@ -1293,9 +1358,7 @@ function FieldMapEditor({
       </MapContainer>
 
 
-      {/* =================================================
-          TOP BAR
-      ================================================= */}
+      {/* TOP BAR */}
 
       <div
         style={{
@@ -1365,9 +1428,7 @@ function FieldMapEditor({
       </div>
 
 
-      {/* =================================================
-          INSTRUCTION
-      ================================================= */}
+      {/* INSTRUCTION */}
 
       <div
         style={{
@@ -1414,9 +1475,7 @@ function FieldMapEditor({
       </div>
 
 
-      {/* =================================================
-          POINT COUNT
-      ================================================= */}
+      {/* POINT COUNT */}
 
       <div
         style={{
@@ -1462,9 +1521,7 @@ function FieldMapEditor({
       </div>
 
 
-      {/* =================================================
-          BOTTOM BUTTONS
-      ================================================= */}
+      {/* BOTTOM BUTTONS */}
 
       <div
         style={{
@@ -1691,6 +1748,11 @@ export default function Map() {
     setDescription,
   ] = useState("");
 
+  const [
+    surroundingDescription,
+    setSurroundingDescription,
+  ] = useState("");
+
 
   // =======================================================
   // FIELD POINTS
@@ -1773,7 +1835,7 @@ export default function Map() {
 
 
   // =======================================================
-  // VALIDATE FARM
+  // SELECTED FARM
   // =======================================================
 
   const selectedFarm =
@@ -1798,10 +1860,6 @@ export default function Map() {
   const handleSave =
     async () => {
 
-      // ---------------------------------------------------
-      // FARM
-      // ---------------------------------------------------
-
       if (!farmId) {
 
         alert(
@@ -1816,14 +1874,15 @@ export default function Map() {
 
 
       // ---------------------------------------------------
-      // TEXT VALIDATION
+      // TEXT MODE
       // ---------------------------------------------------
 
       if (
         locationMethod === "text" &&
         !country.trim() &&
         !province.trim() &&
-        !town.trim()
+        !town.trim() &&
+        !description.trim()
       ) {
 
         alert(
@@ -1838,7 +1897,7 @@ export default function Map() {
 
 
       // ---------------------------------------------------
-      // MAP VALIDATION
+      // MAP MODE
       // ---------------------------------------------------
 
       if (
@@ -1857,16 +1916,13 @@ export default function Map() {
       }
 
 
-      // ---------------------------------------------------
-      // MEASUREMENTS
-      // ---------------------------------------------------
-
       const area =
         locationMethod === "map"
           ? calculateArea(
               fieldPoints
             )
           : 0;
+
 
       const perimeter =
         locationMethod === "map"
@@ -1876,10 +1932,6 @@ export default function Map() {
           : 0;
 
 
-      // ---------------------------------------------------
-      // FIRST POINT
-      // ---------------------------------------------------
-
       const firstPoint =
         fieldPoints.length > 0
           ? fieldPoints[0]
@@ -1887,7 +1939,7 @@ export default function Map() {
 
 
       // ---------------------------------------------------
-      // LOCATION DATA
+      // UNIFIED LOCATION DATA
       // ---------------------------------------------------
 
       const locationData = {
@@ -1903,22 +1955,38 @@ export default function Map() {
           locationType ||
           "farm",
 
-        method:
+        source:
           locationMethod,
+
+
+        // -----------------------------------------------
+        // TEXT LOCATION
+        // -----------------------------------------------
 
         country:
           country.trim(),
 
-        province:
+        region:
           province.trim(),
 
-        town:
+        village:
           town.trim(),
 
-        description:
+        placeName:
+          town.trim(),
+
+        locationDescription:
           description.trim(),
 
-        fieldPoints:
+        surroundingDescription:
+          surroundingDescription.trim(),
+
+
+        // -----------------------------------------------
+        // MAP LOCATION
+        // -----------------------------------------------
+
+        points:
           fieldPoints.map(
             (point) => ({
 
@@ -1935,9 +2003,6 @@ export default function Map() {
             })
           ),
 
-        area,
-
-        perimeter,
 
         latitude:
           firstPoint
@@ -1953,15 +2018,22 @@ export default function Map() {
               )
             : null,
 
+
+        area,
+
+        perimeter,
+
+
         notes:
           notes?.trim() ||
           "",
 
-        createdAt:
-          new Date().toISOString(),
 
         status:
           "active",
+
+        createdAt:
+          new Date().toISOString(),
 
       };
 
@@ -1977,9 +2049,7 @@ export default function Map() {
         );
 
 
-        // -----------------------------------------------
-        // RESET FORM
-        // -----------------------------------------------
+        // RESET
 
         setCountry("");
 
@@ -1989,6 +2059,8 @@ export default function Map() {
 
         setDescription("");
 
+        setSurroundingDescription("");
+
         setFieldPoints([]);
 
         setNotes("");
@@ -1996,7 +2068,6 @@ export default function Map() {
         setLocationMethod(
           "text"
         );
-
 
       } catch (error) {
 
@@ -2069,6 +2140,10 @@ export default function Map() {
     ]);
 
 
+  // Prevent unused calculation warnings
+  void savedCenter;
+
+
   // =======================================================
   // FULLSCREEN EDITOR
   // =======================================================
@@ -2119,10 +2194,6 @@ export default function Map() {
       }}
     >
 
-      {/* =================================================
-          TITLE
-      ================================================= */}
-
       <h1
         style={{
           fontSize: "28px",
@@ -2136,9 +2207,7 @@ export default function Map() {
       </h1>
 
 
-      {/* =================================================
-          FARM
-      ================================================= */}
+      {/* FARM */}
 
       <Card
         title={
@@ -2158,9 +2227,9 @@ export default function Map() {
           }
           style={{
             width: "100%",
-            minHeight: "58px",
+            minHeight: "62px",
             padding: "12px",
-            borderRadius: "14px",
+            borderRadius: "16px",
             border:
               "2px solid #d7ded9",
             fontSize: "18px",
@@ -2216,9 +2285,9 @@ export default function Map() {
           }
           style={{
             width: "100%",
-            minHeight: "58px",
+            minHeight: "62px",
             padding: "12px",
-            borderRadius: "14px",
+            borderRadius: "16px",
             border:
               "2px solid #d7ded9",
             fontSize: "18px",
@@ -2251,9 +2320,7 @@ export default function Map() {
       />
 
 
-      {/* =================================================
-          METHOD
-      ================================================= */}
+      {/* LOCATION METHOD */}
 
       <Card
         title={
@@ -2270,14 +2337,13 @@ export default function Map() {
 
           <button
             type="button"
-            onClick={
-              () =>
-                setLocationMethod(
-                  "text"
-                )
+            onClick={() =>
+              setLocationMethod(
+                "text"
+              )
             }
             style={{
-              minHeight: "72px",
+              minHeight: "86px",
 
               border:
                 locationMethod === "text"
@@ -2294,7 +2360,7 @@ export default function Map() {
               fontSize: "19px",
               fontWeight: "800",
               textAlign: "right",
-              padding: "12px 16px",
+              padding: "14px 16px",
             }}
           >
 
@@ -2305,7 +2371,8 @@ export default function Map() {
               style={{
                 fontSize: "14px",
                 fontWeight: "400",
-                marginTop: "5px",
+                marginTop: "6px",
+                lineHeight: "1.7",
               }}
             >
 
@@ -2324,7 +2391,7 @@ export default function Map() {
               openMapEditor
             }
             style={{
-              minHeight: "72px",
+              minHeight: "86px",
 
               border:
                 locationMethod === "map"
@@ -2341,7 +2408,7 @@ export default function Map() {
               fontSize: "19px",
               fontWeight: "800",
               textAlign: "right",
-              padding: "12px 16px",
+              padding: "14px 16px",
             }}
           >
 
@@ -2352,7 +2419,8 @@ export default function Map() {
               style={{
                 fontSize: "14px",
                 fontWeight: "400",
-                marginTop: "5px",
+                marginTop: "6px",
+                lineHeight: "1.7",
               }}
             >
 
@@ -2376,9 +2444,7 @@ export default function Map() {
       />
 
 
-      {/* =================================================
-          TEXT LOCATION
-      ================================================= */}
+      {/* TEXT MODE */}
 
       {locationMethod === "text" && (
 
@@ -2424,6 +2490,14 @@ export default function Map() {
               setDescription
             }
 
+            surroundingDescription={
+              surroundingDescription
+            }
+
+            setSurroundingDescription={
+              setSurroundingDescription
+            }
+
             t={
               t
             }
@@ -2435,9 +2509,7 @@ export default function Map() {
       )}
 
 
-      {/* =================================================
-          MAP LOCATION
-      ================================================= */}
+      {/* MAP MODE */}
 
       {locationMethod === "map" && (
 
@@ -2468,7 +2540,7 @@ export default function Map() {
 
             <p
               style={{
-                marginBottom: "10px",
+                marginBottom: "12px",
               }}
             >
 
@@ -2518,14 +2590,12 @@ export default function Map() {
       />
 
 
-      {/* =================================================
-          NOTES
-      ================================================= */}
+      {/* NOTES */}
 
       <Card
         title={
-          `📍 ${t(
-            "fieldDescription"
+          `📝 ${t(
+            "notes"
           )}`
         }
       >
@@ -2542,17 +2612,17 @@ export default function Map() {
           }
           placeholder={
             t(
-              "fieldDescriptionPlaceholder"
+              "notesPlaceholder"
             )
           }
           style={{
             width: "100%",
-            minHeight: "140px",
+            minHeight: "160px",
             boxSizing: "border-box",
             padding: "16px",
             border:
               "2px solid #d7ded9",
-            borderRadius: "14px",
+            borderRadius: "16px",
             fontSize: "18px",
             lineHeight: "1.8",
             resize: "vertical",
@@ -2561,10 +2631,6 @@ export default function Map() {
 
       </Card>
 
-
-      {/* =================================================
-          MEASUREMENTS
-      ================================================= */}
 
       {locationMethod === "map" && (
 
@@ -2590,9 +2656,7 @@ export default function Map() {
       />
 
 
-      {/* =================================================
-          SAVE
-      ================================================= */}
+      {/* SAVE */}
 
       <Button
         onClick={
@@ -2607,9 +2671,7 @@ export default function Map() {
       </Button>
 
 
-      {/* =================================================
-          SAVED LOCATIONS
-      ================================================= */}
+      {/* SAVED LOCATIONS */}
 
       <h2
         style={{
@@ -2660,6 +2722,7 @@ export default function Map() {
 
                 title={
                   item.town ||
+                  item.village ||
                   item.placeName ||
                   item.farmName ||
                   t("field")
@@ -2687,32 +2750,85 @@ export default function Map() {
                 )}
 
 
-                {item.province && (
+                {item.region && (
 
                   <p>
                     🏛️{" "}
-                    {item.province}
+                    {item.region}
                   </p>
 
                 )}
 
 
-                {item.town && (
+                {item.village && (
 
                   <p>
                     🏘️{" "}
-                    {item.town}
+                    {item.village}
                   </p>
 
                 )}
 
 
-                {item.description && (
+                {item.locationDescription && (
 
-                  <p>
+                  <p
+                    style={{
+                      whiteSpace:
+                        "pre-wrap",
+                      lineHeight:
+                        "1.8",
+                    }}
+                  >
                     📍{" "}
-                    {item.description}
+                    {item.locationDescription}
                   </p>
+
+                )}
+
+
+                {item.surroundingDescription && (
+
+                  <div
+                    style={{
+                      marginTop:
+                        "12px",
+                      padding:
+                        "14px",
+                      borderRadius:
+                        "14px",
+                      background:
+                        "#f2f7f3",
+                      whiteSpace:
+                        "pre-wrap",
+                      lineHeight:
+                        "1.8",
+                    }}
+                  >
+
+                    <strong>
+
+                      🧭{" "}
+                      {t(
+                        "surroundingDescription"
+                      )}
+
+                    </strong>
+
+                    <div
+                      style={{
+                        marginTop:
+                          "8px",
+                      }}
+                    >
+
+                      {
+                        item.surroundingDescription
+                      }
+
+                    </div>
+
+                  </div>
 
                 )}
 
@@ -2754,9 +2870,9 @@ export default function Map() {
 
 
                 {Array.isArray(
-                  item.fieldPoints
+                  item.points
                 ) &&
-                item.fieldPoints.length >= 3 && (
+                item.points.length >= 3 && (
 
                   <p>
                     📍{" "}
@@ -2765,7 +2881,7 @@ export default function Map() {
                     )}
                     :{" "}
                     {
-                      item.fieldPoints.length
+                      item.points.length
                     }
                   </p>
 
@@ -2774,7 +2890,12 @@ export default function Map() {
 
                 {item.notes && (
 
-                  <p>
+                  <p
+                    style={{
+                      whiteSpace:
+                        "pre-wrap",
+                    }}
+                  >
                     📝{" "}
                     {item.notes}
                   </p>
