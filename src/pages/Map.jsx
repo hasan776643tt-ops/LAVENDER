@@ -12,6 +12,7 @@ import {
   Polygon,
   Polyline,
   CircleMarker,
+  LayersControl,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -35,9 +36,10 @@ import Button
 // طرق تحديد الأرض:
 //
 // 1. الخريطة
-//    - تفتح ملء الشاشة
-//    - المستخدم يضع نقاط حدود الأرض
-//    - النقاط هي الإحداثيات الحقيقية
+//    - خريطة شوارع واضحة
+//    - صور أقمار صناعية
+//    - تحديد الموقع GPS
+//    - تحديد حدود الأرض يدويًا
 //    - حساب المساحة والمحيط
 //    - حفظ النقاط
 //
@@ -51,8 +53,6 @@ import Button
 //    - جار الجنوب
 //    - جار الشرق
 //    - جار الغرب
-//
-// لا يوجد استبدال تلقائي لموقع المستخدم.
 //
 // =========================================================
 
@@ -81,7 +81,6 @@ function toNumber(
 
   const number =
     Number(value);
-
 
   return Number.isFinite(
     number
@@ -127,18 +126,15 @@ function distanceMeters(
 
   }
 
-
   const lat1 =
     toRadians(
       pointA[0]
     );
 
-
   const lat2 =
     toRadians(
       pointB[0]
     );
-
 
   const dLat =
     toRadians(
@@ -146,17 +142,14 @@ function distanceMeters(
       pointA[0]
     );
 
-
   const dLon =
     toRadians(
       pointB[1] -
       pointA[1]
     );
 
-
   const earthRadius =
     6371008.8;
-
 
   const a =
     Math.sin(
@@ -169,7 +162,6 @@ function distanceMeters(
     Math.sin(
       dLon / 2
     ) ** 2;
-
 
   return (
     earthRadius *
@@ -200,9 +192,7 @@ function calculatePerimeter(
 
   }
 
-
   let total = 0;
-
 
   for (
     let index = 0;
@@ -213,13 +203,11 @@ function calculatePerimeter(
     const current =
       points[index];
 
-
     const next =
       points[
         (index + 1) %
         points.length
       ];
-
 
     total +=
       distanceMeters(
@@ -228,7 +216,6 @@ function calculatePerimeter(
       );
 
   }
-
 
   return total;
 
@@ -252,10 +239,8 @@ function calculateArea(
 
   }
 
-
   const earthRadius =
     6378137;
-
 
   const validPoints =
     points.filter(
@@ -264,7 +249,6 @@ function calculateArea(
         point.length >= 2
     );
 
-
   if (
     validPoints.length < 3
   ) {
@@ -272,7 +256,6 @@ function calculateArea(
     return 0;
 
   }
-
 
   const referenceLatitude =
     validPoints.reduce(
@@ -288,12 +271,10 @@ function calculateArea(
     ) /
     validPoints.length;
 
-
   const cosLatitude =
     Math.cos(
       referenceLatitude
     );
-
 
   const projected =
     validPoints.map(
@@ -304,12 +285,10 @@ function calculateArea(
             point[0]
           );
 
-
         const longitude =
           toRadians(
             point[1]
           );
-
 
         return [
 
@@ -325,9 +304,7 @@ function calculateArea(
       }
     );
 
-
   let area = 0;
-
 
   for (
     let index = 0;
@@ -338,13 +315,11 @@ function calculateArea(
     const current =
       projected[index];
 
-
     const next =
       projected[
         (index + 1) %
         projected.length
       ];
-
 
     area +=
       (
@@ -357,7 +332,6 @@ function calculateArea(
       );
 
   }
-
 
   return Math.abs(
     area / 2
@@ -377,7 +351,6 @@ function formatArea(
   const value =
     Number(area);
 
-
   if (
     !Number.isFinite(value) ||
     value <= 0
@@ -386,7 +359,6 @@ function formatArea(
     return "0 م²";
 
   }
-
 
   if (
     value >= 10000
@@ -399,7 +371,6 @@ function formatArea(
     );
 
   }
-
 
   return (
     `${value.toFixed(1)} م²`
@@ -419,7 +390,6 @@ function formatDistance(
   const value =
     Number(distance);
 
-
   if (
     !Number.isFinite(value) ||
     value <= 0
@@ -428,7 +398,6 @@ function formatDistance(
     return "0 م";
 
   }
-
 
   if (
     value >= 1000
@@ -442,39 +411,8 @@ function formatDistance(
 
   }
 
-
   return (
     `${value.toFixed(1)} م`
-  );
-
-}
-
-
-// =========================================================
-// MAP LAYERS
-// =========================================================
-
-function MapLayers() {
-
-  return (
-
-    <TileLayer
-
-      attribution="
-        © OpenStreetMap contributors
-        © Esri
-      "
-
-      url="
-        https://server.arcgisonline.com/
-        ArcGIS/rest/services/
-        World_Imagery/MapServer/tile/{z}/{y}/{x}
-      "
-
-      maxZoom={19}
-
-    />
-
   );
 
 }
@@ -489,30 +427,38 @@ function MapResizeHandler() {
   const map =
     useMap();
 
-
   useEffect(() => {
 
-    const timer =
-      window.setTimeout(
-        () => {
+    const timers = [
+      100,
+      300,
+      700,
+    ].map(
+      delay =>
+        window.setTimeout(
+          () => {
 
-          map.invalidateSize();
+            map.invalidateSize(
+              true
+            );
 
-        },
-        300
-      );
-
+          },
+          delay
+        )
+    );
 
     return () => {
 
-      window.clearTimeout(
-        timer
+      timers.forEach(
+        timer =>
+          window.clearTimeout(
+            timer
+          )
       );
 
     };
 
   }, [map]);
-
 
   return null;
 
@@ -525,11 +471,11 @@ function MapResizeHandler() {
 
 function MapCenterController({
   center,
+  zoom,
 }) {
 
   const map =
     useMap();
-
 
   useEffect(() => {
 
@@ -542,18 +488,15 @@ function MapCenterController({
 
     }
 
-
     const latitude =
       toNumber(
         center[0]
       );
 
-
     const longitude =
       toNumber(
         center[1]
       );
-
 
     if (
       latitude === null ||
@@ -564,23 +507,24 @@ function MapCenterController({
 
     }
 
-
-    map.setView(
+    map.flyTo(
       [
         latitude,
         longitude,
       ],
-      map.getZoom(),
+      zoom ||
+        map.getZoom(),
       {
         animate: true,
+        duration: 0.8,
       }
     );
 
   }, [
     map,
     center,
+    zoom,
   ]);
-
 
   return null;
 
@@ -588,7 +532,167 @@ function MapCenterController({
 
 
 // =========================================================
-// MAP CLICK
+// GPS CONTROLLER
+// =========================================================
+
+function GPSController({
+  requestId,
+  onPosition,
+  onError,
+}) {
+
+  const map =
+    useMap();
+
+  useEffect(() => {
+
+    if (
+      !requestId
+    ) {
+
+      return;
+
+    }
+
+    if (
+      typeof navigator ===
+      "undefined" ||
+      !navigator.geolocation
+    ) {
+
+      onError(
+        "الهاتف أو المتصفح لا يدعم تحديد الموقع GPS."
+      );
+
+      return;
+
+    }
+
+    navigator.geolocation.getCurrentPosition(
+
+      position => {
+
+        const latitude =
+          Number(
+            position.coords.latitude
+          );
+
+        const longitude =
+          Number(
+            position.coords.longitude
+          );
+
+        const accuracy =
+          Number(
+            position.coords.accuracy
+          );
+
+        if (
+          !Number.isFinite(latitude) ||
+          !Number.isFinite(longitude)
+        ) {
+
+          onError(
+            "تم الحصول على الموقع ولكن الإحداثيات غير صالحة."
+          );
+
+          return;
+
+        }
+
+        const point = [
+          latitude,
+          longitude,
+        ];
+
+        map.flyTo(
+          point,
+          EDITOR_ZOOM,
+          {
+            animate: true,
+            duration: 1,
+          }
+        );
+
+        onPosition(
+          point,
+          Number.isFinite(
+            accuracy
+          )
+            ? accuracy
+            : null
+        );
+
+      },
+
+      error => {
+
+        let message =
+          "تعذر الحصول على موقع الهاتف.";
+
+        if (
+          error?.code ===
+          1
+        ) {
+
+          message =
+            "تم رفض إذن الموقع. افتح إعدادات الموقع في الهاتف واسمح للمتصفح بالوصول إلى الموقع ثم حاول مرة أخرى.";
+
+        }
+
+        if (
+          error?.code ===
+          2
+        ) {
+
+          message =
+            "تعذر تحديد موقع الهاتف حاليًا. تأكد من تشغيل GPS والاتصال بالإنترنت ثم حاول مرة أخرى.";
+
+        }
+
+        if (
+          error?.code ===
+          3
+        ) {
+
+          message =
+            "انتهت مهلة تحديد الموقع. تأكد من تشغيل GPS ثم حاول مرة أخرى.";
+
+        }
+
+        onError(
+          message
+        );
+
+      },
+
+      {
+        enableHighAccuracy:
+          true,
+
+        timeout:
+          20000,
+
+        maximumAge:
+          0,
+      }
+
+    );
+
+  }, [
+    requestId,
+    map,
+    onPosition,
+    onError,
+  ]);
+
+  return null;
+
+}
+
+
+// =========================================================
+// MANUAL MAP CLICK
 // =========================================================
 
 function BoundaryPointSelector({
@@ -604,12 +708,10 @@ function BoundaryPointSelector({
           event.latlng.lat
         );
 
-
       const longitude =
         Number(
           event.latlng.lng
         );
-
 
       if (
         !Number.isFinite(
@@ -624,7 +726,6 @@ function BoundaryPointSelector({
 
       }
 
-
       onAddPoint([
         latitude,
         longitude,
@@ -634,14 +735,13 @@ function BoundaryPointSelector({
 
   });
 
-
   return null;
 
 }
 
 
 // =========================================================
-// LARGE FIELD
+// FIELD
 // =========================================================
 
 function Field({
@@ -694,7 +794,6 @@ function Field({
 
   };
 
-
   return (
 
     <label
@@ -723,7 +822,6 @@ function Field({
         {label}
 
       </strong>
-
 
       {textarea ? (
 
@@ -835,14 +933,12 @@ function TextLocationForm({
         placeholder="اكتب اسم البلد"
       />
 
-
       <Field
         label="🏛️ المحافظة / المنطقة"
         value={province}
         onChange={setProvince}
         placeholder="اكتب المحافظة أو المنطقة"
       />
-
 
       <Field
         label="🏙️ المدينة"
@@ -851,14 +947,12 @@ function TextLocationForm({
         placeholder="اكتب اسم المدينة"
       />
 
-
       <Field
         label="🏘️ البلدة / القرية"
         value={town}
         onChange={setTown}
         placeholder="اكتب اسم البلدة أو القرية"
       />
-
 
       <Field
         textarea
@@ -868,7 +962,6 @@ function TextLocationForm({
         onChange={setDescription}
         placeholder="اكتب وصفًا واضحًا لمكان الأرض"
       />
-
 
       <div
         style={{
@@ -900,14 +993,12 @@ function TextLocationForm({
 
         </strong>
 
-
         <Field
           label="⬆️ جار الشمال"
           value={northNeighbor}
           onChange={setNorthNeighbor}
           placeholder="من يجاور الأرض من الشمال؟"
         />
-
 
         <Field
           label="⬇️ جار الجنوب"
@@ -916,14 +1007,12 @@ function TextLocationForm({
           placeholder="من يجاور الأرض من الجنوب؟"
         />
 
-
         <Field
           label="➡️ جار الشرق"
           value={eastNeighbor}
           onChange={setEastNeighbor}
           placeholder="من يجاور الأرض من الشرق؟"
         />
-
 
         <Field
           label="⬅️ جار الغرب"
@@ -933,7 +1022,6 @@ function TextLocationForm({
         />
 
       </div>
-
 
       <Field
         textarea
@@ -967,7 +1055,6 @@ function FieldMapEditor({
       ? points
       : [];
 
-
   const [center, setCenter] =
     useState(
       safePoints.length
@@ -977,9 +1064,24 @@ function FieldMapEditor({
         : DEFAULT_POSITION
     );
 
+  const [gpsPosition, setGpsPosition] =
+    useState(null);
+
+  const [gpsAccuracy, setGpsAccuracy] =
+    useState(null);
+
+  const [gpsRequestId, setGpsRequestId] =
+    useState(0);
+
+  const [locating, setLocating] =
+    useState(false);
+
+  const [gpsMessage, setGpsMessage] =
+    useState("");
+
 
   // =======================================================
-  // ADD
+  // ADD POINT
   // =======================================================
 
   const addPoint =
@@ -991,7 +1093,6 @@ function FieldMapEditor({
           point,
         ]
       );
-
 
       setCenter(
         point
@@ -1035,6 +1136,98 @@ function FieldMapEditor({
 
 
   // =======================================================
+  // GPS START
+  // =======================================================
+
+  const requestGPS =
+    () => {
+
+      if (
+        typeof navigator ===
+        "undefined" ||
+        !navigator.geolocation
+      ) {
+
+        setGpsMessage(
+          "الهاتف أو المتصفح لا يدعم تحديد الموقع GPS."
+        );
+
+        return;
+
+      }
+
+      setLocating(
+        true
+      );
+
+      setGpsMessage(
+        "📡 جارٍ تحديد موقعك الحالي..."
+      );
+
+      setGpsRequestId(
+        value =>
+          value + 1
+      );
+
+    };
+
+
+  // =======================================================
+  // GPS SUCCESS
+  // =======================================================
+
+  const handleGPSPosition =
+    (
+      point,
+      accuracy
+    ) => {
+
+      setLocating(
+        false
+      );
+
+      setGpsPosition(
+        point
+      );
+
+      setGpsAccuracy(
+        accuracy
+      );
+
+      setCenter(
+        point
+      );
+
+      setGpsMessage(
+        accuracy
+          ? `📍 تم تحديد موقعك بدقة تقريبية ${formatDistance(
+              accuracy
+            )}`
+          : "📍 تم تحديد موقعك الحالي."
+      );
+
+    };
+
+
+  // =======================================================
+  // GPS ERROR
+  // =======================================================
+
+  const handleGPSError =
+    message => {
+
+      setLocating(
+        false
+      );
+
+      setGpsMessage(
+        `⚠️ ${message}`
+      );
+
+    };
+
+
+  // =======================================================
   // SAVE
   // =======================================================
 
@@ -1052,7 +1245,6 @@ function FieldMapEditor({
         return;
 
       }
-
 
       onSave();
 
@@ -1097,28 +1289,189 @@ function FieldMapEditor({
 
         zoomControl
 
+        preferCanvas
+
         style={{
           width:
             "100%",
 
           height:
             "100%",
+
+          background:
+            "#e9f0eb",
         }}
 
       >
 
-        <MapLayers />
+        <LayersControl
+          position="bottomright"
+        >
+
+          {/* =================================================
+              OPENSTREETMAP
+          ================================================= */}
+
+          <LayersControl.BaseLayer
+            checked
+            name="🗺️ خريطة الطرق والقرى"
+          >
+
+            <TileLayer
+
+              attribution='&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noreferrer">OpenStreetMap contributors</a>'
+
+              url="https://tile.openstreetmap.org/{z}/{x}/{y}.png"
+
+              maxZoom={19}
+
+            />
+
+          </LayersControl.BaseLayer>
+
+
+          {/* =================================================
+              SATELLITE
+          ================================================= */}
+
+          <LayersControl.BaseLayer
+            name="🛰️ صور الأقمار الصناعية"
+          >
+
+            <TileLayer
+
+              attribution='Tiles &copy; Esri'
+
+              url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+
+              maxZoom={19}
+
+            />
+
+          </LayersControl.BaseLayer>
+
+        </LayersControl>
+
 
         <MapResizeHandler />
 
+
         <MapCenterController
           center={center}
+          zoom={
+            gpsPosition
+              ? EDITOR_ZOOM
+              : safePoints.length
+                ? EDITOR_ZOOM
+                : DEFAULT_ZOOM
+          }
         />
+
 
         <BoundaryPointSelector
-          onAddPoint={addPoint}
+          onAddPoint={
+            addPoint
+          }
         />
 
+
+        <GPSController
+
+          requestId={
+            gpsRequestId
+          }
+
+          onPosition={
+            handleGPSPosition
+          }
+
+          onError={
+            handleGPSError
+          }
+
+        />
+
+
+        {/* =================================================
+            GPS POSITION
+        ================================================= */}
+
+        {gpsPosition && (
+
+          <>
+
+            <CircleMarker
+
+              center={
+                gpsPosition
+              }
+
+              radius={
+                12
+              }
+
+              pathOptions={{
+                color:
+                  "#ffffff",
+
+                weight:
+                  4,
+
+                fillColor:
+                  "#1976d2",
+
+                fillOpacity:
+                  1,
+              }}
+
+            />
+
+
+            {gpsAccuracy &&
+              gpsAccuracy > 0 && (
+
+                <CircleMarker
+
+                  center={
+                    gpsPosition
+                  }
+
+                  radius={
+                    Math.min(
+                      40,
+                      Math.max(
+                        20,
+                        gpsAccuracy / 3
+                      )
+                    )
+                  }
+
+                  pathOptions={{
+                    color:
+                      "#1976d2",
+
+                    weight:
+                      2,
+
+                    fillColor:
+                      "#1976d2",
+
+                    fillOpacity:
+                      0.12,
+                  }}
+
+                />
+
+              )}
+
+          </>
+
+        )}
+
+
+        {/* =================================================
+            FIELD POLYGON
+        ================================================= */}
 
         {safePoints.length >= 3 && (
 
@@ -1147,6 +1500,10 @@ function FieldMapEditor({
         )}
 
 
+        {/* =================================================
+            FIELD LINE
+        ================================================= */}
+
         {safePoints.length === 2 && (
 
           <Polyline
@@ -1167,6 +1524,10 @@ function FieldMapEditor({
 
         )}
 
+
+        {/* =================================================
+            FIELD POINTS
+        ================================================= */}
 
         {safePoints.map(
           (
@@ -1313,6 +1674,9 @@ function FieldMapEditor({
 
             fontWeight:
               "900",
+
+            cursor:
+              "pointer",
           }}
 
         >
@@ -1325,6 +1689,145 @@ function FieldMapEditor({
 
 
       {/* =================================================
+          GPS BUTTON
+      ================================================= */}
+
+      <button
+
+        type="button"
+
+        onClick={
+          requestGPS
+        }
+
+        disabled={
+          locating
+        }
+
+        style={{
+          position:
+            "absolute",
+
+          top:
+            "78px",
+
+          right:
+            "12px",
+
+          zIndex:
+            100000,
+
+          minHeight:
+            "54px",
+
+          padding:
+            "0 18px",
+
+          border:
+            "none",
+
+          borderRadius:
+            "16px",
+
+          background:
+            locating
+              ? "#757575"
+              : "#1976d2",
+
+          color:
+            "#ffffff",
+
+          boxShadow:
+            "0 3px 15px rgba(0,0,0,0.30)",
+
+          fontSize:
+            "16px",
+
+          fontWeight:
+            "900",
+
+          cursor:
+            locating
+              ? "wait"
+              : "pointer",
+
+          direction:
+            "rtl",
+        }}
+
+      >
+
+        {locating
+          ? "📡 جارٍ تحديد الموقع..."
+          : "📍 تحديد موقعي الحالي"}
+
+      </button>
+
+
+      {/* =================================================
+          GPS MESSAGE
+      ================================================= */}
+
+      {gpsMessage && (
+
+        <div
+          style={{
+            position:
+              "absolute",
+
+            top:
+              "140px",
+
+            left:
+              "12px",
+
+            right:
+              "12px",
+
+            zIndex:
+              100000,
+
+            padding:
+              "12px 15px",
+
+            borderRadius:
+              "15px",
+
+            background:
+              gpsMessage.startsWith(
+                "⚠️"
+              )
+                ? "rgba(170,35,35,0.95)"
+                : "rgba(20,80,40,0.94)",
+
+            color:
+              "#ffffff",
+
+            textAlign:
+              "center",
+
+            fontSize:
+              "15px",
+
+            fontWeight:
+              "800",
+
+            direction:
+              "rtl",
+
+            boxShadow:
+              "0 3px 15px rgba(0,0,0,0.3)",
+          }}
+        >
+
+          {gpsMessage}
+
+        </div>
+
+      )}
+
+
+      {/* =================================================
           INSTRUCTION
       ================================================= */}
 
@@ -1334,7 +1837,9 @@ function FieldMapEditor({
             "absolute",
 
           top:
-            "78px",
+            gpsMessage
+              ? "196px"
+              : "140px",
 
           left:
             "12px",
@@ -1343,10 +1848,10 @@ function FieldMapEditor({
             "12px",
 
           zIndex:
-            100000,
+            99999,
 
           padding:
-            "14px",
+            "13px",
 
           borderRadius:
             "16px",
@@ -1361,7 +1866,7 @@ function FieldMapEditor({
             "center",
 
           fontSize:
-            "16px",
+            "15px",
 
           fontWeight:
             "800",
@@ -1488,6 +1993,9 @@ function FieldMapEditor({
 
             fontWeight:
               "900",
+
+            boxShadow:
+              "0 2px 10px rgba(0,0,0,0.15)",
           }}
 
         >
@@ -1527,6 +2035,9 @@ function FieldMapEditor({
 
             fontWeight:
               "900",
+
+            boxShadow:
+              "0 2px 10px rgba(0,0,0,0.15)",
           }}
 
         >
@@ -1571,6 +2082,9 @@ function FieldMapEditor({
 
             fontWeight:
               "900",
+
+            boxShadow:
+              "0 2px 10px rgba(0,0,0,0.18)",
           }}
 
         >
@@ -1614,7 +2128,6 @@ export default function Map() {
     loading,
 
     addLocation,
-
     deleteLocation,
 
   } = useMapHook();
@@ -1745,7 +2258,6 @@ export default function Map() {
         "map"
       );
 
-
       setMapEditor(
         true
       );
@@ -1768,7 +2280,7 @@ export default function Map() {
 
 
   // =======================================================
-  // SAVE MAP DRAWING
+  // SAVE MAP
   // =======================================================
 
   const saveMap =
@@ -1786,11 +2298,9 @@ export default function Map() {
 
       }
 
-
       setLocationMethod(
         "map"
       );
-
 
       setMapEditor(
         false
@@ -2027,7 +2537,6 @@ export default function Map() {
           locationData
         );
 
-
         resetForm();
 
       } catch (error) {
@@ -2036,7 +2545,6 @@ export default function Map() {
           "Map save error:",
           error
         );
-
 
         alert(
           error?.message ||
@@ -2172,6 +2680,7 @@ export default function Map() {
                 key={
                   farm.id
                 }
+
                 value={
                   farm.id
                 }
@@ -2283,8 +2792,6 @@ export default function Map() {
           }}
         >
 
-          {/* TEXT */}
-
           <button
 
             type="button"
@@ -2352,8 +2859,6 @@ export default function Map() {
           </button>
 
 
-          {/* MAP */}
-
           <button
 
             type="button"
@@ -2412,7 +2917,7 @@ export default function Map() {
               }}
             >
 
-              افتح الخريطة كاملة وحدد حدود الأرض بالنقاط يدويًا
+              افتح الخريطة وحدد موقعك أو حدود الأرض بالنقاط يدويًا
 
             </div>
 
@@ -2595,6 +3100,7 @@ export default function Map() {
                 >
 
                   📐 المساحة:{" "}
+
                   <strong>
                     {formatArea(
                       calculateArea(
@@ -2614,6 +3120,7 @@ export default function Map() {
                 >
 
                   📏 المحيط:{" "}
+
                   <strong>
                     {formatDistance(
                       calculatePerimeter(
