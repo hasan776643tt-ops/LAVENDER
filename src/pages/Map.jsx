@@ -48,15 +48,18 @@ import Button
 //    - الطرق
 //    - أسماء القرى والمدن والأماكن
 //    - حدود ومراجع جغرافية
-//    - GPS الهاتف بدقة عالية
+//    - GPS الهاتف
 //    - تحديد زوايا الأرض يدويًا بالإصبع
 //    - حساب المساحة
 //    - حساب المحيط
 //
-// مهم:
-// لا نغيّر useMapHook أو farmService أو نظام الحفظ.
-// هذا الملف يحافظ على بنية Map السابقة.
-//
+// IMPORTANT
+// ---------------------------------------------------------
+// GPS لا يتحكم بالخريطة بعد تحديد الموقع.
+// المستخدم حر في تحريك الخريطة والتكبير والتصغير.
+// لا يوجد تتبع مستمر لموقع الهاتف.
+// لا يوجد flyTo تلقائي عند تحريك الخريطة.
+// لا يوجد إعادة تمركز عند إضافة نقطة.
 // =========================================================
 
 
@@ -71,7 +74,6 @@ const DEFAULT_POSITION = [
 
 const DEFAULT_ZOOM = 14;
 
-// مستوى تكبير مناسب لرؤية تفاصيل الأرض
 const GPS_ZOOM = 19;
 
 const EDITOR_ZOOM = 18;
@@ -409,22 +411,13 @@ function formatDistance(
 // =========================================================
 // MAP BASE LAYERS
 // =========================================================
-//
-// الطبقة الأساسية:
-// صور أقمار صناعية / جوية
-//
-// فوقها:
-// - أسماء الأماكن
-// - الطرق
-// - الحدود
-//
-// =========================================================
 
 function MapLayers() {
 
   return (
 
     <>
+
       {/* =================================================
           SATELLITE / AERIAL IMAGERY
           ================================================= */}
@@ -461,7 +454,7 @@ function MapLayers() {
 
 
       {/* =================================================
-          ROADS / TRANSPORTATION
+          ROADS
           ================================================= */}
 
       <TileLayer
@@ -603,70 +596,15 @@ function MapResizeHandler() {
 
 
 // =========================================================
-// MAP CENTER
+// MAP CLICK / FIELD POINT SELECTOR
 // =========================================================
-
-function MapCenterController({
-  center,
-}) {
-
-  const map =
-    useMap();
-
-  useEffect(() => {
-
-    if (
-      !Array.isArray(center) ||
-      center.length !== 2
-    ) {
-
-      return;
-    }
-
-    const latitude =
-      toNumber(
-        center[0]
-      );
-
-    const longitude =
-      toNumber(
-        center[1]
-      );
-
-    if (
-      latitude === null ||
-      longitude === null
-    ) {
-
-      return;
-    }
-
-    map.flyTo(
-      [
-        latitude,
-        longitude,
-      ],
-      map.getZoom(),
-      {
-        animate:
-          true,
-
-        duration:
-          0.7,
-      }
-    );
-
-  }, [
-    map,
-    center,
-  ]);
-
-  return null;
-}
-
-
-// =========================================================
-// MAP CLICK
+//
+// IMPORTANT
+// ---------------------------------------------------------
+// الضغط على الخريطة يضيف نقطة فقط.
+// لا يتم تحريك مركز الخريطة.
+// لا يتم استدعاء flyTo.
+// لا يتم ربط النقطة بموقع GPS.
 // =========================================================
 
 function BoundaryPointSelector({
@@ -716,10 +654,14 @@ function BoundaryPointSelector({
 // GPS CONTROLLER
 // =========================================================
 //
-// لا يعمل تلقائيًا.
-// يعمل فقط عندما يضغط المستخدم:
-// "📍 موقعي الآن"
+// IMPORTANT
+// ---------------------------------------------------------
+// هذا المكوّن يستجيب فقط لطلب صريح من المستخدم.
 //
+// لا يستخدم watchPosition.
+// لا يراقب الهاتف بشكل مستمر.
+// لا يعيد الخريطة إلى GPS.
+// لا يتدخل في سحب المستخدم للخريطة.
 // =========================================================
 
 function GPSController({
@@ -757,6 +699,10 @@ function GPSController({
       return;
     }
 
+    let cancelled =
+      false;
+
+
     onStatus({
       type:
         "loading",
@@ -769,6 +715,13 @@ function GPSController({
     navigator.geolocation.getCurrentPosition(
 
       position => {
+
+        if (
+          cancelled
+        ) {
+
+          return;
+        }
 
         const latitude =
           Number(
@@ -821,7 +774,7 @@ function GPSController({
 
 
         // -----------------------------------------------
-        // إرسال الموقع للأب
+        // حفظ موقع GPS بصريًا فقط
         // -----------------------------------------------
 
         onPosition({
@@ -834,7 +787,11 @@ function GPSController({
 
 
         // -----------------------------------------------
-        // نقل الخريطة للموقع
+        // مهم جدًا:
+        // التحريك يحدث مرة واحدة فقط نتيجة ضغط المستخدم
+        // على زر GPS.
+        //
+        // بعد هذه العملية لا يوجد أي تتبع.
         // -----------------------------------------------
 
         map.flyTo(
@@ -851,7 +808,7 @@ function GPSController({
 
 
         // -----------------------------------------------
-        // تحديث الحالة
+        // GPS تم بنجاح
         // -----------------------------------------------
 
         if (
@@ -884,6 +841,13 @@ function GPSController({
 
 
       error => {
+
+        if (
+          cancelled
+        ) {
+
+          return;
+        }
 
         console.error(
           "GPS error:",
@@ -945,6 +909,14 @@ function GPSController({
 
     );
 
+
+    return () => {
+
+      cancelled =
+        true;
+
+    };
+
   }, [
     requestId,
     map,
@@ -958,6 +930,10 @@ function GPSController({
 
 // =========================================================
 // GPS LOCATION VISUAL
+// =========================================================
+//
+// هذا المكوّن يعرض موقع الهاتف فقط.
+// لا يحرك الخريطة.
 // =========================================================
 
 function GPSLocationVisual({
@@ -985,9 +961,6 @@ function GPSLocationVisual({
   return (
 
     <>
-      {/* =================================================
-          ACCURACY CIRCLE
-          ================================================= */}
 
       {Number.isFinite(
         safeAccuracy
@@ -1022,10 +995,6 @@ function GPSLocationVisual({
 
       )}
 
-
-      {/* =================================================
-          GPS POINT
-          ================================================= */}
 
       <CircleMarker
 
@@ -1495,16 +1464,6 @@ function FieldMapEditor({
       : [];
 
 
-  const [center, setCenter] =
-    useState(
-      safePoints.length
-        ? safePoints[
-            safePoints.length - 1
-          ]
-        : DEFAULT_POSITION
-    );
-
-
   // =======================================================
   // GPS
   // =======================================================
@@ -1548,6 +1507,14 @@ function FieldMapEditor({
   // =======================================================
   // GPS POSITION CALLBACK
   // =======================================================
+  //
+  // مهم:
+  // لم نعد نضع GPS داخل center.
+  //
+  // السبب:
+  // GPS هو موقع الهاتف،
+  // وليس مركز الخريطة الدائم.
+  // =======================================================
 
   const handleGPSPosition =
     positionData => {
@@ -1573,14 +1540,10 @@ function FieldMapEditor({
       );
 
 
-      setCenter(
-        positionData.point
-      );
-
-
       setGpsLoading(
         false
       );
+
     };
 
 
@@ -1611,6 +1574,7 @@ function FieldMapEditor({
           false
         );
       }
+
     };
 
 
@@ -1639,11 +1603,22 @@ function FieldMapEditor({
         current =>
           current + 1
       );
+
     };
 
 
   // =======================================================
   // ADD POINT
+  // =======================================================
+  //
+  // IMPORTANT
+  // -------------------------------------------------------
+  // لا يوجد setCenter هنا.
+  //
+  // المستخدم يضغط على أي مكان:
+  // يتم حفظ النقطة فقط.
+  //
+  // الخريطة تبقى في مكانها.
   // =======================================================
 
   const addPoint =
@@ -1656,10 +1631,6 @@ function FieldMapEditor({
         ]
       );
 
-
-      setCenter(
-        point
-      );
     };
 
 
@@ -1678,25 +1649,6 @@ function FieldMapEditor({
           )
       );
 
-
-      setCenter(
-        current => {
-
-          const nextLength =
-            safePoints.length - 1;
-
-          if (
-            nextLength > 0
-          ) {
-
-            return safePoints[
-              nextLength - 1
-            ];
-          }
-
-          return DEFAULT_POSITION;
-        }
-      );
     };
 
 
@@ -1709,10 +1661,6 @@ function FieldMapEditor({
 
       setPoints([]);
 
-      setCenter(
-        gpsPosition ||
-        DEFAULT_POSITION
-      );
     };
 
 
@@ -1740,6 +1688,31 @@ function FieldMapEditor({
 
 
   // =======================================================
+  // INITIAL MAP POSITION
+  // =======================================================
+  //
+  // تستخدم فقط عند إنشاء MapContainer.
+  //
+  // بعد تشغيل الخريطة:
+  // لا نراقب center.
+  // لا يوجد MapCenterController.
+  // =======================================================
+
+  const initialMapPosition =
+    safePoints.length
+      ? safePoints[
+          safePoints.length - 1
+        ]
+      : DEFAULT_POSITION;
+
+
+  const initialMapZoom =
+    safePoints.length
+      ? EDITOR_ZOOM
+      : DEFAULT_ZOOM;
+
+
+  // =======================================================
   // MAP EDITOR
   // =======================================================
 
@@ -1764,17 +1737,11 @@ function FieldMapEditor({
       <MapContainer
 
         center={
-          safePoints.length
-            ? safePoints[
-                safePoints.length - 1
-              ]
-            : DEFAULT_POSITION
+          initialMapPosition
         }
 
         zoom={
-          safePoints.length
-            ? EDITOR_ZOOM
-            : DEFAULT_ZOOM
+          initialMapZoom
         }
 
         scrollWheelZoom={
@@ -1787,6 +1754,34 @@ function FieldMapEditor({
 
         doubleClickZoom={
           false
+        }
+
+        dragging={
+          true
+        }
+
+        touchZoom={
+          true
+        }
+
+        boxZoom={
+          true
+        }
+
+        keyboard={
+          true
+        }
+
+        zoomAnimation={
+          true
+        }
+
+        fadeAnimation={
+          true
+        }
+
+        markerZoomAnimation={
+          true
         }
 
         style={{
@@ -1803,11 +1798,6 @@ function FieldMapEditor({
 
         <MapResizeHandler />
 
-        <MapCenterController
-          center={
-            center
-          }
-        />
 
         <BoundaryPointSelector
           onAddPoint={
@@ -2222,7 +2212,7 @@ function FieldMapEditor({
           }}
         >
 
-          🛰️ كبّر الخريطة لرؤية الأرض والطرق والمباني بدقة أكبر
+          🛰️ اسحب الخريطة بحرية — لن تعود تلقائيًا إلى موقع الهاتف
 
         </div>
 
@@ -2685,6 +2675,7 @@ export default function Map() {
       setMapEditor(
         true
       );
+
     };
 
 
@@ -2698,6 +2689,7 @@ export default function Map() {
       setMapEditor(
         false
       );
+
     };
 
 
@@ -2719,6 +2711,7 @@ export default function Map() {
         return;
       }
 
+
       setLocationMethod(
         "map"
       );
@@ -2726,6 +2719,7 @@ export default function Map() {
       setMapEditor(
         false
       );
+
     };
 
 
@@ -2761,6 +2755,7 @@ export default function Map() {
       setLocationMethod(
         "text"
       );
+
     };
 
 
@@ -2968,7 +2963,9 @@ export default function Map() {
           error?.message ||
           "حدث خطأ أثناء حفظ موقع الأرض."
         );
+
       }
+
     };
 
 
@@ -3001,6 +2998,7 @@ export default function Map() {
       />
 
     );
+
   }
 
 
@@ -3206,10 +3204,6 @@ export default function Map() {
           }}
         >
 
-          {/* =================================================
-              TEXT
-              ================================================= */}
-
           <button
 
             type="button"
@@ -3276,10 +3270,6 @@ export default function Map() {
 
           </button>
 
-
-          {/* =================================================
-              MAP
-              ================================================= */}
 
           <button
 
@@ -3592,7 +3582,7 @@ export default function Map() {
         style={{
           height:
             "18px",
-        }}
+          }}
       />
 
 
