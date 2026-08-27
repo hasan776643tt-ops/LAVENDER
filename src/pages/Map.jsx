@@ -18,43 +18,41 @@ import {
 
 import "leaflet/dist/leaflet.css";
 
-import useMapHook from "../hooks/useMap.js";
+import useMapHook
+  from "../hooks/useMap.js";
 
-import Card from "../components/Card.jsx";
-import Button from "../components/Button.jsx";
+import Card
+  from "../components/Card.jsx";
 
-import {
-  translate,
-} from "../utils/translation";
-
-import {
-  useSettings,
-} from "../context/SettingsContext";
+import Button
+  from "../components/Button.jsx";
 
 
 // =========================================================
 // LAVENDER — MAP
 // =========================================================
 //
-// طريقة تحديد موقع الأرض:
+// طرق تحديد الأرض:
 //
-// 1. كتابة الموقع يدويًا
-//    البلد
-//    المحافظة / المنطقة
-//    القرية / البلدة
-//    وصف الموقع والجهات المحيطة
+// 1. الخريطة
+//    - تفتح ملء الشاشة
+//    - المستخدم يضع نقاط حدود الأرض
+//    - النقاط هي الإحداثيات الحقيقية
+//    - حساب المساحة والمحيط
+//    - حفظ النقاط
 //
-// 2. الخريطة
-//    فتح الخريطة
-//    تكبير وتصغير
-//    الوصول إلى الأرض
-//    تحديد نقاط حول الأرض
-//    حساب المساحة والمحيط
-//    حفظ الإحداثيات والنقاط
+// 2. الكتابة
+//    - البلد
+//    - المحافظة / المنطقة
+//    - المدينة
+//    - البلدة / القرية
+//    - وصف الأرض
+//    - جار الشمال
+//    - جار الجنوب
+//    - جار الشرق
+//    - جار الغرب
 //
-// مهم:
-// الخريطة لا تستبدل موقع المستخدم.
-// الإحداثيات المحفوظة هي النقاط التي يحددها المستخدم.
+// لا يوجد استبدال تلقائي لموقع المستخدم.
 //
 // =========================================================
 
@@ -74,15 +72,20 @@ const EDITOR_ZOOM = 18;
 
 
 // =========================================================
-// SAFE NUMBER
+// NUMBER
 // =========================================================
 
-function toNumber(value) {
+function toNumber(
+  value
+) {
 
   const number =
     Number(value);
 
-  return Number.isFinite(number)
+
+  return Number.isFinite(
+    number
+  )
     ? number
     : null;
 
@@ -93,7 +96,9 @@ function toNumber(value) {
 // RADIANS
 // =========================================================
 
-function toRadians(value) {
+function toRadians(
+  value
+) {
 
   return (
     Number(value) *
@@ -115,9 +120,7 @@ function distanceMeters(
 
   if (
     !Array.isArray(pointA) ||
-    !Array.isArray(pointB) ||
-    pointA.length < 2 ||
-    pointB.length < 2
+    !Array.isArray(pointB)
   ) {
 
     return 0;
@@ -130,18 +133,21 @@ function distanceMeters(
       pointA[0]
     );
 
+
   const lat2 =
     toRadians(
       pointB[0]
     );
 
-  const deltaLat =
+
+  const dLat =
     toRadians(
       pointB[0] -
       pointA[0]
     );
 
-  const deltaLng =
+
+  const dLon =
     toRadians(
       pointB[1] -
       pointA[1]
@@ -154,28 +160,24 @@ function distanceMeters(
 
   const a =
     Math.sin(
-      deltaLat / 2
+      dLat / 2
     ) ** 2 +
 
     Math.cos(lat1) *
     Math.cos(lat2) *
 
     Math.sin(
-      deltaLng / 2
+      dLon / 2
     ) ** 2;
-
-
-  const c =
-    2 *
-    Math.atan2(
-      Math.sqrt(a),
-      Math.sqrt(1 - a)
-    );
 
 
   return (
     earthRadius *
-    c
+    2 *
+    Math.atan2(
+      Math.sqrt(a),
+      Math.sqrt(1 - a)
+    )
   );
 
 }
@@ -191,7 +193,7 @@ function calculatePerimeter(
 
   if (
     !Array.isArray(points) ||
-    points.length < 2
+    points.length < 3
   ) {
 
     return 0;
@@ -211,24 +213,12 @@ function calculatePerimeter(
     const current =
       points[index];
 
+
     const next =
       points[
         (index + 1) %
         points.length
       ];
-
-
-    // نقطتان فقط:
-    // نحسب المسافة بينهما مرة واحدة.
-
-    if (
-      points.length === 2 &&
-      index === 1
-    ) {
-
-      break;
-
-    }
 
 
     total +=
@@ -269,15 +259,9 @@ function calculateArea(
 
   const validPoints =
     points.filter(
-      (point) =>
+      point =>
         Array.isArray(point) &&
-        point.length >= 2 &&
-        Number.isFinite(
-          Number(point[0])
-        ) &&
-        Number.isFinite(
-          Number(point[1])
-        )
+        point.length >= 2
     );
 
 
@@ -313,12 +297,13 @@ function calculateArea(
 
   const projected =
     validPoints.map(
-      (point) => {
+      point => {
 
         const latitude =
           toRadians(
             point[0]
           );
+
 
         const longitude =
           toRadians(
@@ -352,6 +337,7 @@ function calculateArea(
 
     const current =
       projected[index];
+
 
     const next =
       projected[
@@ -465,7 +451,7 @@ function formatDistance(
 
 
 // =========================================================
-// MAP TILE
+// MAP LAYERS
 // =========================================================
 
 function MapLayers() {
@@ -562,6 +548,7 @@ function MapCenterController({
         center[0]
       );
 
+
     const longitude =
       toNumber(
         center[1]
@@ -617,6 +604,7 @@ function BoundaryPointSelector({
           event.latlng.lat
         );
 
+
       const longitude =
         Number(
           event.latlng.lng
@@ -653,335 +641,33 @@ function BoundaryPointSelector({
 
 
 // =========================================================
-// MEASUREMENTS
+// LARGE FIELD
 // =========================================================
 
-function FieldMeasurements({
-  points,
-  t,
-}) {
-
-  const safePoints =
-    Array.isArray(points)
-      ? points
-      : [];
-
-
-  const area =
-    useMemo(
-      () =>
-        calculateArea(
-          safePoints
-        ),
-      [safePoints]
-    );
-
-
-  const perimeter =
-    useMemo(
-      () =>
-        calculatePerimeter(
-          safePoints
-        ),
-      [safePoints]
-    );
-
-
-  const sides =
-    useMemo(() => {
-
-      if (
-        safePoints.length < 2
-      ) {
-
-        return [];
-
-      }
-
-
-      if (
-        safePoints.length === 2
-      ) {
-
-        return [
-          distanceMeters(
-            safePoints[0],
-            safePoints[1]
-          ),
-        ];
-
-      }
-
-
-      return safePoints.map(
-        (
-          point,
-          index
-        ) => {
-
-          const next =
-            safePoints[
-              (index + 1) %
-              safePoints.length
-            ];
-
-
-          return distanceMeters(
-            point,
-            next
-          );
-
-        }
-      );
-
-    }, [safePoints]);
-
-
-  if (
-    safePoints.length < 2
-  ) {
-
-    return (
-
-      <div
-        style={{
-          marginTop: "14px",
-          padding: "20px",
-          borderRadius: "18px",
-          background:
-            "rgba(255,255,255,0.97)",
-          boxShadow:
-            "0 4px 18px rgba(0,0,0,0.18)",
-          direction: "rtl",
-        }}
-      >
-
-        <strong
-          style={{
-            fontSize: "18px",
-          }}
-        >
-
-          📐{" "}
-          {t("drawFieldFirst")}
-
-        </strong>
-
-      </div>
-
-    );
-
-  }
-
-
-  return (
-
-    <div
-      style={{
-        marginTop: "14px",
-        padding: "18px",
-        borderRadius: "18px",
-        background:
-          "rgba(255,255,255,0.97)",
-        boxShadow:
-          "0 4px 18px rgba(0,0,0,0.18)",
-        direction: "rtl",
-      }}
-    >
-
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns:
-            "1fr 1fr",
-          gap: "12px",
-        }}
-      >
-
-        <div
-          style={{
-            padding: "14px",
-            borderRadius: "14px",
-            background: "#f2f7f3",
-          }}
-        >
-
-          <div
-            style={{
-              fontSize: "14px",
-              opacity: 0.75,
-            }}
-          >
-
-            📐{" "}
-            {t("fieldArea")}
-
-          </div>
-
-
-          <strong
-            style={{
-              display: "block",
-              marginTop: "5px",
-              fontSize: "19px",
-            }}
-          >
-
-            {formatArea(area)}
-
-          </strong>
-
-        </div>
-
-
-        <div
-          style={{
-            padding: "14px",
-            borderRadius: "14px",
-            background: "#f2f7f3",
-          }}
-        >
-
-          <div
-            style={{
-              fontSize: "14px",
-              opacity: 0.75,
-            }}
-          >
-
-            📏{" "}
-            {t("fieldPerimeter")}
-
-          </div>
-
-
-          <strong
-            style={{
-              display: "block",
-              marginTop: "5px",
-              fontSize: "19px",
-            }}
-          >
-
-            {formatDistance(
-              perimeter
-            )}
-
-          </strong>
-
-        </div>
-
-      </div>
-
-
-      {safePoints.length >= 3 && (
-
-        <>
-
-          <div
-            style={{
-              marginTop: "16px",
-              fontSize: "15px",
-              fontWeight: "800",
-            }}
-          >
-
-            📏{" "}
-            {t("fieldBoundaries")}
-
-          </div>
-
-
-          <div
-            style={{
-              marginTop: "8px",
-              display: "grid",
-              gap: "7px",
-            }}
-          >
-
-            {sides.map(
-              (
-                side,
-                index
-              ) => (
-
-                <div
-                  key={index}
-                  style={{
-                    display: "flex",
-                    justifyContent:
-                      "space-between",
-                    padding:
-                      "9px 11px",
-                    borderRadius:
-                      "10px",
-                    background:
-                      "#f7f7f7",
-                  }}
-                >
-
-                  <span>
-
-                    {t("boundary")}{" "}
-                    {index + 1}
-
-                  </span>
-
-
-                  <strong>
-
-                    {formatDistance(
-                      side
-                    )}
-
-                  </strong>
-
-                </div>
-
-              )
-            )}
-
-          </div>
-
-        </>
-
-      )}
-
-    </div>
-
-  );
-
-}
-
-
-// =========================================================
-// LARGE INPUT
-// =========================================================
-
-function LargeTextField({
+function Field({
   label,
   value,
   onChange,
   placeholder,
   textarea = false,
-  minHeight = "150px",
+  minHeight = "70px",
 }) {
 
-  const inputStyle = {
+  const style = {
 
-    width: "100%",
+    width:
+      "100%",
+
+    boxSizing:
+      "border-box",
 
     minHeight:
       textarea
         ? minHeight
         : "68px",
 
-    boxSizing:
-      "border-box",
-
     padding:
-      "16px",
+      "15px",
 
     border:
       "2px solid #d7ded9",
@@ -992,14 +678,14 @@ function LargeTextField({
     fontSize:
       "18px",
 
+    lineHeight:
+      "1.8",
+
     background:
       "#ffffff",
 
     outline:
       "none",
-
-    lineHeight:
-      "1.8",
 
     resize:
       textarea
@@ -1013,16 +699,24 @@ function LargeTextField({
 
     <label
       style={{
-        display: "block",
-        direction: "rtl",
+        display:
+          "block",
+
+        direction:
+          "rtl",
       }}
     >
 
       <strong
         style={{
-          display: "block",
-          marginBottom: "8px",
-          fontSize: "18px",
+          display:
+            "block",
+
+          marginBottom:
+            "8px",
+
+          fontSize:
+            "17px",
         }}
       >
 
@@ -1040,7 +734,7 @@ function LargeTextField({
           }
 
           onChange={
-            (event) =>
+            event =>
               onChange(
                 event.target.value
               )
@@ -1051,7 +745,7 @@ function LargeTextField({
           }
 
           style={
-            inputStyle
+            style
           }
 
         />
@@ -1067,7 +761,7 @@ function LargeTextField({
           }
 
           onChange={
-            (event) =>
+            event =>
               onChange(
                 event.target.value
               )
@@ -1078,7 +772,7 @@ function LargeTextField({
           }
 
           style={
-            inputStyle
+            style
           }
 
         />
@@ -1096,144 +790,158 @@ function LargeTextField({
 // TEXT LOCATION FORM
 // =========================================================
 
-function LocationTextForm({
+function TextLocationForm({
   country,
   setCountry,
   province,
   setProvince,
+  city,
+  setCity,
   town,
   setTown,
   description,
   setDescription,
-  surroundingDescription,
-  setSurroundingDescription,
-  t,
+  northNeighbor,
+  setNorthNeighbor,
+  southNeighbor,
+  setSouthNeighbor,
+  eastNeighbor,
+  setEastNeighbor,
+  westNeighbor,
+  setWestNeighbor,
+  notes,
+  setNotes,
 }) {
 
   return (
 
     <div
       style={{
-        display: "grid",
-        gap: "20px",
-        direction: "rtl",
+        display:
+          "grid",
+
+        gap:
+          "18px",
+
+        direction:
+          "rtl",
       }}
     >
 
-      <LargeTextField
-
-        label={
-          `🌍 ${t("country")}`
-        }
-
-        value={
-          country
-        }
-
-        onChange={
-          setCountry
-        }
-
-        placeholder={
-          t("countryPlaceholder")
-        }
-
+      <Field
+        label="🌍 البلد"
+        value={country}
+        onChange={setCountry}
+        placeholder="اكتب اسم البلد"
       />
 
 
-      <LargeTextField
-
-        label={
-          `🏛️ ${t("province")}`
-        }
-
-        value={
-          province
-        }
-
-        onChange={
-          setProvince
-        }
-
-        placeholder={
-          t("provincePlaceholder")
-        }
-
+      <Field
+        label="🏛️ المحافظة / المنطقة"
+        value={province}
+        onChange={setProvince}
+        placeholder="اكتب المحافظة أو المنطقة"
       />
 
 
-      <LargeTextField
-
-        label={
-          `🏘️ ${t("town")}`
-        }
-
-        value={
-          town
-        }
-
-        onChange={
-          setTown
-        }
-
-        placeholder={
-          t("townPlaceholder")
-        }
-
+      <Field
+        label="🏙️ المدينة"
+        value={city}
+        onChange={setCity}
+        placeholder="اكتب اسم المدينة"
       />
 
 
-      <LargeTextField
+      <Field
+        label="🏘️ البلدة / القرية"
+        value={town}
+        onChange={setTown}
+        placeholder="اكتب اسم البلدة أو القرية"
+      />
 
+
+      <Field
         textarea
-
-        minHeight="180px"
-
-        label={
-          `📍 ${t("fieldDescription")}`
-        }
-
-        value={
-          description
-        }
-
-        onChange={
-          setDescription
-        }
-
-        placeholder={
-          t(
-            "fieldDescriptionPlaceholder"
-          )
-        }
-
+        minHeight="150px"
+        label="📍 وصف موقع الأرض"
+        value={description}
+        onChange={setDescription}
+        placeholder="اكتب وصفًا واضحًا لمكان الأرض"
       />
 
 
-      <LargeTextField
+      <div
+        style={{
+          padding:
+            "18px",
 
+          borderRadius:
+            "18px",
+
+          background:
+            "#f2f7f3",
+
+          display:
+            "grid",
+
+          gap:
+            "14px",
+        }}
+      >
+
+        <strong
+          style={{
+            fontSize:
+              "19px",
+          }}
+        >
+
+          🧭 الجهات المحيطة بالأرض
+
+        </strong>
+
+
+        <Field
+          label="⬆️ جار الشمال"
+          value={northNeighbor}
+          onChange={setNorthNeighbor}
+          placeholder="من يجاور الأرض من الشمال؟"
+        />
+
+
+        <Field
+          label="⬇️ جار الجنوب"
+          value={southNeighbor}
+          onChange={setSouthNeighbor}
+          placeholder="من يجاور الأرض من الجنوب؟"
+        />
+
+
+        <Field
+          label="➡️ جار الشرق"
+          value={eastNeighbor}
+          onChange={setEastNeighbor}
+          placeholder="من يجاور الأرض من الشرق؟"
+        />
+
+
+        <Field
+          label="⬅️ جار الغرب"
+          value={westNeighbor}
+          onChange={setWestNeighbor}
+          placeholder="من يجاور الأرض من الغرب؟"
+        />
+
+      </div>
+
+
+      <Field
         textarea
-
-        minHeight="260px"
-
-        label={
-          `🧭 ${t("surroundingDescription")}`
-        }
-
-        value={
-          surroundingDescription
-        }
-
-        onChange={
-          setSurroundingDescription
-        }
-
-        placeholder={
-          t(
-            "surroundingDescriptionPlaceholder"
-          )
-        }
-
+        minHeight="150px"
+        label="📝 ملاحظات"
+        value={notes}
+        onChange={setNotes}
+        placeholder="أي معلومات إضافية عن الأرض"
       />
 
     </div>
@@ -1250,7 +958,6 @@ function LocationTextForm({
 function FieldMapEditor({
   points,
   setPoints,
-  t,
   onClose,
   onSave,
 }) {
@@ -1263,7 +970,7 @@ function FieldMapEditor({
 
   const [center, setCenter] =
     useState(
-      safePoints.length > 0
+      safePoints.length
         ? safePoints[
             safePoints.length - 1
           ]
@@ -1271,20 +978,17 @@ function FieldMapEditor({
     );
 
 
-  // -------------------------------------------------------
-  // ADD POINT
-  // -------------------------------------------------------
+  // =======================================================
+  // ADD
+  // =======================================================
 
   const addPoint =
-    (point) => {
+    point => {
 
       setPoints(
-        (current) => [
-
+        current => [
           ...current,
-
           point,
-
         ]
       );
 
@@ -1296,15 +1000,15 @@ function FieldMapEditor({
     };
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // UNDO
-  // -------------------------------------------------------
+  // =======================================================
 
-  const removeLastPoint =
+  const undo =
     () => {
 
       setPoints(
-        (current) =>
+        current =>
           current.slice(
             0,
             -1
@@ -1314,11 +1018,11 @@ function FieldMapEditor({
     };
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // CLEAR
-  // -------------------------------------------------------
+  // =======================================================
 
-  const clearPoints =
+  const clear =
     () => {
 
       setPoints([]);
@@ -1330,9 +1034,9 @@ function FieldMapEditor({
     };
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // SAVE
-  // -------------------------------------------------------
+  // =======================================================
 
   const save =
     () => {
@@ -1342,9 +1046,7 @@ function FieldMapEditor({
       ) {
 
         alert(
-          t(
-            "atLeastThreePoints"
-          )
+          "يجب تحديد 3 نقاط على الأقل لحفظ حدود الأرض."
         );
 
         return;
@@ -1361,9 +1063,15 @@ function FieldMapEditor({
 
     <div
       style={{
-        position: "fixed",
-        inset: 0,
-        zIndex: 9999,
+        position:
+          "fixed",
+
+        inset:
+          0,
+
+        zIndex:
+          99999,
+
         background:
           "#ffffff",
       }}
@@ -1372,7 +1080,7 @@ function FieldMapEditor({
       <MapContainer
 
         center={
-          safePoints.length > 0
+          safePoints.length
             ? safePoints[
                 safePoints.length - 1
               ]
@@ -1380,18 +1088,21 @@ function FieldMapEditor({
         }
 
         zoom={
-          safePoints.length > 0
+          safePoints.length
             ? EDITOR_ZOOM
             : DEFAULT_ZOOM
         }
 
-        scrollWheelZoom={true}
+        scrollWheelZoom
 
-        zoomControl={true}
+        zoomControl
 
         style={{
-          width: "100%",
-          height: "100%",
+          width:
+            "100%",
+
+          height:
+            "100%",
         }}
 
       >
@@ -1405,13 +1116,9 @@ function FieldMapEditor({
         />
 
         <BoundaryPointSelector
-          onAddPoint={
-            addPoint
-          }
+          onAddPoint={addPoint}
         />
 
-
-        {/* POLYGON */}
 
         {safePoints.length >= 3 && (
 
@@ -1422,18 +1129,23 @@ function FieldMapEditor({
             }
 
             pathOptions={{
-              color: "#d32f2f",
-              weight: 4,
-              fillColor: "#ef5350",
-              fillOpacity: 0.25,
+              color:
+                "#1b7f3a",
+
+              weight:
+                4,
+
+              fillColor:
+                "#4caf50",
+
+              fillOpacity:
+                0.28,
             }}
 
           />
 
         )}
 
-
-        {/* LINE */}
 
         {safePoints.length === 2 && (
 
@@ -1444,16 +1156,17 @@ function FieldMapEditor({
             }
 
             pathOptions={{
-              color: "#d32f2f",
-              weight: 4,
+              color:
+                "#1b7f3a",
+
+              weight:
+                4,
             }}
 
           />
 
         )}
 
-
-        {/* POINTS */}
 
         {safePoints.map(
           (
@@ -1471,13 +1184,22 @@ function FieldMapEditor({
                 point
               }
 
-              radius={9}
+              radius={
+                9
+              }
 
               pathOptions={{
-                color: "#ffffff",
-                weight: 3,
-                fillColor: "#d32f2f",
-                fillOpacity: 1,
+                color:
+                  "#ffffff",
+
+                weight:
+                  3,
+
+                fillColor:
+                  "#1b7f3a",
+
+                fillOpacity:
+                  1,
               }}
 
             />
@@ -1488,32 +1210,54 @@ function FieldMapEditor({
       </MapContainer>
 
 
-      {/* ===================================================
+      {/* =================================================
           TOP BAR
-      =================================================== */}
+      ================================================= */}
 
       <div
         style={{
-          position: "absolute",
-          top: "12px",
-          left: "12px",
-          right: "12px",
-          zIndex: 1001,
+          position:
+            "absolute",
 
-          display: "flex",
-          alignItems: "center",
-          gap: "10px",
+          top:
+            "12px",
 
-          direction: "rtl",
+          left:
+            "12px",
+
+          right:
+            "12px",
+
+          zIndex:
+            100000,
+
+          display:
+            "flex",
+
+          gap:
+            "10px",
+
+          direction:
+            "rtl",
         }}
       >
 
         <div
           style={{
-            flex: 1,
+            flex:
+              1,
 
-            padding:
-              "14px 16px",
+            minHeight:
+              "52px",
+
+            display:
+              "flex",
+
+            alignItems:
+              "center",
+
+            justifyContent:
+              "center",
 
             borderRadius:
               "16px",
@@ -1529,14 +1273,10 @@ function FieldMapEditor({
 
             fontWeight:
               "900",
-
-            textAlign:
-              "center",
           }}
         >
 
-          🗺️{" "}
-          {t("drawField")}
+          🗺️ تحديد حدود الأرض
 
         </div>
 
@@ -1550,8 +1290,11 @@ function FieldMapEditor({
           }
 
           style={{
-            width: "52px",
-            height: "52px",
+            width:
+              "52px",
+
+            height:
+              "52px",
 
             border:
               "none",
@@ -1568,8 +1311,8 @@ function FieldMapEditor({
             fontSize:
               "24px",
 
-            cursor:
-              "pointer",
+            fontWeight:
+              "900",
           }}
 
         >
@@ -1581,21 +1324,29 @@ function FieldMapEditor({
       </div>
 
 
-      {/* ===================================================
+      {/* =================================================
           INSTRUCTION
-      =================================================== */}
+      ================================================= */}
 
       <div
         style={{
-          position: "absolute",
-          top: "78px",
-          left: "12px",
-          right: "12px",
+          position:
+            "absolute",
 
-          zIndex: 1000,
+          top:
+            "78px",
+
+          left:
+            "12px",
+
+          right:
+            "12px",
+
+          zIndex:
+            100000,
 
           padding:
-            "14px 15px",
+            "14px",
 
           borderRadius:
             "16px",
@@ -1619,21 +1370,18 @@ function FieldMapEditor({
             "rtl",
 
           boxShadow:
-            "0 3px 15px rgba(0,0,0,0.30)",
+            "0 3px 15px rgba(0,0,0,0.3)",
         }}
       >
 
-        👆{" "}
-        {t(
-          "drawFieldInstruction"
-        )}
+        👆 اضغط على زوايا الأرض واحدة تلو الأخرى لتحديد حدودها
 
       </div>
 
 
-      {/* ===================================================
+      {/* =================================================
           POINT COUNT
-      =================================================== */}
+      ================================================= */}
 
       <div
         style={{
@@ -1641,13 +1389,13 @@ function FieldMapEditor({
             "absolute",
 
           bottom:
-            "150px",
+            "145px",
 
           left:
             "12px",
 
           zIndex:
-            1000,
+            100000,
 
           padding:
             "10px 14px",
@@ -1661,27 +1409,23 @@ function FieldMapEditor({
           boxShadow:
             "0 3px 14px rgba(0,0,0,0.25)",
 
-          direction:
-            "rtl",
-
           fontWeight:
             "900",
 
-          fontSize:
-            "15px",
+          direction:
+            "rtl",
         }}
       >
 
-        📍{" "}
-        {t("points")}:{" "}
+        📍 النقاط:{" "}
         {safePoints.length}
 
       </div>
 
 
-      {/* ===================================================
-          BOTTOM BUTTONS
-      =================================================== */}
+      {/* =================================================
+          BOTTOM BAR
+      ================================================= */}
 
       <div
         style={{
@@ -1698,13 +1442,13 @@ function FieldMapEditor({
             "12px",
 
           zIndex:
-            1001,
+            100000,
 
           display:
             "grid",
 
           gridTemplateColumns:
-            "1fr 1fr 1fr",
+            "1fr 1fr 1.3fr",
 
           gap:
             "8px",
@@ -1719,7 +1463,7 @@ function FieldMapEditor({
           type="button"
 
           onClick={
-            removeLastPoint
+            undo
           }
 
           disabled={
@@ -1728,31 +1472,27 @@ function FieldMapEditor({
 
           style={{
             minHeight:
-              "56px",
+              "58px",
 
             border:
               "none",
 
             borderRadius:
-              "14px",
+              "15px",
+
+            background:
+              "#ffffff",
 
             fontSize:
               "16px",
 
             fontWeight:
               "900",
-
-            background:
-              "#ffffff",
-
-            cursor:
-              "pointer",
           }}
 
         >
 
-          ↩️{" "}
-          {t("undo")}
+          ↩️ تراجع
 
         </button>
 
@@ -1762,7 +1502,7 @@ function FieldMapEditor({
           type="button"
 
           onClick={
-            clearPoints
+            clear
           }
 
           disabled={
@@ -1771,31 +1511,27 @@ function FieldMapEditor({
 
           style={{
             minHeight:
-              "56px",
+              "58px",
 
             border:
               "none",
 
             borderRadius:
-              "14px",
+              "15px",
+
+            background:
+              "#ffffff",
 
             fontSize:
               "16px",
 
             fontWeight:
               "900",
-
-            background:
-              "#ffffff",
-
-            cursor:
-              "pointer",
           }}
 
         >
 
-          🗑️{" "}
-          {t("clearPoints")}
+          🗑️ مسح
 
         </button>
 
@@ -1814,38 +1550,32 @@ function FieldMapEditor({
 
           style={{
             minHeight:
-              "56px",
+              "58px",
 
             border:
               "none",
 
             borderRadius:
-              "14px",
-
-            fontSize:
-              "16px",
-
-            fontWeight:
-              "900",
+              "15px",
 
             background:
               safePoints.length >= 3
                 ? "#1b7f3a"
-                : "#bdbdbd",
+                : "#9e9e9e",
 
             color:
               "#ffffff",
 
-            cursor:
-              safePoints.length >= 3
-                ? "pointer"
-                : "not-allowed",
+            fontSize:
+              "17px",
+
+            fontWeight:
+              "900",
           }}
 
         >
 
-          💾{" "}
-          {t("saveField")}
+          💾 حفظ الأرض
 
         </button>
 
@@ -1859,7 +1589,7 @@ function FieldMapEditor({
 
 
 // =========================================================
-// MAIN MAP PAGE
+// MAIN PAGE
 // =========================================================
 
 export default function Map() {
@@ -1879,7 +1609,6 @@ export default function Map() {
     setLocationType,
 
     notes,
-
     setNotes,
 
     loading,
@@ -1891,36 +1620,20 @@ export default function Map() {
   } = useMapHook();
 
 
-  const {
-    settings,
-  } = useSettings();
-
-
-  const language =
-    settings?.language ||
-    "ar";
-
-
-  const t =
-    (key) =>
-      translate(
-        `map.${key}`,
-        language
-      );
-
-
   // =======================================================
-  // LOCATION METHOD
+  // METHOD
   // =======================================================
 
   const [
     locationMethod,
     setLocationMethod,
-  ] = useState("text");
+  ] = useState(
+    "text"
+  );
 
 
   // =======================================================
-  // TEXT LOCATION
+  // TEXT
   // =======================================================
 
   const [
@@ -1936,6 +1649,12 @@ export default function Map() {
 
 
   const [
+    city,
+    setCity,
+  ] = useState("");
+
+
+  const [
     town,
     setTown,
   ] = useState("");
@@ -1947,14 +1666,36 @@ export default function Map() {
   ] = useState("");
 
 
+  // =======================================================
+  // NEIGHBORS
+  // =======================================================
+
   const [
-    surroundingDescription,
-    setSurroundingDescription,
+    northNeighbor,
+    setNorthNeighbor,
+  ] = useState("");
+
+
+  const [
+    southNeighbor,
+    setSouthNeighbor,
+  ] = useState("");
+
+
+  const [
+    eastNeighbor,
+    setEastNeighbor,
+  ] = useState("");
+
+
+  const [
+    westNeighbor,
+    setWestNeighbor,
   ] = useState("");
 
 
   // =======================================================
-  // MAP POINTS
+  // POINTS
   // =======================================================
 
   const [
@@ -1964,7 +1705,7 @@ export default function Map() {
 
 
   // =======================================================
-  // MAP EDITOR
+  // EDITOR
   // =======================================================
 
   const [
@@ -1974,15 +1715,36 @@ export default function Map() {
 
 
   // =======================================================
+  // SELECTED FARM
+  // =======================================================
+
+  const selectedFarm =
+    useMemo(
+      () =>
+        farms.find(
+          farm =>
+            String(farm.id) ===
+            String(farmId)
+        ),
+
+      [
+        farms,
+        farmId,
+      ]
+    );
+
+
+  // =======================================================
   // OPEN MAP
   // =======================================================
 
-  const openMapEditor =
+  const openMap =
     () => {
 
       setLocationMethod(
         "map"
       );
+
 
       setMapEditor(
         true
@@ -1995,7 +1757,7 @@ export default function Map() {
   // CLOSE MAP
   // =======================================================
 
-  const closeMapEditor =
+  const closeMap =
     () => {
 
       setMapEditor(
@@ -2006,10 +1768,10 @@ export default function Map() {
 
 
   // =======================================================
-  // MAP SAVE
+  // SAVE MAP DRAWING
   // =======================================================
 
-  const saveMapEditor =
+  const saveMap =
     () => {
 
       if (
@@ -2017,14 +1779,17 @@ export default function Map() {
       ) {
 
         alert(
-          t(
-            "atLeastThreePoints"
-          )
+          "حدد 3 نقاط على الأقل."
         );
 
         return;
 
       }
+
+
+      setLocationMethod(
+        "map"
+      );
 
 
       setMapEditor(
@@ -2035,22 +1800,39 @@ export default function Map() {
 
 
   // =======================================================
-  // SELECTED FARM
+  // RESET
   // =======================================================
 
-  const selectedFarm =
-    useMemo(() => {
+  const resetForm =
+    () => {
 
-      return farms.find(
-        (farm) =>
-          String(farm.id) ===
-          String(farmId)
+      setCountry("");
+
+      setProvince("");
+
+      setCity("");
+
+      setTown("");
+
+      setDescription("");
+
+      setNorthNeighbor("");
+
+      setSouthNeighbor("");
+
+      setEastNeighbor("");
+
+      setWestNeighbor("");
+
+      setFieldPoints([]);
+
+      setNotes("");
+
+      setLocationMethod(
+        "text"
       );
 
-    }, [
-      farms,
-      farmId,
-    ]);
+    };
 
 
   // =======================================================
@@ -2063,43 +1845,13 @@ export default function Map() {
       if (!farmId) {
 
         alert(
-          t(
-            "farmRequired"
-          )
+          "اختر المزرعة أولًا."
         );
 
         return;
 
       }
 
-
-      // ---------------------------------------------------
-      // TEXT VALIDATION
-      // ---------------------------------------------------
-
-      if (
-        locationMethod === "text" &&
-        !country.trim() &&
-        !province.trim() &&
-        !town.trim() &&
-        !description.trim() &&
-        !surroundingDescription.trim()
-      ) {
-
-        alert(
-          t(
-            "locationTextRequired"
-          )
-        );
-
-        return;
-
-      }
-
-
-      // ---------------------------------------------------
-      // MAP VALIDATION
-      // ---------------------------------------------------
 
       if (
         locationMethod === "map" &&
@@ -2107,9 +1859,7 @@ export default function Map() {
       ) {
 
         alert(
-          t(
-            "atLeastThreePoints"
-          )
+          "حدد حدود الأرض على الخريطة أولًا."
         );
 
         return;
@@ -2117,94 +1867,102 @@ export default function Map() {
       }
 
 
-      const area =
-        locationMethod === "map"
-          ? calculateArea(
-              fieldPoints
-            )
-          : 0;
+      if (
+        locationMethod === "text" &&
+        !country.trim() &&
+        !province.trim() &&
+        !city.trim() &&
+        !town.trim() &&
+        !description.trim() &&
+        !northNeighbor.trim() &&
+        !southNeighbor.trim() &&
+        !eastNeighbor.trim() &&
+        !westNeighbor.trim()
+      ) {
 
+        alert(
+          "اكتب معلومات موقع الأرض أولًا."
+        );
 
-      const perimeter =
-        locationMethod === "map"
-          ? calculatePerimeter(
-              fieldPoints
-            )
-          : 0;
+        return;
 
+      }
 
-      // ---------------------------------------------------
-      // FIRST POINT
-      //
-      // نقطة مرجعية للموقع.
-      // النقاط كلها محفوظة أيضًا.
-      // ---------------------------------------------------
 
       const firstPoint =
-        fieldPoints.length > 0
+        fieldPoints.length
           ? fieldPoints[0]
           : null;
 
-
-      // ---------------------------------------------------
-      // LOCATION DATA
-      // ---------------------------------------------------
 
       const locationData = {
 
         farmId:
           String(farmId),
 
-
         farmName:
           selectedFarm?.name ||
-          t("farm"),
-
+          "",
 
         type:
           locationType ||
-          "farm",
-
+          "field",
 
         source:
           locationMethod,
 
 
-        // ===============================================
-        // WRITTEN LOCATION
-        // ===============================================
+        // -----------------------------------------------
+        // TEXT
+        // -----------------------------------------------
 
         country:
           country.trim(),
 
-
         region:
           province.trim(),
 
+        city:
+          city.trim(),
+
+        town:
+          town.trim(),
 
         village:
           town.trim(),
 
-
         placeName:
-          town.trim(),
-
+          town.trim() ||
+          city.trim(),
 
         locationDescription:
           description.trim(),
 
 
-        surroundingDescription:
-          surroundingDescription.trim(),
+        // -----------------------------------------------
+        // NEIGHBORS
+        // -----------------------------------------------
+
+        northNeighbor:
+          northNeighbor.trim(),
+
+        southNeighbor:
+          southNeighbor.trim(),
+
+        eastNeighbor:
+          eastNeighbor.trim(),
+
+        westNeighbor:
+          westNeighbor.trim(),
 
 
-        // ===============================================
-        // MAP LOCATION
-        // ===============================================
+        // -----------------------------------------------
+        // MAP
+        // -----------------------------------------------
 
         points:
           fieldPoints.map(
-            (point) => ({
+            point => ({
 
               latitude:
                 Number(
@@ -2236,9 +1994,20 @@ export default function Map() {
             : null,
 
 
-        area,
+        area:
+          locationMethod === "map"
+            ? calculateArea(
+                fieldPoints
+              )
+            : null,
 
-        perimeter,
+
+        perimeter:
+          locationMethod === "map"
+            ? calculatePerimeter(
+                fieldPoints
+              )
+            : null,
 
 
         notes:
@@ -2249,16 +2018,8 @@ export default function Map() {
         status:
           "active",
 
-
-        createdAt:
-          new Date().toISOString(),
-
       };
 
-
-      // ---------------------------------------------------
-      // SAVE
-      // ---------------------------------------------------
 
       try {
 
@@ -2267,25 +2028,7 @@ export default function Map() {
         );
 
 
-        // RESET
-
-        setCountry("");
-
-        setProvince("");
-
-        setTown("");
-
-        setDescription("");
-
-        setSurroundingDescription("");
-
-        setFieldPoints([]);
-
-        setNotes("");
-
-        setLocationMethod(
-          "text"
-        );
+        resetForm();
 
       } catch (error) {
 
@@ -2297,7 +2040,7 @@ export default function Map() {
 
         alert(
           error?.message ||
-          t("saveError")
+          "حدث خطأ أثناء حفظ موقع الأرض."
         );
 
       }
@@ -2323,16 +2066,12 @@ export default function Map() {
           setFieldPoints
         }
 
-        t={
-          t
-        }
-
         onClose={
-          closeMapEditor
+          closeMap
         }
 
         onSave={
-          saveMapEditor
+          saveMap
         }
 
       />
@@ -2352,14 +2091,11 @@ export default function Map() {
       style={{
         padding:
           "12px",
+
         direction:
           "rtl",
       }}
     >
-
-      {/* ===================================================
-          TITLE
-      =================================================== */}
 
       <h1
         style={{
@@ -2371,20 +2107,17 @@ export default function Map() {
         }}
       >
 
-        🗺️{" "}
-        {t("title")}
+        🗺️ موقع الأرض
 
       </h1>
 
 
-      {/* ===================================================
+      {/* =================================================
           FARM
-      =================================================== */}
+      ================================================= */}
 
       <Card
-        title={
-          t("selectFarm")
-        }
+        title="🌾 الأرض والمزرعة"
       >
 
         <select
@@ -2394,7 +2127,7 @@ export default function Map() {
           }
 
           onChange={
-            (event) =>
+            event =>
               setFarmId(
                 event.target.value
               )
@@ -2410,11 +2143,11 @@ export default function Map() {
             padding:
               "12px",
 
-            borderRadius:
-              "16px",
-
             border:
               "2px solid #d7ded9",
+
+            borderRadius:
+              "16px",
 
             fontSize:
               "18px",
@@ -2427,26 +2160,21 @@ export default function Map() {
 
           <option value="">
 
-            {t(
-              "selectFarm"
-            )}
+            اختر المزرعة
 
           </option>
 
 
           {farms.map(
-            (farm) => (
+            farm => (
 
               <option
-
                 key={
                   farm.id
                 }
-
                 value={
                   farm.id
                 }
-
               >
 
                 {farm.name}
@@ -2462,7 +2190,7 @@ export default function Map() {
         <div
           style={{
             height:
-              "16px",
+              "14px",
           }}
         />
 
@@ -2471,11 +2199,11 @@ export default function Map() {
 
           value={
             locationType ||
-            "farm"
+            "field"
           }
 
           onChange={
-            (event) =>
+            event =>
               setLocationType(
                 event.target.value
               )
@@ -2491,11 +2219,11 @@ export default function Map() {
             padding:
               "12px",
 
-            borderRadius:
-              "16px",
-
             border:
               "2px solid #d7ded9",
+
+            borderRadius:
+              "16px",
 
             fontSize:
               "18px",
@@ -2506,21 +2234,21 @@ export default function Map() {
 
         >
 
-          <option value="farm">
+          <option value="field">
 
-            {t("farm")}
+            🌱 حقل
 
           </option>
 
-          <option value="field">
+          <option value="farm">
 
-            {t("field")}
+            🌾 مزرعة
 
           </option>
 
           <option value="waterSource">
 
-            {t("waterSource")}
+            💧 مصدر مياه
 
           </option>
 
@@ -2537,16 +2265,12 @@ export default function Map() {
       />
 
 
-      {/* ===================================================
-          LOCATION METHOD
-      =================================================== */}
+      {/* =================================================
+          METHOD
+      ================================================= */}
 
       <Card
-        title={
-          t(
-            "chooseLocationMethod"
-          )
-        }
+        title="📍 كيف تريد تحديد موقع الأرض؟"
       >
 
         <div
@@ -2559,9 +2283,7 @@ export default function Map() {
           }}
         >
 
-          {/* =============================================
-              TEXT
-          ============================================= */}
+          {/* TEXT */}
 
           <button
 
@@ -2577,135 +2299,120 @@ export default function Map() {
               minHeight:
                 "100px",
 
+              padding:
+                "16px",
+
+              borderRadius:
+                "18px",
+
               border:
                 locationMethod === "text"
                   ? "3px solid #1b7f3a"
                   : "2px solid #d7ded9",
-
-              borderRadius:
-                "16px",
 
               background:
                 locationMethod === "text"
                   ? "#edf8f0"
                   : "#ffffff",
 
+              textAlign:
+                "right",
+
               fontSize:
                 "19px",
 
               fontWeight:
                 "900",
-
-              textAlign:
-                "right",
-
-              padding:
-                "16px",
             }}
 
           >
 
-            ✍️{" "}
-            {t(
-              "writeLocation"
-            )}
-
+            ✍️ كتابة موقع الأرض
 
             <div
               style={{
+                marginTop:
+                  "7px",
+
                 fontSize:
                   "15px",
 
                 fontWeight:
                   "400",
 
-                marginTop:
-                  "7px",
-
                 lineHeight:
                   "1.8",
               }}
             >
 
-              {t(
-                "writeLocationDescription"
-              )}
+              البلد → المحافظة → المدينة → البلدة → الجهات المحيطة
 
             </div>
 
           </button>
 
 
-          {/* =============================================
-              MAP
-          ============================================= */}
+          {/* MAP */}
 
           <button
 
             type="button"
 
             onClick={
-              openMapEditor
+              openMap
             }
 
             style={{
               minHeight:
                 "100px",
 
+              padding:
+                "16px",
+
+              borderRadius:
+                "18px",
+
               border:
                 locationMethod === "map"
                   ? "3px solid #1b7f3a"
                   : "2px solid #d7ded9",
-
-              borderRadius:
-                "16px",
 
               background:
                 locationMethod === "map"
                   ? "#edf8f0"
                   : "#ffffff",
 
+              textAlign:
+                "right",
+
               fontSize:
                 "19px",
 
               fontWeight:
                 "900",
-
-              textAlign:
-                "right",
-
-              padding:
-                "16px",
-
             }}
 
           >
 
-            🗺️{" "}
-            {t(
-              "drawLocation"
-            )}
-
+            🗺️ تحديد الأرض على الخريطة
 
             <div
               style={{
+                marginTop:
+                  "7px",
+
                 fontSize:
                   "15px",
 
                 fontWeight:
                   "400",
 
-                marginTop:
-                  "7px",
-
                 lineHeight:
                   "1.8",
               }}
             >
 
-              {t(
-                "drawLocationDescription"
-              )}
+              افتح الخريطة كاملة وحدد حدود الأرض بالنقاط يدويًا
 
             </div>
 
@@ -2724,21 +2431,17 @@ export default function Map() {
       />
 
 
-      {/* ===================================================
-          TEXT LOCATION
-      =================================================== */}
+      {/* =================================================
+          TEXT MODE
+      ================================================= */}
 
       {locationMethod === "text" && (
 
         <Card
-          title={
-            `✍️ ${t(
-              "writeLocation"
-            )}`
-          }
+          title="✍️ بيانات موقع الأرض"
         >
 
-          <LocationTextForm
+          <TextLocationForm
 
             country={
               country
@@ -2754,6 +2457,14 @@ export default function Map() {
 
             setProvince={
               setProvince
+            }
+
+            city={
+              city
+            }
+
+            setCity={
+              setCity
             }
 
             town={
@@ -2772,16 +2483,44 @@ export default function Map() {
               setDescription
             }
 
-            surroundingDescription={
-              surroundingDescription
+            northNeighbor={
+              northNeighbor
             }
 
-            setSurroundingDescription={
-              setSurroundingDescription
+            setNorthNeighbor={
+              setNorthNeighbor
             }
 
-            t={
-              t
+            southNeighbor={
+              southNeighbor
+            }
+
+            setSouthNeighbor={
+              setSouthNeighbor
+            }
+
+            eastNeighbor={
+              eastNeighbor
+            }
+
+            setEastNeighbor={
+              setEastNeighbor
+            }
+
+            westNeighbor={
+              westNeighbor
+            }
+
+            setWestNeighbor={
+              setWestNeighbor
+            }
+
+            notes={
+              notes || ""
+            }
+
+            setNotes={
+              setNotes
             }
 
           />
@@ -2791,18 +2530,14 @@ export default function Map() {
       )}
 
 
-      {/* ===================================================
+      {/* =================================================
           MAP MODE
-      =================================================== */}
+      ================================================= */}
 
       {locationMethod === "map" && (
 
         <Card
-          title={
-            `🗺️ ${t(
-              "drawLocation"
-            )}`
-          }
+          title="🗺️ حدود الأرض"
         >
 
           <div
@@ -2811,149 +2546,113 @@ export default function Map() {
                 "18px",
 
               borderRadius:
-                "16px",
+                "18px",
 
               background:
                 "#f2f7f3",
 
-              direction:
-                "rtl",
+              lineHeight:
+                "1.9",
 
               fontSize:
                 "17px",
-
-              lineHeight:
-                "1.9",
             }}
           >
 
             <strong>
 
-              {t(
-                "drawLocationDescription"
-              )}
+              {fieldPoints.length >= 3
+                ? "تم تحديد حدود الأرض."
+                : "لم يتم تحديد حدود الأرض بعد."}
 
             </strong>
 
 
-            <p
+            <div
               style={{
-                marginBottom:
-                  "14px",
+                marginTop:
+                  "8px",
               }}
             >
 
-              {t(
-                "drawLocationSteps"
-              )}
+              النقاط المحددة:{" "}
+              <strong>
+                {fieldPoints.length}
+              </strong>
 
-            </p>
+            </div>
 
 
-            <Button
-              onClick={
-                openMapEditor
-              }
+            {fieldPoints.length >= 3 && (
+
+              <>
+
+                <div
+                  style={{
+                    marginTop:
+                      "8px",
+                  }}
+                >
+
+                  📐 المساحة:{" "}
+                  <strong>
+                    {formatArea(
+                      calculateArea(
+                        fieldPoints
+                      )
+                    )}
+                  </strong>
+
+                </div>
+
+
+                <div
+                  style={{
+                    marginTop:
+                      "5px",
+                  }}
+                >
+
+                  📏 المحيط:{" "}
+                  <strong>
+                    {formatDistance(
+                      calculatePerimeter(
+                        fieldPoints
+                      )
+                    )}
+                  </strong>
+
+                </div>
+
+              </>
+
+            )}
+
+
+            <div
+              style={{
+                marginTop:
+                  "15px",
+              }}
             >
 
-              🗺️{" "}
-              {t(
-                "openFullMap"
-              )}
+              <Button
+                onClick={
+                  openMap
+                }
+              >
 
-            </Button>
+                🗺️ فتح الخريطة كاملة
+
+              </Button>
+
+            </div>
 
           </div>
-
-
-          <FieldMeasurements
-
-            points={
-              fieldPoints
-            }
-
-            t={
-              t
-            }
-
-          />
 
         </Card>
 
       )}
-
-
-      <div
-        style={{
-          height:
-            "14px",
-        }}
-      />
-
-
-      {/* ===================================================
-          NOTES
-      =================================================== */}
-
-      <Card
-        title={
-          `📝 ${t(
-            "notes"
-          )}`
-        }
-      >
-
-        <textarea
-
-          value={
-            notes || ""
-          }
-
-          onChange={
-            (event) =>
-              setNotes(
-                event.target.value
-              )
-          }
-
-          placeholder={
-            t(
-              "notesPlaceholder"
-            )
-          }
-
-          style={{
-            width:
-              "100%",
-
-            minHeight:
-              "180px",
-
-            boxSizing:
-              "border-box",
-
-            padding:
-              "16px",
-
-            border:
-              "2px solid #d7ded9",
-
-            borderRadius:
-              "16px",
-
-            fontSize:
-              "18px",
-
-            lineHeight:
-              "1.8",
-
-            resize:
-              "vertical",
-          }}
-
-        />
-
-      </Card>
 
 
       <div
@@ -2964,9 +2663,9 @@ export default function Map() {
       />
 
 
-      {/* ===================================================
+      {/* =================================================
           SAVE
-      =================================================== */}
+      ================================================= */}
 
       <Button
         onClick={
@@ -2975,15 +2674,15 @@ export default function Map() {
       >
 
         {loading
-          ? `⏳ ${t("saving")}`
-          : `💾 ${t("saveField")}`}
+          ? "⏳ جارٍ الحفظ..."
+          : "💾 حفظ موقع الأرض"}
 
       </Button>
 
 
-      {/* ===================================================
-          SAVED LOCATIONS
-      =================================================== */}
+      {/* =================================================
+          SAVED
+      ================================================= */}
 
       <h2
         style={{
@@ -2995,26 +2694,16 @@ export default function Map() {
         }}
       >
 
-        🗺️{" "}
-        {t(
-          "savedLocations"
-        )}
+        🗺️ المواقع المحفوظة
 
       </h2>
 
 
       {locations.length === 0 ? (
 
-        <p
-          style={{
-            fontSize:
-              "17px",
-          }}
-        >
+        <p>
 
-          {t(
-            "noLocations"
-          )}
+          لا توجد مواقع محفوظة حتى الآن.
 
         </p>
 
@@ -3031,7 +2720,7 @@ export default function Map() {
         >
 
           {locations.map(
-            (item) => (
+            item => (
 
               <Card
 
@@ -3042,9 +2731,10 @@ export default function Map() {
                 title={
                   item.town ||
                   item.village ||
+                  item.city ||
                   item.placeName ||
                   item.farmName ||
-                  t("field")
+                  "موقع أرض"
                 }
 
               >
@@ -3052,10 +2742,7 @@ export default function Map() {
                 {item.farmName && (
 
                   <p>
-
-                    🚜{" "}
-                    {item.farmName}
-
+                    🌾 {item.farmName}
                   </p>
 
                 )}
@@ -3064,10 +2751,7 @@ export default function Map() {
                 {item.country && (
 
                   <p>
-
-                    🌍{" "}
-                    {item.country}
-
+                    🌍 {item.country}
                   </p>
 
                 )}
@@ -3076,22 +2760,25 @@ export default function Map() {
                 {item.region && (
 
                   <p>
-
-                    🏛️{" "}
-                    {item.region}
-
+                    🏛️ {item.region}
                   </p>
 
                 )}
 
 
-                {item.village && (
+                {item.city && (
 
                   <p>
+                    🏙️ {item.city}
+                  </p>
 
-                    🏘️{" "}
-                    {item.village}
+                )}
 
+
+                {item.town && (
+
+                  <p>
+                    🏘️ {item.town}
                   </p>
 
                 )}
@@ -3117,7 +2804,10 @@ export default function Map() {
                 )}
 
 
-                {item.surroundingDescription && (
+                {(item.northNeighbor ||
+                  item.southNeighbor ||
+                  item.eastNeighbor ||
+                  item.westNeighbor) && (
 
                   <div
                     style={{
@@ -3133,9 +2823,6 @@ export default function Map() {
                       background:
                         "#f2f7f3",
 
-                      whiteSpace:
-                        "pre-wrap",
-
                       lineHeight:
                         "1.9",
                     }}
@@ -3143,26 +2830,49 @@ export default function Map() {
 
                     <strong>
 
-                      🧭{" "}
-                      {t(
-                        "surroundingDescription"
-                      )}
+                      🧭 الجهات المحيطة
 
                     </strong>
 
 
-                    <div
-                      style={{
-                        marginTop:
-                          "8px",
-                      }}
-                    >
+                    {item.northNeighbor && (
 
-                      {
-                        item.surroundingDescription
-                      }
+                      <div>
+                        ⬆️ الشمال:{" "}
+                        {item.northNeighbor}
+                      </div>
 
-                    </div>
+                    )}
+
+
+                    {item.southNeighbor && (
+
+                      <div>
+                        ⬇️ الجنوب:{" "}
+                        {item.southNeighbor}
+                      </div>
+
+                    )}
+
+
+                    {item.eastNeighbor && (
+
+                      <div>
+                        ➡️ الشرق:{" "}
+                        {item.eastNeighbor}
+                      </div>
+
+                    )}
+
+
+                    {item.westNeighbor && (
+
+                      <div>
+                        ⬅️ الغرب:{" "}
+                        {item.westNeighbor}
+                      </div>
+
+                    )}
 
                   </div>
 
@@ -3173,17 +2883,10 @@ export default function Map() {
 
                   <p>
 
-                    📐{" "}
-                    {t(
-                      "fieldArea"
-                    )}
-
-                    :{" "}
+                    📐 المساحة:{" "}
 
                     {formatArea(
-                      Number(
-                        item.area
-                      )
+                      item.area
                     )}
 
                   </p>
@@ -3195,17 +2898,10 @@ export default function Map() {
 
                   <p>
 
-                    📏{" "}
-                    {t(
-                      "fieldPerimeter"
-                    )}
-
-                    :{" "}
+                    📏 المحيط:{" "}
 
                     {formatDistance(
-                      Number(
-                        item.perimeter
-                      )
+                      item.perimeter
                     )}
 
                   </p>
@@ -3220,16 +2916,8 @@ export default function Map() {
 
                   <p>
 
-                    📍{" "}
-                    {t(
-                      "points"
-                    )}
-
-                    :{" "}
-
-                    {
-                      item.points.length
-                    }
+                    📍 عدد نقاط الحدود:{" "}
+                    {item.points.length}
 
                   </p>
 
@@ -3245,8 +2933,7 @@ export default function Map() {
                     }}
                   >
 
-                    📝{" "}
-                    {item.notes}
+                    📝 {item.notes}
 
                   </p>
 
@@ -3270,16 +2957,19 @@ export default function Map() {
                     rel="noreferrer"
 
                     style={{
+                      display:
+                        "inline-block",
+
+                      marginTop:
+                        "8px",
+
                       fontSize:
                         "17px",
                     }}
 
                   >
 
-                    🗺️{" "}
-                    {t(
-                      "openGoogleMaps"
-                    )}
+                    🗺️ فتح الموقع على Google Maps
 
                   </a>
 
@@ -3302,10 +2992,7 @@ export default function Map() {
                   }
                 >
 
-                  🗑️{" "}
-                  {t(
-                    "delete"
-                  )}
+                  🗑️ حذف
 
                 </Button>
 
