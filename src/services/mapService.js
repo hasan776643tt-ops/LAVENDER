@@ -5,48 +5,27 @@ import mapRepository
 
 
 // =========================================================
-// LAVENDER — Map Service
+// LAVENDER — MAP SERVICE
 // =========================================================
 //
-// GPS coordinates = authoritative
+// الخريطة الخارجية:
+// OpenStreetMap / Nominatim / Overpass
 //
-// Nominatim:
-//   - Reverse geocoding
-//   - Address description
+// وظيفتها:
+// - عرض المعلومات الجغرافية
+// - القرى
+// - البلدات
+// - المدن
+// - الطرق
+// - الخدمات
+// - المراكز الحكومية
 //
-// Overpass:
-//   - Nearby named places
-//   - Roads
-//   - Villages
-//   - Cities
-//   - Schools
-//   - Hospitals
-//   - Clinics
-//   - Worship places
-//   - Government
-//   - Police
-//   - Fire stations
-//   - Shops / services
+// لكنها NEVER تستبدل إحداثيات المستخدم.
 //
-// IMPORTANT:
+// مصدر موقع الأرض:
+// 1. تحديد يدوي على الخريطة
+// 2. أو إدخال كتابي
 //
-// External map services NEVER modify the real GPS
-// coordinates supplied by the device.
-//
-// GPS latitude / longitude always remain authoritative.
-//
-// Architecture:
-//
-// Map
-//   ↓
-// useMap
-//   ↓
-// mapService
-//   ↓
-// mapRepository
-//
-// External APIs are used only for descriptive
-// geographical information.
 // =========================================================
 
 
@@ -54,16 +33,16 @@ class MapService {
 
 
   // =========================================================
-  // Constants
+  // CONSTANTS
   // =========================================================
 
-  static DEFAULT_NEARBY_RADIUS = 1000;
+  static DEFAULT_RADIUS = 1000;
 
-  static MIN_NEARBY_RADIUS = 50;
+  static MIN_RADIUS = 50;
 
-  static MAX_NEARBY_RADIUS = 5000;
+  static MAX_RADIUS = 5000;
 
-  static MAX_NEARBY_RESULTS = 80;
+  static MAX_RESULTS = 100;
 
 
   static NOMINATIM_URL =
@@ -80,13 +59,7 @@ class MapService {
 
 
   // =========================================================
-  // Validate Coordinates
-  // =========================================================
-  //
-  // GPS is authoritative.
-  //
-  // Strings such as "50.123" are accepted and normalized
-  // to numbers.
+  // COORDINATES
   // =========================================================
 
   validateCoordinates(
@@ -100,20 +73,9 @@ class MapService {
     const lon =
       Number(longitude);
 
-
     if (
       !Number.isFinite(lat) ||
-      !Number.isFinite(lon)
-    ) {
-
-      throw new Error(
-        "MAP_COORDINATES_REQUIRED"
-      );
-
-    }
-
-
-    if (
+      !Number.isFinite(lon) ||
       lat < -90 ||
       lat > 90 ||
       lon < -180 ||
@@ -125,7 +87,6 @@ class MapService {
       );
 
     }
-
 
     return {
 
@@ -139,39 +100,30 @@ class MapService {
 
 
   // =========================================================
-  // Validate Nearby Radius
+  // RADIUS
   // =========================================================
 
-  validateRadius(
-    radius
-  ) {
+  validateRadius(radius) {
 
     const value =
       Number(radius);
-
 
     if (
       !Number.isFinite(value)
     ) {
 
-      return (
-        MapService.DEFAULT_NEARBY_RADIUS
-      );
+      return MapService.DEFAULT_RADIUS;
 
     }
-
 
     return Math.min(
 
       Math.max(
-
         value,
-
-        MapService.MIN_NEARBY_RADIUS
-
+        MapService.MIN_RADIUS
       ),
 
-      MapService.MAX_NEARBY_RADIUS
+      MapService.MAX_RADIUS
 
     );
 
@@ -179,67 +131,38 @@ class MapService {
 
 
   // =========================================================
-  // Normalize Language
+  // LANGUAGE
   // =========================================================
 
-  normalizeLanguage(
-    language
-  ) {
+  normalizeLanguage(language) {
 
-    if (
-      language === "tr"
-    ) {
-
-      return "tr";
-
-    }
-
-
-    if (
-      language === "en"
-    ) {
-
+    if (language === "en") {
       return "en";
-
     }
 
+    if (language === "tr") {
+      return "tr";
+    }
 
     return "ar";
 
   }
 
 
-  // =========================================================
-  // Get Accept Language
-  // =========================================================
+  getAcceptLanguage(language) {
 
-  getAcceptLanguage(
-    language
-  ) {
-
-    const normalized =
+    const lang =
       this.normalizeLanguage(
         language
       );
 
-
-    if (
-      normalized === "tr"
-    ) {
-
-      return "tr,en";
-
-    }
-
-
-    if (
-      normalized === "en"
-    ) {
-
+    if (lang === "en") {
       return "en";
-
     }
 
+    if (lang === "tr") {
+      return "tr,en";
+    }
 
     return "ar,en";
 
@@ -247,16 +170,12 @@ class MapService {
 
 
   // =========================================================
-  // Reverse Geocoding
+  // REVERSE GEOCODING
   // =========================================================
   //
-  // Nominatim describes the GPS position.
+  // معلومات وصفية فقط.
   //
-  // It does NOT change the GPS coordinates.
-  //
-  // IMPORTANT:
-  // This function should be called only when needed.
-  // Do not continuously call it on every GPS update.
+  // لا يتم استخدامها لتغيير موقع الأرض.
   // =========================================================
 
   async reverseGeocode(
@@ -274,13 +193,6 @@ class MapService {
         longitude
       );
 
-
-    const acceptLanguage =
-      this.getAcceptLanguage(
-        language
-      );
-
-
     const url =
       `${MapService.NOMINATIM_URL}` +
       `?format=jsonv2` +
@@ -289,281 +201,160 @@ class MapService {
       `&zoom=18` +
       `&addressdetails=1` +
       `&namedetails=1` +
-      `&extratags=1` +
       `&accept-language=${encodeURIComponent(
-        acceptLanguage
+        this.getAcceptLanguage(language)
       )}`;
 
 
-    let response;
-
-
     try {
 
-      response =
-        await fetch(
-          url,
-          {
+      const response =
+        await fetch(url, {
+          method: "GET",
+          headers: {
+            Accept:
+              "application/json",
+          },
+        });
 
-            method:
-              "GET",
 
-            headers: {
+      if (!response.ok) {
 
-              Accept:
-                "application/json",
-
-            },
-
-          }
+        throw new Error(
+          "MAP_GEOCODING_FAILED"
         );
 
-    } catch (error) {
-
-      console.warn(
-        "Nominatim request failed:",
-        error
-      );
+      }
 
 
-      throw new Error(
-        "MAP_GEOCODING_FAILED"
-      );
-
-    }
-
-
-    if (
-      !response.ok
-    ) {
-
-      throw new Error(
-        "MAP_GEOCODING_FAILED"
-      );
-
-    }
-
-
-    let result;
-
-
-    try {
-
-      result =
+      const result =
         await response.json();
 
+
+      const address =
+        result?.address || {};
+
+
+      const village =
+        address.village ||
+        address.hamlet ||
+        "";
+
+
+      const town =
+        address.town ||
+        "";
+
+
+      const city =
+        address.city ||
+        "";
+
+
+      const region =
+        address.state ||
+        address.province ||
+        address.region ||
+        "";
+
+
+      const country =
+        address.country ||
+        "";
+
+
+      const road =
+        address.road ||
+        address.pedestrian ||
+        address.footway ||
+        "";
+
+
+      return {
+
+        latitude: lat,
+
+        longitude: lon,
+
+        country,
+
+        region,
+
+        village,
+
+        town,
+
+        city,
+
+        road,
+
+        displayName:
+          result?.display_name ||
+          "",
+
+        placeName:
+          result?.name ||
+          village ||
+          town ||
+          city ||
+          "",
+
+        osmType:
+          result?.osm_type ||
+          null,
+
+        osmId:
+          result?.osm_id ||
+          null,
+
+        address,
+
+      };
+
     } catch (error) {
 
       console.warn(
-        "Nominatim JSON parsing failed:",
+        "Reverse geocoding failed:",
         error
       );
 
+      return {
 
-      throw new Error(
-        "MAP_GEOCODING_FAILED"
-      );
+        latitude: lat,
+
+        longitude: lon,
+
+        country: "",
+
+        region: "",
+
+        village: "",
+
+        town: "",
+
+        city: "",
+
+        road: "",
+
+        displayName: "",
+
+        placeName: "",
+
+        osmType: null,
+
+        osmId: null,
+
+        address: {},
+
+      };
 
     }
-
-
-    const address =
-      result?.address || {};
-
-
-    // =======================================================
-    // Address Parts
-    // =======================================================
-
-    const houseNumber =
-      address.house_number ||
-      "";
-
-
-    const road =
-      address.road ||
-      address.pedestrian ||
-      address.footway ||
-      "";
-
-
-    const village =
-      address.village ||
-      address.hamlet ||
-      "";
-
-
-    const town =
-      address.town ||
-      "";
-
-
-    const municipality =
-      address.municipality ||
-      "";
-
-
-    const city =
-      address.city ||
-      "";
-
-
-    const neighbourhood =
-      address.neighbourhood ||
-      address.suburb ||
-      "";
-
-
-    const district =
-      address.district ||
-      address.county ||
-      "";
-
-
-    const region =
-      address.state ||
-      address.province ||
-      address.region ||
-      "";
-
-
-    const country =
-      address.country ||
-      "";
-
-
-    // =======================================================
-    // Settlement
-    //
-    // This is descriptive information only.
-    //
-    // It NEVER replaces GPS.
-    // =======================================================
-
-    const nearestPlace =
-      village ||
-      town ||
-      city ||
-      municipality ||
-      neighbourhood ||
-      district ||
-      "";
-
-
-    // =======================================================
-    // Result Name
-    // =======================================================
-
-    const resultName =
-      result?.name ||
-      "";
-
-
-    const displayName =
-      result?.display_name ||
-      "";
-
-
-    // =======================================================
-    // Return
-    // =======================================================
-
-    return {
-
-      // -----------------------------------------------------
-      // AUTHORITATIVE GPS
-      // -----------------------------------------------------
-
-      latitude:
-        lat,
-
-      longitude:
-        lon,
-
-
-      // -----------------------------------------------------
-      // Address
-      // -----------------------------------------------------
-
-      houseNumber,
-
-      road,
-
-      village,
-
-      town,
-
-      municipality,
-
-      city,
-
-      neighbourhood,
-
-      district,
-
-      region,
-
-      country,
-
-
-      // -----------------------------------------------------
-      // Descriptive Place
-      // -----------------------------------------------------
-
-      nearestPlace,
-
-      placeName:
-        resultName ||
-        nearestPlace ||
-        "",
-
-      displayName,
-
-
-      // -----------------------------------------------------
-      // OSM Information
-      // -----------------------------------------------------
-
-      osmType:
-        result?.osm_type ||
-        null,
-
-      osmId:
-        result?.osm_id ||
-        null,
-
-      category:
-        result?.category ||
-        null,
-
-      type:
-        result?.type ||
-        null,
-
-      namedetails:
-        result?.namedetails ||
-        {},
-
-      extratags:
-        result?.extratags ||
-        {},
-
-    };
 
   }
 
 
   // =========================================================
-  // Build Overpass Query
-  // =========================================================
-  //
-  // We search around the REAL GPS point.
-  //
-  // Named objects are included.
-  // Important unnamed services are also searched.
-  //
-  // The query uses the Overpass "around" filter with
-  // latitude / longitude and radius in meters.
+  // OVERPASS QUERY
   // =========================================================
 
   buildNearbyQuery(
@@ -583,24 +374,26 @@ class MapService {
 
 
     const safeRadius =
-      this.validateRadius(
-        radius
-      );
+      this.validateRadius(radius);
 
 
     return `
-      [out:json][timeout:25];
+      [out:json][timeout:30];
 
       (
         nwr["name"](around:${safeRadius},${lat},${lon});
 
+        nwr["highway"](around:${safeRadius},${lat},${lon});
+
+        nwr["place"="village"](around:${safeRadius},${lat},${lon});
+
+        nwr["place"="hamlet"](around:${safeRadius},${lat},${lon});
+
+        nwr["place"="town"](around:${safeRadius},${lat},${lon});
+
+        nwr["place"="city"](around:${safeRadius},${lat},${lon});
+
         nwr["amenity"="school"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="college"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="university"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="place_of_worship"](around:${safeRadius},${lat},${lon});
 
         nwr["amenity"="hospital"](around:${safeRadius},${lat},${lon});
 
@@ -617,16 +410,6 @@ class MapService {
         nwr["office"="government"](around:${safeRadius},${lat},${lon});
 
         nwr["shop"](around:${safeRadius},${lat},${lon});
-
-        nwr["highway"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="village"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="hamlet"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="town"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="city"](around:${safeRadius},${lat},${lon});
       );
 
       out center tags;
@@ -636,12 +419,10 @@ class MapService {
 
 
   // =========================================================
-  // Fetch Overpass
+  // FETCH OVERPASS
   // =========================================================
 
-  async fetchOverpass(
-    query
-  ) {
+  async fetchOverpass(query) {
 
     for (
       const endpoint
@@ -655,8 +436,7 @@ class MapService {
             endpoint,
             {
 
-              method:
-                "POST",
+              method: "POST",
 
               headers: {
 
@@ -669,27 +449,14 @@ class MapService {
               },
 
               body:
-                `data=${encodeURIComponent(
-                  query
-                )}`,
+                `data=${encodeURIComponent(query)}`,
 
             }
           );
 
 
-        if (
-          !response.ok
-        ) {
-
-          console.warn(
-            "Overpass HTTP error:",
-            endpoint,
-            response.status
-          );
-
-
+        if (!response.ok) {
           continue;
-
         }
 
 
@@ -698,9 +465,8 @@ class MapService {
 
 
         if (
-          result &&
           Array.isArray(
-            result.elements
+            result?.elements
           )
         ) {
 
@@ -711,7 +477,7 @@ class MapService {
       } catch (error) {
 
         console.warn(
-          "Overpass server failed:",
+          "Overpass endpoint failed:",
           endpoint,
           error
         );
@@ -727,7 +493,7 @@ class MapService {
 
 
   // =========================================================
-  // Localized OSM Name
+  // LOCALIZED NAME
   // =========================================================
 
   getLocalizedName(
@@ -735,453 +501,164 @@ class MapService {
     language
   ) {
 
-    const normalized =
+    const lang =
       this.normalizeLanguage(
         language
       );
 
 
-    if (
-      normalized === "ar"
-    ) {
+    if (lang === "ar") {
 
       return (
-
         tags["name:ar"] ||
-
         tags.name ||
-
         tags["name:en"] ||
-
         ""
-
       );
 
     }
 
 
-    if (
-      normalized === "tr"
-    ) {
+    if (lang === "tr") {
 
       return (
-
         tags["name:tr"] ||
-
         tags.name ||
-
         tags["name:en"] ||
-
         ""
-
       );
 
     }
 
 
     return (
-
       tags["name:en"] ||
-
       tags.name ||
-
       tags["name:ar"] ||
-
       ""
-
     );
 
   }
 
 
   // =========================================================
-  // Detect Place Category
+  // CATEGORY
   // =========================================================
 
-  getPlaceCategory(
-    tags
-  ) {
-
-    const amenity =
-      tags.amenity ||
-      "";
-
-
-    const shop =
-      tags.shop ||
-      "";
-
-
-    const place =
-      tags.place ||
-      "";
-
-
-    const highway =
-      tags.highway ||
-      "";
-
-
-    const office =
-      tags.office ||
-      "";
-
-
-    // -------------------------------------------------------
-    // Worship
-    // -------------------------------------------------------
+  getPlaceCategory(tags) {
 
     if (
-      amenity ===
-      "place_of_worship"
+      tags.place === "village"
     ) {
 
-      return {
-
-        category:
-          "worship",
-
-        label:
-          "مكان عبادة",
-
-      };
+      return "village";
 
     }
 
-
-    // -------------------------------------------------------
-    // Education
-    // -------------------------------------------------------
-
     if (
-      amenity ===
-      "school"
+      tags.place === "hamlet"
     ) {
 
-      return {
-
-        category:
-          "school",
-
-        label:
-          "مدرسة",
-
-      };
+      return "hamlet";
 
     }
 
-
     if (
-      amenity ===
-      "college"
+      tags.place === "town"
     ) {
 
-      return {
-
-        category:
-          "college",
-
-        label:
-          "كلية",
-
-      };
+      return "town";
 
     }
 
-
     if (
-      amenity ===
-      "university"
+      tags.place === "city"
     ) {
 
-      return {
-
-        category:
-          "university",
-
-        label:
-          "جامعة",
-
-      };
+      return "city";
 
     }
 
-
-    // -------------------------------------------------------
-    // Health
-    // -------------------------------------------------------
-
     if (
-      amenity ===
-      "hospital"
+      tags.highway
     ) {
 
-      return {
-
-        category:
-          "hospital",
-
-        label:
-          "مشفى",
-
-      };
+      return "road";
 
     }
 
-
     if (
-      amenity ===
-      "clinic"
+      tags.amenity === "school"
     ) {
 
-      return {
-
-        category:
-          "clinic",
-
-        label:
-          "عيادة",
-
-      };
+      return "school";
 
     }
 
-
     if (
-      amenity ===
-      "pharmacy"
+      tags.amenity === "hospital"
     ) {
 
-      return {
-
-        category:
-          "pharmacy",
-
-        label:
-          "صيدلية",
-
-      };
+      return "hospital";
 
     }
 
-
-    // -------------------------------------------------------
-    // Government
-    // -------------------------------------------------------
-
     if (
-      amenity ===
-      "townhall"
+      tags.amenity === "clinic"
     ) {
 
-      return {
-
-        category:
-          "government",
-
-        label:
-          "مركز حكومي",
-
-      };
+      return "clinic";
 
     }
 
-
     if (
-      office ===
-      "government"
+      tags.amenity === "pharmacy"
     ) {
 
-      return {
-
-        category:
-          "government",
-
-        label:
-          "جهة حكومية",
-
-      };
+      return "pharmacy";
 
     }
 
-
-    // -------------------------------------------------------
-    // Emergency
-    // -------------------------------------------------------
-
     if (
-      amenity ===
-      "police"
+      tags.amenity === "townhall" ||
+      tags.office === "government"
     ) {
 
-      return {
-
-        category:
-          "police",
-
-        label:
-          "شرطة",
-
-      };
+      return "government";
 
     }
 
-
     if (
-      amenity ===
-      "fire_station"
+      tags.amenity === "police"
     ) {
 
-      return {
-
-        category:
-          "fire_station",
-
-        label:
-          "إطفاء",
-
-      };
+      return "police";
 
     }
 
-
-    // -------------------------------------------------------
-    // Roads
-    // -------------------------------------------------------
-
     if (
-      highway
+      tags.amenity === "fire_station"
     ) {
 
-      return {
-
-        category:
-          "road",
-
-        label:
-          "طريق",
-
-      };
+      return "fire_station";
 
     }
 
-
-    // -------------------------------------------------------
-    // Shops
-    // -------------------------------------------------------
-
     if (
-      shop
+      tags.shop
     ) {
 
-      return {
-
-        category:
-          "shop",
-
-        label:
-          "متجر",
-
-      };
+      return "shop";
 
     }
 
-
-    // -------------------------------------------------------
-    // Settlements
-    // -------------------------------------------------------
-
-    if (
-      place ===
-      "village"
-    ) {
-
-      return {
-
-        category:
-          "village",
-
-        label:
-          "قرية",
-
-      };
-
-    }
-
-
-    if (
-      place ===
-      "hamlet"
-    ) {
-
-      return {
-
-        category:
-          "hamlet",
-
-        label:
-          "تجمع سكني",
-
-      };
-
-    }
-
-
-    if (
-      place ===
-      "town"
-    ) {
-
-      return {
-
-        category:
-          "town",
-
-        label:
-          "بلدة",
-
-      };
-
-    }
-
-
-    if (
-      place ===
-      "city"
-    ) {
-
-      return {
-
-        category:
-          "city",
-
-        label:
-          "مدينة",
-
-      };
-
-    }
-
-
-    // -------------------------------------------------------
-    // Generic Place
-    // -------------------------------------------------------
-
-    return {
-
-      category:
-        "place",
-
-      label:
-        "مكان",
-
-    };
+    return "place";
 
   }
 
 
   // =========================================================
-  // Convert OSM Element
+  // NORMALIZE OSM ELEMENT
   // =========================================================
 
   normalizeNearbyElement(
@@ -1189,12 +666,8 @@ class MapService {
     language
   ) {
 
-    if (
-      !item
-    ) {
-
+    if (!item) {
       return null;
-
     }
 
 
@@ -1202,72 +675,29 @@ class MapService {
       item.tags || {};
 
 
-    // -------------------------------------------------------
-    // Coordinates
-    // -------------------------------------------------------
-
-    let itemLatitude =
-      item.lat;
-
-
-    let itemLongitude =
-      item.lon;
-
-
-    // Ways / relations use center
-    // because query uses "out center".
-
-    if (
-      itemLatitude === undefined &&
-      item.center
-    ) {
-
-      itemLatitude =
-        item.center.lat;
-
-    }
-
-
-    if (
-      itemLongitude === undefined &&
-      item.center
-    ) {
-
-      itemLongitude =
-        item.center.lon;
-
-    }
-
-
-    const normalizedLatitude =
+    const latitude =
       Number(
-        itemLatitude
+        item.lat ??
+        item.center?.lat
       );
 
 
-    const normalizedLongitude =
+    const longitude =
       Number(
-        itemLongitude
+        item.lon ??
+        item.center?.lon
       );
 
 
     if (
-      !Number.isFinite(
-        normalizedLatitude
-      ) ||
-      !Number.isFinite(
-        normalizedLongitude
-      )
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
     ) {
 
       return null;
 
     }
 
-
-    // -------------------------------------------------------
-    // Name
-    // -------------------------------------------------------
 
     const name =
       this.getLocalizedName(
@@ -1276,22 +706,10 @@ class MapService {
       );
 
 
-    // -------------------------------------------------------
-    // Category
-    // -------------------------------------------------------
+    if (!name) {
+      return null;
+    }
 
-    const {
-      category,
-      label,
-    } =
-      this.getPlaceCategory(
-        tags
-      );
-
-
-    // -------------------------------------------------------
-    // Return
-    // -------------------------------------------------------
 
     return {
 
@@ -1304,56 +722,14 @@ class MapService {
       osmId:
         item.id,
 
-
       name,
 
+      category:
+        this.getPlaceCategory(tags),
 
-      category,
+      latitude,
 
-      label,
-
-
-      latitude:
-        normalizedLatitude,
-
-      longitude:
-        normalizedLongitude,
-
-
-      highway:
-        tags.highway ||
-        "",
-
-
-      amenity:
-        tags.amenity ||
-        "",
-
-
-      shop:
-        tags.shop ||
-        "",
-
-
-      office:
-        tags.office ||
-        "",
-
-
-      place:
-        tags.place ||
-        "",
-
-
-      religion:
-        tags.religion ||
-        "",
-
-
-      denomination:
-        tags.denomination ||
-        "",
-
+      longitude,
 
       tags,
 
@@ -1363,19 +739,13 @@ class MapService {
 
 
   // =========================================================
-  // Nearby Places
-  // =========================================================
-  //
-  // Returns nearby OSM objects around the REAL GPS point.
-  //
-  // The GPS coordinates supplied to this method remain
-  // untouched.
+  // NEARBY PLACES
   // =========================================================
 
   async getNearbyPlaces(
     latitude,
     longitude,
-    radius = MapService.DEFAULT_NEARBY_RADIUS,
+    radius = MapService.DEFAULT_RADIUS,
     language = "ar"
   ) {
 
@@ -1390,9 +760,7 @@ class MapService {
 
 
     const safeRadius =
-      this.validateRadius(
-        radius
-      );
+      this.validateRadius(radius);
 
 
     const query =
@@ -1409,10 +777,6 @@ class MapService {
       );
 
 
-    // -------------------------------------------------------
-    // Nearby lookup failure must NOT invalidate GPS.
-    // -------------------------------------------------------
-
     if (
       !result ||
       !Array.isArray(
@@ -1425,114 +789,59 @@ class MapService {
     }
 
 
-    // -------------------------------------------------------
-    // Normalize
-    // -------------------------------------------------------
-
     const places =
       result.elements
 
         .map(
-          (item) =>
+          item =>
             this.normalizeNearbyElement(
               item,
               language
             )
         )
 
-        .filter(
-          Boolean
+        .filter(Boolean)
+
+        .map(
+          item => ({
+
+            ...item,
+
+            distance:
+              this.calculateDistance(
+                lat,
+                lon,
+                item.latitude,
+                item.longitude
+              ),
+
+          })
         )
 
         .filter(
-          (item) =>
-            Boolean(item.name)
+          item =>
+            item.distance <=
+            safeRadius
         );
 
 
-    // -------------------------------------------------------
-    // Remove duplicates
-    // -------------------------------------------------------
-
-    const unique =
-      Array.from(
-
-        new Map(
-
-          places.map(
-            (item) => [
-
-              `${item.osmType}|${item.osmId}`,
-
-              item,
-
-            ]
-          )
-
-        ).values()
-
-      );
-
-
-    // -------------------------------------------------------
-    // Calculate distance
-    // -------------------------------------------------------
-
-    const withDistance =
-      unique.map(
-        (item) => ({
-
-          ...item,
-
-          distance:
-            this.calculateDistance(
-              lat,
-              lon,
-              item.latitude,
-              item.longitude
-            ),
-
-        })
-      );
-
-
-    // -------------------------------------------------------
-    // Protect against unexpected OSM data outside radius
-    // -------------------------------------------------------
-
-    const withinRadius =
-      withDistance.filter(
-        (item) =>
-          item.distance <=
-          safeRadius
-      );
-
-
-    // -------------------------------------------------------
-    // Nearest first
-    // -------------------------------------------------------
-
-    withinRadius.sort(
+    places.sort(
       (a, b) =>
         a.distance -
         b.distance
     );
 
 
-    // -------------------------------------------------------
-    // Limit
-    // -------------------------------------------------------
-
-    return withinRadius.slice(
+    return places.slice(
       0,
-      MapService.MAX_NEARBY_RESULTS
+      MapService.MAX_RESULTS
     );
 
   }
 
 
   // =========================================================
-  // Distance
+  // DISTANCE
   // =========================================================
 
   calculateDistance(
@@ -1562,76 +871,52 @@ class MapService {
       );
 
 
-    const earthRadius =
-      6371000;
+    const R = 6371000;
 
 
-    const toRadians =
-      (value) =>
+    const toRad =
+      value =>
         value *
         Math.PI /
         180;
 
 
-    const dLatitude =
-      toRadians(
-        lat2 -
-        lat1
+    const dLat =
+      toRad(
+        lat2 - lat1
       );
 
 
-    const dLongitude =
-      toRadians(
-        lon2 -
-        lon1
+    const dLon =
+      toRad(
+        lon2 - lon1
       );
 
 
     const a =
+      Math.sin(dLat / 2) ** 2 +
 
-      Math.sin(
-        dLatitude / 2
-      ) ** 2
+      Math.cos(toRad(lat1)) *
 
-      +
+      Math.cos(toRad(lat2)) *
 
-      Math.cos(
-        toRadians(lat1)
-      )
-
-      *
-
-      Math.cos(
-        toRadians(lat2)
-      )
-
-      *
-
-      Math.sin(
-        dLongitude / 2
-      ) ** 2;
-
-
-    const c =
-      2 *
-      Math.atan2(
-        Math.sqrt(a),
-        Math.sqrt(
-          1 - a
-        )
-      );
+      Math.sin(dLon / 2) ** 2;
 
 
     return (
-      earthRadius *
-      c
+      R *
+      2 *
+      Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
+      )
     );
 
   }
 
 
   // =========================================================
-  // Get All Locations
+  // STORAGE
   // =========================================================
 
   async getAllLocations() {
@@ -1641,17 +926,9 @@ class MapService {
   }
 
 
-  // =========================================================
-  // Get Location By ID
-  // =========================================================
+  async getLocationById(id) {
 
-  async getLocationById(
-    id
-  ) {
-
-    if (
-      !id
-    ) {
+    if (!id) {
 
       throw new Error(
         "MAP_ID_REQUIRED"
@@ -1659,21 +936,26 @@ class MapService {
 
     }
 
-
-    return mapRepository.getById(
-      id
-    );
+    return mapRepository.getById(id);
 
   }
 
 
   // =========================================================
-  // Create Location
+  // CREATE LOCATION
+  // =========================================================
+  //
+  // IMPORTANT:
+  //
+  // Written mode:
+  // coordinates may be null.
+  //
+  // Map mode:
+  // coordinates are required.
+  //
   // =========================================================
 
-  async createLocation(
-    data
-  ) {
+  async createLocation(data) {
 
     if (
       !data ||
@@ -1687,9 +969,7 @@ class MapService {
     }
 
 
-    if (
-      !data.farmId
-    ) {
+    if (!data.farmId) {
 
       throw new Error(
         "MAP_FARM_REQUIRED"
@@ -1698,129 +978,237 @@ class MapService {
     }
 
 
-    if (
-      data.latitude ===
-        undefined ||
+    const mode =
+      data.source ||
+      data.locationMode ||
+      "text";
 
-      data.latitude ===
-        null ||
 
-      data.latitude ===
-        "" ||
+    let latitude = null;
 
-      data.longitude ===
-        undefined ||
+    let longitude = null;
 
-      data.longitude ===
-        null ||
 
-      data.longitude ===
-        ""
-    ) {
+    const hasLatitude =
+      data.latitude !== undefined &&
+      data.latitude !== null &&
+      data.latitude !== "";
 
-      throw new Error(
-        "MAP_COORDINATES_REQUIRED"
-      );
+
+    const hasLongitude =
+      data.longitude !== undefined &&
+      data.longitude !== null &&
+      data.longitude !== "";
+
+
+    // -------------------------------------------------------
+    // MAP MODE
+    // -------------------------------------------------------
+
+    if (mode === "map") {
+
+      if (
+        !hasLatitude ||
+        !hasLongitude
+      ) {
+
+        throw new Error(
+          "MAP_COORDINATES_REQUIRED"
+        );
+
+      }
+
+
+      const coordinates =
+        this.validateCoordinates(
+          data.latitude,
+          data.longitude
+        );
+
+
+      latitude =
+        coordinates.latitude;
+
+
+      longitude =
+        coordinates.longitude;
 
     }
 
 
-    const {
-      latitude,
-      longitude,
-    } =
-      this.validateCoordinates(
-        data.latitude,
-        data.longitude
-      );
+    // -------------------------------------------------------
+    // TEXT MODE
+    // -------------------------------------------------------
 
-
-    let accuracy =
-      null;
-
-
-    if (
-      data.accuracy !==
-        undefined &&
-
-      data.accuracy !==
-        null &&
-
-      data.accuracy !==
-        ""
-    ) {
-
-      const numericAccuracy =
-        Number(
-          data.accuracy
-        );
-
+    if (mode === "text") {
 
       if (
-        Number.isFinite(
-          numericAccuracy
-        ) &&
-        numericAccuracy >= 0
+        !data.country?.trim() &&
+        !data.region?.trim() &&
+        !data.village?.trim() &&
+        !data.placeName?.trim() &&
+        !data.locationDescription?.trim()
       ) {
 
-        accuracy =
-          numericAccuracy;
+        throw new Error(
+          "MAP_LOCATION_TEXT_REQUIRED"
+        );
+
+      }
+
+
+      // إذا أدخل المستخدم إحداثيات أيضًا،
+      // نتحقق منها، لكن لا نجبره عليها.
+
+      if (
+        hasLatitude &&
+        hasLongitude
+      ) {
+
+        const coordinates =
+          this.validateCoordinates(
+            data.latitude,
+            data.longitude
+          );
+
+
+        latitude =
+          coordinates.latitude;
+
+
+        longitude =
+          coordinates.longitude;
 
       }
 
     }
 
 
-    const locationData = {
+    // -------------------------------------------------------
+    // POINTS
+    // -------------------------------------------------------
+
+    const points =
+      Array.isArray(data.points)
+
+        ? data.points
+            .filter(
+              point =>
+                point &&
+                point.latitude !== undefined &&
+                point.longitude !== undefined
+            )
+            .map(
+              point => {
+
+                const coordinates =
+                  this.validateCoordinates(
+                    point.latitude,
+                    point.longitude
+                  );
+
+                return coordinates;
+
+              }
+            )
+
+        : [];
+
+
+    // -------------------------------------------------------
+    // FINAL DATA
+    // -------------------------------------------------------
+
+    const location = {
 
       ...data,
 
+      farmId:
+        String(data.farmId),
 
       latitude,
 
       longitude,
 
+      points,
 
-      farmId:
-        String(
-          data.farmId
-        ),
-
+      source: mode,
 
       type:
         data.type ||
         "farm",
 
-
       status:
         data.status ||
         "active",
 
+      country:
+        data.country?.trim() ||
+        "",
+
+      region:
+        data.region?.trim() ||
+        "",
+
+      village:
+        data.village?.trim() ||
+        "",
+
+      placeName:
+        data.placeName?.trim() ||
+        "",
+
+      locationDescription:
+        data.locationDescription?.trim() ||
+        "",
+
+      notes:
+        data.notes?.trim() ||
+        "",
+
+      area:
+        data.area !== null &&
+        data.area !== undefined &&
+        data.area !== ""
+
+          ? Number(data.area)
+
+          : null,
+
+      perimeter:
+        data.perimeter !== null &&
+        data.perimeter !== undefined &&
+        data.perimeter !== ""
+
+          ? Number(data.perimeter)
+
+          : null,
+
+      boundaryWidth:
+        data.boundaryWidth !== null &&
+        data.boundaryWidth !== undefined &&
+        data.boundaryWidth !== ""
+
+          ? Number(data.boundaryWidth)
+
+          : null,
 
       createdAt:
         data.createdAt ||
         new Date().toISOString(),
 
-
-      notes:
-        data.notes ||
-        "",
-
-
-      accuracy,
-
     };
 
 
     return mapRepository.create(
-      locationData
+      location
     );
 
   }
 
 
   // =========================================================
-  // Update Location
+  // UPDATE
   // =========================================================
 
   async updateLocation(
@@ -1828,9 +1216,7 @@ class MapService {
     data
   ) {
 
-    if (
-      !id
-    ) {
+    if (!id) {
 
       throw new Error(
         "MAP_ID_REQUIRED"
@@ -1856,21 +1242,12 @@ class MapService {
     };
 
 
-    // -------------------------------------------------------
-    // Coordinates
-    //
-    // If one coordinate is supplied, the other must also
-    // be supplied.
-    // -------------------------------------------------------
-
     const hasLatitude =
-      updateData.latitude !==
-      undefined;
+      updateData.latitude !== undefined;
 
 
     const hasLongitude =
-      updateData.longitude !==
-      undefined;
+      updateData.longitude !== undefined;
 
 
     if (
@@ -1890,63 +1267,37 @@ class MapService {
       }
 
 
-      const {
-        latitude,
-        longitude,
-      } =
-      this.validateCoordinates(
-        updateData.latitude,
-        updateData.longitude
-      );
+      const coordinates =
+        this.validateCoordinates(
+          updateData.latitude,
+          updateData.longitude
+        );
 
 
       updateData.latitude =
-        latitude;
+        coordinates.latitude;
 
 
       updateData.longitude =
-        longitude;
+        coordinates.longitude;
 
     }
 
 
-    // -------------------------------------------------------
-    // Accuracy
-    // -------------------------------------------------------
-
     if (
-      updateData.accuracy !==
-        undefined &&
-
-      updateData.accuracy !==
-        null &&
-
-      updateData.accuracy !==
-        ""
+      Array.isArray(
+        updateData.points
+      )
     ) {
 
-      const numericAccuracy =
-        Number(
-          updateData.accuracy
+      updateData.points =
+        updateData.points.map(
+          point =>
+            this.validateCoordinates(
+              point.latitude,
+              point.longitude
+            )
         );
-
-
-      if (
-        !Number.isFinite(
-          numericAccuracy
-        ) ||
-        numericAccuracy < 0
-      ) {
-
-        updateData.accuracy =
-          null;
-
-      } else {
-
-        updateData.accuracy =
-          numericAccuracy;
-
-      }
 
     }
 
@@ -1960,16 +1311,12 @@ class MapService {
 
 
   // =========================================================
-  // Delete Location
+  // DELETE
   // =========================================================
 
-  async deleteLocation(
-    id
-  ) {
+  async deleteLocation(id) {
 
-    if (
-      !id
-    ) {
+    if (!id) {
 
       throw new Error(
         "MAP_ID_REQUIRED"
@@ -1977,40 +1324,24 @@ class MapService {
 
     }
 
-
-    return mapRepository.delete(
-      id
-    );
+    return mapRepository.delete(id);
 
   }
 
 
   // =========================================================
-  // Check Location Exists
+  // EXISTS
   // =========================================================
 
-  async locationExists(
-    id
-  ) {
+  async locationExists(id) {
 
-    if (
-      !id
-    ) {
-
-      return false;
-
-    }
-
-
-    return mapRepository.exists(
-      id
-    );
+    return mapRepository.exists(id);
 
   }
 
 
   // =========================================================
-  // Count Locations
+  // COUNT
   // =========================================================
 
   async countLocations() {
@@ -2022,17 +1353,9 @@ class MapService {
 }
 
 
-// ===========================================================
-// Service Instance
-// ===========================================================
-
 const mapService =
   new MapService();
 
-
-// ===========================================================
-// Export
-// ===========================================================
 
 export default Object.freeze(
   mapService
