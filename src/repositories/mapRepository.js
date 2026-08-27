@@ -3,14 +3,36 @@
 import { storageService } from "../storage";
 
 
+// =========================================================
+// LAVENDER — MAP REPOSITORY
+// =========================================================
+//
+// مسؤول فقط عن:
+// - قراءة المواقع
+// - إنشاء موقع
+// - تعديل موقع
+// - حذف موقع
+// - البحث عن موقع
+//
+// لا يحتوي على:
+// - Leaflet
+// - Nominatim
+// - Overpass
+// - حسابات جغرافية
+// - منطق واجهة المستخدم
+//
+// =========================================================
+
+
 const LOCATIONS_KEY = "locations";
 
 
 class MapRepository {
 
-  // =========================================================
+
+  // =======================================================
   // GET ALL
-  // =========================================================
+  // =======================================================
 
   async getAll() {
 
@@ -20,25 +42,35 @@ class MapRepository {
         []
       );
 
-    return Array.isArray(data)
-      ? data
-      : [];
+
+    if (!Array.isArray(data)) {
+
+      return [];
+
+    }
+
+
+    return data;
 
   }
 
 
-  // =========================================================
+  // =======================================================
   // GET BY ID
-  // =========================================================
+  // =======================================================
 
   async getById(id) {
 
     if (!id) {
+
       return null;
+
     }
+
 
     const locations =
       await this.getAll();
+
 
     return (
       locations.find(
@@ -51,9 +83,35 @@ class MapRepository {
   }
 
 
-  // =========================================================
+  // =======================================================
+  // GET BY FARM
+  // =======================================================
+
+  async getByFarmId(farmId) {
+
+    if (!farmId) {
+
+      return [];
+
+    }
+
+
+    const locations =
+      await this.getAll();
+
+
+    return locations.filter(
+      item =>
+        String(item.farmId) ===
+        String(farmId)
+    );
+
+  }
+
+
+  // =======================================================
   // CREATE
-  // =========================================================
+  // =======================================================
 
   async create(data) {
 
@@ -68,8 +126,10 @@ class MapRepository {
 
     }
 
+
     const locations =
       await this.getAll();
+
 
     const id =
       typeof crypto !== "undefined" &&
@@ -81,6 +141,7 @@ class MapRepository {
             .toString(36)
             .slice(2)}`;
 
+
     const location = {
 
       id,
@@ -91,33 +152,47 @@ class MapRepository {
         data.createdAt ||
         new Date().toISOString(),
 
+      updatedAt:
+        null,
+
       status:
         data.status ||
         "active",
 
     };
 
-    locations.push(location);
+
+    locations.push(
+      location
+    );
+
 
     await storageService.save(
       LOCATIONS_KEY,
       locations
     );
 
+
     return location;
 
   }
 
 
-  // =========================================================
+  // =======================================================
   // UPDATE
-  // =========================================================
+  // =======================================================
 
-  async update(id, data) {
+  async update(
+    id,
+    data
+  ) {
 
     if (!id) {
+
       return null;
+
     }
+
 
     if (
       !data ||
@@ -130,8 +205,10 @@ class MapRepository {
 
     }
 
+
     const locations =
       await this.getAll();
+
 
     const index =
       locations.findIndex(
@@ -140,9 +217,13 @@ class MapRepository {
           String(id)
       );
 
+
     if (index === -1) {
+
       return null;
+
     }
+
 
     const updated = {
 
@@ -158,31 +239,38 @@ class MapRepository {
 
     };
 
+
     locations[index] =
       updated;
+
 
     await storageService.save(
       LOCATIONS_KEY,
       locations
     );
 
+
     return updated;
 
   }
 
 
-  // =========================================================
+  // =======================================================
   // DELETE
-  // =========================================================
+  // =======================================================
 
   async delete(id) {
 
     if (!id) {
+
       return false;
+
     }
+
 
     const locations =
       await this.getAll();
+
 
     const next =
       locations.filter(
@@ -190,6 +278,7 @@ class MapRepository {
           String(item.id) !==
           String(id)
       );
+
 
     if (
       next.length ===
@@ -200,37 +289,51 @@ class MapRepository {
 
     }
 
+
     await storageService.save(
       LOCATIONS_KEY,
       next
     );
+
 
     return true;
 
   }
 
 
-  // =========================================================
+  // =======================================================
   // EXISTS
-  // =========================================================
+  // =======================================================
 
   async exists(id) {
 
+    if (!id) {
+
+      return false;
+
+    }
+
+
+    const location =
+      await this.getById(id);
+
+
     return Boolean(
-      await this.getById(id)
+      location
     );
 
   }
 
 
-  // =========================================================
+  // =======================================================
   // COUNT
-  // =========================================================
+  // =======================================================
 
   async count() {
 
     const locations =
       await this.getAll();
+
 
     return locations.length;
 
