@@ -8,23 +8,27 @@ import mapRepository
 // LAVENDER — MAP SERVICE
 // =========================================================
 //
-// الخريطة الخارجية:
-// OpenStreetMap / Nominatim / Overpass
+// مصادر الموقع:
 //
-// وظيفتها:
-// - عرض المعلومات الجغرافية
-// - القرى
-// - البلدات
-// - المدن
-// - الطرق
-// - الخدمات
-// - المراكز الحكومية
+// 1. MAP
+//    المستخدم يرسم الأرض يدويًا.
+//    النقاط التي يحددها المستخدم هي المصدر الحقيقي للموقع.
 //
-// لكنها NEVER تستبدل إحداثيات المستخدم.
+// 2. TEXT
+//    المستخدم يكتب:
+//    البلد
+//    المحافظة / المنطقة
+//    المدينة
+//    البلدة / القرية
+//    وصف الأرض
+//    جار الشمال
+//    جار الجنوب
+//    جار الشرق
+//    جار الغرب
 //
-// مصدر موقع الأرض:
-// 1. تحديد يدوي على الخريطة
-// 2. أو إدخال كتابي
+// Nominatim / Overpass:
+// معلومات جغرافية مساعدة فقط.
+// NEVER تستبدل موقع المستخدم.
 //
 // =========================================================
 
@@ -32,9 +36,9 @@ import mapRepository
 class MapService {
 
 
-  // =========================================================
+  // =======================================================
   // CONSTANTS
-  // =========================================================
+  // =======================================================
 
   static DEFAULT_RADIUS = 1000;
 
@@ -58,9 +62,9 @@ class MapService {
   ];
 
 
-  // =========================================================
+  // =======================================================
   // COORDINATES
-  // =========================================================
+  // =======================================================
 
   validateCoordinates(
     latitude,
@@ -72,6 +76,7 @@ class MapService {
 
     const lon =
       Number(longitude);
+
 
     if (
       !Number.isFinite(lat) ||
@@ -88,6 +93,7 @@ class MapService {
 
     }
 
+
     return {
 
       latitude: lat,
@@ -99,14 +105,15 @@ class MapService {
   }
 
 
-  // =========================================================
+  // =======================================================
   // RADIUS
-  // =========================================================
+  // =======================================================
 
   validateRadius(radius) {
 
     const value =
       Number(radius);
+
 
     if (
       !Number.isFinite(value)
@@ -115,6 +122,7 @@ class MapService {
       return MapService.DEFAULT_RADIUS;
 
     }
+
 
     return Math.min(
 
@@ -130,19 +138,25 @@ class MapService {
   }
 
 
-  // =========================================================
+  // =======================================================
   // LANGUAGE
-  // =========================================================
+  // =======================================================
 
   normalizeLanguage(language) {
 
     if (language === "en") {
+
       return "en";
+
     }
 
+
     if (language === "tr") {
+
       return "tr";
+
     }
+
 
     return "ar";
 
@@ -156,27 +170,361 @@ class MapService {
         language
       );
 
+
     if (lang === "en") {
+
       return "en";
+
     }
 
+
     if (lang === "tr") {
+
       return "tr,en";
+
     }
+
 
     return "ar,en";
 
   }
 
 
-  // =========================================================
+  // =======================================================
+  // VALIDATE POINTS
+  // =======================================================
+
+  validatePoints(points) {
+
+    if (
+      !Array.isArray(points)
+    ) {
+
+      throw new Error(
+        "MAP_POINTS_REQUIRED"
+      );
+
+    }
+
+
+    if (
+      points.length < 3
+    ) {
+
+      throw new Error(
+        "MAP_THREE_POINTS_REQUIRED"
+      );
+
+    }
+
+
+    return points.map(
+      point => {
+
+        if (
+          Array.isArray(point)
+        ) {
+
+          const coordinates =
+            this.validateCoordinates(
+              point[0],
+              point[1]
+            );
+
+
+          return {
+
+            latitude:
+              coordinates.latitude,
+
+            longitude:
+              coordinates.longitude,
+
+          };
+
+        }
+
+
+        if (
+          point &&
+          typeof point === "object"
+        ) {
+
+          return this.validateCoordinates(
+            point.latitude,
+            point.longitude
+          );
+
+        }
+
+
+        throw new Error(
+          "MAP_INVALID_POINT"
+        );
+
+      }
+    );
+
+  }
+
+
+  // =======================================================
+  // DISTANCE
+  // =======================================================
+
+  calculateDistance(
+    latitude1,
+    longitude1,
+    latitude2,
+    longitude2
+  ) {
+
+    const first =
+      this.validateCoordinates(
+        latitude1,
+        longitude1
+      );
+
+
+    const second =
+      this.validateCoordinates(
+        latitude2,
+        longitude2
+      );
+
+
+    const earthRadius =
+      6371008.8;
+
+
+    const toRadians =
+      value =>
+        Number(value) *
+        Math.PI /
+        180;
+
+
+    const dLat =
+      toRadians(
+        second.latitude -
+        first.latitude
+      );
+
+
+    const dLon =
+      toRadians(
+        second.longitude -
+        first.longitude
+      );
+
+
+    const lat1 =
+      toRadians(
+        first.latitude
+      );
+
+
+    const lat2 =
+      toRadians(
+        second.latitude
+      );
+
+
+    const a =
+      Math.sin(
+        dLat / 2
+      ) ** 2 +
+
+      Math.cos(lat1) *
+      Math.cos(lat2) *
+
+      Math.sin(
+        dLon / 2
+      ) ** 2;
+
+
+    return (
+      earthRadius *
+      2 *
+      Math.atan2(
+        Math.sqrt(a),
+        Math.sqrt(1 - a)
+      )
+    );
+
+  }
+
+
+  // =======================================================
+  // PERIMETER
+  // =======================================================
+
+  calculatePerimeter(
+    points
+  ) {
+
+    const safePoints =
+      this.validatePoints(
+        points
+      );
+
+
+    let total = 0;
+
+
+    for (
+      let index = 0;
+      index < safePoints.length;
+      index++
+    ) {
+
+      const current =
+        safePoints[index];
+
+
+      const next =
+        safePoints[
+          (index + 1) %
+          safePoints.length
+        ];
+
+
+      total +=
+        this.calculateDistance(
+
+          current.latitude,
+
+          current.longitude,
+
+          next.latitude,
+
+          next.longitude
+
+        );
+
+    }
+
+
+    return total;
+
+  }
+
+
+  // =======================================================
+  // AREA
+  // =======================================================
+
+  calculateArea(
+    points
+  ) {
+
+    const safePoints =
+      this.validatePoints(
+        points
+      );
+
+
+    const earthRadius =
+      6378137;
+
+
+    const referenceLatitude =
+      safePoints.reduce(
+        (
+          total,
+          point
+        ) =>
+          total +
+          (
+            Number(point.latitude) *
+            Math.PI /
+            180
+          ),
+        0
+      ) /
+      safePoints.length;
+
+
+    const cosLatitude =
+      Math.cos(
+        referenceLatitude
+      );
+
+
+    const projected =
+      safePoints.map(
+        point => {
+
+          const latitude =
+            Number(point.latitude) *
+            Math.PI /
+            180;
+
+
+          const longitude =
+            Number(point.longitude) *
+            Math.PI /
+            180;
+
+
+          return [
+
+            earthRadius *
+            longitude *
+            cosLatitude,
+
+            earthRadius *
+            latitude,
+
+          ];
+
+        }
+      );
+
+
+    let area = 0;
+
+
+    for (
+      let index = 0;
+      index < projected.length;
+      index++
+    ) {
+
+      const current =
+        projected[index];
+
+
+      const next =
+        projected[
+          (index + 1) %
+          projected.length
+        ];
+
+
+      area +=
+        (
+          current[0] *
+          next[1]
+        ) -
+        (
+          next[0] *
+          current[1]
+        );
+
+    }
+
+
+    return Math.abs(
+      area / 2
+    );
+
+  }
+
+
+  // =======================================================
   // REVERSE GEOCODING
-  // =========================================================
-  //
-  // معلومات وصفية فقط.
-  //
-  // لا يتم استخدامها لتغيير موقع الأرض.
-  // =========================================================
+  // =======================================================
 
   async reverseGeocode(
     latitude,
@@ -184,20 +532,22 @@ class MapService {
     language = "ar"
   ) {
 
-    const {
-      latitude: lat,
-      longitude: lon,
-    } =
+    const coordinates =
       this.validateCoordinates(
         latitude,
         longitude
       );
 
+
     const url =
       `${MapService.NOMINATIM_URL}` +
       `?format=jsonv2` +
-      `&lat=${encodeURIComponent(lat)}` +
-      `&lon=${encodeURIComponent(lon)}` +
+      `&lat=${encodeURIComponent(
+        coordinates.latitude
+      )}` +
+      `&lon=${encodeURIComponent(
+        coordinates.longitude
+      )}` +
       `&zoom=18` +
       `&addressdetails=1` +
       `&namedetails=1` +
@@ -209,13 +559,16 @@ class MapService {
     try {
 
       const response =
-        await fetch(url, {
-          method: "GET",
-          headers: {
-            Accept:
-              "application/json",
-          },
-        });
+        await fetch(
+          url,
+          {
+            method: "GET",
+            headers: {
+              Accept:
+                "application/json",
+            },
+          }
+        );
 
 
       if (!response.ok) {
@@ -235,58 +588,41 @@ class MapService {
         result?.address || {};
 
 
-      const village =
-        address.village ||
-        address.hamlet ||
-        "";
-
-
-      const town =
-        address.town ||
-        "";
-
-
-      const city =
-        address.city ||
-        "";
-
-
-      const region =
-        address.state ||
-        address.province ||
-        address.region ||
-        "";
-
-
-      const country =
-        address.country ||
-        "";
-
-
-      const road =
-        address.road ||
-        address.pedestrian ||
-        address.footway ||
-        "";
-
-
       return {
 
-        latitude: lat,
+        latitude:
+          coordinates.latitude,
 
-        longitude: lon,
+        longitude:
+          coordinates.longitude,
 
-        country,
+        country:
+          address.country ||
+          "",
 
-        region,
+        region:
+          address.state ||
+          address.province ||
+          address.region ||
+          "",
 
-        village,
+        city:
+          address.city ||
+          "",
 
-        town,
+        town:
+          address.town ||
+          "",
 
-        city,
+        village:
+          address.village ||
+          address.hamlet ||
+          "",
 
-        road,
+        road:
+          address.road ||
+          address.pedestrian ||
+          "",
 
         displayName:
           result?.display_name ||
@@ -294,9 +630,6 @@ class MapService {
 
         placeName:
           result?.name ||
-          village ||
-          town ||
-          city ||
           "",
 
         osmType:
@@ -318,21 +651,24 @@ class MapService {
         error
       );
 
+
       return {
 
-        latitude: lat,
+        latitude:
+          coordinates.latitude,
 
-        longitude: lon,
+        longitude:
+          coordinates.longitude,
 
         country: "",
 
         region: "",
 
-        village: "",
+        city: "",
 
         town: "",
 
-        city: "",
+        village: "",
 
         road: "",
 
@@ -353,609 +689,13 @@ class MapService {
   }
 
 
-  // =========================================================
-  // OVERPASS QUERY
-  // =========================================================
-
-  buildNearbyQuery(
-    latitude,
-    longitude,
-    radius
-  ) {
-
-    const {
-      latitude: lat,
-      longitude: lon,
-    } =
-      this.validateCoordinates(
-        latitude,
-        longitude
-      );
-
-
-    const safeRadius =
-      this.validateRadius(radius);
-
-
-    return `
-      [out:json][timeout:30];
-
-      (
-        nwr["name"](around:${safeRadius},${lat},${lon});
-
-        nwr["highway"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="village"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="hamlet"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="town"](around:${safeRadius},${lat},${lon});
-
-        nwr["place"="city"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="school"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="hospital"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="clinic"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="pharmacy"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="townhall"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="police"](around:${safeRadius},${lat},${lon});
-
-        nwr["amenity"="fire_station"](around:${safeRadius},${lat},${lon});
-
-        nwr["office"="government"](around:${safeRadius},${lat},${lon});
-
-        nwr["shop"](around:${safeRadius},${lat},${lon});
-      );
-
-      out center tags;
-    `;
-
-  }
-
-
-  // =========================================================
-  // FETCH OVERPASS
-  // =========================================================
-
-  async fetchOverpass(query) {
-
-    for (
-      const endpoint
-      of MapService.OVERPASS_ENDPOINTS
-    ) {
-
-      try {
-
-        const response =
-          await fetch(
-            endpoint,
-            {
-
-              method: "POST",
-
-              headers: {
-
-                "Content-Type":
-                  "application/x-www-form-urlencoded",
-
-                Accept:
-                  "application/json",
-
-              },
-
-              body:
-                `data=${encodeURIComponent(query)}`,
-
-            }
-          );
-
-
-        if (!response.ok) {
-          continue;
-        }
-
-
-        const result =
-          await response.json();
-
-
-        if (
-          Array.isArray(
-            result?.elements
-          )
-        ) {
-
-          return result;
-
-        }
-
-      } catch (error) {
-
-        console.warn(
-          "Overpass endpoint failed:",
-          endpoint,
-          error
-        );
-
-      }
-
-    }
-
-
-    return null;
-
-  }
-
-
-  // =========================================================
-  // LOCALIZED NAME
-  // =========================================================
-
-  getLocalizedName(
-    tags,
-    language
-  ) {
-
-    const lang =
-      this.normalizeLanguage(
-        language
-      );
-
-
-    if (lang === "ar") {
-
-      return (
-        tags["name:ar"] ||
-        tags.name ||
-        tags["name:en"] ||
-        ""
-      );
-
-    }
-
-
-    if (lang === "tr") {
-
-      return (
-        tags["name:tr"] ||
-        tags.name ||
-        tags["name:en"] ||
-        ""
-      );
-
-    }
-
-
-    return (
-      tags["name:en"] ||
-      tags.name ||
-      tags["name:ar"] ||
-      ""
-    );
-
-  }
-
-
-  // =========================================================
-  // CATEGORY
-  // =========================================================
-
-  getPlaceCategory(tags) {
-
-    if (
-      tags.place === "village"
-    ) {
-
-      return "village";
-
-    }
-
-    if (
-      tags.place === "hamlet"
-    ) {
-
-      return "hamlet";
-
-    }
-
-    if (
-      tags.place === "town"
-    ) {
-
-      return "town";
-
-    }
-
-    if (
-      tags.place === "city"
-    ) {
-
-      return "city";
-
-    }
-
-    if (
-      tags.highway
-    ) {
-
-      return "road";
-
-    }
-
-    if (
-      tags.amenity === "school"
-    ) {
-
-      return "school";
-
-    }
-
-    if (
-      tags.amenity === "hospital"
-    ) {
-
-      return "hospital";
-
-    }
-
-    if (
-      tags.amenity === "clinic"
-    ) {
-
-      return "clinic";
-
-    }
-
-    if (
-      tags.amenity === "pharmacy"
-    ) {
-
-      return "pharmacy";
-
-    }
-
-    if (
-      tags.amenity === "townhall" ||
-      tags.office === "government"
-    ) {
-
-      return "government";
-
-    }
-
-    if (
-      tags.amenity === "police"
-    ) {
-
-      return "police";
-
-    }
-
-    if (
-      tags.amenity === "fire_station"
-    ) {
-
-      return "fire_station";
-
-    }
-
-    if (
-      tags.shop
-    ) {
-
-      return "shop";
-
-    }
-
-    return "place";
-
-  }
-
-
-  // =========================================================
-  // NORMALIZE OSM ELEMENT
-  // =========================================================
-
-  normalizeNearbyElement(
-    item,
-    language
-  ) {
-
-    if (!item) {
-      return null;
-    }
-
-
-    const tags =
-      item.tags || {};
-
-
-    const latitude =
-      Number(
-        item.lat ??
-        item.center?.lat
-      );
-
-
-    const longitude =
-      Number(
-        item.lon ??
-        item.center?.lon
-      );
-
-
-    if (
-      !Number.isFinite(latitude) ||
-      !Number.isFinite(longitude)
-    ) {
-
-      return null;
-
-    }
-
-
-    const name =
-      this.getLocalizedName(
-        tags,
-        language
-      );
-
-
-    if (!name) {
-      return null;
-    }
-
-
-    return {
-
-      id:
-        `${item.type}-${item.id}`,
-
-      osmType:
-        item.type,
-
-      osmId:
-        item.id,
-
-      name,
-
-      category:
-        this.getPlaceCategory(tags),
-
-      latitude,
-
-      longitude,
-
-      tags,
-
-    };
-
-  }
-
-
-  // =========================================================
-  // NEARBY PLACES
-  // =========================================================
-
-  async getNearbyPlaces(
-    latitude,
-    longitude,
-    radius = MapService.DEFAULT_RADIUS,
-    language = "ar"
-  ) {
-
-    const {
-      latitude: lat,
-      longitude: lon,
-    } =
-      this.validateCoordinates(
-        latitude,
-        longitude
-      );
-
-
-    const safeRadius =
-      this.validateRadius(radius);
-
-
-    const query =
-      this.buildNearbyQuery(
-        lat,
-        lon,
-        safeRadius
-      );
-
-
-    const result =
-      await this.fetchOverpass(
-        query
-      );
-
-
-    if (
-      !result ||
-      !Array.isArray(
-        result.elements
-      )
-    ) {
-
-      return [];
-
-    }
-
-
-    const places =
-      result.elements
-
-        .map(
-          item =>
-            this.normalizeNearbyElement(
-              item,
-              language
-            )
-        )
-
-        .filter(Boolean)
-
-        .map(
-          item => ({
-
-            ...item,
-
-            distance:
-              this.calculateDistance(
-                lat,
-                lon,
-                item.latitude,
-                item.longitude
-              ),
-
-          })
-        )
-
-        .filter(
-          item =>
-            item.distance <=
-            safeRadius
-        );
-
-
-    places.sort(
-      (a, b) =>
-        a.distance -
-        b.distance
-    );
-
-
-    return places.slice(
-      0,
-      MapService.MAX_RESULTS
-    );
-
-  }
-
-
-  // =========================================================
-  // DISTANCE
-  // =========================================================
-
-  calculateDistance(
-    latitude1,
-    longitude1,
-    latitude2,
-    longitude2
-  ) {
-
-    const {
-      latitude: lat1,
-      longitude: lon1,
-    } =
-      this.validateCoordinates(
-        latitude1,
-        longitude1
-      );
-
-
-    const {
-      latitude: lat2,
-      longitude: lon2,
-    } =
-      this.validateCoordinates(
-        latitude2,
-        longitude2
-      );
-
-
-    const R = 6371000;
-
-
-    const toRad =
-      value =>
-        value *
-        Math.PI /
-        180;
-
-
-    const dLat =
-      toRad(
-        lat2 - lat1
-      );
-
-
-    const dLon =
-      toRad(
-        lon2 - lon1
-      );
-
-
-    const a =
-      Math.sin(dLat / 2) ** 2 +
-
-      Math.cos(toRad(lat1)) *
-
-      Math.cos(toRad(lat2)) *
-
-      Math.sin(dLon / 2) ** 2;
-
-
-    return (
-      R *
-      2 *
-      Math.atan2(
-        Math.sqrt(a),
-        Math.sqrt(1 - a)
-      )
-    );
-
-  }
-
-
-  // =========================================================
-  // STORAGE
-  // =========================================================
-
-  async getAllLocations() {
-
-    return mapRepository.getAll();
-
-  }
-
-
-  async getLocationById(id) {
-
-    if (!id) {
-
-      throw new Error(
-        "MAP_ID_REQUIRED"
-      );
-
-    }
-
-    return mapRepository.getById(id);
-
-  }
-
-
-  // =========================================================
+  // =======================================================
   // CREATE LOCATION
-  // =========================================================
-  //
-  // IMPORTANT:
-  //
-  // Written mode:
-  // coordinates may be null.
-  //
-  // Map mode:
-  // coordinates are required.
-  //
-  // =========================================================
+  // =======================================================
 
-  async createLocation(data) {
+  async createLocation(
+    data
+  ) {
 
     if (
       !data ||
@@ -978,146 +718,232 @@ class MapService {
     }
 
 
-    const mode =
+    const source =
       data.source ||
       data.locationMode ||
       "text";
 
 
-    let latitude = null;
+    if (
+      source !== "map" &&
+      source !== "text"
+    ) {
 
-    let longitude = null;
+      throw new Error(
+        "MAP_SOURCE_INVALID"
+      );
 
-
-    const hasLatitude =
-      data.latitude !== undefined &&
-      data.latitude !== null &&
-      data.latitude !== "";
-
-
-    const hasLongitude =
-      data.longitude !== undefined &&
-      data.longitude !== null &&
-      data.longitude !== "";
+    }
 
 
-    // -------------------------------------------------------
+    // =====================================================
     // MAP MODE
-    // -------------------------------------------------------
+    // =====================================================
 
-    if (mode === "map") {
+    if (source === "map") {
 
-      if (
-        !hasLatitude ||
-        !hasLongitude
-      ) {
-
-        throw new Error(
-          "MAP_COORDINATES_REQUIRED"
-        );
-
-      }
-
-
-      const coordinates =
-        this.validateCoordinates(
-          data.latitude,
-          data.longitude
+      const points =
+        this.validatePoints(
+          data.points
         );
 
 
-      latitude =
-        coordinates.latitude;
+      const firstPoint =
+        points[0];
 
 
-      longitude =
-        coordinates.longitude;
+      const location = {
+
+        ...data,
+
+        id:
+          undefined,
+
+        farmId:
+          String(data.farmId),
+
+        source:
+          "map",
+
+        points,
+
+        latitude:
+          firstPoint.latitude,
+
+        longitude:
+          firstPoint.longitude,
+
+        area:
+          this.calculateArea(
+            points
+          ),
+
+        perimeter:
+          this.calculatePerimeter(
+            points
+          ),
+
+        country:
+          String(
+            data.country || ""
+          ).trim(),
+
+        region:
+          String(
+            data.region || ""
+          ).trim(),
+
+        city:
+          String(
+            data.city || ""
+          ).trim(),
+
+        village:
+          String(
+            data.village || ""
+          ).trim(),
+
+        town:
+          String(
+            data.town || ""
+          ).trim(),
+
+        placeName:
+          String(
+            data.placeName || ""
+          ).trim(),
+
+        locationDescription:
+          String(
+            data.locationDescription || ""
+          ).trim(),
+
+        northNeighbor:
+          String(
+            data.northNeighbor || ""
+          ).trim(),
+
+        southNeighbor:
+          String(
+            data.southNeighbor || ""
+          ).trim(),
+
+        eastNeighbor:
+          String(
+            data.eastNeighbor || ""
+          ).trim(),
+
+        westNeighbor:
+          String(
+            data.westNeighbor || ""
+          ).trim(),
+
+        notes:
+          String(
+            data.notes || ""
+          ).trim(),
+
+        type:
+          data.type ||
+          "field",
+
+        status:
+          data.status ||
+          "active",
+
+        createdAt:
+          data.createdAt ||
+          new Date().toISOString(),
+
+      };
+
+
+      delete location.id;
+
+
+      return mapRepository.create(
+        location
+      );
 
     }
 
 
-    // -------------------------------------------------------
+    // =====================================================
     // TEXT MODE
-    // -------------------------------------------------------
+    // =====================================================
 
-    if (mode === "text") {
-
-      if (
-        !data.country?.trim() &&
-        !data.region?.trim() &&
-        !data.village?.trim() &&
-        !data.placeName?.trim() &&
-        !data.locationDescription?.trim()
-      ) {
-
-        throw new Error(
-          "MAP_LOCATION_TEXT_REQUIRED"
-        );
-
-      }
+    const country =
+      String(
+        data.country || ""
+      ).trim();
 
 
-      // إذا أدخل المستخدم إحداثيات أيضًا،
-      // نتحقق منها، لكن لا نجبره عليها.
-
-      if (
-        hasLatitude &&
-        hasLongitude
-      ) {
-
-        const coordinates =
-          this.validateCoordinates(
-            data.latitude,
-            data.longitude
-          );
+    const region =
+      String(
+        data.region || ""
+      ).trim();
 
 
-        latitude =
-          coordinates.latitude;
+    const city =
+      String(
+        data.city || ""
+      ).trim();
 
 
-        longitude =
-          coordinates.longitude;
+    const town =
+      String(
+        data.town || ""
+      ).trim();
 
-      }
+
+    const locationDescription =
+      String(
+        data.locationDescription || ""
+      ).trim();
+
+
+    const northNeighbor =
+      String(
+        data.northNeighbor || ""
+      ).trim();
+
+
+    const southNeighbor =
+      String(
+        data.southNeighbor || ""
+      ).trim();
+
+
+    const eastNeighbor =
+      String(
+        data.eastNeighbor || ""
+      ).trim();
+
+
+    const westNeighbor =
+      String(
+        data.westNeighbor || ""
+      ).trim();
+
+
+    if (
+      !country &&
+      !region &&
+      !city &&
+      !town &&
+      !locationDescription &&
+      !northNeighbor &&
+      !southNeighbor &&
+      !eastNeighbor &&
+      !westNeighbor
+    ) {
+
+      throw new Error(
+        "MAP_LOCATION_TEXT_REQUIRED"
+      );
 
     }
 
-
-    // -------------------------------------------------------
-    // POINTS
-    // -------------------------------------------------------
-
-    const points =
-      Array.isArray(data.points)
-
-        ? data.points
-            .filter(
-              point =>
-                point &&
-                point.latitude !== undefined &&
-                point.longitude !== undefined
-            )
-            .map(
-              point => {
-
-                const coordinates =
-                  this.validateCoordinates(
-                    point.latitude,
-                    point.longitude
-                  );
-
-                return coordinates;
-
-              }
-            )
-
-        : [];
-
-
-    // -------------------------------------------------------
-    // FINAL DATA
-    // -------------------------------------------------------
 
     const location = {
 
@@ -1126,72 +952,60 @@ class MapService {
       farmId:
         String(data.farmId),
 
-      latitude,
+      source:
+        "text",
 
-      longitude,
+      points: [],
 
-      points,
+      latitude:
+        null,
 
-      source: mode,
+      longitude:
+        null,
+
+      area:
+        null,
+
+      perimeter:
+        null,
+
+      country,
+
+      region,
+
+      city,
+
+      town,
+
+      village:
+        town,
+
+      placeName:
+        town ||
+        city,
+
+      locationDescription,
+
+      northNeighbor,
+
+      southNeighbor,
+
+      eastNeighbor,
+
+      westNeighbor,
+
+      notes:
+        String(
+          data.notes || ""
+        ).trim(),
 
       type:
         data.type ||
-        "farm",
+        "field",
 
       status:
         data.status ||
         "active",
-
-      country:
-        data.country?.trim() ||
-        "",
-
-      region:
-        data.region?.trim() ||
-        "",
-
-      village:
-        data.village?.trim() ||
-        "",
-
-      placeName:
-        data.placeName?.trim() ||
-        "",
-
-      locationDescription:
-        data.locationDescription?.trim() ||
-        "",
-
-      notes:
-        data.notes?.trim() ||
-        "",
-
-      area:
-        data.area !== null &&
-        data.area !== undefined &&
-        data.area !== ""
-
-          ? Number(data.area)
-
-          : null,
-
-      perimeter:
-        data.perimeter !== null &&
-        data.perimeter !== undefined &&
-        data.perimeter !== ""
-
-          ? Number(data.perimeter)
-
-          : null,
-
-      boundaryWidth:
-        data.boundaryWidth !== null &&
-        data.boundaryWidth !== undefined &&
-        data.boundaryWidth !== ""
-
-          ? Number(data.boundaryWidth)
-
-          : null,
 
       createdAt:
         data.createdAt ||
@@ -1207,9 +1021,9 @@ class MapService {
   }
 
 
-  // =========================================================
+  // =======================================================
   // UPDATE
-  // =========================================================
+  // =======================================================
 
   async updateLocation(
     id,
@@ -1242,22 +1056,52 @@ class MapService {
     };
 
 
-    const hasLatitude =
-      updateData.latitude !== undefined;
+    if (
+      Array.isArray(
+        updateData.points
+      )
+    ) {
+
+      const points =
+        this.validatePoints(
+          updateData.points
+        );
 
 
-    const hasLongitude =
-      updateData.longitude !== undefined;
+      updateData.points =
+        points;
+
+
+      updateData.latitude =
+        points[0].latitude;
+
+
+      updateData.longitude =
+        points[0].longitude;
+
+
+      updateData.area =
+        this.calculateArea(
+          points
+        );
+
+
+      updateData.perimeter =
+        this.calculatePerimeter(
+          points
+        );
+
+    }
 
 
     if (
-      hasLatitude ||
-      hasLongitude
+      updateData.latitude !== undefined ||
+      updateData.longitude !== undefined
     ) {
 
       if (
-        !hasLatitude ||
-        !hasLongitude
+        updateData.latitude === undefined ||
+        updateData.longitude === undefined
       ) {
 
         throw new Error(
@@ -1284,22 +1128,40 @@ class MapService {
     }
 
 
-    if (
-      Array.isArray(
-        updateData.points
-      )
-    ) {
+    const textFields = [
 
-      updateData.points =
-        updateData.points.map(
-          point =>
-            this.validateCoordinates(
-              point.latitude,
-              point.longitude
-            )
-        );
+      "country",
+      "region",
+      "city",
+      "town",
+      "village",
+      "placeName",
+      "locationDescription",
+      "northNeighbor",
+      "southNeighbor",
+      "eastNeighbor",
+      "westNeighbor",
+      "notes",
 
-    }
+    ];
+
+
+    textFields.forEach(
+      field => {
+
+        if (
+          updateData[field] !== undefined
+        ) {
+
+          updateData[field] =
+            String(
+              updateData[field] || ""
+            ).trim();
+
+        }
+
+      }
+    );
 
 
     return mapRepository.update(
@@ -1310,11 +1172,13 @@ class MapService {
   }
 
 
-  // =========================================================
+  // =======================================================
   // DELETE
-  // =========================================================
+  // =======================================================
 
-  async deleteLocation(id) {
+  async deleteLocation(
+    id
+  ) {
 
     if (!id) {
 
@@ -1324,25 +1188,74 @@ class MapService {
 
     }
 
-    return mapRepository.delete(id);
+
+    return mapRepository.delete(
+      id
+    );
 
   }
 
 
-  // =========================================================
+  // =======================================================
+  // GET
+  // =======================================================
+
+  async getAllLocations() {
+
+    return mapRepository.getAll();
+
+  }
+
+
+  async getLocationById(
+    id
+  ) {
+
+    if (!id) {
+
+      throw new Error(
+        "MAP_ID_REQUIRED"
+      );
+
+    }
+
+
+    return mapRepository.getById(
+      id
+    );
+
+  }
+
+
+  async getLocationsByFarmId(
+    farmId
+  ) {
+
+    return mapRepository.getByFarmId(
+      farmId
+    );
+
+  }
+
+
+  // =======================================================
   // EXISTS
-  // =========================================================
+  // =======================================================
 
-  async locationExists(id) {
+  async locationExists(
+    id
+  ) {
 
-    return mapRepository.exists(id);
+    return mapRepository.exists(
+      id
+    );
 
   }
 
 
-  // =========================================================
+  // =======================================================
   // COUNT
-  // =========================================================
+  // =======================================================
 
   async countLocations() {
 
