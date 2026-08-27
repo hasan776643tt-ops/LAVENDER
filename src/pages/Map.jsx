@@ -3,7 +3,6 @@
 import {
   useEffect,
   useMemo,
-  useRef,
   useState,
 } from "react";
 
@@ -34,7 +33,7 @@ import {
 
 
 // =========================================================
-// Default Map Position
+// DEFAULT POSITION
 // =========================================================
 
 const DEFAULT_POSITION = [
@@ -44,16 +43,14 @@ const DEFAULT_POSITION = [
 
 
 // =========================================================
-// GPS Zoom
-//
-// 18 = detailed streets / buildings / place labels
+// GPS ZOOM
 // =========================================================
 
 const GPS_ZOOM = 18;
 
 
 // =========================================================
-// Marker
+// MARKER
 // =========================================================
 
 const locationIcon =
@@ -65,32 +62,32 @@ const locationIcon =
     html: `
       <div
         style="
-          width: 26px;
-          height: 26px;
+          width: 28px;
+          height: 28px;
           background: #d32f2f;
-          border: 4px solid white;
+          border: 4px solid #ffffff;
           border-radius: 50%;
           box-shadow:
-            0 2px 10px rgba(0,0,0,0.45);
+            0 2px 12px rgba(0,0,0,0.50);
         "
       ></div>
     `,
 
     iconSize: [
-      26,
-      26,
+      28,
+      28,
     ],
 
     iconAnchor: [
-      13,
-      13,
+      14,
+      14,
     ],
 
   });
 
 
 // =========================================================
-// Manual Map Selector
+// MANUAL LOCATION SELECTOR
 // =========================================================
 
 function ManualLocationSelector({
@@ -126,10 +123,10 @@ function ManualLocationSelector({
 
 
 // =========================================================
-// Map View Controller
+// MAP CONTROLLER
 // =========================================================
 
-function MapViewController({
+function MapController({
   latitude,
   longitude,
   fullscreen,
@@ -139,9 +136,9 @@ function MapViewController({
     useMap();
 
 
-  // ---------------------------------------------------------
-  // Move to GPS position
-  // ---------------------------------------------------------
+  // =======================================================
+  // MOVE TO GPS LOCATION
+  // =======================================================
 
   useEffect(() => {
 
@@ -194,24 +191,25 @@ function MapViewController({
   ]);
 
 
-  // ---------------------------------------------------------
-  // Leaflet needs invalidateSize after fullscreen
-  // ---------------------------------------------------------
+  // =======================================================
+  // FIX LEAFLET SIZE AFTER FULLSCREEN
+  // =======================================================
 
   useEffect(() => {
 
     const timer =
       setTimeout(() => {
 
-        map.invalidateSize({
-          animate: true,
-        });
+        map.invalidateSize();
 
-      }, 250);
+      }, 300);
 
 
-    return () =>
+    return () => {
+
       clearTimeout(timer);
+
+    };
 
   }, [
     map,
@@ -225,18 +223,119 @@ function MapViewController({
 
 
 // =========================================================
-// Map Search / Status Overlay
+// RECENTER BUTTON
 // =========================================================
 
-function MapStatusOverlay({
+function RecenterButton({
+  latitude,
+  longitude,
+  t,
+}) {
+
+  const map =
+    useMap();
+
+
+  const recenter =
+    () => {
+
+      const lat =
+        Number(latitude);
+
+      const lng =
+        Number(longitude);
+
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+
+        return;
+
+      }
+
+
+      map.setView(
+        [
+          lat,
+          lng,
+        ],
+        GPS_ZOOM,
+        {
+          animate: true,
+        }
+      );
+
+    };
+
+
+  if (
+    latitude === "" ||
+    longitude === ""
+  ) {
+
+    return null;
+
+  }
+
+
+  return (
+
+    <button
+      type="button"
+      onClick={recenter}
+      style={{
+        position: "absolute",
+        right: "12px",
+        bottom: "72px",
+        zIndex: 1000,
+
+        width: "52px",
+        height: "52px",
+
+        border: "none",
+        borderRadius: "50%",
+
+        background:
+          "rgba(255,255,255,0.96)",
+
+        boxShadow:
+          "0 3px 14px rgba(0,0,0,0.35)",
+
+        fontSize: "24px",
+
+        cursor: "pointer",
+      }}
+
+      aria-label={
+        t("locationDetected")
+      }
+
+    >
+
+      📍
+
+    </button>
+
+  );
+
+}
+
+
+// =========================================================
+// FULLSCREEN STATUS
+// =========================================================
+
+function MapStatus({
   loading,
-  locationMode,
   latitude,
   longitude,
   accuracy,
   village,
   region,
   placeName,
+  locationMode,
   onClose,
   t,
 }) {
@@ -245,42 +344,67 @@ function MapStatusOverlay({
 
     <>
 
-      {/* ===================================================
-          Top Status
-      ==================================================== */}
+      {/* =================================================
+          TOP PANEL
+      ================================================= */}
 
       <div
         style={{
           position: "absolute",
+
           top: "12px",
           left: "12px",
           right: "12px",
+
           zIndex: 1000,
+
           display: "flex",
-          justifyContent: "space-between",
-          alignItems: "flex-start",
+
+          justifyContent:
+            "space-between",
+
+          alignItems:
+            "flex-start",
+
           gap: "8px",
-          pointerEvents: "none",
+
+          pointerEvents:
+            "none",
         }}
       >
 
-        {/* -------------------------------------------------
-            Location information
-        -------------------------------------------------- */}
+        {/* =================================================
+            LOCATION INFORMATION
+        ================================================= */}
 
         <div
           style={{
             background:
-              "rgba(255,255,255,0.94)",
+              "rgba(255,255,255,0.96)",
+
             backdropFilter:
-              "blur(8px)",
-            borderRadius: "14px",
-            padding: "10px 12px",
+              "blur(10px)",
+
+            borderRadius:
+              "16px",
+
+            padding:
+              "11px 14px",
+
             boxShadow:
-              "0 3px 14px rgba(0,0,0,0.25)",
-            maxWidth: "75%",
-            direction: "rtl",
-            pointerEvents: "auto",
+              "0 3px 16px rgba(0,0,0,0.28)",
+
+            maxWidth:
+              "78%",
+
+            direction:
+              "rtl",
+
+            pointerEvents:
+              "auto",
+
+            lineHeight:
+              "1.7",
           }}
         >
 
@@ -288,7 +412,8 @@ function MapStatusOverlay({
 
             <div
               style={{
-                fontWeight: "700",
+                fontWeight:
+                  "700",
               }}
             >
 
@@ -297,50 +422,76 @@ function MapStatusOverlay({
 
             </div>
 
-          ) : latitude &&
-            longitude ? (
+          ) : (
 
             <>
 
               <div
                 style={{
-                  fontWeight: "700",
-                  marginBottom: "4px",
+                  fontWeight:
+                    "800",
                 }}
               >
 
                 📍{" "}
-                {t("locationDetected")}
+                {t(
+                  "locationDetected"
+                )}
 
               </div>
 
 
+              {/* =========================================
+                  PLACE
+              ========================================== */}
+
               {placeName && (
 
                 <div>
-                  📌 {placeName}
+
+                  📌{" "}
+                  {placeName}
+
                 </div>
 
               )}
 
+
+              {/* =========================================
+                  VILLAGE
+              ========================================== */}
 
               {village && (
 
                 <div>
-                  🏘️ {village}
+
+                  🏘️{" "}
+                  {village}
+
                 </div>
 
               )}
 
+
+              {/* =========================================
+                  REGION
+              ========================================== */}
 
               {region && (
 
                 <div>
-                  📍 {region}
+
+                  📍{" "}
+                  {region}
+
                 </div>
 
               )}
 
+
+              {/* =========================================
+                  ACCURACY
+              ========================================== */}
 
               {accuracy !== "" &&
               accuracy !== null &&
@@ -348,13 +499,17 @@ function MapStatusOverlay({
 
                 <div
                   style={{
-                    fontSize: "12px",
-                    opacity: 0.75,
-                    marginTop: "3px",
+                    fontSize:
+                      "12px",
+
+                    opacity:
+                      "0.75",
                   }}
                 >
 
-                  🎯 {accuracy} {t("meters")}
+                  🎯{" "}
+                  {accuracy}{" "}
+                  {t("meters")}
 
                 </div>
 
@@ -362,38 +517,50 @@ function MapStatusOverlay({
 
             </>
 
-          ) : (
-
-            <div>
-              🗺️ {t("title")}
-            </div>
-
           )}
 
         </div>
 
 
-        {/* -------------------------------------------------
-            Close fullscreen
-        -------------------------------------------------- */}
+        {/* =================================================
+            CLOSE
+        ================================================= */}
 
         <button
           type="button"
-          onClick={onClose}
+
+          onClick={
+            onClose
+          }
+
           style={{
-            pointerEvents: "auto",
-            border: "none",
-            width: "44px",
-            height: "44px",
-            borderRadius: "50%",
+            pointerEvents:
+              "auto",
+
+            border:
+              "none",
+
+            width:
+              "46px",
+
+            height:
+              "46px",
+
+            borderRadius:
+              "50%",
+
             background:
-              "rgba(255,255,255,0.95)",
+              "rgba(255,255,255,0.96)",
+
             boxShadow:
-              "0 3px 12px rgba(0,0,0,0.3)",
-            fontSize: "22px",
-            cursor: "pointer",
+              "0 3px 14px rgba(0,0,0,0.3)",
+
+            fontSize:
+              "22px",
+
+            cursor:
+              "pointer",
           }}
-          aria-label="Close map"
         >
 
           ✕
@@ -403,37 +570,67 @@ function MapStatusOverlay({
       </div>
 
 
-      {/* ===================================================
-          Coordinates bottom
-      ==================================================== */}
+      {/* =================================================
+          COORDINATES
+      ================================================= */}
 
       {latitude &&
       longitude && (
 
         <div
           style={{
-            position: "absolute",
-            bottom: "12px",
-            left: "12px",
-            right: "12px",
-            zIndex: 1000,
+            position:
+              "absolute",
+
+            bottom:
+              "12px",
+
+            left:
+              "12px",
+
+            right:
+              "12px",
+
+            zIndex:
+              1000,
+
             background:
-              "rgba(255,255,255,0.94)",
+              "rgba(255,255,255,0.95)",
+
             backdropFilter:
               "blur(8px)",
-            borderRadius: "12px",
-            padding: "8px 12px",
-            fontSize: "12px",
-            direction: "ltr",
-            textAlign: "center",
+
+            borderRadius:
+              "13px",
+
+            padding:
+              "8px 12px",
+
+            fontSize:
+              "12px",
+
+            direction:
+              "ltr",
+
+            textAlign:
+              "center",
+
             boxShadow:
               "0 3px 12px rgba(0,0,0,0.25)",
           }}
         >
 
-          📍 {Number(latitude).toFixed(6)}
+          📍{" "}
+
+          {Number(
+            latitude
+          ).toFixed(6)}
+
           {" , "}
-          {Number(longitude).toFixed(6)}
+
+          {Number(
+            longitude
+          ).toFixed(6)}
 
         </div>
 
@@ -447,7 +644,53 @@ function MapStatusOverlay({
 
 
 // =========================================================
-// Page
+// MAP LAYERS
+// =========================================================
+
+function MapLayers() {
+
+  return (
+
+    <>
+
+      {/* =================================================
+          ESRI WORLD STREET MAP
+          
+          Roads
+          Villages
+          Cities
+          Buildings
+          Landmarks
+          Administrative boundaries
+      ================================================== */}
+
+      <TileLayer
+
+        attribution="
+          Sources: Esri, TomTom, Garmin, FAO, NOAA,
+          USGS, © OpenStreetMap contributors,
+          GIS User Community
+        "
+
+        url="
+          https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}
+        "
+
+        maxZoom={
+          19
+        }
+
+      />
+
+    </>
+
+  );
+
+}
+
+
+// =========================================================
+// PAGE
 // =========================================================
 
 export default function Map() {
@@ -501,26 +744,29 @@ export default function Map() {
 
 
   // =========================================================
-  // Language
+  // LANGUAGE
   // =========================================================
 
   const language =
-    settings?.language || "ar";
+    settings?.language ||
+    "ar";
 
 
   // =========================================================
-  // Translation
+  // TRANSLATION
   // =========================================================
 
-  const t = (key) =>
-    translate(
-      `map.${key}`,
-      language
-    );
+  const t =
+    (key) =>
+
+      translate(
+        `map.${key}`,
+        language
+      );
 
 
   // =========================================================
-  // Fullscreen Map
+  // FULLSCREEN
   // =========================================================
 
   const [
@@ -530,45 +776,28 @@ export default function Map() {
 
 
   // =========================================================
-  // Map container reference
-  // =========================================================
-
-  const mapWrapperRef =
-    useRef(null);
-
-
-  // =========================================================
-  // Current Position
+  // CURRENT MAP POSITION
   // =========================================================
 
   const mapPosition =
     useMemo(() => {
 
+      const lat =
+        Number(latitude);
+
+      const lng =
+        Number(longitude);
+
+
       if (
-        latitude !== "" &&
-        latitude !== null &&
-        longitude !== "" &&
-        longitude !== null
+        Number.isFinite(lat) &&
+        Number.isFinite(lng)
       ) {
 
-        const lat =
-          Number(latitude);
-
-        const lng =
-          Number(longitude);
-
-
-        if (
-          Number.isFinite(lat) &&
-          Number.isFinite(lng)
-        ) {
-
-          return [
-            lat,
-            lng,
-          ];
-
-        }
+        return [
+          lat,
+          lng,
+        ];
 
       }
 
@@ -582,39 +811,43 @@ export default function Map() {
 
 
   // =========================================================
-  // Open fullscreen map
+  // OPEN FULLSCREEN
   // =========================================================
 
-  const openFullscreenMap = () => {
+  const openFullscreenMap =
+    () => {
 
-    setFullscreen(true);
+      setFullscreen(
+        true
+      );
 
-  };
+    };
 
 
   // =========================================================
-  // Close fullscreen map
+  // CLOSE FULLSCREEN
   // =========================================================
 
-  const closeFullscreenMap = () => {
+  const closeFullscreenMap =
+    () => {
 
-    setFullscreen(false);
+      setFullscreen(
+        false
+      );
 
-  };
+    };
 
 
   // =========================================================
   // GPS
-  //
-  // IMPORTANT:
-  //
-  // First open the large map.
-  // Then start GPS.
-  // Browser/phone permission dialog can appear.
   // =========================================================
 
   const handleGPS =
     async () => {
+
+      // -----------------------------------------------
+      // Open map FIRST
+      // -----------------------------------------------
 
       openFullscreenMap();
 
@@ -624,94 +857,92 @@ export default function Map() {
       );
 
 
+      // -----------------------------------------------
+      // Start phone GPS
+      // -----------------------------------------------
+
       await getCurrentLocation();
 
     };
 
 
   // =========================================================
-  // Manual Location
+  // MANUAL
   // =========================================================
 
-  const handleManualLocation = (
-    lat,
-    lng
-  ) => {
-
-    selectManualLocation(
+  const handleManualLocation =
+    (
       lat,
       lng
-    );
+    ) => {
 
-  };
+      selectManualLocation(
+        lat,
+        lng
+      );
 
-
-  // =========================================================
-  // Fullscreen style
-  // =========================================================
-
-  const mapWrapperStyle = fullscreen
-
-    ? {
-
-        position:
-          "fixed",
-
-        inset:
-          "0",
-
-        width:
-          "100vw",
-
-        height:
-          "100vh",
-
-        zIndex:
-          9999,
-
-        background:
-          "#ffffff",
-
-      }
-
-    : {
-
-        position:
-          "relative",
-
-        width:
-          "100%",
-
-        height:
-          "480px",
-
-        borderRadius:
-          "14px",
-
-        overflow:
-          "hidden",
-
-        marginTop:
-          "10px",
-
-      };
+    };
 
 
   // =========================================================
-  // Render
+  // MAP STYLE
+  // =========================================================
+
+  const mapStyle =
+    fullscreen
+
+      ? {
+
+          position:
+            "fixed",
+
+          inset:
+            "0",
+
+          width:
+            "100vw",
+
+          height:
+            "100vh",
+
+          zIndex:
+            9999,
+
+          background:
+            "#ffffff",
+
+        }
+
+      : {
+
+          position:
+            "relative",
+
+          width:
+            "100%",
+
+          height:
+            "480px",
+
+          borderRadius:
+            "14px",
+
+          overflow:
+            "hidden",
+
+          marginTop:
+            "10px",
+
+        };
+
+
+  // =========================================================
+  // RENDER
   // =========================================================
 
   return (
 
-    <div
-      ref={mapWrapperRef}
-      style={{
-        minHeight:
-          fullscreen
-            ? "100vh"
-            : undefined,
-      }}
-    >
+    <div>
 
       {/* =====================================================
           NORMAL PAGE
@@ -722,7 +953,8 @@ export default function Map() {
         <>
 
           <h1>
-            📍 {t("title")}
+            📍{" "}
+            {t("title")}
           </h1>
 
 
@@ -733,13 +965,14 @@ export default function Map() {
           >
 
             {/* =================================================
-                Farm
+                FARM
             ================================================== */}
 
             <select
               value={
                 farmId || ""
               }
+
               onChange={(event) =>
                 setFarmId(
                   event.target.value
@@ -756,8 +989,13 @@ export default function Map() {
                 (farm) => (
 
                   <option
-                    key={farm.id}
-                    value={farm.id}
+                    key={
+                      farm.id
+                    }
+
+                    value={
+                      farm.id
+                    }
                   >
 
                     {farm.name}
@@ -775,7 +1013,7 @@ export default function Map() {
 
 
             {/* =================================================
-                Location Type
+                TYPE
             ================================================== */}
 
             <select
@@ -783,6 +1021,7 @@ export default function Map() {
                 locationType ||
                 "farm"
               }
+
               onChange={(event) =>
                 setLocationType(
                   event.target.value
@@ -810,7 +1049,7 @@ export default function Map() {
 
 
             {/* =================================================
-                GPS
+                GPS BUTTON
             ================================================== */}
 
             <Button
@@ -820,7 +1059,8 @@ export default function Map() {
             >
 
               {loading &&
-              locationMode === "gps"
+              locationMode ===
+                "gps"
 
                 ? `⏳ ${t("locating")}`
 
@@ -834,7 +1074,7 @@ export default function Map() {
 
 
             {/* =================================================
-                Manual
+                MANUAL
             ================================================== */}
 
             <Button
@@ -849,18 +1089,25 @@ export default function Map() {
               }}
             >
 
-              🗺️ {t("manualLocation")}
+              🗺️{" "}
+              {t(
+                "manualLocation"
+              )}
 
             </Button>
 
 
+            <br />
+            <br />
+
+
             {/* =================================================
-                Map
+                SMALL MAP
             ================================================== */}
 
             <div
               style={
-                mapWrapperStyle
+                mapStyle
               }
             >
 
@@ -895,32 +1142,8 @@ export default function Map() {
 
               >
 
-                {/* =================================================
-                    OpenStreetMap
-                    =
-                    roads + villages + buildings + names
-                ================================================== */}
+                <MapLayers />
 
-                <TileLayer
-
-                  attribution="
-                    &copy; OpenStreetMap contributors
-                  "
-
-                  url="
-                    https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
-                  "
-
-                  maxZoom={
-                    19
-                  }
-
-                />
-
-
-                {/* =================================================
-                    Manual selector
-                ================================================== */}
 
                 <ManualLocationSelector
 
@@ -936,11 +1159,7 @@ export default function Map() {
                 />
 
 
-                {/* =================================================
-                    Map controller
-                ================================================== */}
-
-                <MapViewController
+                <MapController
 
                   latitude={
                     latitude
@@ -957,18 +1176,19 @@ export default function Map() {
                 />
 
 
-                {/* =================================================
-                    GPS marker
-                ================================================== */}
-
                 {latitude !== "" &&
                 longitude !== "" && (
 
                   <Marker
 
                     position={[
-                      Number(latitude),
-                      Number(longitude),
+                      Number(
+                        latitude
+                      ),
+
+                      Number(
+                        longitude
+                      ),
                     ]}
 
                     icon={
@@ -981,120 +1201,57 @@ export default function Map() {
 
               </MapContainer>
 
-
-              {/* =================================================
-                  Fullscreen overlay
-              ================================================== */}
-
-              {fullscreen && (
-
-                <MapStatusOverlay
-
-                  loading={
-                    loading
-                  }
-
-                  locationMode={
-                    locationMode
-                  }
-
-                  latitude={
-                    latitude
-                  }
-
-                  longitude={
-                    longitude
-                  }
-
-                  accuracy={
-                    accuracy
-                  }
-
-                  village={
-                    village
-                  }
-
-                  region={
-                    region
-                  }
-
-                  placeName={
-                    placeName
-                  }
-
-                  onClose={
-                    closeFullscreenMap
-                  }
-
-                  t={
-                    t
-                  }
-
-                />
-
-              )}
-
             </div>
 
 
             {/* =================================================
-                Manual instruction
+                LOCATION INFORMATION
             ================================================== */}
 
-            {!fullscreen &&
-            locationMode ===
-              "manual" && (
-
-              <p>
-
-                👆{" "}
-                {t(
-                  "manualLocationInstruction"
-                )}
-
-              </p>
-
-            )}
-
-
-            {/* =================================================
-                Location Information
-            ================================================== */}
-
-            {!fullscreen &&
-            latitude &&
+            {latitude &&
             longitude && (
 
-              <div>
+              <div
+                style={{
+                  marginTop:
+                    "12px",
 
-                <p>
+                  padding:
+                    "12px",
+
+                  borderRadius:
+                    "12px",
+
+                  background:
+                    "#f5f5f5",
+
+                  direction:
+                    "rtl",
+                }}
+              >
+
+                <strong>
                   📍{" "}
                   {t(
                     "locationDetected"
                   )}
-                </p>
+                </strong>
 
 
-                <p>
-                  {t("latitude")}:
-                  {" "}
-                  {latitude}
-                </p>
+                {placeName && (
 
+                  <p>
+                    📌{" "}
+                    {placeName}
+                  </p>
 
-                <p>
-                  {t("longitude")}:
-                  {" "}
-                  {longitude}
-                </p>
+                )}
 
 
                 {village && (
 
                   <p>
                     🏘️{" "}
-                    {t("village")}:
-                    {" "}
                     {village}
                   </p>
 
@@ -1105,36 +1262,38 @@ export default function Map() {
 
                   <p>
                     📍{" "}
-                    {t("region")}:
-                    {" "}
                     {region}
                   </p>
 
                 )}
 
 
-                {placeName && (
+                <p
+                  style={{
+                    direction:
+                      "ltr",
+                  }}
+                >
 
-                  <p>
-                    📌{" "}
-                    {t("placeName")}:
-                    {" "}
-                    {placeName}
-                  </p>
+                  {Number(
+                    latitude
+                  ).toFixed(6)}
 
-                )}
+                  {" , "}
+
+                  {Number(
+                    longitude
+                  ).toFixed(6)}
+
+                </p>
 
 
-                {locationMode ===
-                  "gps" && (
+                {accuracy !== "" && (
 
                   <p>
 
                     🎯{" "}
-                    {t("accuracy")}:
-                    {" "}
-                    {accuracy}
-                    {" "}
+                    {accuracy}{" "}
                     {t("meters")}
 
                   </p>
@@ -1147,8 +1306,6 @@ export default function Map() {
                   <p>
 
                     🕒{" "}
-                    {t("locationTime")}:
-                    {" "}
                     {locationTime}
 
                   </p>
@@ -1164,24 +1321,39 @@ export default function Map() {
 
 
             {/* =================================================
-                Address fields
+                VILLAGE
             ================================================== */}
 
             <input
               type="text"
+
               value={
                 village || ""
               }
+
               onChange={(event) =>
                 setVillage(
                   event.target.value
                 )
               }
+
               placeholder={
                 t(
                   "villagePlaceholder"
                 )
               }
+
+              style={{
+                width:
+                  "100%",
+
+                boxSizing:
+                  "border-box",
+
+                padding:
+                  "10px",
+              }}
+
             />
 
 
@@ -1189,21 +1361,40 @@ export default function Map() {
             <br />
 
 
+            {/* =================================================
+                REGION
+            ================================================== */}
+
             <input
               type="text"
+
               value={
                 region || ""
               }
+
               onChange={(event) =>
                 setRegion(
                   event.target.value
                 )
               }
+
               placeholder={
                 t(
                   "regionPlaceholder"
                 )
               }
+
+              style={{
+                width:
+                  "100%",
+
+                boxSizing:
+                  "border-box",
+
+                padding:
+                  "10px",
+              }}
+
             />
 
 
@@ -1211,21 +1402,40 @@ export default function Map() {
             <br />
 
 
+            {/* =================================================
+                PLACE
+            ================================================== */}
+
             <input
               type="text"
+
               value={
                 placeName || ""
               }
+
               onChange={(event) =>
                 setPlaceName(
                   event.target.value
                 )
               }
+
               placeholder={
                 t(
                   "placeNamePlaceholder"
                 )
               }
+
+              style={{
+                width:
+                  "100%",
+
+                boxSizing:
+                  "border-box",
+
+                padding:
+                  "10px",
+              }}
+
             />
 
 
@@ -1234,33 +1444,47 @@ export default function Map() {
 
 
             {/* =================================================
-                Notes
+                NOTES
             ================================================== */}
 
             <textarea
+
               value={
                 notes || ""
               }
+
               onChange={(event) =>
                 setNotes(
                   event.target.value
                 )
               }
+
               placeholder={
                 t(
                   "notesPlaceholder"
                 )
               }
+
+              style={{
+                width:
+                  "100%",
+
+                minHeight:
+                  "90px",
+
+                boxSizing:
+                  "border-box",
+
+                padding:
+                  "10px",
+              }}
+
             />
 
 
             <br />
             <br />
 
-
-            {/* =================================================
-                Save
-            ================================================== */}
 
             <Button
               onClick={
@@ -1268,7 +1492,8 @@ export default function Map() {
               }
             >
 
-              💾 {t("save")}
+              💾{" "}
+              {t("save")}
 
             </Button>
 
@@ -1276,19 +1501,23 @@ export default function Map() {
 
 
           {/* ===================================================
-              Saved Locations
+              SAVED LOCATIONS
           ==================================================== */}
 
           <h2>
             🗺️{" "}
-            {t("savedLocations")}
+            {t(
+              "savedLocations"
+            )}
           </h2>
 
 
           {locations.length === 0 ? (
 
             <p>
-              {t("noLocations")}
+              {t(
+                "noLocations"
+              )}
             </p>
 
           ) : (
@@ -1397,12 +1626,16 @@ export default function Map() {
                   </p>
 
 
-                  <p>
-                    📝{" "}
-                    {t("notes")}:
-                    {" "}
-                    {item.notes || "-"}
-                  </p>
+                  {item.notes && (
+
+                    <p>
+                      📝{" "}
+                      {t("notes")}:
+                      {" "}
+                      {item.notes}
+                    </p>
+
+                  )}
 
 
                   {item.latitude !==
@@ -1411,7 +1644,6 @@ export default function Map() {
                     undefined && (
 
                     <a
-
                       href={
                         `https://maps.google.com/?q=` +
                         `${item.latitude},${item.longitude}`
@@ -1420,7 +1652,6 @@ export default function Map() {
                       target="_blank"
 
                       rel="noreferrer"
-
                     >
 
                       🗺️{" "}
@@ -1452,6 +1683,7 @@ export default function Map() {
                 </Card>
 
               )
+
             )
 
           )}
@@ -1475,156 +1707,81 @@ export default function Map() {
             inset:
               "0",
 
+            width:
+              "100vw",
+
+            height:
+              "100vh",
+
             zIndex:
-              9998,
+              9999,
 
             background:
               "#ffffff",
           }}
         >
 
-          <div
+          <MapContainer
+
+            center={
+              mapPosition
+            }
+
+            zoom={
+              latitude &&
+              longitude
+                ? GPS_ZOOM
+                : 15
+            }
+
+            scrollWheelZoom={
+              true
+            }
+
+            zoomControl={
+              true
+            }
+
             style={{
               width:
                 "100%",
 
               height:
                 "100%",
-
-              position:
-                "relative",
             }}
+
           >
 
-            <MapContainer
+            {/* =================================================
+                DETAILED STREET MAP
+            ================================================== */}
 
-              center={
-                mapPosition
-              }
-
-              zoom={
-                latitude &&
-                longitude
-                  ? GPS_ZOOM
-                  : 15
-              }
-
-              scrollWheelZoom={
-                true
-              }
-
-              zoomControl={
-                true
-              }
-
-              style={{
-                width:
-                  "100%",
-
-                height:
-                  "100%",
-              }}
-
-            >
-
-              {/* =================================================
-                  OpenStreetMap
-              ================================================== */}
-
-              <TileLayer
-
-                attribution="
-                  &copy; OpenStreetMap contributors
-                "
-
-                url="
-                  https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png
-                "
-
-                maxZoom={
-                  19
-                }
-
-              />
-
-
-              {/* =================================================
-                  Manual selector
-              ================================================== */}
-
-              <ManualLocationSelector
-
-                enabled={
-                  locationMode ===
-                  "manual"
-                }
-
-                onSelect={
-                  handleManualLocation
-                }
-
-              />
-
-
-              {/* =================================================
-                  Map controller
-              ================================================== */}
-
-              <MapViewController
-
-                latitude={
-                  latitude
-                }
-
-                longitude={
-                  longitude
-                }
-
-                fullscreen={
-                  fullscreen
-                }
-
-              />
-
-
-              {/* =================================================
-                  Marker
-              ================================================== */}
-
-              {latitude !== "" &&
-              longitude !== "" && (
-
-                <Marker
-
-                  position={[
-                    Number(latitude),
-                    Number(longitude),
-                  ]}
-
-                  icon={
-                    locationIcon
-                  }
-
-                />
-
-              )}
-
-            </MapContainer>
+            <MapLayers />
 
 
             {/* =================================================
-                Information overlay
+                MANUAL SELECTOR
             ================================================== */}
 
-            <MapStatusOverlay
+            <ManualLocationSelector
 
-              loading={
-                loading
+              enabled={
+                locationMode ===
+                "manual"
               }
 
-              locationMode={
-                locationMode
+              onSelect={
+                handleManualLocation
               }
+
+            />
+
+
+            {/* =================================================
+                CONTROLLER
+            ================================================== */}
+
+            <MapController
 
               latitude={
                 latitude
@@ -1634,24 +1791,53 @@ export default function Map() {
                 longitude
               }
 
-              accuracy={
-                accuracy
+              fullscreen={
+                fullscreen
               }
 
-              village={
-                village
+            />
+
+
+            {/* =================================================
+                MARKER
+            ================================================== */}
+
+            {latitude !== "" &&
+            longitude !== "" && (
+
+              <Marker
+
+                position={[
+                  Number(
+                    latitude
+                  ),
+
+                  Number(
+                    longitude
+                  ),
+                ]}
+
+                icon={
+                  locationIcon
+                }
+
+              />
+
+            )}
+
+
+            {/* =================================================
+                RECENTER
+            ================================================== */}
+
+            <RecenterButton
+
+              latitude={
+                latitude
               }
 
-              region={
-                region
-              }
-
-              placeName={
-                placeName
-              }
-
-              onClose={
-                closeFullscreenMap
+              longitude={
+                longitude
               }
 
               t={
@@ -1660,67 +1846,116 @@ export default function Map() {
 
             />
 
+          </MapContainer>
 
-            {/* =================================================
-                Manual instruction
-            ================================================== */}
 
-            {locationMode ===
-              "manual" && (
+          {/* =================================================
+              STATUS
+          ================================================== */}
 
-              <div
-                style={{
-                  position:
-                    "absolute",
+          <MapStatus
 
-                  bottom:
-                    "58px",
+            loading={
+              loading
+            }
 
-                  left:
-                    "50%",
+            latitude={
+              latitude
+            }
 
-                  transform:
-                    "translateX(-50%)",
+            longitude={
+              longitude
+            }
 
-                  zIndex:
-                    1001,
+            accuracy={
+              accuracy
+            }
 
-                  background:
-                    "rgba(20,80,40,0.92)",
+            village={
+              village
+            }
 
-                  color:
-                    "white",
+            region={
+              region
+            }
 
-                  padding:
-                    "10px 16px",
+            placeName={
+              placeName
+            }
 
-                  borderRadius:
-                    "20px",
+            locationMode={
+              locationMode
+            }
 
-                  fontSize:
-                    "14px",
+            onClose={
+              closeFullscreenMap
+            }
 
-                  whiteSpace:
-                    "nowrap",
+            t={
+              t
+            }
 
-                  boxShadow:
-                    "0 3px 12px rgba(0,0,0,0.3)",
+          />
 
-                  direction:
-                    "rtl",
-                }}
-              >
 
-                👆{" "}
-                {t(
-                  "manualLocationInstruction"
-                )}
+          {/* =================================================
+              MANUAL MODE
+          ================================================== */}
 
-              </div>
+          {locationMode ===
+            "manual" && (
 
-            )}
+            <div
+              style={{
+                position:
+                  "absolute",
 
-          </div>
+                bottom:
+                  "62px",
+
+                left:
+                  "50%",
+
+                transform:
+                  "translateX(-50%)",
+
+                zIndex:
+                  1001,
+
+                background:
+                  "rgba(20,80,40,0.94)",
+
+                color:
+                  "#ffffff",
+
+                padding:
+                  "10px 18px",
+
+                borderRadius:
+                  "22px",
+
+                fontSize:
+                  "14px",
+
+                whiteSpace:
+                  "nowrap",
+
+                boxShadow:
+                  "0 3px 12px rgba(0,0,0,0.3)",
+
+                direction:
+                  "rtl",
+              }}
+            >
+
+              👆{" "}
+              {t(
+                "manualLocationInstruction"
+              )}
+
+            </div>
+
+          )}
 
         </div>
 
