@@ -10,42 +10,7 @@ import fieldService
   from "../services/fieldService.js";
 
 
-// =========================================================
-// LAVENDER — useFields
-//
-// مسؤول عن:
-// 1. تحميل الحقول
-// 2. إضافة حقل
-// 3. تعديل حقل
-// 4. حذف حقل
-// 5. البحث في الحقول
-// 6. إحصائيات الحقول
-//
-// Architecture:
-//
-// Fields.jsx
-//     ↓
-// useFields.js
-//     ↓
-// fieldService.js
-//     ↓
-// fieldRepository.js
-//
-// مهم:
-// هذا الـ Hook لا يصل مباشرة إلى:
-// DataModel
-// storageService
-// fieldRepository
-//
-// =========================================================
-
-
 export default function useFields() {
-
-
-  // =======================================================
-  // Fields
-  // =======================================================
 
   const [
     fields,
@@ -53,19 +18,11 @@ export default function useFields() {
   ] = useState([]);
 
 
-  // =======================================================
-  // Loading
-  // =======================================================
-
   const [
     loading,
     setLoading,
   ] = useState(false);
 
-
-  // =======================================================
-  // Error
-  // =======================================================
 
   const [
     error,
@@ -73,36 +30,25 @@ export default function useFields() {
   ] = useState(null);
 
 
-  // =======================================================
-  // Load Fields
-  // =======================================================
-
   const loadFields = useCallback(
     async () => {
 
       try {
 
         setLoading(true);
-
         setError(null);
-
 
         const data =
           await fieldService.getAll();
 
-
-        const fieldsData =
+        const result =
           Array.isArray(data)
             ? data
             : [];
 
+        setFields(result);
 
-        setFields(
-          fieldsData
-        );
-
-
-        return fieldsData;
+        return result;
 
       } catch (err) {
 
@@ -121,24 +67,16 @@ export default function useFields() {
   );
 
 
-  // =======================================================
-  // Get Field By ID
-  // =======================================================
-
   const getFieldById = useCallback(
     async (id) => {
 
+      if (!id) {
+        return null;
+      }
+
       try {
 
-        if (!id) {
-
-          return null;
-
-        }
-
-
         setError(null);
-
 
         return await fieldService.getById(
           id
@@ -157,37 +95,29 @@ export default function useFields() {
   );
 
 
-  // =======================================================
-  // Add Field
-  // =======================================================
-
   const addField = useCallback(
     async (data) => {
 
       try {
 
         setLoading(true);
-
         setError(null);
-
 
         const created =
           await fieldService.create(
             data
           );
 
-
         if (created) {
 
           setFields(
-            (currentFields) => [
-              ...currentFields,
+            (current) => [
+              ...current,
               created,
             ]
           );
 
         }
-
 
         return created;
 
@@ -208,10 +138,6 @@ export default function useFields() {
   );
 
 
-  // =======================================================
-  // Update Field
-  // =======================================================
-
   const updateField = useCallback(
     async (
       id,
@@ -221,9 +147,7 @@ export default function useFields() {
       try {
 
         setLoading(true);
-
         setError(null);
-
 
         const updated =
           await fieldService.update(
@@ -231,13 +155,11 @@ export default function useFields() {
             data
           );
 
-
         if (updated) {
 
           setFields(
-            (currentFields) =>
-
-              currentFields.map(
+            (current) =>
+              current.map(
                 (field) => {
 
                   const fieldId =
@@ -245,25 +167,18 @@ export default function useFields() {
                     field?._id ??
                     field?.fieldId;
 
-
-                  if (
+                  return (
                     String(fieldId) ===
                     String(id)
-                  ) {
-
-                    return updated;
-
-                  }
-
-
-                  return field;
+                  )
+                    ? updated
+                    : field;
 
                 }
               )
           );
 
         }
-
 
         return updated;
 
@@ -284,36 +199,25 @@ export default function useFields() {
   );
 
 
-  // =======================================================
-  // Delete Field
-  // =======================================================
-
   const deleteField = useCallback(
     async (id) => {
 
       try {
 
         setLoading(true);
-
         setError(null);
 
-
-        await fieldService.delete(
-          id
-        );
-
+        await fieldService.delete(id);
 
         setFields(
-          (currentFields) =>
-
-            currentFields.filter(
+          (current) =>
+            current.filter(
               (field) => {
 
                 const fieldId =
                   field?.id ??
                   field?._id ??
                   field?.fieldId;
-
 
                 return (
                   String(fieldId) !==
@@ -323,7 +227,6 @@ export default function useFields() {
               }
             )
         );
-
 
         return true;
 
@@ -344,10 +247,6 @@ export default function useFields() {
   );
 
 
-  // =======================================================
-  // Search Fields
-  // =======================================================
-
   const searchFields = useCallback(
     (
       items,
@@ -359,19 +258,14 @@ export default function useFields() {
           ? items
           : fields;
 
-
       const value =
         String(text)
-          .toLowerCase()
-          .trim();
-
+          .trim()
+          .toLowerCase();
 
       if (!value) {
-
         return source;
-
       }
-
 
       return source.filter(
         (field) => {
@@ -381,7 +275,6 @@ export default function useFields() {
             field?.fieldName ??
             field?.title ??
             "";
-
 
           return String(name)
             .toLowerCase()
@@ -395,148 +288,102 @@ export default function useFields() {
   );
 
 
-  // =======================================================
-  // Get Fields By Farm
-  // =======================================================
+  const getFieldsByFarm =
+    useCallback(
+      (
+        farmId,
+        items
+      ) => {
 
-  const getFieldsByFarm = useCallback(
-    (
-      farmId,
-      items = fields
-    ) => {
-
-      if (!farmId) {
-
-        return [];
-
-      }
-
-
-      const source =
-        Array.isArray(items)
-          ? items
-          : [];
-
-
-      return source.filter(
-        (field) => {
-
-          const fieldFarmId =
-            field?.farmId ??
-            field?.farm_id ??
-            field?.farm?.id ??
-            "";
-
-
-          return (
-            String(fieldFarmId) ===
-            String(farmId)
-          );
-
+        if (!farmId) {
+          return [];
         }
-      );
 
-    },
-    [fields]
-  );
+        const source =
+          Array.isArray(items)
+            ? items
+            : fields;
 
+        return source.filter(
+          (field) => {
 
-  // =======================================================
-  // Statistics
-  // =======================================================
+            const fieldFarmId =
+              field?.farmId ??
+              field?.farm_id ??
+              field?.farm?.id ??
+              "";
 
-  const getStatistics = useCallback(
-    (
-      items
-    ) => {
+            return (
+              String(fieldFarmId) ===
+              String(farmId)
+            );
 
-      const source =
-        Array.isArray(items)
-          ? items
-          : fields;
+          }
+        );
 
-
-      return {
-
-        total:
-          source.length,
-
-      };
-
-    },
-    [fields]
-  );
-
-
-  // =======================================================
-  // Current Statistics
-  // =======================================================
-
-  const statistics =
-    getStatistics(
-      fields
+      },
+      [fields]
     );
 
 
-  // =======================================================
-  // Initial Load
-  //
-  // يتم تحميل الحقول مرة واحدة عند تشغيل Hook.
-  // =======================================================
+  const getStatistics =
+    useCallback(
+      (items) => {
+
+        const source =
+          Array.isArray(items)
+            ? items
+            : fields;
+
+        return {
+          total: source.length,
+        };
+
+      },
+      [fields]
+    );
+
+
+  const statistics =
+    getStatistics(fields);
+
 
   useEffect(() => {
 
     let mounted = true;
 
 
-    const loadInitialFields =
+    const initialize =
       async () => {
 
         try {
 
           setLoading(true);
-
           setError(null);
-
 
           const data =
             await fieldService.getAll();
 
-
           if (!mounted) {
-
             return;
-
           }
 
-
-          const fieldsData =
+          setFields(
             Array.isArray(data)
               ? data
-              : [];
-
-
-          setFields(
-            fieldsData
+              : []
           );
 
         } catch (err) {
 
-          if (!mounted) {
-
-            return;
-
+          if (mounted) {
+            setError(err);
           }
-
-
-          setError(err);
 
         } finally {
 
           if (mounted) {
-
             setLoading(false);
-
           }
 
         }
@@ -544,7 +391,7 @@ export default function useFields() {
       };
 
 
-    loadInitialFields();
+    initialize();
 
 
     return () => {
@@ -556,34 +403,30 @@ export default function useFields() {
   }, []);
 
 
-  // =======================================================
-  // Return
-  // =======================================================
-
   return {
 
-    // البيانات
     fields,
 
-    // الحالة
     loading,
+
     error,
 
-    // العمليات الأساسية
     loadFields,
+
     getFieldById,
+
     addField,
+
     updateField,
+
     deleteField,
 
-    // البحث
     searchFields,
 
-    // الحقول حسب المزرعة
     getFieldsByFarm,
 
-    // الإحصائيات
     getStatistics,
+
     statistics,
 
   };
