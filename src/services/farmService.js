@@ -1,8 +1,16 @@
-import farmRepository from "../repositories/farmRepository.js";
+// src/services/farmService.js
+
+import farmRepository
+  from "../repositories/farmRepository.js";
 
 class FarmService {
   async getAll() {
-    return farmRepository.getAll();
+    const data =
+      await farmRepository.getAll();
+
+    return Array.isArray(data)
+      ? data
+      : [];
   }
 
   async getAllFarms() {
@@ -11,7 +19,9 @@ class FarmService {
 
   async getById(id) {
     if (!id) {
-      throw new Error("معرف المزرعة مطلوب");
+      throw new Error(
+        "معرف المزرعة مطلوب"
+      );
     }
 
     return farmRepository.getById(id);
@@ -22,12 +32,21 @@ class FarmService {
   }
 
   async create(data) {
-    if (!data || typeof data !== "object") {
-      throw new Error("بيانات المزرعة مطلوبة");
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
+      throw new Error(
+        "بيانات المزرعة مطلوبة"
+      );
     }
 
-    if (!String(data.name ?? "").trim()) {
-      throw new Error("اسم المزرعة مطلوب");
+    if (
+      !String(data.name ?? "").trim()
+    ) {
+      throw new Error(
+        "اسم المزرعة مطلوب"
+      );
     }
 
     return farmRepository.create(data);
@@ -39,10 +58,15 @@ class FarmService {
 
   async update(id, data) {
     if (!id) {
-      throw new Error("معرف المزرعة مطلوب");
+      throw new Error(
+        "معرف المزرعة مطلوب"
+      );
     }
 
-    return farmRepository.update(id, data);
+    return farmRepository.update(
+      id,
+      data
+    );
   }
 
   async updateFarm(id, data) {
@@ -51,7 +75,9 @@ class FarmService {
 
   async delete(id) {
     if (!id) {
-      throw new Error("معرف المزرعة مطلوب");
+      throw new Error(
+        "معرف المزرعة مطلوب"
+      );
     }
 
     return farmRepository.delete(id);
@@ -59,6 +85,16 @@ class FarmService {
 
   async deleteFarm(id) {
     return this.delete(id);
+  }
+
+  async count() {
+    return farmRepository.count();
+  }
+
+  async exists(id) {
+    if (!id) return false;
+
+    return farmRepository.exists(id);
   }
 }
 
