@@ -1,40 +1,59 @@
 // src/pages/Crops.jsx
 
-import {
-  useEffect,
-  useMemo,
-  useState,
-} from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import Card from "../components/Card.jsx";
+import Button from "../components/Button.jsx";
 
-import Card from "../components/Card";
-import Button from "../components/Button";
+import useFarms from "../hooks/useFarms.js";
+import useFields from "../hooks/useFields.js";
+import useCrops from "../hooks/useCrops.js";
 
+const emptyForm = {
+  farmId: "",
+  fieldId: "",
+  name: "",
+  seedType: "",
+  variety: "",
+  seedSource: "",
+  seedQuality: "",
+  seedQuantity: "",
+  seedUnit: "كغ",
+  area: "",
+  plantingDate: "",
+  harvestDate: "",
+  fertilizerType: "",
+  fertilizerQuantity: "",
+  fertilizerUnit: "كغ",
+  plantingMethod: "",
+  season: "",
+  expectedProduction: "",
+  notes: "",
+};
 
-import useFarms
-  from "../hooks/useFarms";
+const plantAge = (date) => {
+  if (!date) return "--";
 
+  const start = new Date(date);
+  const today = new Date();
 
-import useFields
-  from "../hooks/useFields";
+  if (Number.isNaN(start.getTime()) || start > today) return "--";
 
+  const days = Math.floor(
+    (today - start) / 86400000
+  );
 
-import useCrops
-  from "../hooks/useCrops";
+  const months = Math.floor(days / 30);
+  const remaining = days % 30;
 
+  return months
+    ? `${months} شهر${remaining ? ` و${remaining} يوم` : ""}`
+    : `${days} يوم`;
+};
 
 export default function Crops() {
-
-
-  const {
-    loadFarms,
-  } = useFarms();
-
-
-  const {
-    loadFields,
-  } = useFields();
-
+  const { loadFarms } = useFarms();
+  const { loadFields } = useFields();
 
   const {
     crops,
@@ -46,992 +65,462 @@ export default function Crops() {
     searchCrops,
   } = useCrops();
 
-
-  const [
-    farms,
-    setFarms
-  ] = useState([]);
-
-
-  const [
-    fields,
-    setFields
-  ] = useState([]);
-
-
-  const emptyForm = {
-
-    farmId: "",
-    fieldId: "",
-    name: "",
-    variety: "",
-    plantingDate: "",
-    harvestDate: "",
-    seedQuantity: "",
-    expectedProduction: "",
-    status: "",
-    notes: "",
-
-  };
-
-
-  const [
-    form,
-    setForm
-  ] = useState(emptyForm);
-
-
-  const [
-    editId,
-    setEditId
-  ] = useState(null);
-
-
-  const [
-    search,
-    setSearch
-  ] = useState("");
-
-
-  const [
-    pageLoading,
-    setPageLoading
-  ] = useState(true);
-
-
-  const [
-    pageError,
-    setPageError
-  ] = useState("");
-
-
-  // =========================
-  // Load Farms + Fields
-  // =========================
+  const [farms, setFarms] = useState([]);
+  const [fields, setFields] = useState([]);
+  const [form, setForm] = useState(emptyForm);
+  const [editId, setEditId] = useState(null);
+  const [search, setSearch] = useState("");
+  const [pageLoading, setPageLoading] = useState(true);
+  const [pageError, setPageError] = useState("");
 
   useEffect(() => {
+    let active = true;
 
-    let mounted = true;
+    Promise.all([loadFarms(), loadFields()])
+      .then(([farmData, fieldData]) => {
+        if (!active) return;
 
-
-    const loadData = async () => {
-
-      try {
-
-        setPageLoading(true);
-        setPageError("");
-
-
-        const [
-          farmsData,
-          fieldsData,
-        ] = await Promise.all([
-
-          loadFarms(),
-
-          loadFields(),
-
-        ]);
-
-
-        if (!mounted) {
-          return;
-        }
-
-
-        setFarms(
-          Array.isArray(farmsData)
-            ? farmsData
-            : []
-        );
-
-
-        setFields(
-          Array.isArray(fieldsData)
-            ? fieldsData
-            : []
-        );
-
-
-      } catch (err) {
-
-        console.error(
-          "Crops loading error:",
-          err
-        );
-
-
-        if (mounted) {
-
+        setFarms(Array.isArray(farmData) ? farmData : []);
+        setFields(Array.isArray(fieldData) ? fieldData : []);
+      })
+      .catch((err) => {
+        if (active) {
           setPageError(
             err?.message ||
             "تعذر تحميل بيانات المزارع والحقول."
           );
-
-
-          setFarms([]);
-          setFields([]);
-
         }
-
-      } finally {
-
-        if (mounted) {
-
-          setPageLoading(false);
-
-        }
-
-      }
-
-    };
-
-
-    loadData();
-
+      })
+      .finally(() => {
+        if (active) setPageLoading(false);
+      });
 
     return () => {
-
-      mounted = false;
-
+      active = false;
     };
+  }, [loadFarms, loadFields]);
 
-  }, [
-    loadFarms,
-    loadFields,
-  ]);
-
-
-  // =========================
-  // Input Change
-  // =========================
+  const farmFields = useMemo(
+    () =>
+      fields.filter((field) =>
+        String(
+          field?.farmId ??
+          field?.farm_id ??
+          field?.farm?.id ??
+          ""
+        ) === String(form.farmId)
+      ),
+    [fields, form.farmId]
+  );
 
   const handleChange = (e) => {
+    const { name, value } = e.target;
 
-    const {
-      name,
-      value,
-    } = e.target;
-
-
-    if (name === "farmId") {
-
-      setForm((prev) => ({
-
-        ...prev,
-
-        farmId: value,
-
-        fieldId: "",
-
-      }));
-
-
-      return;
-
-    }
-
-
-    setForm((prev) => ({
-
-      ...prev,
-
+    setForm((current) => ({
+      ...current,
       [name]: value,
-
+      ...(name === "farmId" ? { fieldId: "" } : {}),
     }));
 
-
+    setPageError("");
   };
-
-
-  // =========================
-  // Reset
-  // =========================
 
   const clearForm = () => {
-
-    setForm({
-      ...emptyForm,
-    });
-
-
+    setForm({ ...emptyForm });
     setEditId(null);
-
   };
-
-
-  // =========================
-  // Fields By Farm
-  // =========================
-
-  const farmFields =
-
-    useMemo(() => {
-
-      if (!form.farmId) {
-
-        return [];
-
-      }
-
-
-      return fields.filter(
-        (field) => {
-
-          const fieldFarmId =
-
-            field?.farmId ??
-            field?.farm_id ??
-            field?.farm?.id ??
-            "";
-
-
-          return (
-
-            String(fieldFarmId) ===
-            String(form.farmId)
-
-          );
-
-        }
-      );
-
-    }, [
-
-      fields,
-      form.farmId,
-
-    ]);
-
-
-  // =========================
-  // Save Crop
-  // =========================
 
   const saveCrop = async () => {
-
-    if (!form.farmId) {
-
+    if (!form.farmId || !form.fieldId || !form.name.trim()) {
+      setPageError(
+        "يرجى اختيار المزرعة والحقل وإدخال اسم المحصول."
+      );
       return;
-
     }
-
-
-    if (!form.fieldId) {
-
-      return;
-
-    }
-
-
-    if (!form.name.trim()) {
-
-      return;
-
-    }
-
 
     try {
-
       const data = {
-
         ...form,
-
-        farmId:
-          form.farmId,
-
-        fieldId:
-          form.fieldId,
-
+        seedQuantity: Number(form.seedQuantity || 0),
+        area: Number(form.area || 0),
+        fertilizerQuantity: Number(
+          form.fertilizerQuantity || 0
+        ),
+        expectedProduction: Number(
+          form.expectedProduction || 0
+        ),
       };
 
-
       if (editId) {
-
-        await updateCrop(
-          editId,
-          data
-        );
-
+        await updateCrop(editId, data);
       } else {
-
-        await addCrop(
-          data
-        );
-
+        await addCrop(data);
       }
 
-
       clearForm();
-
-
     } catch (err) {
-
-      console.error(
-        "Failed to save crop:",
-        err
+      setPageError(
+        err?.message || "تعذر حفظ بيانات المحصول."
       );
-
     }
-
   };
 
-
-  // =========================
-  // Edit Crop
-  // =========================
-
   const editCrop = (crop) => {
-
-    const farmId =
-
-      crop?.farmId ??
-      crop?.farm_id ??
-      crop?.farm?.id ??
-      "";
-
-
-    const fieldId =
-
-      crop?.fieldId ??
-      crop?.field_id ??
-      crop?.field?.id ??
-      "";
-
-
     setForm({
-
-      farmId,
-
-      fieldId,
-
-      name:
-        crop?.name ||
+      ...emptyForm,
+      ...crop,
+      farmId:
+        crop?.farmId ??
+        crop?.farm_id ??
         "",
-
-      variety:
-        crop?.variety ||
+      fieldId:
+        crop?.fieldId ??
+        crop?.field_id ??
         "",
-
-      plantingDate:
-        crop?.plantingDate ??
-        crop?.planting_date ??
+      seedType:
+        crop?.seedType ??
+        crop?.seed_type ??
         "",
-
-      harvestDate:
-        crop?.harvestDate ??
-        crop?.harvest_date ??
+      seedSource:
+        crop?.seedSource ??
+        crop?.seed_source ??
         "",
-
+      seedQuality:
+        crop?.seedQuality ??
+        crop?.seed_quality ??
+        "",
       seedQuantity:
         crop?.seedQuantity ??
         crop?.seed_quantity ??
         "",
-
-      expectedProduction:
-        crop?.expectedProduction ??
-        crop?.expected_production ??
+      seedUnit:
+        crop?.seedUnit ??
+        crop?.seed_unit ??
+        "كغ",
+      fertilizerType:
+        crop?.fertilizerType ??
+        crop?.fertilizer_type ??
         "",
-
-      status:
-        crop?.status ||
+      fertilizerQuantity:
+        crop?.fertilizerQuantity ??
+        crop?.fertilizer_quantity ??
         "",
-
-      notes:
-        crop?.notes ||
+      fertilizerUnit:
+        crop?.fertilizerUnit ??
+        crop?.fertilizer_unit ??
+        "كغ",
+      plantingDate:
+        crop?.plantingDate ??
+        crop?.planting_date ??
         "",
-
+      plantingMethod:
+        crop?.plantingMethod ??
+        crop?.planting_method ??
+        "",
     });
 
-
-    setEditId(
-      crop?.id ?? null
-    );
-
+    setEditId(crop?.id ?? null);
   };
 
-
-  // =========================
-  // Search
-  // =========================
-
-  const filteredCrops =
-
-    useMemo(() => {
-
-      return searchCrops(
-        crops,
-        search
-      );
-
-    }, [
-
-      crops,
-      search,
-      searchCrops,
-
-    ]);
-
-
-  // =========================
-  // Farm Name
-  // =========================
-
-  const getFarmName = (farmId) => {
-
-    const farm =
-      farms.find(
-        (item) =>
-          String(item?.id) ===
-          String(farmId)
-      );
-
-
-    return (
-
-      farm?.name ||
-      "غير محددة"
-
-    );
-
-  };
-
-
-  // =========================
-  // Field Name
-  // =========================
-
-  const getFieldName = (fieldId) => {
-
-    const field =
-      fields.find(
-        (item) =>
-          String(item?.id) ===
-          String(fieldId)
-      );
-
-
-    return (
-
-      field?.name ||
-      "غير محدد"
-
-    );
-
-  };
-
-
-  // =========================
-  // UI
-  // =========================
-
-  return (
-
-    <div>
-
-
-      <h1>
-        🌱 إدارة المحاصيل الذكية
-      </h1>
-
-
-      {pageError && (
-
-        <div
-          style={{
-            padding: "10px",
-            marginBottom: "15px",
-            borderRadius: "6px",
-            background: "#ffe5e5",
-            color: "#b00020",
-          }}
-        >
-
-          ⚠️ {pageError}
-
-        </div>
-
-      )}
-
-
-      <Card
-
-        title={
-          editId
-            ? "✏️ تعديل محصول"
-            : "➕ إضافة محصول"
-        }
-
-      >
-
-
-        <select
-
-          name="farmId"
-
-          value={
-            form.farmId
-          }
-
-          onChange={
-            handleChange
-          }
-
-          disabled={
-            pageLoading
-          }
-
-        >
-
-          <option value="">
-            اختر المزرعة
-          </option>
-
-
-          {farms.map(
-            (farm) => (
-
-              <option
-                key={farm.id}
-                value={farm.id}
-              >
-
-                {farm.name}
-
-              </option>
-
-            )
-          )}
-
-        </select>
-
-
-        <br />
-        <br />
-
-
-        <select
-
-          name="fieldId"
-
-          value={
-            form.fieldId
-          }
-
-          onChange={
-            handleChange
-          }
-
-          disabled={
-            !form.farmId ||
-            farmFields.length === 0
-          }
-
-        >
-
-          <option value="">
-
-            {!form.farmId
-
-              ? "اختر المزرعة أولاً"
-
-              : farmFields.length === 0
-
-              ? "لا توجد حقول لهذه المزرعة"
-
-              : "اختر الحقل"
-
-            }
-
-          </option>
-
-
-          {farmFields.map(
-            (field) => (
-
-              <option
-                key={field.id}
-                value={field.id}
-              >
-
-                {field.name}
-
-              </option>
-
-            )
-          )}
-
-        </select>
-
-
-        <br />
-        <br />
-
-
-        <input
-
-          name="name"
-
-          placeholder="اسم المحصول"
-
-          value={
-            form.name
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <input
-
-          name="variety"
-
-          placeholder="الصنف"
-
-          value={
-            form.variety
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <input
-
-          type="date"
-
-          name="plantingDate"
-
-          value={
-            form.plantingDate
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <input
-
-          type="date"
-
-          name="harvestDate"
-
-          value={
-            form.harvestDate
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <input
-
-          type="number"
-
-          name="seedQuantity"
-
-          placeholder="كمية البذور"
-
-          value={
-            form.seedQuantity
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <input
-
-          type="number"
-
-          name="expectedProduction"
-
-          placeholder="الإنتاج المتوقع"
-
-          value={
-            form.expectedProduction
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <input
-
-          name="status"
-
-          placeholder="حالة المحصول"
-
-          value={
-            form.status
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <textarea
-
-          name="notes"
-
-          placeholder="ملاحظات"
-
-          value={
-            form.notes
-          }
-
-          onChange={
-            handleChange
-          }
-
-        />
-
-
-        <br />
-        <br />
-
-
-        <Button
-
-          onClick={
-            saveCrop
-          }
-
-          disabled={
-            loading ||
-            pageLoading
-          }
-
-        >
-
-          {
-
-            loading
-
-              ? "جاري الحفظ..."
-
-              : editId
-
-              ? "حفظ التعديل"
-
-              : "إضافة المحصول"
-
-          }
-
-        </Button>
-
-
-      </Card>
-
-
-      <Card
-        title="🔎 البحث"
-      >
-
-        <input
-
-          placeholder="ابحث عن محصول"
-
-          value={
-            search
-          }
-
-          onChange={(e) =>
-            setSearch(
-              e.target.value
-            )
-          }
-
-        />
-
-      </Card>
-
-
-      <h2>
-        🌾 قائمة المحاصيل
-      </h2>
-
-
-      {filteredCrops.map(
-        (crop) => (
-
-          <Card
-
-            key={
-              crop.id
-            }
-
-            title={
-              `🌿 ${crop.name}`
-            }
-
-          >
-
-            <p>
-
-              🚜 المزرعة:
-              {" "}
-
-              {getFarmName(
-                crop.farmId ??
-                crop.farm_id
-              )}
-
-            </p>
-
-
-            <p>
-
-              📍 الحقل:
-              {" "}
-
-              {getFieldName(
-                crop.fieldId ??
-                crop.field_id
-              )}
-
-            </p>
-
-
-            <p>
-
-              🌱 الصنف:
-              {" "}
-
-              {crop.variety || "--"}
-
-            </p>
-
-
-            <p>
-
-              📅 الزراعة:
-              {" "}
-
-              {crop.plantingDate ??
-                crop.planting_date ??
-                "--"}
-
-            </p>
-
-
-            <p>
-
-              📦 الإنتاج المتوقع:
-              {" "}
-
-              {crop.expectedProduction ??
-                crop.expected_production ??
-                "--"}
-
-            </p>
-
-
-            <p>
-
-              📌 الحالة:
-              {" "}
-
-              {crop.status || "--"}
-
-            </p>
-
-
-            <p>
-
-              📝
-              {" "}
-
-              {crop.notes || "--"}
-
-            </p>
-
-
-            <Button
-
-              onClick={() =>
-                editCrop(crop)
-              }
-
-            >
-
-              ✏️ تعديل
-
-            </Button>
-
-
-            <Button
-
-              onClick={() =>
-                deleteCrop(
-                  crop.id
-                )
-              }
-
-            >
-
-              🗑️ حذف
-
-            </Button>
-
-
-          </Card>
-
-        )
-      )}
-
-
-    </div>
-
+  const filteredCrops = useMemo(
+    () => searchCrops(crops, search),
+    [crops, search, searchCrops]
   );
 
+  const getName = (items, id, fallback) =>
+    items.find(
+      (item) => String(item?.id) === String(id)
+    )?.name || fallback;
+
+  return (
+    <div dir="rtl">
+      <h1>🌱 المحاصيل</h1>
+
+      {(pageError || error) && (
+        <div className="crop-error">
+          ⚠️ {pageError || error?.message}
+        </div>
+      )}
+
+      <Card
+        title={
+          editId
+            ? "✏️ تعديل المحصول"
+            : "➕ تسجيل محصول جديد"
+        }
+      >
+        <select
+          name="farmId"
+          value={form.farmId}
+          onChange={handleChange}
+          disabled={pageLoading}
+        >
+          <option value="">اختر المزرعة</option>
+
+          {farms.map((farm) => (
+            <option key={farm.id} value={farm.id}>
+              {farm.name}
+            </option>
+          ))}
+        </select>
+
+        <select
+          name="fieldId"
+          value={form.fieldId}
+          onChange={handleChange}
+          disabled={!form.farmId}
+        >
+          <option value="">
+            {form.farmId
+              ? "اختر الحقل"
+              : "اختر المزرعة أولًا"}
+          </option>
+
+          {farmFields.map((field) => (
+            <option key={field.id} value={field.id}>
+              {field.name}
+            </option>
+          ))}
+        </select>
+
+        <input
+          name="name"
+          placeholder="ماذا زرعت؟"
+          value={form.name}
+          onChange={handleChange}
+        />
+
+        <input
+          name="seedType"
+          placeholder="نوع البذار"
+          value={form.seedType}
+          onChange={handleChange}
+        />
+
+        <input
+          name="variety"
+          placeholder="صنف البذار"
+          value={form.variety}
+          onChange={handleChange}
+        />
+
+        <input
+          name="seedSource"
+          placeholder="مصدر البذار"
+          value={form.seedSource}
+          onChange={handleChange}
+        />
+
+        <input
+          name="seedQuality"
+          placeholder="جودة البذار"
+          value={form.seedQuality}
+          onChange={handleChange}
+        />
+
+        <input
+          type="number"
+          min="0"
+          name="seedQuantity"
+          placeholder="كمية البذار"
+          value={form.seedQuantity}
+          onChange={handleChange}
+        />
+
+        <select
+          name="seedUnit"
+          value={form.seedUnit}
+          onChange={handleChange}
+        >
+          <option value="كغ">كغ</option>
+          <option value="طن">طن</option>
+        </select>
+
+        <input
+          type="number"
+          min="0"
+          name="area"
+          placeholder="المساحة المزروعة"
+          value={form.area}
+          onChange={handleChange}
+        />
+
+        <input
+          type="date"
+          name="plantingDate"
+          value={form.plantingDate}
+          onChange={handleChange}
+        />
+
+        {form.plantingDate && (
+          <p>
+            📅 عمر النبات:{" "}
+            <strong>{plantAge(form.plantingDate)}</strong>
+          </p>
+        )}
+
+        <input
+          type="date"
+          name="harvestDate"
+          value={form.harvestDate}
+          onChange={handleChange}
+        />
+
+        <input
+          name="fertilizerType"
+          placeholder="نوع السماد المستخدم"
+          value={form.fertilizerType}
+          onChange={handleChange}
+        />
+
+        <input
+          type="number"
+          min="0"
+          name="fertilizerQuantity"
+          placeholder="كمية السماد"
+          value={form.fertilizerQuantity}
+          onChange={handleChange}
+        />
+
+        <select
+          name="fertilizerUnit"
+          value={form.fertilizerUnit}
+          onChange={handleChange}
+        >
+          <option value="كغ">كغ</option>
+          <option value="طن">طن</option>
+        </select>
+
+        <input
+          name="plantingMethod"
+          placeholder="طريقة الزراعة"
+          value={form.plantingMethod}
+          onChange={handleChange}
+        />
+
+        <input
+          name="season"
+          placeholder="الموسم الزراعي"
+          value={form.season}
+          onChange={handleChange}
+        />
+
+        <input
+          type="number"
+          min="0"
+          name="expectedProduction"
+          placeholder="الإنتاج المتوقع"
+          value={form.expectedProduction}
+          onChange={handleChange}
+        />
+
+        <textarea
+          name="notes"
+          placeholder="ملاحظات الزراعة"
+          value={form.notes}
+          onChange={handleChange}
+        />
+
+        <Button
+          onClick={saveCrop}
+          disabled={loading || pageLoading}
+        >
+          {loading
+            ? "جاري الحفظ..."
+            : editId
+              ? "حفظ التعديل"
+              : "حفظ المحصول"}
+        </Button>
+
+        {editId && (
+          <Button onClick={clearForm}>
+            إلغاء التعديل
+          </Button>
+        )}
+      </Card>
+
+      <Card title="🔎 البحث">
+        <input
+          placeholder="ابحث عن محصول"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </Card>
+
+      <h2>🌾 المحاصيل المسجلة</h2>
+
+      {filteredCrops.map((crop) => (
+        <Card
+          key={crop.id}
+          title={`🌱 ${crop.name}`}
+        >
+          <p>
+            🚜 المزرعة:{" "}
+            {getName(
+              farms,
+              crop.farmId ?? crop.farm_id,
+              "غير محددة"
+            )}
+          </p>
+
+          <p>
+            📍 الحقل:{" "}
+            {getName(
+              fields,
+              crop.fieldId ?? crop.field_id,
+              "غير محدد"
+            )}
+          </p>
+
+          <p>
+            🌱 البذار:{" "}
+            {crop.seedType || "--"}{" "}
+            {crop.variety || ""}
+          </p>
+
+          <p>
+            📦 الكمية:{" "}
+            {crop.seedQuantity || 0}{" "}
+            {crop.seedUnit || "كغ"}
+          </p>
+
+          <p>
+            📅 الزراعة:{" "}
+            {crop.plantingDate || "--"}
+          </p>
+
+          <p>
+            🌿 العمر:{" "}
+            {plantAge(crop.plantingDate)}
+          </p>
+
+          <p>
+            📏 المساحة:{" "}
+            {crop.area || 0}
+          </p>
+
+          <p>
+            🧪 السماد:{" "}
+            {crop.fertilizerType || "--"}{" "}
+            {crop.fertilizerQuantity || 0}{" "}
+            {crop.fertilizerUnit || "كغ"}
+          </p>
+
+          <p>
+            📝 {crop.notes || "--"}
+          </p>
+
+          <Button onClick={() => editCrop(crop)}>
+            ✏️ تعديل
+          </Button>
+
+          <Button
+            onClick={() => deleteCrop(crop.id)}
+          >
+            🗑️ حذف
+          </Button>
+        </Card>
+      ))}
+    </div>
+  );
 }
