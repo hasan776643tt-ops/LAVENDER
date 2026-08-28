@@ -9,164 +9,341 @@ import {
 import cropService
   from "../services/cropService.js";
 
+import cropRecommendationService
+  from "../services/cropRecommendationService.js";
+
+
 export default function useCrops() {
-  const [crops, setCrops] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
 
-  const loadCrops = useCallback(async () => {
-    setLoading(true);
-    setError(null);
 
-    try {
-      const data =
-        await cropService.getAll();
+  const [crops, setCrops] =
+    useState([]);
 
-      const result =
-        Array.isArray(data)
-          ? data
-          : [];
 
-      setCrops(result);
-      return result;
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [loading, setLoading] =
+    useState(false);
 
-  useEffect(() => {
-    loadCrops();
-  }, [loadCrops]);
 
-  const addCrop = useCallback(
-    async (data) => {
+  const [error, setError] =
+    useState(null);
+
+
+  const loadCrops = useCallback(
+    async () => {
+
       setLoading(true);
       setError(null);
 
       try {
-        const crop =
-          await cropService.create(data);
 
-        setCrops((current) => [
-          ...current,
-          crop,
-        ]);
+        const data =
+          await cropService.getAll();
 
-        return crop;
+
+        const result =
+          Array.isArray(data)
+            ? data
+            : [];
+
+
+        setCrops(result);
+
+
+        return result;
+
       } catch (err) {
+
         setError(err);
+
         throw err;
+
       } finally {
+
         setLoading(false);
+
       }
+
     },
     []
   );
 
-  const updateCrop = useCallback(
-    async (id, data) => {
+
+  useEffect(() => {
+
+    loadCrops();
+
+  }, [loadCrops]);
+
+
+  const addCrop = useCallback(
+    async (data) => {
+
       setLoading(true);
       setError(null);
 
       try {
+
         const crop =
+          await cropService.create(data);
+
+
+        setCrops(
+          current => [
+            ...current,
+            crop,
+          ]
+        );
+
+
+        return crop;
+
+      } catch (err) {
+
+        setError(err);
+
+        throw err;
+
+      } finally {
+
+        setLoading(false);
+
+      }
+
+    },
+    []
+  );
+
+
+  const updateCrop = useCallback(
+    async (
+      id,
+      data
+    ) => {
+
+      setLoading(true);
+      setError(null);
+
+      try {
+
+        const updatedCrop =
           await cropService.update(
             id,
             data
           );
 
-        setCrops((current) =>
-          current.map((item) =>
-            String(item.id) ===
-            String(id)
-              ? crop
-              : item
-          )
+
+        setCrops(
+          current =>
+            current.map(
+              crop =>
+                String(crop.id) ===
+                String(id)
+                  ? updatedCrop
+                  : crop
+            )
         );
 
-        return crop;
+
+        return updatedCrop;
+
       } catch (err) {
+
         setError(err);
+
         throw err;
+
       } finally {
+
         setLoading(false);
+
       }
+
     },
     []
   );
 
+
   const deleteCrop = useCallback(
     async (id) => {
+
       setLoading(true);
       setError(null);
 
       try {
+
         await cropService.delete(id);
 
-        setCrops((current) =>
-          current.filter(
-            (item) =>
-              String(item.id) !==
-              String(id)
-          )
+
+        setCrops(
+          current =>
+            current.filter(
+              crop =>
+                String(crop.id) !==
+                String(id)
+            )
         );
 
+
         return true;
+
       } catch (err) {
+
         setError(err);
+
         throw err;
+
       } finally {
+
         setLoading(false);
+
       }
+
     },
     []
   );
 
+
   const searchCrops = useCallback(
-    (items = crops, text = "") => {
+    (
+      items = crops,
+      text = ""
+    ) => {
+
+      const source =
+        Array.isArray(items)
+          ? items
+          : [];
+
+
       const value =
         String(text)
-          .trim()
-          .toLowerCase();
+          .toLowerCase()
+          .trim();
 
-      if (!value) return items;
 
-      return items.filter((crop) =>
-        [
-          crop?.name,
-          crop?.seedType,
-          crop?.seedVariety,
-        ].some((item) =>
-          String(item || "")
-            .toLowerCase()
-            .includes(value)
-        )
+      if (!value) {
+
+        return source;
+
+      }
+
+
+      return source.filter(
+        crop => {
+
+          const searchableText = [
+
+            crop?.name,
+
+            crop?.seedType,
+
+            crop?.seed_type,
+
+            crop?.seedVariety,
+
+            crop?.seed_variety,
+
+            crop?.fertilizerType,
+
+            crop?.fertilizer_type,
+
+          ]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+
+
+          return searchableText.includes(
+            value
+          );
+
+        }
       );
+
     },
     [crops]
   );
 
-  const getRecommendation =
-    useCallback(
-      (location) =>
-        cropService.getRecommendation(
+
+  const getStatistics = useCallback(
+    (
+      items = crops
+    ) => {
+
+      const source =
+        Array.isArray(items)
+          ? items
+          : [];
+
+
+      return {
+
+        total:
+          source.length,
+
+        active:
+          source.filter(
+            crop =>
+              crop?.status === "active"
+          ).length,
+
+        archived:
+          source.filter(
+            crop =>
+              crop?.status === "archived"
+          ).length,
+
+      };
+
+    },
+    [crops]
+  );
+
+
+  const getRecommendation = useCallback(
+    (location) => {
+
+      try {
+
+        return cropRecommendationService.recommend(
           location
-        ),
-      []
-    );
+        );
+
+      } catch (err) {
+
+        setError(err);
+
+        return null;
+
+      }
+
+    },
+    []
+  );
+
 
   return {
+
     crops,
+
     loading,
+
     error,
+
     loadCrops,
+
     addCrop,
+
     updateCrop,
+
     deleteCrop,
+
     searchCrops,
+
+    getStatistics,
+
     getRecommendation,
+
   };
+
 }
