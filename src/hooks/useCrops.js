@@ -1,3 +1,5 @@
+// src/hooks/useCrops.js
+
 import {
   useCallback,
   useEffect,
@@ -17,19 +19,24 @@ export default function useCrops() {
 
     try {
       const data = await cropService.getAll();
-      const result = Array.isArray(data) ? data : [];
+
+      const result = Array.isArray(data)
+        ? data
+        : [];
+
       setCrops(result);
+
       return result;
     } catch (err) {
       setError(err);
-      return [];
+      throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadCrops();
+    loadCrops().catch(() => {});
   }, [loadCrops]);
 
   const addCrop = useCallback(async (data) => {
@@ -38,7 +45,12 @@ export default function useCrops() {
 
     try {
       const crop = await cropService.create(data);
-      setCrops(current => [...current, crop]);
+
+      setCrops(current => [
+        ...current,
+        crop,
+      ]);
+
       return crop;
     } catch (err) {
       setError(err);
@@ -53,17 +65,18 @@ export default function useCrops() {
     setError(null);
 
     try {
-      const crop = await cropService.update(id, data);
+      const updated =
+        await cropService.update(id, data);
 
       setCrops(current =>
-        current.map(item =>
-          String(item.id) === String(id)
-            ? crop
-            : item
+        current.map(crop =>
+          String(crop.id) === String(id)
+            ? updated
+            : crop
         )
       );
 
-      return crop;
+      return updated;
     } catch (err) {
       setError(err);
       throw err;
@@ -72,7 +85,7 @@ export default function useCrops() {
     }
   }, []);
 
-  const deleteCrop = useCallback(async id => {
+  const deleteCrop = useCallback(async (id) => {
     setLoading(true);
     setError(null);
 
@@ -81,7 +94,8 @@ export default function useCrops() {
 
       setCrops(current =>
         current.filter(
-          item => String(item.id) !== String(id)
+          crop =>
+            String(crop.id) !== String(id)
         )
       );
 
@@ -96,24 +110,29 @@ export default function useCrops() {
 
   const searchCrops = useCallback(
     (items = crops, text = "") => {
-      const value = String(text).trim().toLowerCase();
+      const source = Array.isArray(items)
+        ? items
+        : [];
 
-      if (!value) {
-        return Array.isArray(items) ? items : [];
-      }
+      const value = String(text)
+        .trim()
+        .toLowerCase();
 
-      return (Array.isArray(items) ? items : []).filter(
-        crop =>
-          [
-            crop?.name,
-            crop?.seedType,
-            crop?.seedVariety,
-            crop?.fertilizerType,
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase()
-            .includes(value)
+      if (!value) return source;
+
+      return source.filter(crop =>
+        [
+          crop?.name,
+          crop?.seedType,
+          crop?.seedVariety,
+          crop?.fertilizerType,
+          crop?.locationName,
+          crop?.notes,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase()
+          .includes(value)
       );
     },
     [crops]
@@ -121,15 +140,17 @@ export default function useCrops() {
 
   const getStatistics = useCallback(
     (items = crops) => {
-      const list = Array.isArray(items) ? items : [];
+      const source = Array.isArray(items)
+        ? items
+        : [];
 
       return {
-        total: list.length,
-        active: list.filter(
-          item => item?.status === "active"
+        total: source.length,
+        active: source.filter(
+          crop => crop?.status === "active"
         ).length,
-        archived: list.filter(
-          item => item?.status === "archived"
+        archived: source.filter(
+          crop => crop?.status === "archived"
         ).length,
       };
     },
