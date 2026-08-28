@@ -6,71 +6,50 @@ import {
   useState,
 } from "react";
 
-import cropService
-  from "../services/cropService.js";
-
-import cropRecommendationService
-  from "../services/cropRecommendationService.js";
+import cropService from "../services/cropService.js";
 
 
 export default function useCrops() {
 
+  const [crops, setCrops] = useState([]);
 
-  const [crops, setCrops] =
-    useState([]);
+  const [loading, setLoading] = useState(false);
 
-
-  const [loading, setLoading] =
-    useState(false);
+  const [error, setError] = useState(null);
 
 
-  const [error, setError] =
-    useState(null);
+  const loadCrops = useCallback(async () => {
 
+    setLoading(true);
+    setError(null);
 
-  // =====================================================
-  // تحميل المحاصيل
-  // =====================================================
+    try {
 
-  const loadCrops = useCallback(
-    async () => {
+      const data =
+        await cropService.getAll();
 
-      setLoading(true);
-      setError(null);
+      const result =
+        Array.isArray(data)
+          ? data
+          : [];
 
+      setCrops(result);
 
-      try {
+      return result;
 
-        const data =
-          await cropService.getAll();
+    } catch (err) {
 
+      setError(err);
 
-        const result =
-          Array.isArray(data)
-            ? data
-            : [];
+      throw err;
 
+    } finally {
 
-        setCrops(result);
+      setLoading(false);
 
+    }
 
-        return result;
-
-      } catch (err) {
-
-        setError(err);
-
-        throw err;
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-    []
-  );
+  }, []);
 
 
   useEffect(() => {
@@ -80,105 +59,61 @@ export default function useCrops() {
   }, [loadCrops]);
 
 
-  // =====================================================
-  // إضافة محصول
-  // =====================================================
+  const addCrop = useCallback(async (data) => {
 
-  const addCrop = useCallback(
-    async (data) => {
+    setLoading(true);
+    setError(null);
 
-      setLoading(true);
-      setError(null);
+    try {
 
+      const crop =
+        await cropService.create(data);
 
-      try {
+      setCrops(current => [
+        ...current,
+        crop,
+      ]);
 
-        const crop =
-          await cropService.create(data);
+      return crop;
 
+    } catch (err) {
 
-        if (crop) {
+      setError(err);
 
-          setCrops(
-            current => [
-              ...current,
-              crop,
-            ]
-          );
+      throw err;
 
-        }
+    } finally {
 
+      setLoading(false);
 
-        return crop;
+    }
 
-      } catch (err) {
+  }, []);
 
-        setError(err);
-
-        throw err;
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-    []
-  );
-
-
-  // =====================================================
-  // تعديل محصول
-  // =====================================================
 
   const updateCrop = useCallback(
-    async (
-      id,
-      data
-    ) => {
+    async (id, data) => {
 
       setLoading(true);
       setError(null);
 
-
       try {
 
-        const updatedCrop =
+        const updated =
           await cropService.update(
             id,
             data
           );
 
+        setCrops(current =>
+          current.map(crop =>
+            String(crop.id) === String(id)
+              ? updated
+              : crop
+          )
+        );
 
-        if (updatedCrop) {
-
-          setCrops(
-            current =>
-              current.map(
-                crop => {
-
-                  const cropId =
-                    crop?.id ??
-                    crop?._id ??
-                    crop?.cropId;
-
-
-                  return (
-                    String(cropId) ===
-                    String(id)
-                  )
-                    ? updatedCrop
-                    : crop;
-
-                }
-              )
-          );
-
-        }
-
-
-        return updatedCrop;
+        return updated;
 
       } catch (err) {
 
@@ -196,10 +131,6 @@ export default function useCrops() {
     []
   );
 
-
-  // =====================================================
-  // حذف محصول
-  // =====================================================
 
   const deleteCrop = useCallback(
     async (id) => {
@@ -207,32 +138,17 @@ export default function useCrops() {
       setLoading(true);
       setError(null);
 
-
       try {
 
         await cropService.delete(id);
 
-
-        setCrops(
-          current =>
-            current.filter(
-              crop => {
-
-                const cropId =
-                  crop?.id ??
-                  crop?._id ??
-                  crop?.cropId;
-
-
-                return (
-                  String(cropId) !==
-                  String(id)
-                );
-
-              }
-            )
+        setCrops(current =>
+          current.filter(
+            crop =>
+              String(crop.id) !==
+              String(id)
+          )
         );
-
 
         return true;
 
@@ -253,110 +169,67 @@ export default function useCrops() {
   );
 
 
-  // =====================================================
-  // البحث
-  // =====================================================
-
   const searchCrops = useCallback(
-    (
-      items = crops,
-      text = ""
-    ) => {
+    (items = crops, text = "") => {
 
       const source =
         Array.isArray(items)
           ? items
           : [];
 
-
       const value =
         String(text)
-          .trim()
-          .toLowerCase();
-
+          .toLowerCase()
+          .trim();
 
       if (!value) {
-
         return source;
-
       }
 
+      return source.filter(crop => {
 
-      return source.filter(
-        crop => {
+        const searchable = [
+          crop?.name,
+          crop?.seedType,
+          crop?.seed_type,
+          crop?.seedVariety,
+          crop?.seed_variety,
+          crop?.fertilizerType,
+          crop?.fertilizer_type,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-          const searchableText = [
+        return searchable.includes(value);
 
-            crop?.name,
-
-            crop?.seedType,
-
-            crop?.seed_type,
-
-            crop?.seedVariety,
-
-            crop?.seed_variety,
-
-            crop?.seedQuality,
-
-            crop?.seed_quality,
-
-            crop?.fertilizerType,
-
-            crop?.fertilizer_type,
-
-            crop?.notes,
-
-          ]
-            .filter(Boolean)
-            .join(" ")
-            .toLowerCase();
-
-
-          return searchableText.includes(
-            value
-          );
-
-        }
-      );
+      });
 
     },
     [crops]
   );
 
 
-  // =====================================================
-  // الإحصائيات
-  // =====================================================
-
   const getStatistics = useCallback(
-    (
-      items = crops
-    ) => {
+    (items = crops) => {
 
       const source =
         Array.isArray(items)
           ? items
           : [];
 
-
       return {
+        total: source.length,
 
-        total:
-          source.length,
+        active: source.filter(
+          crop =>
+            crop?.status === "active"
+        ).length,
 
-        active:
-          source.filter(
-            crop =>
-              crop?.status === "active"
-          ).length,
-
-        archived:
-          source.filter(
-            crop =>
-              crop?.status === "archived"
-          ).length,
-
+        archived: source.filter(
+          crop =>
+            crop?.status === "archived"
+        ).length,
       };
 
     },
@@ -364,45 +237,17 @@ export default function useCrops() {
   );
 
 
-  // =====================================================
-  // توصية البذور
-  // =====================================================
-
   const getRecommendation = useCallback(
     (location) => {
 
-      if (
-        !location ||
-        typeof location !== "object"
-      ) {
-
-        return null;
-
-      }
-
-
-      try {
-
-        return cropRecommendationService.recommend(
-          location
-        );
-
-      } catch (err) {
-
-        setError(err);
-
-        return null;
-
-      }
+      return cropService.getRecommendation(
+        location
+      );
 
     },
     []
   );
 
-
-  // =====================================================
-  // Return
-  // =====================================================
 
   return {
 
