@@ -3,19 +3,18 @@
 import cropRepository
   from "../repositories/cropRepository.js";
 
-import cropRecommendationService
-  from "./cropRecommendationService.js";
-
 import {
   createError,
 } from "../utils/errorHandler.js";
 
 class CropService {
+
   async getAll() {
     return cropRepository.getAll();
   }
 
   async getById(id) {
+
     if (!id) {
       throw createError(
         "Crop id is required",
@@ -37,11 +36,14 @@ class CropService {
   }
 
   async create(data) {
+
     this.validate(data);
+
     return cropRepository.create(data);
   }
 
   async update(id, data) {
+
     if (!id) {
       throw createError(
         "Crop id is required",
@@ -68,6 +70,7 @@ class CropService {
   }
 
   async delete(id) {
+
     if (!id) {
       throw createError(
         "Crop id is required",
@@ -88,21 +91,21 @@ class CropService {
     return true;
   }
 
-  getRecommendation(location) {
-    return cropRecommendationService.recommend(
-      location
-    );
-  }
-
   validate(data) {
-    if (!data || typeof data !== "object") {
+
+    if (
+      !data ||
+      typeof data !== "object"
+    ) {
       throw createError(
         "Crop data is required",
         "CROP_DATA_REQUIRED"
       );
     }
 
-    if (!data.name?.trim()) {
+    if (
+      !String(data.name || "").trim()
+    ) {
       throw createError(
         "Crop name is required",
         "CROP_NAME_REQUIRED"
