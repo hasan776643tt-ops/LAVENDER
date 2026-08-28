@@ -19,8 +19,13 @@ export default function useCrops() {
     setError(null);
 
     try {
-      const data = await cropService.getAll();
-      const result = Array.isArray(data) ? data : [];
+      const data =
+        await cropService.getAll();
+
+      const result =
+        Array.isArray(data)
+          ? data
+          : [];
 
       setCrops(result);
       return result;
@@ -36,85 +41,122 @@ export default function useCrops() {
     loadCrops();
   }, [loadCrops]);
 
-  const addCrop = useCallback(async (data) => {
-    setLoading(true);
-    setError(null);
+  const addCrop = useCallback(
+    async (data) => {
+      setLoading(true);
+      setError(null);
 
-    try {
-      const crop = await cropService.create(data);
-      setCrops((current) => [...current, crop]);
-      return crop;
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const crop =
+          await cropService.create(data);
 
-  const updateCrop = useCallback(async (id, data) => {
-    setLoading(true);
-    setError(null);
+        setCrops((current) => [
+          ...current,
+          crop,
+        ]);
 
-    try {
-      const crop = await cropService.update(id, data);
+        return crop;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-      setCrops((current) =>
-        current.map((item) =>
-          String(item.id) === String(id)
-            ? crop
-            : item
-        )
-      );
+  const updateCrop = useCallback(
+    async (id, data) => {
+      setLoading(true);
+      setError(null);
 
-      return crop;
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        const crop =
+          await cropService.update(
+            id,
+            data
+          );
 
-  const deleteCrop = useCallback(async (id) => {
-    setLoading(true);
-    setError(null);
+        setCrops((current) =>
+          current.map((item) =>
+            String(item.id) ===
+            String(id)
+              ? crop
+              : item
+          )
+        );
 
-    try {
-      await cropService.delete(id);
+        return crop;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-      setCrops((current) =>
-        current.filter(
-          (item) =>
-            String(item.id) !== String(id)
-        )
-      );
+  const deleteCrop = useCallback(
+    async (id) => {
+      setLoading(true);
+      setError(null);
 
-      return true;
-    } catch (err) {
-      setError(err);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+      try {
+        await cropService.delete(id);
+
+        setCrops((current) =>
+          current.filter(
+            (item) =>
+              String(item.id) !==
+              String(id)
+          )
+        );
+
+        return true;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const searchCrops = useCallback(
     (items = crops, text = "") => {
-      const value = String(text)
-        .trim()
-        .toLowerCase();
+      const value =
+        String(text)
+          .trim()
+          .toLowerCase();
 
       if (!value) return items;
 
       return items.filter((crop) =>
-        String(crop?.name ?? "")
-          .toLowerCase()
-          .includes(value)
+        [
+          crop?.name,
+          crop?.seedType,
+          crop?.seedVariety,
+        ].some((item) =>
+          String(item || "")
+            .toLowerCase()
+            .includes(value)
+        )
       );
     },
     [crops]
   );
+
+  const getRecommendation =
+    useCallback(
+      (location) =>
+        cropService.getRecommendation(
+          location
+        ),
+      []
+    );
 
   return {
     crops,
@@ -125,5 +167,6 @@ export default function useCrops() {
     updateCrop,
     deleteCrop,
     searchCrops,
+    getRecommendation,
   };
 }
