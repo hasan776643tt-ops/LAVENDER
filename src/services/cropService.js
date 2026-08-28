@@ -7,14 +7,49 @@ import {
   createError,
 } from "../utils/errorHandler.js";
 
-class CropService {
+const SEEDS = {
+  cold: [
+    "قمح شتوي",
+    "شعير",
+    "شوفان",
+  ],
 
+  moderate: [
+    "قمح",
+    "شعير",
+    "ذرة",
+    "عباد الشمس",
+  ],
+
+  hot: [
+    "ذرة",
+    "دخن",
+    "سورغم",
+    "سمسم",
+  ],
+};
+
+function getClimate(latitude) {
+  const value = Number(latitude);
+
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  const n = Math.abs(value);
+
+  if (n >= 50) return "باردة";
+  if (n >= 25) return "معتدلة";
+
+  return "حارة";
+}
+
+class CropService {
   async getAll() {
     return cropRepository.getAll();
   }
 
   async getById(id) {
-
     if (!id) {
       throw createError(
         "Crop id is required",
@@ -36,14 +71,16 @@ class CropService {
   }
 
   async create(data) {
-
     this.validate(data);
 
-    return cropRepository.create(data);
+    return cropRepository.create({
+      ...data,
+      status:
+        data.status || "active",
+    });
   }
 
   async update(id, data) {
-
     if (!id) {
       throw createError(
         "Crop id is required",
@@ -53,24 +90,23 @@ class CropService {
 
     this.validate(data);
 
-    const crop =
+    const updated =
       await cropRepository.update(
         id,
         data
       );
 
-    if (!crop) {
+    if (!updated) {
       throw createError(
         "Crop not found",
         "CROP_NOT_FOUND"
       );
     }
 
-    return crop;
+    return updated;
   }
 
   async delete(id) {
-
     if (!id) {
       throw createError(
         "Crop id is required",
@@ -91,8 +127,31 @@ class CropService {
     return true;
   }
 
-  validate(data) {
+  getRecommendation(latitude) {
+    const climate =
+      getClimate(latitude);
 
+    if (!climate) {
+      return null;
+    }
+
+    const key =
+      climate === "باردة"
+        ? "cold"
+        : climate === "معتدلة"
+          ? "moderate"
+          : "hot";
+
+    return {
+      climate,
+      seeds:
+        SEEDS[key] || [],
+      message:
+        `المناخ ${climate}، وهذه بذور مناسبة مبدئيًا لهذه المنطقة.`,
+    };
+  }
+
+  validate(data) {
     if (
       !data ||
       typeof data !== "object"
@@ -104,7 +163,7 @@ class CropService {
     }
 
     if (
-      !String(data.name || "").trim()
+      !String(data.name ?? "").trim()
     ) {
       throw createError(
         "Crop name is required",
