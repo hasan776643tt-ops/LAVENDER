@@ -1,3 +1,5 @@
+// src/hooks/useFarms.js
+
 import {
   useCallback,
   useEffect,
@@ -16,80 +18,149 @@ export default function useFarms() {
     setError(null);
 
     try {
-      const data = await farmService.getAllFarms();
-      const result = Array.isArray(data) ? data : [];
+      const data =
+        await farmService.getAllFarms();
+
+      const result =
+        Array.isArray(data)
+          ? data
+          : [];
 
       setFarms(result);
+
       return result;
     } catch (err) {
       setError(err);
-      return [];
+      throw err;
     } finally {
       setLoading(false);
     }
   }, []);
 
   useEffect(() => {
-    loadFarms();
+    loadFarms().catch(() => {});
   }, [loadFarms]);
 
   const addFarm = useCallback(async data => {
-    const farm = await farmService.createFarm(data);
+    setLoading(true);
+    setError(null);
 
-    if (farm) {
-      setFarms(current => [...current, farm]);
+    try {
+      const created =
+        await farmService.createFarm(data);
+
+      if (created) {
+        setFarms(current => [
+          ...current,
+          created,
+        ]);
+      }
+
+      return created;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
     }
-
-    return farm;
   }, []);
 
-  const updateFarm = useCallback(async (id, data) => {
-    const farm = await farmService.updateFarm(id, data);
+  const updateFarm = useCallback(
+    async (id, data) => {
+      setLoading(true);
+      setError(null);
 
-    if (farm) {
-      setFarms(current =>
-        current.map(item =>
-          String(item.id) === String(id)
-            ? farm
-            : item
-        )
-      );
-    }
+      try {
+        const updated =
+          await farmService.updateFarm(
+            id,
+            data
+          );
 
-    return farm;
-  }, []);
+        if (updated) {
+          setFarms(current =>
+            current.map(farm => {
+              const farmId =
+                farm?.id ??
+                farm?._id ??
+                farm?.farmId;
 
-  const deleteFarm = useCallback(async id => {
-    const result = await farmService.deleteFarm(id);
+              return String(farmId) === String(id)
+                ? updated
+                : farm;
+            })
+          );
+        }
 
-    setFarms(current =>
-      current.filter(
-        item => String(item.id) !== String(id)
-      )
-    );
+        return updated;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-    return result;
-  }, []);
+  const deleteFarm = useCallback(
+    async id => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const deleted =
+          await farmService.deleteFarm(id);
+
+        if (deleted) {
+          setFarms(current =>
+            current.filter(farm => {
+              const farmId =
+                farm?.id ??
+                farm?._id ??
+                farm?.farmId;
+
+              return String(farmId) !== String(id);
+            })
+          );
+        }
+
+        return deleted;
+      } catch (err) {
+        setError(err);
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
   const searchFarms = useCallback(
     (items = farms, text = "") => {
-      const value = String(text).trim().toLowerCase();
+      const source =
+        Array.isArray(items)
+          ? items
+          : [];
 
-      if (!value) {
-        return Array.isArray(items) ? items : [];
-      }
+      const value =
+        String(text)
+          .trim()
+          .toLowerCase();
 
-      return (Array.isArray(items) ? items : []).filter(
-        farm =>
-          String(
-            farm?.name ??
-            farm?.farmName ??
-            farm?.title ??
-            ""
-          )
-            .toLowerCase()
-            .includes(value)
-      );
+      if (!value) return source;
+
+      return source.filter(farm => {
+        const name =
+          farm?.name ??
+          farm?.farmName ??
+          farm?.title ??
+          "";
+
+        return String(name)
+          .toLowerCase()
+          .includes(value);
+      });
     },
     [farms]
   );
