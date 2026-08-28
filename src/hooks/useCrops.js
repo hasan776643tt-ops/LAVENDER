@@ -8,186 +8,127 @@ import {
 
 import cropService from "../services/cropService.js";
 
+const SEEDS = {
+  cold: ["قمح شتوي", "شعير", "شوفان"],
+  moderate: ["قمح", "شعير", "ذرة", "عباد الشمس"],
+  hot: ["ذرة", "دخن", "سورغم", "سمسم"],
+};
+
+const climateFromLatitude = (latitude) => {
+  const value = Number(latitude);
+
+  if (!Number.isFinite(value)) {
+    return null;
+  }
+
+  const absolute = Math.abs(value);
+
+  if (absolute >= 50) return "cold";
+  if (absolute >= 25) return "moderate";
+
+  return "hot";
+};
 
 export default function useCrops() {
-
   const [crops, setCrops] = useState([]);
-
   const [loading, setLoading] = useState(false);
-
   const [error, setError] = useState(null);
 
-
   const loadCrops = useCallback(async () => {
-
     setLoading(true);
     setError(null);
 
     try {
-
-      const data =
-        await cropService.getAll();
-
-      const result =
-        Array.isArray(data)
-          ? data
-          : [];
+      const data = await cropService.getAll();
+      const result = Array.isArray(data) ? data : [];
 
       setCrops(result);
-
       return result;
-
     } catch (err) {
-
       setError(err);
-
       throw err;
-
     } finally {
-
       setLoading(false);
-
     }
-
   }, []);
 
-
   useEffect(() => {
-
     loadCrops();
-
   }, [loadCrops]);
 
-
   const addCrop = useCallback(async (data) => {
-
     setLoading(true);
     setError(null);
 
     try {
+      const crop = await cropService.create(data);
 
-      const crop =
-        await cropService.create(data);
-
-      setCrops(current => [
-        ...current,
-        crop,
-      ]);
+      setCrops((current) => [...current, crop]);
 
       return crop;
-
     } catch (err) {
-
       setError(err);
-
       throw err;
-
     } finally {
-
       setLoading(false);
-
     }
-
   }, []);
 
+  const updateCrop = useCallback(async (id, data) => {
+    setLoading(true);
+    setError(null);
 
-  const updateCrop = useCallback(
-    async (id, data) => {
+    try {
+      const updated = await cropService.update(id, data);
 
-      setLoading(true);
-      setError(null);
+      setCrops((current) =>
+        current.map((crop) =>
+          String(crop.id) === String(id)
+            ? updated
+            : crop
+        )
+      );
 
-      try {
+      return updated;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-        const updated =
-          await cropService.update(
-            id,
-            data
-          );
+  const deleteCrop = useCallback(async (id) => {
+    setLoading(true);
+    setError(null);
 
-        setCrops(current =>
-          current.map(crop =>
-            String(crop.id) === String(id)
-              ? updated
-              : crop
-          )
-        );
+    try {
+      await cropService.delete(id);
 
-        return updated;
+      setCrops((current) =>
+        current.filter(
+          (crop) =>
+            String(crop.id) !== String(id)
+        )
+      );
 
-      } catch (err) {
-
-        setError(err);
-
-        throw err;
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-    []
-  );
-
-
-  const deleteCrop = useCallback(
-    async (id) => {
-
-      setLoading(true);
-      setError(null);
-
-      try {
-
-        await cropService.delete(id);
-
-        setCrops(current =>
-          current.filter(
-            crop =>
-              String(crop.id) !==
-              String(id)
-          )
-        );
-
-        return true;
-
-      } catch (err) {
-
-        setError(err);
-
-        throw err;
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-    []
-  );
-
+      return true;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const searchCrops = useCallback(
     (items = crops, text = "") => {
+      const source = Array.isArray(items) ? items : [];
+      const value = String(text).toLowerCase().trim();
 
-      const source =
-        Array.isArray(items)
-          ? items
-          : [];
+      if (!value) return source;
 
-      const value =
-        String(text)
-          .toLowerCase()
-          .trim();
-
-      if (!value) {
-        return source;
-      }
-
-      return source.filter(crop => {
-
+      return source.filter((crop) => {
         const searchable = [
           crop?.name,
           crop?.seedType,
@@ -202,75 +143,64 @@ export default function useCrops() {
           .toLowerCase();
 
         return searchable.includes(value);
-
       });
-
     },
     [crops]
   );
-
 
   const getStatistics = useCallback(
     (items = crops) => {
-
-      const source =
-        Array.isArray(items)
-          ? items
-          : [];
+      const source = Array.isArray(items) ? items : [];
 
       return {
         total: source.length,
-
         active: source.filter(
-          crop =>
-            crop?.status === "active"
+          (crop) => crop?.status === "active"
         ).length,
-
         archived: source.filter(
-          crop =>
-            crop?.status === "archived"
+          (crop) => crop?.status === "archived"
         ).length,
       };
-
     },
     [crops]
   );
 
+  const getRecommendation = useCallback((location) => {
+    if (!location) return null;
 
-  const getRecommendation = useCallback(
-    (location) => {
+    const climate =
+      location.climate ||
+      climateFromLatitude(location.latitude);
 
-      return cropService.getRecommendation(
-        location
-      );
+    if (!climate || !SEEDS[climate]) {
+      return null;
+    }
 
-    },
-    []
-  );
+    const labels = {
+      cold: "الباردة",
+      moderate: "المعتدلة",
+      hot: "الحارة",
+    };
 
+    return {
+      climate,
+      climateLabel: labels[climate],
+      message:
+        `المنطقة ${labels[climate]}، وهذه بذور مناسبة مبدئيًا للزراعة فيها.`,
+      seeds: SEEDS[climate],
+    };
+  }, []);
 
   return {
-
     crops,
-
     loading,
-
     error,
-
     loadCrops,
-
     addCrop,
-
     updateCrop,
-
     deleteCrop,
-
     searchCrops,
-
     getStatistics,
-
     getRecommendation,
-
   };
-
 }
