@@ -18,16 +18,10 @@ export default function useFarms() {
     setError(null);
 
     try {
-      const data =
-        await farmService.getAllFarms();
-
-      const result =
-        Array.isArray(data)
-          ? data
-          : [];
+      const data = await farmService.getAllFarms();
+      const result = Array.isArray(data) ? data : [];
 
       setFarms(result);
-
       return result;
     } catch (err) {
       setError(err);
@@ -37,23 +31,15 @@ export default function useFarms() {
     }
   }, []);
 
-  useEffect(() => {
-    loadFarms().catch(() => {});
-  }, [loadFarms]);
-
-  const addFarm = useCallback(async data => {
+  const addFarm = useCallback(async (data) => {
     setLoading(true);
     setError(null);
 
     try {
-      const created =
-        await farmService.createFarm(data);
+      const created = await farmService.createFarm(data);
 
       if (created) {
-        setFarms(current => [
-          ...current,
-          created,
-        ]);
+        setFarms(current => [...current, created]);
       }
 
       return created;
@@ -65,88 +51,68 @@ export default function useFarms() {
     }
   }, []);
 
-  const updateFarm = useCallback(
-    async (id, data) => {
-      setLoading(true);
-      setError(null);
+  const updateFarm = useCallback(async (id, data) => {
+    setLoading(true);
+    setError(null);
 
-      try {
-        const updated =
-          await farmService.updateFarm(
-            id,
-            data
-          );
+    try {
+      const updated = await farmService.updateFarm(id, data);
 
-        if (updated) {
-          setFarms(current =>
-            current.map(farm => {
-              const farmId =
-                farm?.id ??
-                farm?._id ??
-                farm?.farmId;
+      if (updated) {
+        setFarms(current =>
+          current.map(farm => {
+            const farmId =
+              farm?.id ??
+              farm?._id ??
+              farm?.farmId;
 
-              return String(farmId) === String(id)
-                ? updated
-                : farm;
-            })
-          );
-        }
-
-        return updated;
-      } catch (err) {
-        setError(err);
-        throw err;
-      } finally {
-        setLoading(false);
+            return String(farmId) === String(id)
+              ? updated
+              : farm;
+          })
+        );
       }
-    },
-    []
-  );
 
-  const deleteFarm = useCallback(
-    async id => {
-      setLoading(true);
-      setError(null);
+      return updated;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
-      try {
-        const deleted =
-          await farmService.deleteFarm(id);
+  const deleteFarm = useCallback(async id => {
+    setLoading(true);
+    setError(null);
 
-        if (deleted) {
-          setFarms(current =>
-            current.filter(farm => {
-              const farmId =
-                farm?.id ??
-                farm?._id ??
-                farm?.farmId;
+    try {
+      const deleted = await farmService.deleteFarm(id);
 
-              return String(farmId) !== String(id);
-            })
-          );
-        }
+      setFarms(current =>
+        current.filter(farm => {
+          const farmId =
+            farm?.id ??
+            farm?._id ??
+            farm?.farmId;
 
-        return deleted;
-      } catch (err) {
-        setError(err);
-        throw err;
-      } finally {
-        setLoading(false);
-      }
-    },
-    []
-  );
+          return String(farmId) !== String(id);
+        })
+      );
+
+      return deleted;
+    } catch (err) {
+      setError(err);
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   const searchFarms = useCallback(
-    (items = farms, text = "") => {
-      const source =
-        Array.isArray(items)
-          ? items
-          : [];
-
-      const value =
-        String(text)
-          .trim()
-          .toLowerCase();
+    (items, text = "") => {
+      const source = Array.isArray(items) ? items : farms;
+      const value = String(text).trim().toLowerCase();
 
       if (!value) return source;
 
@@ -157,13 +123,61 @@ export default function useFarms() {
           farm?.title ??
           "";
 
-        return String(name)
-          .toLowerCase()
-          .includes(value);
+        return String(name).toLowerCase().includes(value);
       });
     },
     [farms]
   );
+
+  const getStatistics = useCallback(
+    items => {
+      const source = Array.isArray(items) ? items : farms;
+
+      return {
+        total: source.length,
+        active: source.filter(
+          farm => farm?.status === "active"
+        ).length,
+        inactive: source.filter(
+          farm => farm?.status === "inactive"
+        ).length,
+      };
+    },
+    [farms]
+  );
+
+  const statistics = getStatistics(farms);
+
+  useEffect(() => {
+    let active = true;
+
+    const load = async () => {
+      setLoading(true);
+      setError(null);
+
+      try {
+        const data = await farmService.getAllFarms();
+
+        if (!active) return;
+
+        setFarms(
+          Array.isArray(data)
+            ? data
+            : []
+        );
+      } catch (err) {
+        if (active) setError(err);
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    load();
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   return {
     farms,
@@ -174,5 +188,7 @@ export default function useFarms() {
     updateFarm,
     deleteFarm,
     searchFarms,
+    getStatistics,
+    statistics,
   };
 }
