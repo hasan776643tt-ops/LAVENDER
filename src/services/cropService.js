@@ -3,24 +3,28 @@
 import cropRepository
   from "../repositories/cropRepository.js";
 
+import cropRecommendationService
+  from "./cropRecommendationService.js";
+
 import {
   createError,
 } from "../utils/errorHandler.js";
 
 class CropService {
-  constructor() {
-    this.repository = cropRepository;
-  }
-
   async getAll() {
-    return this.repository.getAll();
+    return cropRepository.getAll();
   }
 
   async getById(id) {
-    this.validateId(id);
+    if (!id) {
+      throw createError(
+        "Crop id is required",
+        "CROP_ID_REQUIRED"
+      );
+    }
 
     const crop =
-      await this.repository.getById(id);
+      await cropRepository.getById(id);
 
     if (!crop) {
       throw createError(
@@ -34,15 +38,24 @@ class CropService {
 
   async create(data) {
     this.validate(data);
-    return this.repository.create(data);
+    return cropRepository.create(data);
   }
 
   async update(id, data) {
-    this.validateId(id);
+    if (!id) {
+      throw createError(
+        "Crop id is required",
+        "CROP_ID_REQUIRED"
+      );
+    }
+
     this.validate(data);
 
     const crop =
-      await this.repository.update(id, data);
+      await cropRepository.update(
+        id,
+        data
+      );
 
     if (!crop) {
       throw createError(
@@ -55,10 +68,15 @@ class CropService {
   }
 
   async delete(id) {
-    this.validateId(id);
+    if (!id) {
+      throw createError(
+        "Crop id is required",
+        "CROP_ID_REQUIRED"
+      );
+    }
 
     const deleted =
-      await this.repository.delete(id);
+      await cropRepository.delete(id);
 
     if (!deleted) {
       throw createError(
@@ -70,13 +88,10 @@ class CropService {
     return true;
   }
 
-  validateId(id) {
-    if (!id) {
-      throw createError(
-        "Crop id is required",
-        "CROP_ID_REQUIRED"
-      );
-    }
+  getRecommendation(location) {
+    return cropRecommendationService.recommend(
+      location
+    );
   }
 
   validate(data) {
@@ -84,6 +99,13 @@ class CropService {
       throw createError(
         "Crop data is required",
         "CROP_DATA_REQUIRED"
+      );
+    }
+
+    if (!data.name?.trim()) {
+      throw createError(
+        "Crop name is required",
+        "CROP_NAME_REQUIRED"
       );
     }
 
@@ -101,12 +123,7 @@ class CropService {
       );
     }
 
-    if (!String(data.name || "").trim()) {
-      throw createError(
-        "Crop name is required",
-        "CROP_NAME_REQUIRED"
-      );
-    }
+    return true;
   }
 }
 
