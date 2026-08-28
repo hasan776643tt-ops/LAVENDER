@@ -28,11 +28,16 @@ export default function useCrops() {
     useState(null);
 
 
+  // =====================================================
+  // تحميل المحاصيل
+  // =====================================================
+
   const loadCrops = useCallback(
     async () => {
 
       setLoading(true);
       setError(null);
+
 
       try {
 
@@ -75,11 +80,16 @@ export default function useCrops() {
   }, [loadCrops]);
 
 
+  // =====================================================
+  // إضافة محصول
+  // =====================================================
+
   const addCrop = useCallback(
     async (data) => {
 
       setLoading(true);
       setError(null);
+
 
       try {
 
@@ -87,12 +97,16 @@ export default function useCrops() {
           await cropService.create(data);
 
 
-        setCrops(
-          current => [
-            ...current,
-            crop,
-          ]
-        );
+        if (crop) {
+
+          setCrops(
+            current => [
+              ...current,
+              crop,
+            ]
+          );
+
+        }
 
 
         return crop;
@@ -114,6 +128,10 @@ export default function useCrops() {
   );
 
 
+  // =====================================================
+  // تعديل محصول
+  // =====================================================
+
   const updateCrop = useCallback(
     async (
       id,
@@ -122,6 +140,7 @@ export default function useCrops() {
 
       setLoading(true);
       setError(null);
+
 
       try {
 
@@ -132,16 +151,31 @@ export default function useCrops() {
           );
 
 
-        setCrops(
-          current =>
-            current.map(
-              crop =>
-                String(crop.id) ===
-                String(id)
-                  ? updatedCrop
-                  : crop
-            )
-        );
+        if (updatedCrop) {
+
+          setCrops(
+            current =>
+              current.map(
+                crop => {
+
+                  const cropId =
+                    crop?.id ??
+                    crop?._id ??
+                    crop?.cropId;
+
+
+                  return (
+                    String(cropId) ===
+                    String(id)
+                  )
+                    ? updatedCrop
+                    : crop;
+
+                }
+              )
+          );
+
+        }
 
 
         return updatedCrop;
@@ -163,11 +197,16 @@ export default function useCrops() {
   );
 
 
+  // =====================================================
+  // حذف محصول
+  // =====================================================
+
   const deleteCrop = useCallback(
     async (id) => {
 
       setLoading(true);
       setError(null);
+
 
       try {
 
@@ -177,9 +216,20 @@ export default function useCrops() {
         setCrops(
           current =>
             current.filter(
-              crop =>
-                String(crop.id) !==
-                String(id)
+              crop => {
+
+                const cropId =
+                  crop?.id ??
+                  crop?._id ??
+                  crop?.cropId;
+
+
+                return (
+                  String(cropId) !==
+                  String(id)
+                );
+
+              }
             )
         );
 
@@ -203,6 +253,10 @@ export default function useCrops() {
   );
 
 
+  // =====================================================
+  // البحث
+  // =====================================================
+
   const searchCrops = useCallback(
     (
       items = crops,
@@ -217,8 +271,8 @@ export default function useCrops() {
 
       const value =
         String(text)
-          .toLowerCase()
-          .trim();
+          .trim()
+          .toLowerCase();
 
 
       if (!value) {
@@ -243,9 +297,15 @@ export default function useCrops() {
 
             crop?.seed_variety,
 
+            crop?.seedQuality,
+
+            crop?.seed_quality,
+
             crop?.fertilizerType,
 
             crop?.fertilizer_type,
+
+            crop?.notes,
 
           ]
             .filter(Boolean)
@@ -264,6 +324,10 @@ export default function useCrops() {
     [crops]
   );
 
+
+  // =====================================================
+  // الإحصائيات
+  // =====================================================
 
   const getStatistics = useCallback(
     (
@@ -300,8 +364,22 @@ export default function useCrops() {
   );
 
 
+  // =====================================================
+  // توصية البذور
+  // =====================================================
+
   const getRecommendation = useCallback(
     (location) => {
+
+      if (
+        !location ||
+        typeof location !== "object"
+      ) {
+
+        return null;
+
+      }
+
 
       try {
 
@@ -321,6 +399,10 @@ export default function useCrops() {
     []
   );
 
+
+  // =====================================================
+  // Return
+  // =====================================================
 
   return {
 
