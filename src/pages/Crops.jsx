@@ -6,118 +6,122 @@ import {
   useState,
 } from "react";
 
-import useFarms
-  from "../hooks/useFarms.js";
-
-import useFields
-  from "../hooks/useFields.js";
-
-import useCrops
-  from "../hooks/useCrops.js";
+import useFarms from "../hooks/useFarms.js";
+import useCrops from "../hooks/useCrops.js";
 
 const EMPTY = {
   farmId: "",
-  fieldId: "",
+  cultivationType: "field",
   name: "",
   seedType: "",
   seedVariety: "",
   seedQuality: "",
   seedQuantity: "",
+  treeType: "",
+  treeVariety: "",
   plantingDate: "",
   fertilizerType: "",
   fertilizerQuantity: "",
   harvestDate: "",
   expectedProduction: "",
+  latitude: "",
+  longitude: "",
+  boundary: [],
+  climate: "",
+  recommendedSeeds: [],
   notes: "",
 };
 
-function idOf(item) {
+const TYPES = [
+  {
+    value: "trees",
+    label: "🌳 أشجار / بستان",
+  },
+  {
+    value: "field",
+    label: "🌾 حقل محاصيل",
+  },
+  {
+    value: "vegetables",
+    label: "🥬 خضروات",
+  },
+  {
+    value: "other",
+    label: "🌱 أخرى",
+  },
+];
+
+function getFarmId(farm) {
   return (
-    item?.id ??
-    item?._id ??
-    item?.farmId ??
-    item?.fieldId ??
+    farm?.id ??
+    farm?._id ??
+    farm?.farmId ??
     ""
   );
 }
 
-function nameOf(item) {
+function getFarmName(farm) {
   return (
-    item?.name ??
-    item?.farmName ??
-    item?.fieldName ??
-    item?.title ??
-    ""
+    farm?.name ??
+    farm?.farmName ??
+    farm?.title ??
+    "مزرعة"
   );
 }
 
-function getCoordinates(field) {
-  const latitude =
-    field?.latitude ??
-    field?.lat ??
-    field?.location?.latitude ??
-    field?.location?.lat ??
-    field?.center?.latitude ??
-    field?.center?.lat ??
-    null;
-
-  const longitude =
-    field?.longitude ??
-    field?.lng ??
-    field?.location?.longitude ??
-    field?.location?.lng ??
-    field?.center?.longitude ??
-    field?.center?.lng ??
-    null;
-
-  if (
-    latitude !== null &&
-    longitude !== null
-  ) {
-    return {
-      latitude: Number(latitude),
-      longitude: Number(longitude),
-    };
-  }
-
-  const coordinates =
-    field?.location?.coordinates ??
-    field?.geometry?.coordinates ??
-    field?.coordinates;
-
-  if (
-    Array.isArray(coordinates) &&
-    coordinates.length >= 2 &&
-    !Array.isArray(coordinates[0])
-  ) {
-    return {
-      longitude: Number(coordinates[0]),
-      latitude: Number(coordinates[1]),
-    };
-  }
-
-  return {
-    latitude: null,
-    longitude: null,
-  };
+function getNumber(value) {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? number
+    : null;
 }
 
-function climateOf(latitude) {
-  const n = Math.abs(Number(latitude));
+function getClimate(latitude) {
+  const lat = getNumber(latitude);
 
-  if (!Number.isFinite(n)) {
-    return null;
-  }
+  if (lat === null) return "";
 
-  if (n >= 50) return "باردة";
-  if (n >= 25) return "معتدلة";
+  const absolute = Math.abs(lat);
+
+  if (absolute >= 50) return "باردة";
+  if (absolute >= 25) return "معتدلة";
 
   return "حارة";
 }
 
-function recommendedSeeds(latitude) {
-  const climate =
-    climateOf(latitude);
+function getRecommendedSeeds(
+  latitude,
+  type
+) {
+  const climate = getClimate(latitude);
+
+  if (type === "trees") {
+    if (climate === "باردة") {
+      return [
+        "تفاح",
+        "كمثرى",
+        "كرز",
+      ];
+    }
+
+    if (climate === "معتدلة") {
+      return [
+        "زيتون",
+        "رمان",
+        "حمضيات",
+      ];
+    }
+
+    if (climate === "حارة") {
+      return [
+        "زيتون",
+        "حمضيات",
+        "نخيل",
+      ];
+    }
+
+    return [];
+  }
 
   if (climate === "باردة") {
     return [
@@ -148,36 +152,127 @@ function recommendedSeeds(latitude) {
   return [];
 }
 
-function plantAge(date) {
-  if (!date) return null;
+function calculateAge(date) {
+  if (!date) return "";
 
-  const start =
-    new Date(`${date}T00:00:00`);
-
-  if (Number.isNaN(start.getTime())) {
-    return null;
-  }
-
+  const start = new Date(date);
   const now = new Date();
 
-  const days = Math.max(
-    0,
-    Math.floor(
-      (now - start) /
-        (1000 * 60 * 60 * 24)
-    )
-  );
+  if (Number.isNaN(start.getTime())) {
+    return "";
+  }
 
-  const months =
-    Math.floor(days / 30);
+  if (start > now) {
+    return "لم تبدأ الزراعة بعد";
+  }
 
-  const remainingDays =
-    days % 30;
+  let years =
+    now.getFullYear() -
+    start.getFullYear();
+
+  let months =
+    now.getMonth() -
+    start.getMonth();
+
+  let days =
+    now.getDate() -
+    start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+
+    const previousMonth =
+      new Date(
+        now.getFullYear(),
+        now.getMonth(),
+        0
+      );
+
+    days += previousMonth.getDate();
+  }
+
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
+
+  if (years > 0) {
+    return `${years} سنة و${months} شهر و${days} يوم`;
+  }
+
+  if (months > 0) {
+    return `${months} شهر و${days} يوم`;
+  }
+
+  return `${days} يوم`;
+}
+
+function readMapLocation() {
+  const keys = [
+    "mapLocation",
+    "selectedLocation",
+    "selectedFarmLocation",
+    "farmLocation",
+    "fieldLocation",
+  ];
+
+  for (const key of keys) {
+    try {
+      const raw =
+        localStorage.getItem(key);
+
+      if (!raw) continue;
+
+      const value =
+        JSON.parse(raw);
+
+      if (
+        value &&
+        (
+          value.latitude ??
+          value.lat
+        ) !== undefined
+      ) {
+        return value;
+      }
+    } catch {
+      // تجاهل البيانات غير الصالحة
+    }
+  }
+
+  return null;
+}
+
+function normalizeLocation(location) {
+  if (!location) {
+    return {
+      latitude: "",
+      longitude: "",
+      boundary: [],
+    };
+  }
 
   return {
-    days,
-    months,
-    remainingDays,
+    latitude:
+      location.latitude ??
+      location.lat ??
+      location.center?.latitude ??
+      location.center?.lat ??
+      "",
+
+    longitude:
+      location.longitude ??
+      location.lng ??
+      location.center?.longitude ??
+      location.center?.lng ??
+      "",
+
+    boundary:
+      Array.isArray(location.boundary)
+        ? location.boundary
+        : Array.isArray(location.points)
+          ? location.points
+          : [],
   };
 }
 
@@ -185,20 +280,13 @@ export default function Crops() {
   const {
     farms = [],
     loading: farmsLoading,
-    error: farmsError,
   } = useFarms();
 
   const {
-    fields = [],
-    loading: fieldsLoading,
-    error: fieldsError,
-    loadFields,
-  } = useFields();
-
-  const {
     crops = [],
-    loading: cropsLoading,
-    error: cropsError,
+    loading,
+    error,
+    loadCrops,
     addCrop,
     deleteCrop,
   } = useCrops();
@@ -209,12 +297,12 @@ export default function Crops() {
   const [message, setMessage] =
     useState("");
 
-  const [saving, setSaving] =
-    useState(false);
+  const [mapLocation, setMapLocation] =
+    useState(null);
 
   useEffect(() => {
-    loadFields().catch(() => {});
-  }, [loadFields]);
+    loadCrops().catch(() => {});
+  }, [loadCrops]);
 
   const farmIdFromUrl =
     useMemo(() => {
@@ -234,7 +322,7 @@ export default function Crops() {
     const exists =
       farms.some(
         farm =>
-          String(idOf(farm)) ===
+          String(getFarmId(farm)) ===
           String(farmIdFromUrl)
       );
 
@@ -242,63 +330,58 @@ export default function Crops() {
       setForm(current => ({
         ...current,
         farmId: farmIdFromUrl,
-        fieldId: "",
       }));
     }
-  }, [farmIdFromUrl, farms]);
+  }, [
+    farmIdFromUrl,
+    farms,
+  ]);
 
-  const farmFields =
-    useMemo(() => {
-      if (!form.farmId) {
-        return [];
-      }
+  useEffect(() => {
+    const location =
+      readMapLocation();
 
-      return fields.filter(field => {
-        const fieldFarmId =
-          field?.farmId ??
-          field?.farm_id ??
-          field?.farm?.id ??
-          field?.farm?._id ??
-          "";
+    if (location) {
+      setMapLocation(
+        normalizeLocation(location)
+      );
+    }
+  }, []);
 
-        return (
-          String(fieldFarmId) ===
-          String(form.farmId)
-        );
-      });
-    }, [fields, form.farmId]);
-
-  const selectedField =
-    useMemo(() => {
-      return farmFields.find(field => {
-        return (
-          String(idOf(field)) ===
-          String(form.fieldId)
-        );
-      });
-    }, [farmFields, form.fieldId]);
-
-  const coordinates =
+  const selectedFarm =
     useMemo(
       () =>
-        getCoordinates(
-          selectedField
+        farms.find(
+          farm =>
+            String(getFarmId(farm)) ===
+            String(form.farmId)
         ),
-      [selectedField]
+      [
+        farms,
+        form.farmId,
+      ]
     );
 
   const climate =
-    climateOf(
-      coordinates.latitude
+    getClimate(
+      mapLocation?.latitude
     );
 
-  const seeds =
-    recommendedSeeds(
-      coordinates.latitude
+  const recommendedSeeds =
+    useMemo(
+      () =>
+        getRecommendedSeeds(
+          mapLocation?.latitude,
+          form.cultivationType
+        ),
+      [
+        mapLocation?.latitude,
+        form.cultivationType,
+      ]
     );
 
-  const age =
-    plantAge(
+  const plantAge =
+    calculateAge(
       form.plantingDate
     );
 
@@ -313,17 +396,45 @@ export default function Crops() {
     setForm(current => ({
       ...current,
       [name]: value,
-      ...(name === "farmId"
-        ? {
-            fieldId: "",
-          }
-        : {}),
     }));
+  };
+
+  const chooseMapLocation = () => {
+    setMessage(
+      "حدد الأرض من الخريطة أولًا، ثم احفظ موقعها."
+    );
+
+    window.location.href =
+      `/map?return=crops&farmId=${encodeURIComponent(
+        String(form.farmId || "")
+      )}`;
+  };
+
+  const refreshMapLocation = () => {
+    const location =
+      readMapLocation();
+
+    if (!location) {
+      setMapLocation(null);
+
+      setMessage(
+        "لم يتم العثور على موقع محفوظ من الخريطة."
+      );
+
+      return;
+    }
+
+    setMapLocation(
+      normalizeLocation(location)
+    );
+
+    setMessage(
+      "تم تحديث موقع الأرض من الخريطة."
+    );
   };
 
   const save = async event => {
     event.preventDefault();
-
     setMessage("");
 
     if (!form.farmId) {
@@ -333,43 +444,44 @@ export default function Crops() {
       return;
     }
 
-    if (!form.fieldId) {
+    if (!form.cultivationType) {
       setMessage(
-        "يرجى اختيار الحقل."
+        "يرجى اختيار نوع الأرض / الزراعة."
       );
       return;
     }
 
-    if (!form.name.trim()) {
+    if (!mapLocation?.latitude) {
       setMessage(
-        "يرجى كتابة ماذا زرعت."
+        "يرجى تحديد الأرض من الخريطة أولًا."
       );
       return;
     }
 
-    setSaving(true);
+    if (
+      form.cultivationType === "trees"
+    ) {
+      if (!form.treeType.trim()) {
+        setMessage(
+          "يرجى كتابة نوع الشجرة."
+        );
+        return;
+      }
+    } else {
+      if (!form.name.trim()) {
+        setMessage(
+          "يرجى كتابة ماذا زرعت."
+        );
+        return;
+      }
+    }
 
     try {
       await addCrop({
         ...form,
 
         farmId:
-          form.farmId,
-
-        fieldId:
-          form.fieldId,
-
-        latitude:
-          coordinates.latitude,
-
-        longitude:
-          coordinates.longitude,
-
-        locationName:
-          nameOf(selectedField),
-
-        climate:
-          climate || null,
+          getFarmId(selectedFarm),
 
         seedQuantity:
           Number(
@@ -385,520 +497,593 @@ export default function Crops() {
           Number(
             form.expectedProduction || 0
           ),
+
+        latitude:
+          mapLocation.latitude,
+
+        longitude:
+          mapLocation.longitude,
+
+        boundary:
+          mapLocation.boundary || [],
+
+        climate:
+          climate || "",
+
+        recommendedSeeds,
       });
 
       setMessage(
-        "تم حفظ المحصول بنجاح."
+        "✅ تم حفظ المحصول بنجاح."
       );
 
-      setForm(EMPTY);
+      setForm({
+        ...EMPTY,
+        farmId: form.farmId,
+        cultivationType:
+          form.cultivationType,
+      });
     } catch (err) {
       setMessage(
         err?.message ||
-          "تعذر حفظ المحصول."
+        "تعذر حفظ المحصول."
       );
-    } finally {
-      setSaving(false);
     }
   };
-
-  const pageError =
-    farmsError ||
-    fieldsError ||
-    cropsError;
 
   return (
     <main
       dir="rtl"
       style={pageStyle}
     >
-      <h1 style={titleStyle}>
-        🌱 المحاصيل
-      </h1>
+      <header>
+        <h1>🌱 المحاصيل</h1>
 
-      {(message || pageError) && (
-        <div
-          style={messageStyle}
-        >
-          ⚠️{" "}
+        <p style={mutedStyle}>
+          تسجيل الزراعة وربطها بالمزرعة
+          وموقع الأرض والمناخ.
+        </p>
+      </header>
+
+      {(message || error) && (
+        <div style={messageStyle}>
           {message ||
-            pageError?.message ||
+            error?.message ||
             "حدث خطأ."}
         </div>
       )}
 
-      <form
-        onSubmit={save}
-        style={formStyle}
-      >
-        <select
-          name="farmId"
-          value={form.farmId}
-          onChange={change}
-          disabled={farmsLoading}
-          style={inputStyle}
-        >
-          <option value="">
-            {farmsLoading
-              ? "جاري تحميل المزارع..."
-              : farms.length
-                ? "اختر المزرعة"
-                : "لا توجد مزارع مسجلة"}
-          </option>
+      <form onSubmit={save}>
+        <section style={cardStyle}>
+          <h2 style={sectionTitle}>
+            1. المزرعة
+          </h2>
 
-          {farms.map(farm => {
-            const id =
-              idOf(farm);
-
-            const name =
-              nameOf(farm);
-
-            if (!id || !name) {
-              return null;
-            }
-
-            return (
-              <option
-                key={String(id)}
-                value={String(id)}
-              >
-                {name}
-              </option>
-            );
-          })}
-        </select>
-
-        <select
-          name="fieldId"
-          value={form.fieldId}
-          onChange={change}
-          disabled={
-            !form.farmId ||
-            fieldsLoading
-          }
-          style={inputStyle}
-        >
-          <option value="">
-            {!form.farmId
-              ? "اختر المزرعة أولًا"
-              : fieldsLoading
-                ? "جاري تحميل الحقول..."
-                : farmFields.length
-                  ? "اختر الحقل"
-                  : "لا توجد حقول لهذه المزرعة"}
-          </option>
-
-          {farmFields.map(field => {
-            const id =
-              idOf(field);
-
-            const name =
-              nameOf(field) ||
-              `حقل ${String(id).slice(0, 6)}`;
-
-            return (
-              <option
-                key={String(id)}
-                value={String(id)}
-              >
-                {name}
-              </option>
-            );
-          })}
-        </select>
-
-        {selectedField && (
-          <section
-            style={locationStyle}
+          <select
+            name="farmId"
+            value={form.farmId}
+            onChange={change}
+            disabled={farmsLoading}
+            style={inputStyle}
           >
-            <strong>
-              📍 دليل موقع الحقل
-            </strong>
+            <option value="">
+              {farmsLoading
+                ? "جاري تحميل المزارع..."
+                : "اختر المزرعة"}
+            </option>
 
-            <div>
-              الحقل:{" "}
-              {nameOf(selectedField)}
-            </div>
+            {farms.map(farm => {
+              const id =
+                getFarmId(farm);
 
-            <div>
-              خط العرض:{" "}
-              {coordinates.latitude ??
-                "غير مسجل"}
-            </div>
+              return (
+                <option
+                  key={String(id)}
+                  value={id}
+                >
+                  {getFarmName(farm)}
+                </option>
+              );
+            })}
+          </select>
+        </section>
 
-            <div>
-              خط الطول:{" "}
-              {coordinates.longitude ??
-                "غير مسجل"}
-            </div>
+        <section style={cardStyle}>
+          <h2 style={sectionTitle}>
+            2. نوع الأرض / الزراعة
+          </h2>
 
-            {climate && (
+          <select
+            name="cultivationType"
+            value={form.cultivationType}
+            onChange={change}
+            style={inputStyle}
+          >
+            {TYPES.map(type => (
+              <option
+                key={type.value}
+                value={type.value}
+              >
+                {type.label}
+              </option>
+            ))}
+          </select>
+        </section>
+
+        <section style={cardStyle}>
+          <h2 style={sectionTitle}>
+            3. الأرض والموقع
+          </h2>
+
+          <button
+            type="button"
+            onClick={chooseMapLocation}
+            style={secondaryButton}
+          >
+            🗺️ تحديد الأرض من الخريطة
+          </button>
+
+          <button
+            type="button"
+            onClick={refreshMapLocation}
+            style={smallButton}
+          >
+            🔄 تحديث موقع الخريطة
+          </button>
+
+          {mapLocation?.latitude ? (
+            <div style={locationBox}>
+              <strong>
+                📍 تم تحديد الأرض
+              </strong>
+
               <div>
-                🌤️ المناخ: {climate}
+                خط العرض:{" "}
+                {mapLocation.latitude}
               </div>
-            )}
-          </section>
-        )}
 
-        <input
-          name="name"
-          value={form.name}
-          onChange={change}
-          placeholder="🌾 ماذا زرعت؟"
-          style={inputStyle}
-        />
+              <div>
+                خط الطول:{" "}
+                {mapLocation.longitude}
+              </div>
 
-        <input
-          name="seedType"
-          value={form.seedType}
-          onChange={change}
-          placeholder="🌱 نوع البذور"
-          style={inputStyle}
-        />
-
-        <input
-          name="seedVariety"
-          value={form.seedVariety}
-          onChange={change}
-          placeholder="🔖 صنف البذور"
-          style={inputStyle}
-        />
-
-        <select
-          name="seedQuality"
-          value={form.seedQuality}
-          onChange={change}
-          style={inputStyle}
-        >
-          <option value="">
-            ⭐ اختر جودة البذور
-          </option>
-          <option value="ممتازة">
-            ممتازة
-          </option>
-          <option value="جيدة">
-            جيدة
-          </option>
-          <option value="متوسطة">
-            متوسطة
-          </option>
-        </select>
-
-        <input
-          name="seedQuantity"
-          type="number"
-          min="0"
-          value={form.seedQuantity}
-          onChange={change}
-          placeholder="⚖️ وزن البذور بالكيلوغرام"
-          style={inputStyle}
-        />
-
-        <label style={labelStyle}>
-          📅 متى زرعت؟
-        </label>
-
-        <input
-          name="plantingDate"
-          type="date"
-          value={form.plantingDate}
-          onChange={change}
-          style={inputStyle}
-        />
-
-        {age && (
-          <div
-            style={ageStyle}
-          >
-            🌿 عمر النبات الآن:{" "}
-            {age.months} شهر و{" "}
-            {age.remainingDays} يوم
-            {" "}
-            ({age.days} يوم)
-          </div>
-        )}
-
-        <input
-          name="fertilizerType"
-          value={form.fertilizerType}
-          onChange={change}
-          placeholder="🧪 نوع السماد"
-          style={inputStyle}
-        />
-
-        <input
-          name="fertilizerQuantity"
-          type="number"
-          min="0"
-          value={form.fertilizerQuantity}
-          onChange={change}
-          placeholder="⚖️ كمية السماد بالكيلوغرام"
-          style={inputStyle}
-        />
-
-        <label style={labelStyle}>
-          📅 موعد الحصاد المتوقع
-        </label>
-
-        <input
-          name="harvestDate"
-          type="date"
-          value={form.harvestDate}
-          onChange={change}
-          style={inputStyle}
-        />
-
-        <input
-          name="expectedProduction"
-          type="number"
-          min="0"
-          value={form.expectedProduction}
-          onChange={change}
-          placeholder="📦 الإنتاج المتوقع بالكيلوغرام"
-          style={inputStyle}
-        />
-
-        <textarea
-          name="notes"
-          value={form.notes}
-          onChange={change}
-          placeholder="📝 ملاحظات"
-          rows={3}
-          style={inputStyle}
-        />
-
-        {seeds.length > 0 && (
-          <section
-            style={recommendationStyle}
-          >
-            <strong>
-              🌱 توصية البذور حسب موقع الحقل
-            </strong>
-
-            <div>
-              المناخ: {climate}
+              {mapLocation.boundary?.length > 0 && (
+                <div>
+                  حدود الأرض:{" "}
+                  {mapLocation.boundary.length}
+                  {" "}نقطة
+                </div>
+              )}
             </div>
+          ) : (
+            <p style={mutedStyle}>
+              لم يتم تحديد الأرض من الخريطة بعد.
+            </p>
+          )}
+        </section>
+
+        {mapLocation?.latitude && (
+          <section style={recommendationStyle}>
+            <h2 style={sectionTitle}>
+              🌤️ المناخ والتوصية
+            </h2>
 
             <p>
-              بذور مناسبة مبدئيًا:
+              مناخ الموقع:{" "}
+              <strong>
+                {climate || "غير محدد"}
+              </strong>
             </p>
 
-            {seeds.map(seed => (
-              <div key={seed}>
-                🌾 {seed}
-              </div>
-            ))}
+            {recommendedSeeds.length > 0 ? (
+              <>
+                <strong>
+                  🌱 توصية أولية مناسبة للموقع:
+                </strong>
+
+                <div style={tagsStyle}>
+                  {recommendedSeeds.map(seed => (
+                    <span
+                      key={seed}
+                      style={tagStyle}
+                    >
+                      {seed}
+                    </span>
+                  ))}
+                </div>
+              </>
+            ) : (
+              <p>
+                لا توجد توصية كافية حتى الآن.
+              </p>
+            )}
+
+            <small>
+              هذه توصية أولية مبنية على
+              المناخ التقريبي للموقع، وليست
+              بديلًا عن القرار الزراعي المحلي.
+            </small>
           </section>
         )}
 
-        {selectedField &&
-          coordinates.latitude === null && (
-            <div
-              style={warningStyle}
-            >
-              ⚠️ هذا الحقل لا يحتوي حاليًا
-              على إحداثيات جغرافية محفوظة،
-              لذلك لا يمكن إعطاء توصية
-              مناخية دقيقة.
+        {form.cultivationType === "trees" ? (
+          <section style={cardStyle}>
+            <h2 style={sectionTitle}>
+              4. بيانات الأشجار
+            </h2>
+
+            <input
+              name="treeType"
+              value={form.treeType}
+              onChange={change}
+              placeholder="🌳 نوع الشجرة"
+              style={inputStyle}
+            />
+
+            <input
+              name="treeVariety"
+              value={form.treeVariety}
+              onChange={change}
+              placeholder="🔖 صنف الشجرة"
+              style={inputStyle}
+            />
+          </section>
+        ) : (
+          <section style={cardStyle}>
+            <h2 style={sectionTitle}>
+              4. بيانات المحصول والبذور
+            </h2>
+
+            <input
+              name="name"
+              value={form.name}
+              onChange={change}
+              placeholder="🌾 ماذا زرعت؟"
+              style={inputStyle}
+            />
+
+            <input
+              name="seedType"
+              value={form.seedType}
+              onChange={change}
+              placeholder="🌱 نوع البذور"
+              style={inputStyle}
+            />
+
+            <input
+              name="seedVariety"
+              value={form.seedVariety}
+              onChange={change}
+              placeholder="🔖 صنف البذور"
+              style={inputStyle}
+            />
+
+            <input
+              name="seedQuality"
+              value={form.seedQuality}
+              onChange={change}
+              placeholder="⭐ جودة البذور"
+              style={inputStyle}
+            />
+
+            <input
+              name="seedQuantity"
+              type="number"
+              min="0"
+              value={form.seedQuantity}
+              onChange={change}
+              placeholder="⚖️ كمية البذور بالكيلوغرام"
+              style={inputStyle}
+            />
+          </section>
+        )}
+
+        <section style={cardStyle}>
+          <h2 style={sectionTitle}>
+            5. تاريخ الزراعة والعمر
+          </h2>
+
+          <input
+            name="plantingDate"
+            type="date"
+            value={form.plantingDate}
+            onChange={change}
+            style={inputStyle}
+          />
+
+          {plantAge && (
+            <div style={ageBox}>
+              🌿 عمر النبات:
+              {" "}
+              <strong>
+                {plantAge}
+              </strong>
             </div>
           )}
+        </section>
+
+        <section style={cardStyle}>
+          <h2 style={sectionTitle}>
+            6. السماد والحصاد
+          </h2>
+
+          <input
+            name="fertilizerType"
+            value={form.fertilizerType}
+            onChange={change}
+            placeholder="🧪 نوع السماد"
+            style={inputStyle}
+          />
+
+          <input
+            name="fertilizerQuantity"
+            type="number"
+            min="0"
+            value={form.fertilizerQuantity}
+            onChange={change}
+            placeholder="⚖️ كمية السماد بالكيلوغرام"
+            style={inputStyle}
+          />
+
+          <input
+            name="harvestDate"
+            type="date"
+            value={form.harvestDate}
+            onChange={change}
+            style={inputStyle}
+          />
+
+          <input
+            name="expectedProduction"
+            type="number"
+            min="0"
+            value={form.expectedProduction}
+            onChange={change}
+            placeholder="📦 الإنتاج المتوقع بالكيلوغرام"
+            style={inputStyle}
+          />
+        </section>
+
+        <section style={cardStyle}>
+          <h2 style={sectionTitle}>
+            7. ملاحظات
+          </h2>
+
+          <textarea
+            name="notes"
+            value={form.notes}
+            onChange={change}
+            placeholder="📝 ملاحظات"
+            style={{
+              ...inputStyle,
+              minHeight: 80,
+              resize: "vertical",
+            }}
+          />
+        </section>
 
         <button
           type="submit"
-          disabled={
-            saving ||
-            cropsLoading ||
-            !farms.length ||
-            !form.farmId ||
-            !form.fieldId
-          }
-          style={buttonStyle}
+          disabled={loading}
+          style={saveButton}
         >
-          {saving
+          {loading
             ? "جاري الحفظ..."
-            : "حفظ المحصول"}
+            : "💾 حفظ المحصول"}
         </button>
       </form>
 
-      <h2 style={sectionTitle}>
-        🌾 المحاصيل المسجلة
-      </h2>
+      <section>
+        <h2 style={sectionTitle}>
+          🌾 المحاصيل المسجلة
+        </h2>
 
-      {!crops.length && (
-        <div style={emptyStyle}>
-          لا توجد محاصيل مسجلة حتى الآن.
-        </div>
-      )}
+        {crops.length === 0 && (
+          <p style={mutedStyle}>
+            لا توجد محاصيل مسجلة بعد.
+          </p>
+        )}
 
-      {crops.map(crop => {
-        const cropAge =
-          plantAge(
-            crop?.plantingDate
-          );
+        {crops.map(crop => {
+          const farm =
+            farms.find(
+              item =>
+                String(
+                  getFarmId(item)
+                ) ===
+                String(crop.farmId)
+            );
 
-        return (
-          <article
-            key={crop.id}
-            style={cropCardStyle}
-          >
-            <strong>
-              🌱 {crop.name}
-            </strong>
-
-            <div>
-              🏡 المزرعة:{" "}
-              {crop.farmName || "--"}
-            </div>
-
-            <div>
-              📍 الحقل:{" "}
-              {crop.locationName || "--"}
-            </div>
-
-            <div>
-              🌾 البذور:{" "}
-              {crop.seedType || "--"}
-            </div>
-
-            <div>
-              🔖 الصنف:{" "}
-              {crop.seedVariety || "--"}
-            </div>
-
-            {crop.plantingDate && (
-              <div>
-                📅 الزراعة:{" "}
-                {crop.plantingDate}
-              </div>
-            )}
-
-            {cropAge && (
-              <div>
-                🌿 العمر:{" "}
-                {cropAge.months} شهر و{" "}
-                {cropAge.remainingDays} يوم
-              </div>
-            )}
-
-            {crop.climate && (
-              <div>
-                🌤️ المناخ:{" "}
-                {crop.climate}
-              </div>
-            )}
-
-            <button
-              type="button"
-              onClick={() =>
-                deleteCrop(
-                  crop.id
-                )
-              }
-              style={deleteStyle}
+          return (
+            <article
+              key={crop.id}
+              style={cropCard}
             >
-              🗑️ حذف
-            </button>
-          </article>
-        );
-      })}
+              <strong>
+                🌱{" "}
+                {crop.name ||
+                  crop.treeType ||
+                  "محصول"}
+              </strong>
+
+              <div>
+                🏡 المزرعة:{" "}
+                {getFarmName(farm)}
+              </div>
+
+              <div>
+                🌿 النوع:{" "}
+                {crop.cultivationType}
+              </div>
+
+              {crop.seedType && (
+                <div>
+                  🌾 البذور:{" "}
+                  {crop.seedType}
+                </div>
+              )}
+
+              {crop.plantingDate && (
+                <div>
+                  📅 الزراعة:{" "}
+                  {crop.plantingDate}
+                </div>
+              )}
+
+              {crop.plantingDate && (
+                <div>
+                  ⏳ العمر:{" "}
+                  {calculateAge(
+                    crop.plantingDate
+                  )}
+                </div>
+              )}
+
+              {crop.latitude && (
+                <div>
+                  📍 الموقع محفوظ
+                </div>
+              )}
+
+              <button
+                type="button"
+                onClick={() =>
+                  deleteCrop(crop.id)
+                }
+                style={deleteButton}
+              >
+                🗑️ حذف
+              </button>
+            </article>
+          );
+        })}
+      </section>
     </main>
   );
 }
 
 const pageStyle = {
-  maxWidth: 900,
+  maxWidth: 720,
   margin: "0 auto",
-  padding: "10px 12px 24px",
+  padding: 10,
+  boxSizing: "border-box",
 };
 
-const titleStyle = {
-  margin: "4px 0 10px",
+const cardStyle = {
+  padding: 10,
+  marginBottom: 8,
+  borderRadius: 10,
+  background: "#ffffff",
+  boxShadow:
+    "0 2px 8px rgba(0,0,0,.06)",
 };
 
 const sectionTitle = {
-  margin: "16px 0 8px",
-};
-
-const formStyle = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 7,
+  margin: "0 0 8px",
+  fontSize: 17,
 };
 
 const inputStyle = {
+  display: "block",
   width: "100%",
   boxSizing: "border-box",
-  padding: "9px 11px",
+  padding: "9px 10px",
+  marginBottom: 7,
   border: "1px solid #ccd5ce",
-  borderRadius: 9,
-  fontSize: 16,
+  borderRadius: 8,
+  fontSize: 15,
   background: "#fff",
 };
 
-const labelStyle = {
-  fontSize: 14,
-  marginTop: 2,
-};
-
 const messageStyle = {
-  padding: "8px 10px",
+  padding: 9,
   marginBottom: 8,
-  background: "#fff3cd",
   borderRadius: 8,
+  background: "#fff3cd",
 };
 
-const locationStyle = {
-  padding: "8px 10px",
-  borderRadius: 9,
-  background: "#eef7ef",
-  lineHeight: 1.7,
+const mutedStyle = {
+  color: "#66736a",
+  fontSize: 13,
+};
+
+const secondaryButton = {
+  width: "100%",
+  padding: "10px",
+  border: 0,
+  borderRadius: 8,
+  cursor: "pointer",
+  marginBottom: 6,
+  fontSize: 15,
+};
+
+const smallButton = {
+  padding: "7px 10px",
+  border: 0,
+  borderRadius: 7,
+  cursor: "pointer",
+  fontSize: 13,
+};
+
+const locationBox = {
+  marginTop: 8,
+  padding: 9,
+  borderRadius: 8,
+  background: "#eef8ef",
+  lineHeight: 1.8,
+  fontSize: 13,
 };
 
 const recommendationStyle = {
-  padding: "9px 11px",
-  borderRadius: 9,
-  background: "#edf8ef",
-  lineHeight: 1.7,
+  padding: 10,
+  marginBottom: 8,
+  borderRadius: 10,
+  background: "#eef8ef",
 };
 
-const ageStyle = {
-  padding: "7px 10px",
+const tagsStyle = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 5,
+  margin: "8px 0",
+};
+
+const tagStyle = {
+  padding: "5px 8px",
+  borderRadius: 15,
+  background: "#ffffff",
+  fontSize: 13,
+};
+
+const ageBox = {
+  padding: 8,
   borderRadius: 8,
-  background: "#f1f7f2",
+  background: "#eef8ef",
+  fontSize: 14,
 };
 
-const warningStyle = {
-  padding: "8px 10px",
-  borderRadius: 8,
-  background: "#fff3cd",
-};
-
-const buttonStyle = {
+const saveButton = {
   width: "100%",
-  padding: "10px",
+  padding: "11px",
+  marginBottom: 14,
   border: 0,
   borderRadius: 9,
   cursor: "pointer",
   fontSize: 16,
 };
 
-const emptyStyle = {
-  padding: 10,
-  borderRadius: 9,
-  background: "#f5f5f5",
-};
-
-const cropCardStyle = {
+const cropCard = {
   padding: 9,
   marginBottom: 7,
   borderRadius: 9,
   background: "#f5f5f5",
-  lineHeight: 1.7,
+  lineHeight: 1.8,
+  fontSize: 14,
 };
 
-const deleteStyle = {
-  marginTop: 5,
-  padding: "6px 10px",
+const deleteButton = {
+  marginTop: 6,
+  padding: "6px 9px",
   border: 0,
   borderRadius: 7,
   cursor: "pointer",
