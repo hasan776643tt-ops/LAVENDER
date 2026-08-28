@@ -5,12 +5,7 @@ import farmRepository
 
 class FarmService {
   async getAll() {
-    const data =
-      await farmRepository.getAll();
-
-    return Array.isArray(data)
-      ? data
-      : [];
+    return farmRepository.getAll();
   }
 
   async getAllFarms() {
@@ -18,10 +13,12 @@ class FarmService {
   }
 
   async getById(id) {
-    if (!id) {
-      throw new Error(
-        "معرف المزرعة مطلوب"
-      );
+    if (
+      id === undefined ||
+      id === null ||
+      String(id).trim() === ""
+    ) {
+      throw new Error("معرف المزرعة مطلوب");
     }
 
     return farmRepository.getById(id);
@@ -34,22 +31,23 @@ class FarmService {
   async create(data) {
     if (
       !data ||
-      typeof data !== "object"
+      typeof data !== "object" ||
+      Array.isArray(data)
     ) {
-      throw new Error(
-        "بيانات المزرعة مطلوبة"
-      );
+      throw new Error("بيانات المزرعة مطلوبة");
     }
 
     if (
-      !String(data.name ?? "").trim()
+      typeof data.name !== "string" ||
+      !data.name.trim()
     ) {
-      throw new Error(
-        "اسم المزرعة مطلوب"
-      );
+      throw new Error("اسم المزرعة مطلوب");
     }
 
-    return farmRepository.create(data);
+    return farmRepository.create({
+      ...data,
+      name: data.name.trim(),
+    });
   }
 
   async createFarm(data) {
@@ -57,16 +55,23 @@ class FarmService {
   }
 
   async update(id, data) {
-    if (!id) {
-      throw new Error(
-        "معرف المزرعة مطلوب"
-      );
+    if (
+      id === undefined ||
+      id === null ||
+      String(id).trim() === ""
+    ) {
+      throw new Error("معرف المزرعة مطلوب");
     }
 
-    return farmRepository.update(
-      id,
-      data
-    );
+    if (
+      !data ||
+      typeof data !== "object" ||
+      Array.isArray(data)
+    ) {
+      throw new Error("بيانات التحديث مطلوبة");
+    }
+
+    return farmRepository.update(id, data);
   }
 
   async updateFarm(id, data) {
@@ -74,10 +79,12 @@ class FarmService {
   }
 
   async delete(id) {
-    if (!id) {
-      throw new Error(
-        "معرف المزرعة مطلوب"
-      );
+    if (
+      id === undefined ||
+      id === null ||
+      String(id).trim() === ""
+    ) {
+      throw new Error("معرف المزرعة مطلوب");
     }
 
     return farmRepository.delete(id);
