@@ -1,6 +1,7 @@
 // src/pages/Crops.jsx
 
 import {
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -8,8 +9,8 @@ import {
 
 import useFarms from "../hooks/useFarms.js";
 import useCrops from "../hooks/useCrops.js";
-import cropService from "../services/cropService.js";
 import mapService from "../services/mapService.js";
+import cropService from "../services/cropService.js";
 
 const EMPTY = {
   farmId: "",
@@ -71,30 +72,34 @@ function getFarmName(farm) {
   );
 }
 
+function getLocationFarmId(location) {
+  return (
+    location?.farmId ??
+    location?.farm?.id ??
+    location?.farm?._id ??
+    location?.farm?.farmId ??
+    ""
+  );
+}
+
 function getNumber(value) {
   const number = Number(value);
+
   return Number.isFinite(number)
     ? number
     : null;
 }
 
-function normalizeLocation(location) {
-  if (!location) {
-    return {
-      id: "",
-      farmId: "",
-      latitude: "",
-      longitude: "",
-      boundary: [],
-      points: [],
-      source: "",
-    };
-  }
-
+function normalizeLocation(location = {}) {
   const points =
     Array.isArray(location.points)
       ? location.points
       : [];
+
+  const boundary =
+    Array.isArray(location.boundary)
+      ? location.boundary
+      : points;
 
   const latitude =
     location.latitude ??
@@ -112,25 +117,25 @@ function normalizeLocation(location) {
 
   return {
     ...location,
-    id: location.id ?? "",
-    farmId: location.farmId ?? "",
     latitude,
     longitude,
-    boundary:
-      Array.isArray(location.boundary)
-        ? location.boundary
-        : points,
+    boundary,
     points,
-    source: location.source ?? "",
   };
 }
 
 function hasCoordinates(location) {
   const latitude =
-    getNumber(location?.latitude);
+    getNumber(
+      location?.latitude ??
+      location?.lat
+    );
 
   const longitude =
-    getNumber(location?.longitude);
+    getNumber(
+      location?.longitude ??
+      location?.lng
+    );
 
   return (
     latitude !== null &&
@@ -143,7 +148,9 @@ function hasCoordinates(location) {
 }
 
 function calculateAge(date) {
-  if (!date) return "";
+  if (!date) {
+    return "";
+  }
 
   const start = new Date(date);
   const now = new Date();
@@ -178,7 +185,8 @@ function calculateAge(date) {
         0
       );
 
-    days += previousMonth.getDate();
+    days +=
+      previousMonth.getDate();
   }
 
   if (months < 0) {
@@ -227,9 +235,81 @@ export default function Crops() {
   const [locationsError, setLocationsError] =
     useState("");
 
+  const loadMapLocations =
+    useCallback(async () => {
+      try {
+        setLocationsLoading(true);
+        setLocationsError("");
+
+        const data =
+          await mapService.getAllLocations();
+
+        const safe =
+          Array.isArray(data)
+            ? data
+            : [];
+
+        setLocations(safe);
+
+        return safe;
+      } catch (err) {
+        console.error(
+          "Crops map locations loading failed:",
+          err
+        );
+
+        setLocations([]);
+        setLocationsError(
+          "تعذر تحميل مواقع الخريطة."
+        );
+
+        return [];
+      } finally {
+        setLocationsLoading(false);
+      }
+    }, []);
+
   useEffect(() => {
     loadCrops().catch(() => {});
   }, [loadCrops]);
+
+  useEffect(() => {
+    loadMapLocations();
+  }, [loadMapLocations]);
+
+  /*
+   * مهم:
+   * عند الرجوع من Map إلى Crops
+   * نعيد قراءة locations حتى لا تبقى
+   * الشاشة على نسخة قديمة.
+   */
+  useEffect(() => {
+    const refresh = () => {
+      loadMapLocations();
+    };
+
+    window.addEventListener(
+      "focus",
+      refresh
+    );
+
+    window.addEventListener(
+      "pageshow",
+      refresh
+    );
+
+    return () => {
+      window.removeEventListener(
+        "focus",
+        refresh
+      );
+
+      window.removeEventListener(
+        "pageshow",
+        refresh
+      );
+    };
+  }, [loadMapLocations]);
 
   const farmIdFromUrl =
     useMemo(() => {
@@ -238,18 +318,20 @@ export default function Crops() {
           window.location.search
         );
 
-      return (
-        params.get("farmId") || ""
-      );
+      return params.get("farmId") || "";
     }, []);
 
   useEffect(() => {
-    if (!farmIdFromUrl) return;
+    if (!farmIdFromUrl) {
+      return;
+    }
 
     const exists =
       farms.some(
         farm =>
-          String(getFarmId(farm)) ===
+          String(
+            getFarmId(farm)
+          ) ===
           String(farmIdFromUrl)
       );
 
@@ -264,40 +346,16 @@ export default function Crops() {
     farms,
   ]);
 
-  const loadMapLocations =
-    async () => {
-      try {
-        setLocationsLoading(true);
-        setLocationsError("");
-
-        const data =
-          await mapService.getAllLocations();
-
-        setLocations(
-          Array.isArray(data)
-            ? data
-            : []
-        );
-      } catch (err) {
-        console.error(
-          "Crops map locations loading failed:",
-          err
-        );
-
-        setLocations([]);
-
-        setLocationsError(
-          "تعذر تحميل مواقع الخريطة."
-        );
-      } finally {
-        setLocationsLoading(false);
-      }
-    };
-
-  useEffect(() => {
-    loadMapLocations();
-  }, []);
-
+  /*
+   * الموقع الحقيقي للمزرعة.
+   *
+   * الأولوية:
+   * 1. موقع مرتبط بالمزرعة.
+   * 2. موقع مصدره map.
+   * 3. أحدث موقع محفوظ.
+   *
+   * لا نعتمد على المحافظة أو القرية.
+   */
   const mapLocation =
     useMemo(() => {
       if (!form.farmId) {
@@ -307,30 +365,42 @@ export default function Crops() {
       const farmLocations =
         locations
           .map(normalizeLocation)
-          .filter(
-            location =>
-              String(location.farmId) ===
+          .filter(location => {
+            const locationFarmId =
+              getLocationFarmId(
+                location
+              );
+
+            return (
+              String(locationFarmId) ===
               String(form.farmId)
-          )
+            );
+          })
           .filter(hasCoordinates);
 
-      if (farmLocations.length === 0) {
+      if (
+        farmLocations.length === 0
+      ) {
         return null;
       }
 
-      /*
-       * موقع الخريطة فقط.
-       * لا نستخدم الموقع النصي.
-       */
       const mapLocations =
         farmLocations.filter(
           location =>
-            location.source === "map"
+            String(
+              location.source || ""
+            ).toLowerCase() ===
+            "map"
         );
 
+      const candidates =
+        mapLocations.length > 0
+          ? mapLocations
+          : farmLocations;
+
       return (
-        mapLocations[
-          mapLocations.length - 1
+        candidates[
+          candidates.length - 1
         ] || null
       );
     }, [
@@ -338,12 +408,22 @@ export default function Crops() {
       form.farmId,
     ]);
 
+  /*
+   * إذا لم يكن farmId محفوظًا داخل location
+   * ولكن يوجد موقع واحد فقط مع إحداثيات،
+   * لا نعتبره تلقائيًا موقع المزرعة الأخرى.
+   *
+   * لذلك لا يحدث خلط بين المزارع.
+   */
+
   const selectedFarm =
     useMemo(
       () =>
         farms.find(
           farm =>
-            String(getFarmId(farm)) ===
+            String(
+              getFarmId(farm)
+            ) ===
             String(form.farmId)
         ),
       [
@@ -352,23 +432,53 @@ export default function Crops() {
       ]
     );
 
-  /*
-   * التوصية الوحيدة تأتي من cropService.
-   * لا توجد قاعدة بذور داخل Crops.jsx.
-   */
-  const recommendation =
+  const locationForRecommendation =
+    mapLocation
+      ? {
+          latitude:
+            mapLocation.latitude,
+          longitude:
+            mapLocation.longitude,
+          boundary:
+            mapLocation.boundary,
+        }
+      : null;
+
+  const smartRecommendations =
     useMemo(() => {
-      if (!mapLocation) {
+      if (!locationForRecommendation) {
         return null;
       }
 
       return cropService.getSmartRecommendations(
-        mapLocation
+        locationForRecommendation
       );
-    }, [mapLocation]);
+    }, [
+      locationForRecommendation,
+    ]);
 
   const climate =
-    recommendation?.climate || "";
+    smartRecommendations?.climate || "";
+
+  const recommendedSeeds =
+    useMemo(() => {
+      if (!smartRecommendations) {
+        return [];
+      }
+
+      if (
+        form.cultivationType ===
+        "trees"
+      ) {
+        return [];
+      }
+
+      return smartRecommendations.crops
+        .map(crop => crop.name);
+    }, [
+      smartRecommendations,
+      form.cultivationType,
+    ]);
 
   const plantAge =
     calculateAge(
@@ -408,16 +518,36 @@ export default function Crops() {
     async () => {
       setMessage("");
 
-      await loadMapLocations();
+      const data =
+        await loadMapLocations();
+
+      const exists =
+        data
+          .map(normalizeLocation)
+          .some(location => {
+            const locationFarmId =
+              getLocationFarmId(
+                location
+              );
+
+            return (
+              String(locationFarmId) ===
+                String(form.farmId) &&
+              hasCoordinates(location)
+            );
+          });
 
       setMessage(
-        "تم تحديث موقع الأرض من الخريطة."
+        exists
+          ? "تم تحديث موقع الأرض من الخريطة."
+          : "لا يوجد موقع محفوظ لهذه المزرعة على الخريطة."
       );
     };
 
   const save =
     async event => {
       event.preventDefault();
+
       setMessage("");
 
       if (!form.farmId) {
@@ -435,13 +565,60 @@ export default function Crops() {
       }
 
       /*
-       * الموقع إلزامي للحفظ.
-       * المصدر هو الخريطة فقط.
+       * إعادة القراءة مباشرة قبل الحفظ.
+       *
+       * هذه النقطة تمنع مشكلة:
+       * الخريطة حفظت الموقع
+       * لكن Crops كانت تحمل نسخة قديمة.
        */
-      if (!hasCoordinates(mapLocation)) {
+      const freshLocations =
+        await loadMapLocations();
+
+      const freshLocation =
+        freshLocations
+          .map(normalizeLocation)
+          .filter(location => {
+            const locationFarmId =
+              getLocationFarmId(
+                location
+              );
+
+            return (
+              String(locationFarmId) ===
+              String(form.farmId)
+            );
+          })
+          .filter(hasCoordinates)
+          .filter(
+            location =>
+              String(
+                location.source || ""
+              ).toLowerCase() ===
+              "map"
+          )
+          .pop() ||
+        freshLocations
+          .map(normalizeLocation)
+          .filter(location => {
+            const locationFarmId =
+              getLocationFarmId(
+                location
+              );
+
+            return (
+              String(locationFarmId) ===
+              String(form.farmId)
+            );
+          })
+          .filter(hasCoordinates)
+          .pop() ||
+        null;
+
+      if (!freshLocation) {
         setMessage(
-          "لم يتم العثور على أرض محددة من الخريطة لهذه المزرعة. افتح الخريطة وحدد الأرض ثم احفظ الموقع."
+          "لم يتم العثور على موقع أرض محفوظ لهذه المزرعة. افتح الخريطة وحدد الأرض ثم احفظ الموقع."
         );
+
         return;
       }
 
@@ -450,28 +627,48 @@ export default function Crops() {
         "trees"
       ) {
         if (
-          !form.treeType.trim()
+          !String(
+            form.treeType || ""
+          ).trim()
         ) {
           setMessage(
             "يرجى كتابة نوع الشجرة."
           );
+
           return;
         }
       } else {
-        if (!form.name.trim()) {
+        if (
+          !String(
+            form.name || ""
+          ).trim()
+        ) {
           setMessage(
             "يرجى كتابة ماذا زرعت."
           );
+
           return;
         }
       }
+
+      const location =
+        normalizeLocation(
+          freshLocation
+        );
+
+      const recommendations =
+        cropService.getSmartRecommendations(
+          location
+        );
 
       try {
         await addCrop({
           ...form,
 
           farmId:
-            getFarmId(selectedFarm),
+            getFarmId(
+              selectedFarm
+            ) || form.farmId,
 
           seedQuantity:
             Number(
@@ -488,37 +685,31 @@ export default function Crops() {
               form.expectedProduction || 0
             ),
 
-          /*
-           * الموقع الحقيقي من الخريطة.
-           */
           latitude:
             Number(
-              mapLocation.latitude
+              location.latitude
             ),
 
           longitude:
             Number(
-              mapLocation.longitude
+              location.longitude
             ),
 
           boundary:
             Array.isArray(
-              mapLocation.boundary
+              location.boundary
             )
-              ? mapLocation.boundary
+              ? location.boundary
               : [],
 
-          climate,
+          climate:
+            recommendations?.climate ||
+            "",
 
-          /*
-           * تحفظ نتيجة المحاصيل المناسبة
-           * للموقع الحقيقي.
-           */
           recommendedSeeds:
-            recommendation?.crops
-              ?.map(
-                crop => crop.name
-              ) || [],
+            recommendations?.crops
+              ?.map(crop => crop.name) ||
+            [],
         });
 
         setMessage(
@@ -527,7 +718,8 @@ export default function Crops() {
 
         setForm({
           ...EMPTY,
-          farmId: form.farmId,
+          farmId:
+            form.farmId,
           cultivationType:
             form.cultivationType,
         });
@@ -659,7 +851,7 @@ export default function Crops() {
           ) ? (
             <div style={locationBox}>
               <strong>
-                📍 تم تحديد الأرض من الخريطة
+                📍 تم تحديد الأرض
               </strong>
 
               <div>
@@ -677,7 +869,8 @@ export default function Crops() {
                 <div>
                   حدود الأرض:{" "}
                   {
-                    mapLocation.boundary
+                    mapLocation
+                      .boundary
                       .length
                   }{" "}
                   نقطة
@@ -693,7 +886,9 @@ export default function Crops() {
           )}
         </section>
 
-        {recommendation && (
+        {hasCoordinates(
+          mapLocation
+        ) && (
           <section
             style={
               recommendationStyle
@@ -704,31 +899,31 @@ export default function Crops() {
             </h2>
 
             <p>
-              مناخ موقع الأرض:{" "}
+              مناخ الموقع:{" "}
               <strong>
                 {climate ||
                   "غير محدد"}
               </strong>
             </p>
 
-            {recommendation.crops
-              ?.length > 0 ? (
+            {recommendedSeeds.length >
+            0 ? (
               <>
                 <strong>
                   🌱 محاصيل مناسبة مبدئيًا
-                  لموقع الأرض:
+                  للموقع:
                 </strong>
 
                 <div
                   style={tagsStyle}
                 >
-                  {recommendation.crops.map(
-                    crop => (
+                  {recommendedSeeds.map(
+                    seed => (
                       <span
-                        key={crop.id}
+                        key={seed}
                         style={tagStyle}
                       >
-                        {crop.name}
+                        {seed}
                       </span>
                     )
                   )}
@@ -742,9 +937,8 @@ export default function Crops() {
             )}
 
             <small>
-              الموقع هو أساس التوصية.
-              التوصية مناخية أولية وليست
-              حكمًا نهائيًا على أفضل صنف.
+              التوصية تعتمد على إحداثيات
+              الأرض المحفوظة من الخريطة.
             </small>
           </section>
         )}
@@ -952,7 +1146,9 @@ export default function Crops() {
                 String(
                   getFarmId(item)
                 ) ===
-                String(crop.farmId)
+                String(
+                  crop.farmId
+                )
             );
 
           return (
