@@ -25,7 +25,7 @@ class CropRepository {
 
     return (
       crops.find(
-        (crop) =>
+        crop =>
           String(crop.id) ===
           String(id)
       ) || null
@@ -56,10 +56,7 @@ class CropRepository {
 
     await storageService.save(
       CROPS_KEY,
-      [
-        ...crops,
-        crop,
-      ]
+      [...crops, crop]
     );
 
     return crop;
@@ -71,7 +68,7 @@ class CropRepository {
 
     const index =
       crops.findIndex(
-        (crop) =>
+        crop =>
           String(crop.id) ===
           String(id)
       );
@@ -90,8 +87,7 @@ class CropRepository {
         new Date().toISOString(),
     };
 
-    crops[index] =
-      updated;
+    crops[index] = updated;
 
     await storageService.save(
       CROPS_KEY,
@@ -107,15 +103,12 @@ class CropRepository {
 
     const next =
       crops.filter(
-        (crop) =>
+        crop =>
           String(crop.id) !==
           String(id)
       );
 
-    if (
-      next.length ===
-      crops.length
-    ) {
+    if (next.length === crops.length) {
       return false;
     }
 
