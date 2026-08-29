@@ -12,21 +12,28 @@ import {
 // LAVENDER — CROP SERVICE
 // =========================================================
 //
-// مسؤول عن:
+// المسؤول عن:
 //
 // 1. CRUD للمحاصيل.
 // 2. التحقق من بيانات المحصول.
-// 3. تحديد المناخ التقريبي.
-// 4. تقديم توصية أولية بالمحاصيل.
-// 5. تقديم توصيات أصناف البذور.
+// 3. تحديد المناخ التقريبي من إحداثيات الخريطة.
+// 4. التوصية بالمحاصيل.
+// 5. التوصية بأصناف / هجن البذور.
 // 6. ربط التوصية بالموقع الجغرافي.
-// 7. عدم إجبار Crops.jsx على fieldId.
+// 7. عدم الاعتماد على اسم المحافظة أو البلدة المكتوب.
+// 8. عدم إجبار Crops.jsx على fieldId.
 //
-// ملاحظة مهمة:
+// مبدأ مهم:
 //
-// التوصيات الزراعية هنا طبقة بيانات أولية.
-// لا يتم اعتبار أي صنف "الأفضل" بشكل مطلق
-// إلا بعد توفر قاعدة أصناف موثوقة مرتبطة بالمنطقة.
+// الموقع الجغرافي الحقيقي يأتي من:
+// latitude + longitude + boundary
+//
+// وليس من:
+// province / city / village
+//
+// هذه الخدمة لا تعتبر أي صنف "الأفضل"
+// إلا إذا كانت قاعدة بيانات موثوقة مرتبطة بالمنطقة
+// قدّمت هذه المعلومة.
 //
 // =========================================================
 
@@ -50,31 +57,31 @@ const CLIMATE = Object.freeze({
 // CROP CATALOG
 // =========================================================
 //
-// هذه القائمة هي طبقة التوصية الأساسية.
+// قاعدة أولية منظمة للمحاصيل.
 //
-// crop:
-// الاسم الداخلي للمحصول.
+// لاحظ:
 //
-// name:
-// الاسم الظاهر للمستخدم.
+// هذه ليست قاعدة "أفضل صنف في العالم".
 //
-// climates:
-// المناخات المناسبة مبدئيًا.
+// هي قاعدة تشغيلية أولية تسمح للنظام بأن:
 //
-// varieties:
-// الأصناف / الهجن المرتبطة بالمحصول.
+// الموقع
+// ↓
+// المناخ
+// ↓
+// المحصول
+// ↓
+// الأصناف
 //
-// مهم:
-// لا نضع وصف "الأفضل" إلا عندما توجد بيانات موثوقة
-// للمنطقة المحددة.
+// ويمكن توسيعها لاحقًا ببيانات موثوقة.
 //
 // =========================================================
 
 const CROP_CATALOG = Object.freeze([
 
-  // -------------------------------------------------------
+  // =======================================================
   // WHEAT
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
@@ -82,6 +89,8 @@ const CROP_CATALOG = Object.freeze([
 
     name: "قمح",
 
+    category: "cereal",
+
     climates: [
       "cold",
       "moderate",
@@ -95,41 +104,68 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
-        id: "wheat-winter-local",
+
+        id: "wheat-winter",
+
         name: "قمح شتوي",
+
         type: "صنف",
+
         season: "شتوي",
+
         suitability: [
           "باردة",
           "معتدلة",
         ],
+
         reason:
-          "مناسب مبدئيًا للمناطق ذات الشتاء البارد أو المعتدل.",
+          "خيار مناسب مبدئيًا للمناطق الباردة والمعتدلة عند توافق موعد الزراعة وطول الموسم.",
+
+        confidence: "متوسطة",
+
       }),
 
       Object.freeze({
+
         id: "wheat-durum",
+
         name: "قمح قاسي",
+
         type: "صنف",
+
         season: "شتوي",
+
         suitability: [
           "معتدلة",
         ],
+
         reason:
-          "خيار مبدئي للمناطق المعتدلة والجافة نسبيًا.",
+          "خيار مبدئي للمناطق المعتدلة، ويحتاج القرار النهائي إلى بيانات التربة والمياه والصنف المحلي.",
+
+        confidence: "متوسطة",
+
       }),
 
       Object.freeze({
+
         id: "wheat-spring",
+
         name: "قمح ربيعي",
+
         type: "صنف",
+
         season: "ربيعي",
+
         suitability: [
           "باردة",
           "معتدلة",
         ],
+
         reason:
-          "يمكن أن يكون مناسبًا في المناطق التي تعتمد زراعة الربيع.",
+          "يمكن استخدامه في المناطق التي يتوافق فيها الموسم الربيعي مع الصنف وطول الموسم.",
+
+        confidence: "متوسطة",
+
       }),
 
     ],
@@ -137,9 +173,9 @@ const CROP_CATALOG = Object.freeze([
   }),
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // BARLEY
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
@@ -147,6 +183,8 @@ const CROP_CATALOG = Object.freeze([
 
     name: "شعير",
 
+    category: "cereal",
+
     climates: [
       "cold",
       "moderate",
@@ -160,29 +198,47 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
+
         id: "barley-winter",
+
         name: "شعير شتوي",
+
         type: "صنف",
+
         season: "شتوي",
+
         suitability: [
           "باردة",
           "معتدلة",
         ],
+
         reason:
-          "مناسب مبدئيًا للمناطق الباردة والمعتدلة.",
+          "خيار مبدئي للمناطق الباردة والمعتدلة.",
+
+        confidence: "متوسطة",
+
       }),
 
       Object.freeze({
+
         id: "barley-spring",
+
         name: "شعير ربيعي",
+
         type: "صنف",
+
         season: "ربيعي",
+
         suitability: [
           "باردة",
           "معتدلة",
         ],
+
         reason:
-          "خيار للمناطق التي تناسبها زراعة الشعير الربيعي.",
+          "خيار للمناطق التي يتوافق فيها الموسم الربيعي مع الصنف.",
+
+        confidence: "متوسطة",
+
       }),
 
     ],
@@ -190,9 +246,9 @@ const CROP_CATALOG = Object.freeze([
   }),
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // MAIZE
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
@@ -200,6 +256,8 @@ const CROP_CATALOG = Object.freeze([
 
     name: "ذرة",
 
+    category: "cereal",
+
     climates: [
       "moderate",
       "hot",
@@ -213,29 +271,47 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
+
         id: "maize-hybrid",
+
         name: "ذرة هجينة",
+
         type: "هجين",
+
         season: "ربيعي / صيفي",
+
         suitability: [
           "معتدلة",
           "حارة",
         ],
+
         reason:
-          "الهجن قد تكون مناسبة للمناطق الدافئة عند توفر المياه والإدارة المناسبة.",
+          "الهجن قد تكون مناسبة للمناطق الدافئة، ويجب اختيار الهجين وفق المنطقة واحتياج المياه وطول الموسم.",
+
+        confidence: "متوسطة",
+
       }),
 
       Object.freeze({
+
         id: "maize-early",
+
         name: "ذرة مبكرة النضج",
+
         type: "صنف",
+
         season: "ربيعي / صيفي",
+
         suitability: [
           "معتدلة",
           "حارة",
         ],
+
         reason:
-          "قد تكون مفيدة في المناطق التي تحتاج إلى فترة نمو أقصر.",
+          "قد تكون مناسبة عندما يكون طول الموسم الزراعي محدودًا.",
+
+        confidence: "متوسطة",
+
       }),
 
     ],
@@ -243,9 +319,9 @@ const CROP_CATALOG = Object.freeze([
   }),
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // COTTON
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
@@ -253,9 +329,11 @@ const CROP_CATALOG = Object.freeze([
 
     name: "قطن",
 
+    category: "fiber",
+
     climates: [
-      "hot",
       "moderate",
+      "hot",
     ],
 
     seasons: [
@@ -266,29 +344,47 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
+
         id: "cotton-upland",
+
         name: "قطن Upland",
+
         type: "مجموعة أصناف",
+
         season: "ربيعي / صيفي",
+
         suitability: [
-          "حارة",
           "معتدلة",
+          "حارة",
         ],
+
         reason:
-          "مجموعة قطن واسعة الانتشار، لكن اختيار الصنف النهائي يجب أن يعتمد على المنطقة ومصدر البذور.",
+          "مجموعة واسعة الانتشار، لكن لا تعني أن كل صنف منها مناسب للموقع المحدد.",
+
+        confidence: "منخفضة",
+
       }),
 
       Object.freeze({
+
         id: "cotton-early",
+
         name: "قطن مبكر النضج",
+
         type: "صنف",
+
         season: "ربيعي",
+
         suitability: [
-          "حارة",
           "معتدلة",
+          "حارة",
         ],
+
         reason:
-          "قد يناسب المناطق التي يكون فيها طول الموسم الزراعي محدودًا.",
+          "قد يناسب المناطق التي تحتاج إلى فترة نمو أقصر.",
+
+        confidence: "منخفضة",
+
       }),
 
     ],
@@ -296,9 +392,9 @@ const CROP_CATALOG = Object.freeze([
   }),
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // SUNFLOWER
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
@@ -306,6 +402,8 @@ const CROP_CATALOG = Object.freeze([
 
     name: "عباد الشمس",
 
+    category: "oilseed",
+
     climates: [
       "moderate",
       "hot",
@@ -319,16 +417,25 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
+
         id: "sunflower-hybrid",
+
         name: "عباد الشمس الهجين",
+
         type: "هجين",
+
         season: "ربيعي / صيفي",
+
         suitability: [
           "معتدلة",
           "حارة",
         ],
+
         reason:
-          "خيار مبدئي للمناطق الدافئة مع توفر الظروف المناسبة.",
+          "خيار مبدئي للمناطق الدافئة عند توفر الظروف الزراعية المناسبة.",
+
+        confidence: "متوسطة",
+
       }),
 
     ],
@@ -336,9 +443,9 @@ const CROP_CATALOG = Object.freeze([
   }),
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // SORGHUM
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
@@ -346,9 +453,11 @@ const CROP_CATALOG = Object.freeze([
 
     name: "سورغم",
 
+    category: "cereal",
+
     climates: [
-      "hot",
       "moderate",
+      "hot",
     ],
 
     seasons: [
@@ -358,16 +467,25 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
+
         id: "sorghum-grain",
+
         name: "سورغم حبوب",
+
         type: "صنف",
+
         season: "صيفي",
+
         suitability: [
-          "حارة",
           "معتدلة",
+          "حارة",
         ],
+
         reason:
           "يتحمل الحرارة نسبيًا ويمكن أن يكون خيارًا للمناطق الدافئة.",
+
+        confidence: "متوسطة",
+
       }),
 
     ],
@@ -375,9 +493,9 @@ const CROP_CATALOG = Object.freeze([
   }),
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // MILLET
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
@@ -385,6 +503,8 @@ const CROP_CATALOG = Object.freeze([
 
     name: "دخن",
 
+    category: "cereal",
+
     climates: [
       "hot",
     ],
@@ -396,15 +516,24 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
+
         id: "millet-grain",
+
         name: "دخن حبوب",
+
         type: "صنف",
+
         season: "صيفي",
+
         suitability: [
           "حارة",
         ],
+
         reason:
           "يتحمل الحرارة والجفاف نسبيًا.",
+
+        confidence: "متوسطة",
+
       }),
 
     ],
@@ -412,15 +541,17 @@ const CROP_CATALOG = Object.freeze([
   }),
 
 
-  // -------------------------------------------------------
+  // =======================================================
   // SESAME
-  // -------------------------------------------------------
+  // =======================================================
 
   Object.freeze({
 
     id: "sesame",
 
     name: "سمسم",
+
+    category: "oilseed",
 
     climates: [
       "hot",
@@ -433,15 +564,24 @@ const CROP_CATALOG = Object.freeze([
     varieties: [
 
       Object.freeze({
+
         id: "sesame-standard",
+
         name: "سمسم",
+
         type: "صنف",
+
         season: "صيفي",
+
         suitability: [
           "حارة",
         ],
+
         reason:
           "خيار مبدئي للمناطق الدافئة ذات الموسم المناسب.",
+
+        confidence: "متوسطة",
+
       }),
 
     ],
@@ -455,7 +595,8 @@ const CROP_CATALOG = Object.freeze([
 // LEGACY SEEDS
 // =========================================================
 //
-// نحافظ على الشكل القديم حتى لا تنكسر Crops.jsx الحالية.
+// الحفاظ على API القديم حتى لا تنكسر Crops.jsx
+// التي تستعمل getRecommendation().
 //
 // =========================================================
 
@@ -485,47 +626,110 @@ const SEEDS = Object.freeze({
 
 
 // =========================================================
-// CLIMATE
+// NUMBER
 // =========================================================
 
-function getClimate(latitude) {
+function getNumber(value) {
 
-  const value =
-    Number(latitude);
+  const number =
+    Number(value);
 
+  return Number.isFinite(number)
+    ? number
+    : null;
+
+}
+
+
+// =========================================================
+// VALID COORDINATES
+// =========================================================
+
+function hasCoordinates(
+  latitude,
+  longitude
+) {
+
+  const lat =
+    getNumber(latitude);
+
+  const lng =
+    getNumber(longitude);
 
   if (
-    !Number.isFinite(value)
+    lat === null ||
+    lng === null
+  ) {
+
+    return false;
+
+  }
+
+  return (
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
+
+}
+
+
+// =========================================================
+// CLIMATE
+// =========================================================
+//
+// ملاحظة:
+//
+// هذا تصنيف مناخي تقريبي جدًا.
+// لا يمكن اعتبار خط العرض وحده بديلاً عن:
+//
+// الحرارة
+// الأمطار
+// الارتفاع
+// التربة
+// الري
+// طول الموسم
+//
+// لكنه يبقى fallback أوليًا.
+//
+// =========================================================
+
+function getClimate(
+  latitude
+) {
+
+  const value =
+    getNumber(latitude);
+
+  if (
+    value === null
   ) {
 
     return null;
 
   }
 
-
   const n =
     Math.abs(value);
-
 
   if (
     n >= 50
   ) {
 
-    return "باردة";
+    return CLIMATE.cold;
 
   }
-
 
   if (
     n >= 25
   ) {
 
-    return "معتدلة";
+    return CLIMATE.moderate;
 
   }
 
-
-  return "حارة";
+  return CLIMATE.hot;
 
 }
 
@@ -534,18 +738,18 @@ function getClimate(latitude) {
 // CLIMATE KEY
 // =========================================================
 
-function getClimateKey(latitude) {
+function getClimateKey(
+  latitude
+) {
 
   const climate =
     getClimate(latitude);
-
 
   if (!climate) {
 
     return null;
 
   }
-
 
   if (
     climate === CLIMATE.cold
@@ -555,7 +759,6 @@ function getClimateKey(latitude) {
 
   }
 
-
   if (
     climate === CLIMATE.moderate
   ) {
@@ -563,7 +766,6 @@ function getClimateKey(latitude) {
     return "moderate";
 
   }
-
 
   return "hot";
 
@@ -574,7 +776,9 @@ function getClimateKey(latitude) {
 // NORMALIZE TEXT
 // =========================================================
 
-function normalizeText(value) {
+function normalizeText(
+  value
+) {
 
   return String(
     value ?? ""
@@ -598,13 +802,11 @@ function findCrop(
       cropIdOrName
     );
 
-
   if (!value) {
 
     return null;
 
   }
-
 
   return (
     CROP_CATALOG.find(
@@ -619,6 +821,122 @@ function findCrop(
         ) === value
     ) || null
   );
+
+}
+
+
+// =========================================================
+// LOCATION CONTEXT
+// =========================================================
+//
+// الموقع هنا يأتي من الخريطة:
+//
+// latitude
+// longitude
+// boundary
+//
+// وليس من اسم المحافظة أو البلدة.
+//
+// =========================================================
+
+function normalizeLocation(
+  location = {}
+) {
+
+  const latitude =
+    location.latitude ??
+    location.lat ??
+    "";
+
+  const longitude =
+    location.longitude ??
+    location.lng ??
+    "";
+
+  const boundary =
+    Array.isArray(
+      location.boundary
+    )
+      ? location.boundary
+      : Array.isArray(
+          location.points
+        )
+        ? location.points
+        : [];
+
+  return {
+
+    latitude,
+
+    longitude,
+
+    boundary,
+
+    source:
+      location.source ||
+      "map",
+
+  };
+
+}
+
+
+// =========================================================
+// LOCATION SCORE
+// =========================================================
+//
+// يعطي ثقة إضافية عندما تتوفر إحداثيات صحيحة.
+// لا يستخدم اسم المنطقة.
+//
+// =========================================================
+
+function getLocationConfidence(
+  location
+) {
+
+  const normalized =
+    normalizeLocation(
+      location
+    );
+
+  if (
+    !hasCoordinates(
+      normalized.latitude,
+      normalized.longitude
+    )
+  ) {
+
+    return {
+
+      score: 0,
+
+      level: "منخفضة",
+
+    };
+
+  }
+
+  if (
+    normalized.boundary.length >= 3
+  ) {
+
+    return {
+
+      score: 100,
+
+      level: "مرتفعة",
+
+    };
+
+  }
+
+  return {
+
+    score: 80,
+
+    level: "متوسطة",
+
+  };
 
 }
 
@@ -658,12 +976,10 @@ class CropService {
 
     }
 
-
     const crop =
       await cropRepository.getById(
         id
       );
-
 
     if (!crop) {
 
@@ -673,7 +989,6 @@ class CropService {
       );
 
     }
-
 
     return crop;
 
@@ -691,7 +1006,6 @@ class CropService {
     this.validate(
       data
     );
-
 
     return cropRepository.create({
 
@@ -724,18 +1038,15 @@ class CropService {
 
     }
 
-
     this.validate(
       data
     );
-
 
     const updated =
       await cropRepository.update(
         id,
         data
       );
-
 
     if (!updated) {
 
@@ -745,7 +1056,6 @@ class CropService {
       );
 
     }
-
 
     return updated;
 
@@ -769,12 +1079,10 @@ class CropService {
 
     }
 
-
     const deleted =
       await cropRepository.delete(
         id
       );
-
 
     if (!deleted) {
 
@@ -785,7 +1093,6 @@ class CropService {
 
     }
 
-
     return true;
 
   }
@@ -795,14 +1102,7 @@ class CropService {
   // BASIC RECOMMENDATION
   // =======================================================
   //
-  // هذه الدالة تحافظ على التوافق مع Crops.jsx الحالية.
-  //
-  // النتيجة:
-  //
-  // {
-  //   climate: "معتدلة",
-  //   seeds: [...]
-  // }
+  // الحفاظ على الدالة القديمة.
   //
   // =======================================================
 
@@ -815,19 +1115,16 @@ class CropService {
         latitude
       );
 
-
     if (!climate) {
 
       return null;
 
     }
 
-
     const key =
       getClimateKey(
         latitude
       );
-
 
     return {
 
@@ -837,7 +1134,7 @@ class CropService {
         SEEDS[key] || [],
 
       message:
-        `المناخ ${climate}، وهذه محاصيل مناسبة مبدئيًا لهذه المنطقة.`,
+        `المناخ ${climate}، وهذه محاصيل مناسبة مبدئيًا للموقع الجغرافي.`,
 
     };
 
@@ -845,46 +1142,83 @@ class CropService {
 
 
   // =======================================================
-  // SMART CROP RECOMMENDATION
+  // SMART CROP RECOMMENDATIONS
   // =======================================================
   //
-  // هذه هي الطبقة الجديدة.
+  // الاستخدام:
   //
-  // بدل:
+  // getSmartRecommendations({
+  //   latitude,
+  //   longitude,
+  //   boundary
+  // })
   //
-  // قمح
-  // شعير
-  // ذرة
+  // أو التوافق القديم:
   //
-  // نحصل على بيانات منظمة يمكن لـ Crops.jsx
-  // عرضها على شكل بطاقات أو جدول.
+  // getSmartRecommendations(latitude)
   //
   // =======================================================
 
   getSmartRecommendations(
-    latitude
+    locationOrLatitude,
+    longitude = null
   ) {
 
-    const climateKey =
-      getClimateKey(
-        latitude
-      );
+    const location =
+      typeof locationOrLatitude === "object"
 
+        ? normalizeLocation(
+            locationOrLatitude
+          )
 
-    const climate =
-      getClimate(
-        latitude
-      );
+        : normalizeLocation({
+
+            latitude:
+              locationOrLatitude,
+
+            longitude,
+
+          });
 
 
     if (
-      !climateKey ||
-      !climate
+      !hasCoordinates(
+        location.latitude,
+        location.longitude
+      )
     ) {
 
       return null;
 
     }
+
+
+    const climate =
+      getClimate(
+        location.latitude
+      );
+
+
+    const climateKey =
+      getClimateKey(
+        location.latitude
+      );
+
+
+    if (
+      !climate ||
+      !climateKey
+    ) {
+
+      return null;
+
+    }
+
+
+    const locationConfidence =
+      getLocationConfidence(
+        location
+      );
 
 
     const crops =
@@ -896,24 +1230,45 @@ class CropService {
             )
         )
         .map(
-          crop => ({
+          crop => {
 
-            id:
-              crop.id,
+            const varieties =
+              crop.varieties.filter(
+                variety =>
+                  variety.suitability.includes(
+                    climate
+                  )
+              );
 
-            name:
-              crop.name,
 
-            seasons:
-              crop.seasons,
+            return {
 
-            varietyCount:
-              crop.varieties.length,
+              id:
+                crop.id,
 
-            varieties:
-              crop.varieties,
+              name:
+                crop.name,
 
-          })
+              category:
+                crop.category,
+
+              seasons:
+                crop.seasons,
+
+              varietyCount:
+                varieties.length,
+
+              varieties,
+
+              locationConfidence:
+                locationConfidence.level,
+
+              locationScore:
+                locationConfidence.score,
+
+            };
+
+          }
         );
 
 
@@ -923,13 +1278,35 @@ class CropService {
 
       climateKey,
 
+      latitude:
+        Number(
+          location.latitude
+        ),
+
+      longitude:
+        Number(
+          location.longitude
+        ),
+
+      boundary:
+        location.boundary,
+
+      locationSource:
+        location.source,
+
+      locationConfidence:
+        locationConfidence.level,
+
       crops,
 
       count:
         crops.length,
 
       message:
-        `تم العثور على ${crops.length} محاصيل مناسبة مبدئيًا للمناخ ${climate}.`,
+        `تم تحليل الموقع الجغرافي المحدد على الخريطة، ووجد النظام ${crops.length} محاصيل مناسبة مبدئيًا للمناخ ${climate}.`,
+
+      warning:
+        "التوصية الأولية لا تعني أن الصنف هو الأفضل للموقع. الاختيار النهائي يحتاج بيانات الصنف المحلي والتربة والمياه وموعد الزراعة.",
 
     };
 
@@ -940,19 +1317,18 @@ class CropService {
   // GET CROP OPTIONS
   // =======================================================
   //
-  // عند اختيار المستخدم:
+  // عند اختيار المستخدم محصولًا:
   //
-  // "قمح"
+  // قمح
   //
-  // يمكن استدعاء:
-  //
-  // getCropOptions("wheat", latitude)
+  // تظهر الأصناف المرتبطة به.
   //
   // =======================================================
 
   getCropOptions(
     cropIdOrName,
-    latitude
+    latitude,
+    longitude = null
   ) {
 
     const crop =
@@ -968,15 +1344,25 @@ class CropService {
     }
 
 
-    const climateKey =
-      getClimateKey(
-        latitude
-      );
+    const location =
+      normalizeLocation({
+
+        latitude,
+
+        longitude,
+
+      });
 
 
     const climate =
       getClimate(
-        latitude
+        location.latitude
+      );
+
+
+    const climateKey =
+      getClimateKey(
+        location.latitude
       );
 
 
@@ -989,23 +1375,27 @@ class CropService {
 
 
     const varieties =
-      crop.varieties
-        .filter(
-          variety => {
+      crop.varieties.filter(
+        variety => {
 
-            if (!climate) {
+          if (!climate) {
 
-              return true;
-
-            }
-
-
-            return variety.suitability.includes(
-              climate
-            );
+            return true;
 
           }
-        );
+
+          return variety.suitability.includes(
+            climate
+          );
+
+        }
+      );
+
+
+    const locationConfidence =
+      getLocationConfidence(
+        location
+      );
 
 
     return {
@@ -1016,7 +1406,18 @@ class CropService {
       name:
         crop.name,
 
+      category:
+        crop.category,
+
       climate,
+
+      climateKey,
+
+      latitude:
+        location.latitude,
+
+      longitude:
+        location.longitude,
 
       suitable,
 
@@ -1028,12 +1429,19 @@ class CropService {
       varietyCount:
         varieties.length,
 
+      locationConfidence:
+        locationConfidence.level,
+
       message:
+
         suitable
 
           ? `أصناف ${crop.name} المناسبة مبدئيًا للمناخ ${climate}.`
 
-          : `المناخ ${climate} ليس مناخًا رئيسيًا لهذا المحصول حسب قاعدة التوصية الحالية.`,
+          : `المناخ ${climate || "غير محدد"} ليس مناخًا رئيسيًا لهذا المحصول حسب قاعدة التوصية الحالية.`,
+
+      warning:
+        "لا يتم اعتبار أي صنف هنا الأفضل للموقع دون مصدر زراعي موثوق مرتبط بالموقع.",
 
     };
 
@@ -1041,30 +1449,63 @@ class CropService {
 
 
   // =======================================================
-  // GET VARIETY RECOMMENDATIONS
+  // GET SEED RECOMMENDATIONS
   // =======================================================
   //
-  // هذه الدالة هي الأساس لما طلبته تحديدًا:
+  // هذه الدالة هي الواجهة الأساسية للمرحلة القادمة.
   //
-  // المستخدم يختار:
+  // مثال:
   //
-  // قمح
-  //
-  // ثم يحصل على:
-  //
-  // جدول الأصناف.
+  // getSeedRecommendations(
+  //   "wheat",
+  //   {
+  //     latitude: 36.6929,
+  //     longitude: 38.7089,
+  //     boundary: [...]
+  //   }
+  // )
   //
   // =======================================================
 
   getSeedRecommendations(
     cropIdOrName,
-    latitude
+    latitudeOrLocation,
+    longitude = null
   ) {
+
+    let location;
+
+
+    if (
+      latitudeOrLocation &&
+      typeof latitudeOrLocation === "object"
+    ) {
+
+      location =
+        normalizeLocation(
+          latitudeOrLocation
+        );
+
+    } else {
+
+      location =
+        normalizeLocation({
+
+          latitude:
+            latitudeOrLocation,
+
+          longitude,
+
+        });
+
+    }
+
 
     const result =
       this.getCropOptions(
         cropIdOrName,
-        latitude
+        location.latitude,
+        location.longitude
       );
 
 
@@ -1075,6 +1516,12 @@ class CropService {
     }
 
 
+    const locationConfidence =
+      getLocationConfidence(
+        location
+      );
+
+
     return {
 
       cropId:
@@ -1083,17 +1530,47 @@ class CropService {
       cropName:
         result.name,
 
+      category:
+        result.category,
+
       climate:
         result.climate,
+
+      climateKey:
+        result.climateKey,
+
+      latitude:
+        location.latitude,
+
+      longitude:
+        location.longitude,
+
+      boundary:
+        location.boundary,
+
+      locationSource:
+        location.source,
+
+      locationConfidence:
+        locationConfidence.level,
 
       suitable:
         result.suitable,
 
+      seasons:
+        result.seasons,
+
       varieties:
         result.varieties,
 
+      varietyCount:
+        result.varietyCount,
+
       message:
         result.message,
+
+      warning:
+        result.warning,
 
     };
 
@@ -1101,7 +1578,7 @@ class CropService {
 
 
   // =======================================================
-  // GET CATALOG
+  // GET CROP CATALOG
   // =======================================================
 
   getCropCatalog() {
@@ -1114,6 +1591,9 @@ class CropService {
 
         name:
           crop.name,
+
+        category:
+          crop.category,
 
         climates:
           crop.climates,
@@ -1132,6 +1612,16 @@ class CropService {
 
   // =======================================================
   // VALIDATE
+  // =======================================================
+  //
+  // لا يوجد fieldId إجباري.
+  //
+  // الأشجار:
+  // treeType مطلوب.
+  //
+  // الحقول والخضروات وغيرها:
+  // name مطلوب.
+  //
   // =======================================================
 
   validate(
@@ -1152,7 +1642,7 @@ class CropService {
 
 
     // -----------------------------------------------------
-    // المزرعة مطلوبة لجميع أنواع المحاصيل
+    // المزرعة مطلوبة
     // -----------------------------------------------------
 
     if (
@@ -1168,7 +1658,7 @@ class CropService {
 
 
     // -----------------------------------------------------
-    // تحديد نوع الزراعة
+    // نوع الزراعة
     // -----------------------------------------------------
 
     const type =
@@ -1201,7 +1691,7 @@ class CropService {
 
 
     // -----------------------------------------------------
-    // الحقول والخضروات وغيرها
+    // الحقل / الخضروات / أخرى
     // -----------------------------------------------------
 
     else {
@@ -1221,6 +1711,14 @@ class CropService {
 
     }
 
+
+    // -----------------------------------------------------
+    // الموقع ليس إلزاميًا هنا
+    //
+    // لأن التحقق من وجود الموقع يتم في Crops.jsx
+    // قبل الحفظ.
+    //
+    // -----------------------------------------------------
 
     return true;
 
