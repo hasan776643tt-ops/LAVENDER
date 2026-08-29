@@ -10,297 +10,202 @@ const CLIMATE = Object.freeze({
 });
 
 const CROP_CATALOG = Object.freeze([
-  Object.freeze({
+  {
     id: "wheat",
     name: "قمح",
     category: "cereal",
     climates: ["cold", "moderate"],
     seasons: ["شتوي", "ربيعي"],
     varieties: [
-      Object.freeze({
+      {
         id: "wheat-winter",
         name: "قمح شتوي",
         type: "صنف",
         season: "شتوي",
         suitability: ["باردة", "معتدلة"],
+        reason: "مناسب مبدئيًا للمناطق الباردة والمعتدلة.",
         confidence: "متوسطة",
-      }),
-      Object.freeze({
+      },
+      {
         id: "wheat-durum",
         name: "قمح قاسي",
         type: "صنف",
         season: "شتوي",
         suitability: ["معتدلة"],
+        reason: "خيار مبدئي للمناطق المعتدلة.",
         confidence: "متوسطة",
-      }),
-      Object.freeze({
+      },
+      {
         id: "wheat-spring",
         name: "قمح ربيعي",
         type: "صنف",
         season: "ربيعي",
         suitability: ["باردة", "معتدلة"],
+        reason: "خيار مبدئي عندما يتوافق الموسم وطول فترة النمو.",
         confidence: "متوسطة",
-      }),
+      },
     ],
-  }),
+  },
 
-  Object.freeze({
+  {
     id: "barley",
     name: "شعير",
     category: "cereal",
     climates: ["cold", "moderate"],
     seasons: ["شتوي", "ربيعي"],
     varieties: [
-      Object.freeze({
+      {
         id: "barley-winter",
         name: "شعير شتوي",
         type: "صنف",
         season: "شتوي",
         suitability: ["باردة", "معتدلة"],
+        reason: "خيار مبدئي للمناطق الباردة والمعتدلة.",
         confidence: "متوسطة",
-      }),
-      Object.freeze({
+      },
+      {
         id: "barley-spring",
         name: "شعير ربيعي",
         type: "صنف",
         season: "ربيعي",
         suitability: ["باردة", "معتدلة"],
+        reason: "خيار مبدئي حسب الموسم.",
         confidence: "متوسطة",
-      }),
+      },
     ],
-  }),
+  },
 
-  Object.freeze({
+  {
     id: "maize",
     name: "ذرة",
     category: "cereal",
     climates: ["moderate", "hot"],
     seasons: ["ربيعي", "صيفي"],
     varieties: [
-      Object.freeze({
+      {
         id: "maize-hybrid",
         name: "ذرة هجينة",
         type: "هجين",
         season: "ربيعي / صيفي",
         suitability: ["معتدلة", "حارة"],
+        reason: "الهجن قد تناسب المناطق الدافئة حسب طول الموسم والمياه.",
         confidence: "متوسطة",
-      }),
-      Object.freeze({
+      },
+      {
         id: "maize-early",
         name: "ذرة مبكرة النضج",
         type: "صنف",
         season: "ربيعي / صيفي",
         suitability: ["معتدلة", "حارة"],
+        reason: "قد تناسب المناطق ذات الموسم المحدود.",
         confidence: "متوسطة",
-      }),
+      },
     ],
-  }),
+  },
 
-  Object.freeze({
+  {
     id: "cotton",
     name: "قطن",
     category: "fiber",
     climates: ["moderate", "hot"],
     seasons: ["ربيعي", "صيفي"],
     varieties: [
-      Object.freeze({
+      {
         id: "cotton-upland",
         name: "قطن Upland",
         type: "مجموعة أصناف",
         season: "ربيعي / صيفي",
         suitability: ["معتدلة", "حارة"],
+        reason: "مجموعة أصناف واسعة الانتشار وليست توصية لصنف محلي محدد.",
         confidence: "منخفضة",
-      }),
-      Object.freeze({
+      },
+      {
         id: "cotton-early",
         name: "قطن مبكر النضج",
         type: "صنف",
         season: "ربيعي",
         suitability: ["معتدلة", "حارة"],
+        reason: "قد يناسب المناطق التي تحتاج فترة نمو أقصر.",
         confidence: "منخفضة",
-      }),
+      },
     ],
-  }),
+  },
 
-  Object.freeze({
+  {
     id: "sunflower",
     name: "عباد الشمس",
     category: "oilseed",
     climates: ["moderate", "hot"],
     seasons: ["ربيعي", "صيفي"],
     varieties: [
-      Object.freeze({
+      {
         id: "sunflower-hybrid",
         name: "عباد الشمس الهجين",
         type: "هجين",
         season: "ربيعي / صيفي",
         suitability: ["معتدلة", "حارة"],
+        reason: "خيار مبدئي للمناطق الدافئة.",
         confidence: "متوسطة",
-      }),
+      },
     ],
-  }),
+  },
 
-  Object.freeze({
+  {
     id: "sorghum",
     name: "سورغم",
     category: "cereal",
     climates: ["moderate", "hot"],
     seasons: ["صيفي"],
     varieties: [
-      Object.freeze({
+      {
         id: "sorghum-grain",
         name: "سورغم حبوب",
         type: "صنف",
         season: "صيفي",
         suitability: ["معتدلة", "حارة"],
+        reason: "يتحمل الحرارة نسبيًا.",
         confidence: "متوسطة",
-      }),
+      },
     ],
-  }),
+  },
 
-  Object.freeze({
+  {
     id: "millet",
     name: "دخن",
     category: "cereal",
     climates: ["hot"],
     seasons: ["صيفي"],
     varieties: [
-      Object.freeze({
+      {
         id: "millet-grain",
         name: "دخن حبوب",
         type: "صنف",
         season: "صيفي",
         suitability: ["حارة"],
+        reason: "يتحمل الحرارة والجفاف نسبيًا.",
         confidence: "متوسطة",
-      }),
+      },
     ],
-  }),
+  },
 
-  Object.freeze({
+  {
     id: "sesame",
     name: "سمسم",
     category: "oilseed",
     climates: ["hot"],
     seasons: ["صيفي"],
     varieties: [
-      Object.freeze({
+      {
         id: "sesame-standard",
         name: "سمسم",
         type: "صنف",
         season: "صيفي",
         suitability: ["حارة"],
+        reason: "خيار مبدئي للمناطق الدافئة.",
         confidence: "متوسطة",
-      }),
+      },
     ],
-  }),
-
-  Object.freeze({
-    id: "apple",
-    name: "تفاح",
-    category: "trees",
-    climates: ["cold", "moderate"],
-    seasons: ["شتوي", "ربيعي"],
-    varieties: [
-      Object.freeze({
-        id: "apple-general",
-        name: "تفاح",
-        type: "صنف",
-        season: "شتوي / ربيعي",
-        suitability: ["باردة", "معتدلة"],
-        confidence: "منخفضة",
-      }),
-    ],
-  }),
-
-  Object.freeze({
-    id: "pear",
-    name: "كمثرى",
-    category: "trees",
-    climates: ["cold", "moderate"],
-    seasons: ["شتوي", "ربيعي"],
-    varieties: [
-      Object.freeze({
-        id: "pear-general",
-        name: "كمثرى",
-        type: "صنف",
-        season: "شتوي / ربيعي",
-        suitability: ["باردة", "معتدلة"],
-        confidence: "منخفضة",
-      }),
-    ],
-  }),
-
-  Object.freeze({
-    id: "olive",
-    name: "زيتون",
-    category: "trees",
-    climates: ["moderate", "hot"],
-    seasons: ["خريفي", "ربيعي"],
-    varieties: [
-      Object.freeze({
-        id: "olive-general",
-        name: "زيتون",
-        type: "صنف",
-        season: "خريفي / ربيعي",
-        suitability: ["معتدلة", "حارة"],
-        confidence: "منخفضة",
-      }),
-    ],
-  }),
-
-  Object.freeze({
-    id: "pomegranate",
-    name: "رمان",
-    category: "trees",
-    climates: ["moderate", "hot"],
-    seasons: ["ربيعي"],
-    varieties: [
-      Object.freeze({
-        id: "pomegranate-general",
-        name: "رمان",
-        type: "صنف",
-        season: "ربيعي",
-        suitability: ["معتدلة", "حارة"],
-        confidence: "منخفضة",
-      }),
-    ],
-  }),
-
-  Object.freeze({
-    id: "citrus",
-    name: "حمضيات",
-    category: "trees",
-    climates: ["moderate", "hot"],
-    seasons: ["ربيعي"],
-    varieties: [
-      Object.freeze({
-        id: "citrus-general",
-        name: "حمضيات",
-        type: "صنف",
-        season: "ربيعي",
-        suitability: ["معتدلة", "حارة"],
-        confidence: "منخفضة",
-      }),
-    ],
-  }),
-
-  Object.freeze({
-    id: "date-palm",
-    name: "نخيل",
-    category: "trees",
-    climates: ["hot"],
-    seasons: ["ربيعي"],
-    varieties: [
-      Object.freeze({
-        id: "date-palm-general",
-        name: "نخيل",
-        type: "صنف",
-        season: "ربيعي",
-        suitability: ["حارة"],
-        confidence: "منخفضة",
-      }),
-    ],
-  }),
+  },
 ]);
 
 const SEEDS = Object.freeze({
@@ -309,53 +214,32 @@ const SEEDS = Object.freeze({
   hot: ["ذرة", "قطن", "دخن", "سورغم", "سمسم"],
 });
 
-function getNumber(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : null;
+function number(value) {
+  const result = Number(value);
+  return Number.isFinite(result) ? result : null;
 }
 
-function hasCoordinates(latitude, longitude) {
-  const lat = getNumber(latitude);
-  const lng = getNumber(longitude);
+function hasCoordinates(location = {}) {
+  const latitude = number(
+    location.latitude ?? location.lat
+  );
+
+  const longitude = number(
+    location.longitude ?? location.lng
+  );
 
   return (
-    lat !== null &&
-    lng !== null &&
-    lat >= -90 &&
-    lat <= 90 &&
-    lng >= -180 &&
-    lng <= 180
+    latitude !== null &&
+    longitude !== null &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180
   );
 }
 
-function normalizeLocation(location = {}) {
-  const latitude =
-    location.latitude ??
-    location.lat ??
-    "";
-
-  const longitude =
-    location.longitude ??
-    location.lng ??
-    "";
-
-  const boundary =
-    Array.isArray(location.boundary)
-      ? location.boundary
-      : Array.isArray(location.points)
-        ? location.points
-        : [];
-
-  return {
-    latitude,
-    longitude,
-    boundary,
-    source: location.source || "map",
-  };
-}
-
 function getClimate(latitude) {
-  const value = getNumber(latitude);
+  const value = number(latitude);
 
   if (value === null) {
     return null;
@@ -377,9 +261,17 @@ function getClimate(latitude) {
 function getClimateKey(latitude) {
   const climate = getClimate(latitude);
 
-  if (climate === CLIMATE.cold) return "cold";
-  if (climate === CLIMATE.moderate) return "moderate";
-  if (climate === CLIMATE.hot) return "hot";
+  if (climate === CLIMATE.cold) {
+    return "cold";
+  }
+
+  if (climate === CLIMATE.moderate) {
+    return "moderate";
+  }
+
+  if (climate === CLIMATE.hot) {
+    return "hot";
+  }
 
   return null;
 }
@@ -391,35 +283,65 @@ function normalizeText(value) {
 }
 
 function findCrop(value) {
-  const normalized = normalizeText(value);
+  const key = normalizeText(value);
 
-  if (!normalized) {
+  if (!key) {
     return null;
   }
 
   return (
     CROP_CATALOG.find(
       crop =>
-        normalizeText(crop.id) === normalized ||
-        normalizeText(crop.name) === normalized
+        normalizeText(crop.id) === key ||
+        normalizeText(crop.name) === key
     ) || null
   );
 }
 
+function normalizeLocation(location = {}) {
+  const points = Array.isArray(location.points)
+    ? location.points
+    : [];
+
+  const boundary = Array.isArray(location.boundary)
+    ? location.boundary
+    : points;
+
+  const latitude =
+    location.latitude ??
+    location.lat ??
+    points[0]?.latitude ??
+    points[0]?.lat ??
+    "";
+
+  const longitude =
+    location.longitude ??
+    location.lng ??
+    points[0]?.longitude ??
+    points[0]?.lng ??
+    "";
+
+  return {
+    ...location,
+    latitude,
+    longitude,
+    boundary,
+    points,
+    source: location.source || "map",
+  };
+}
+
 function getLocationConfidence(location) {
-  if (
-    !hasCoordinates(
-      location.latitude,
-      location.longitude
-    )
-  ) {
+  const normalized = normalizeLocation(location);
+
+  if (!hasCoordinates(normalized)) {
     return {
       score: 0,
       level: "منخفضة",
     };
   }
 
-  if (location.boundary.length >= 3) {
+  if (normalized.boundary.length >= 3) {
     return {
       score: 100,
       level: "مرتفعة",
@@ -476,8 +398,10 @@ class CropService {
 
     this.validate(data);
 
-    const updated =
-      await cropRepository.update(id, data);
+    const updated = await cropRepository.update(
+      id,
+      data
+    );
 
     if (!updated) {
       throw createError(
@@ -497,8 +421,7 @@ class CropService {
       );
     }
 
-    const deleted =
-      await cropRepository.delete(id);
+    const deleted = await cropRepository.delete(id);
 
     if (!deleted) {
       throw createError(
@@ -512,12 +435,11 @@ class CropService {
 
   getRecommendation(latitude) {
     const climate = getClimate(latitude);
+    const key = getClimateKey(latitude);
 
-    if (!climate) {
+    if (!climate || !key) {
       return null;
     }
-
-    const key = getClimateKey(latitude);
 
     return {
       climate,
@@ -540,20 +462,12 @@ class CropService {
             longitude,
           });
 
-    if (
-      !hasCoordinates(
-        location.latitude,
-        location.longitude
-      )
-    ) {
+    if (!hasCoordinates(location)) {
       return null;
     }
 
-    const climate =
-      getClimate(location.latitude);
-
-    const climateKey =
-      getClimateKey(location.latitude);
+    const climate = getClimate(location.latitude);
+    const climateKey = getClimateKey(location.latitude);
 
     if (!climate || !climateKey) {
       return null;
@@ -562,33 +476,27 @@ class CropService {
     const confidence =
       getLocationConfidence(location);
 
-    const crops =
-      CROP_CATALOG
-        .filter(crop =>
-          crop.climates.includes(climateKey)
-        )
-        .map(crop => {
-          const varieties =
-            crop.varieties.filter(
-              variety =>
-                variety.suitability.includes(
-                  climate
-                )
-            );
+    const crops = CROP_CATALOG
+      .filter(crop =>
+        crop.climates.includes(climateKey)
+      )
+      .map(crop => {
+        const varieties =
+          crop.varieties.filter(variety =>
+            variety.suitability.includes(climate)
+          );
 
-          return {
-            id: crop.id,
-            name: crop.name,
-            category: crop.category,
-            seasons: crop.seasons,
-            varietyCount: varieties.length,
-            varieties,
-            locationConfidence:
-              confidence.level,
-            locationScore:
-              confidence.score,
-          };
-        });
+        return {
+          id: crop.id,
+          name: crop.name,
+          category: crop.category,
+          seasons: crop.seasons,
+          varietyCount: varieties.length,
+          varieties,
+          locationConfidence: confidence.level,
+          locationScore: confidence.score,
+        };
+      });
 
     return {
       climate,
@@ -601,9 +509,9 @@ class CropService {
       crops,
       count: crops.length,
       message:
-        `تم تحليل موقع الأرض المحدد على الخريطة، ووجد النظام ${crops.length} محاصيل مناسبة مبدئيًا للمناخ ${climate}.`,
+        `تم تحليل الموقع المحدد على الخريطة، ووجد النظام ${crops.length} محاصيل مناسبة مبدئيًا للمناخ ${climate}.`,
       warning:
-        "التوصية أولية ولا تعني أن الصنف هو الأفضل. القرار النهائي يحتاج بيانات التربة والمياه والصنف المحلي وموعد الزراعة.",
+        "التوصية الأولية لا تعني أن الصنف هو الأفضل للموقع.",
     };
   }
 
@@ -627,28 +535,20 @@ class CropService {
             longitude,
           });
 
-    const climate =
-      getClimate(location.latitude);
-
-    const climateKey =
-      getClimateKey(location.latitude);
+    const climate = getClimate(location.latitude);
+    const climateKey = getClimateKey(location.latitude);
 
     const suitable =
-      Boolean(
-        climateKey &&
-        crop.climates.includes(climateKey)
-      );
+      climateKey !== null &&
+      crop.climates.includes(climateKey);
 
-    const varieties =
-      crop.varieties.filter(variety => {
-        if (!climate) {
-          return true;
-        }
+    const varieties = crop.varieties.filter(variety => {
+      if (!climate) {
+        return true;
+      }
 
-        return variety.suitability.includes(
-          climate
-        );
-      });
+      return variety.suitability.includes(climate);
+    });
 
     const confidence =
       getLocationConfidence(location);
@@ -662,17 +562,16 @@ class CropService {
       latitude: location.latitude,
       longitude: location.longitude,
       boundary: location.boundary,
-      locationSource: location.source,
       suitable,
       seasons: crop.seasons,
       varieties,
       varietyCount: varieties.length,
       locationConfidence: confidence.level,
       message: suitable
-        ? `أصناف ${crop.name} المناسبة مبدئيًا لموقع الأرض ومناخه ${climate}.`
+        ? `أصناف ${crop.name} المناسبة مبدئيًا للمناخ ${climate}.`
         : `المناخ ${climate || "غير محدد"} ليس مناخًا رئيسيًا لهذا المحصول حسب قاعدة التوصية الحالية.`,
       warning:
-        "لا يتم اعتبار أي صنف الأفضل للموقع دون مصدر زراعي موثوق مرتبط بالموقع.",
+        "لا يتم اعتبار أي صنف الأفضل للموقع دون مصدر زراعي موثوق.",
     };
   }
 
@@ -681,28 +580,33 @@ class CropService {
     latitudeOrLocation,
     longitude = null
   ) {
-    const location =
-      latitudeOrLocation &&
-      typeof latitudeOrLocation === "object"
-        ? normalizeLocation(latitudeOrLocation)
-        : normalizeLocation({
-            latitude: latitudeOrLocation,
-            longitude,
-          });
+    const result = this.getCropOptions(
+      cropIdOrName,
+      latitudeOrLocation,
+      longitude
+    );
 
-    if (
-      !hasCoordinates(
-        location.latitude,
-        location.longitude
-      )
-    ) {
+    if (!result) {
       return null;
     }
 
-    return this.getCropOptions(
-      cropIdOrName,
-      location
-    );
+    return {
+      cropId: result.id,
+      cropName: result.name,
+      category: result.category,
+      climate: result.climate,
+      climateKey: result.climateKey,
+      latitude: result.latitude,
+      longitude: result.longitude,
+      boundary: result.boundary,
+      locationConfidence: result.locationConfidence,
+      suitable: result.suitable,
+      seasons: result.seasons,
+      varieties: result.varieties,
+      varietyCount: result.varietyCount,
+      message: result.message,
+      warning: result.warning,
+    };
   }
 
   getCropCatalog() {
@@ -731,8 +635,7 @@ class CropService {
       );
     }
 
-    const type =
-      data.cultivationType || "field";
+    const type = data.cultivationType || "field";
 
     if (type === "trees") {
       if (!String(data.treeType ?? "").trim()) {
