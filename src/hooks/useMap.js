@@ -26,40 +26,53 @@ import {
 LAVENDER — useMap
 ===========================================================
 
-مسؤول عن:
+المسؤوليات:
 
 1. تحميل المزارع.
 2. تحميل المواقع المحفوظة.
-3. حفظ موقع الأرض.
-4. حذف موقع الأرض.
-5. دعم بيانات الموقع النصية.
-6. دعم إحداثيات GPS.
-7. دعم نقاط حدود الأرض.
-8. دعم حساب المساحة والمحيط.
-9. دعم معلومات الخريطة.
+3. تحديد نقاط الأرض.
+4. حساب مركز الأرض.
+5. حساب المساحة والمحيط.
+6. Reverse Geocoding لمركز الأرض.
+7. استخراج:
+   - country
+   - governorate
+   - region
+   - district
+   - city
+   - town
+   - village
+8. بناء LocationData موحد.
+9. حفظ LocationData من خلال mapService فقط.
+10. إتاحة LocationData للمحاصيل.
+11. دعم GPS والإحداثيات.
+12. دعم الوضع النصي القديم.
+13. دعم الأماكن القريبة.
+14. تحديث وحذف المواقع.
 
-مهم:
-
-Map.jsx هو المسؤول عن واجهة النموذج والخريطة.
-
-useMap.js هو طبقة البيانات والحفظ.
-
-لذلك:
+الطبقات:
 
 Map.jsx
    ↓
-addLocation(locationData)
-   ↓
 useMap.js
    ↓
-mapService
+mapService.js
    ↓
-mapRepository
+mapRepository.js
    ↓
-الحفظ
+storage / DataModel
+
+مهم:
+
+لا يوجد أي منطق خاص بالمحاصيل هنا.
+useMap مسؤول عن الموقع فقط.
 ===========================================================
 */
 
+
+// =========================================================
+// CONSTANTS
+// =========================================================
 
 const DEFAULT_POSITION = [
   36.7,
@@ -71,7 +84,15 @@ const EMPTY_FIELD = Object.freeze({
 
   country: "",
 
+  governorate: "",
+
   region: "",
+
+  district: "",
+
+  city: "",
+
+  town: "",
 
   village: "",
 
@@ -89,6 +110,14 @@ const EMPTY_FIELD = Object.freeze({
 
   west: "",
 
+  northNeighbor: "",
+
+  southNeighbor: "",
+
+  eastNeighbor: "",
+
+  westNeighbor: "",
+
   points: [],
 
   latitude: "",
@@ -102,6 +131,40 @@ const EMPTY_FIELD = Object.freeze({
   boundaryWidth: "",
 
 });
+
+
+const LOCATION_STORAGE_KEYS = Object.freeze([
+  "mapLocation",
+  "selectedLocation",
+  "selectedFarmLocation",
+  "farmLocation",
+  "fieldLocation",
+]);
+
+
+// =========================================================
+// HELPERS
+// =========================================================
+
+function cleanString(value) {
+
+  return String(
+    value ?? ""
+  ).trim();
+
+}
+
+
+function finiteNumber(value) {
+
+  const number =
+    Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+
+}
 
 
 function validCoordinates(
@@ -127,12 +190,476 @@ function validCoordinates(
 }
 
 
+function normalizePoint(point) {
+
+  if (Array.isArray(point)) {
+
+    return {
+
+      latitude:
+        Number(point[0]),
+
+      longitude:
+        Number(point[1]),
+
+    };
+
+  }
+
+
+  return {
+
+    latitude:
+      Number(point?.latitude),
+
+    longitude:
+      Number(point?.longitude),
+
+  };
+
+}
+
+
+function normalizePoints(points) {
+
+  if (!Array.isArray(points)) {
+
+    return [];
+
+  }
+
+
+  return points
+    .map(normalizePoint)
+    .filter(
+      point =>
+        validCoordinates(
+          point.latitude,
+          point.longitude
+        )
+    );
+
+}
+
+
+/*
+===========================================================
+حساب مركز المضلع
+
+نستخدم متوسط الإحداثيات كطريقة مستقرة وبسيطة
+لمركز الأرض بالنسبة لتحديدات المزارع المعتادة.
+
+المهم:
+
+المركز محسوب من نقاط الأرض نفسها.
+لا يتم أخذه من اسم القرية أو المدينة.
+===========================================================
+*/
+
+function calculateBoundaryCenter(
+  points
+) {
+
+  const safePoints =
+    normalizePoints(points);
+
+
+  if (
+    safePoints.length === 0
+  ) {
+
+    return null;
+
+  }
+
+
+  const latitude =
+    safePoints.reduce(
+      (
+        total,
+        point
+      ) =>
+        total +
+        point.latitude,
+      0
+    ) /
+    safePoints.length;
+
+
+  const longitude =
+    safePoints.reduce(
+      (
+        total,
+        point
+      ) =>
+        total +
+        point.longitude,
+      0
+    ) /
+    safePoints.length;
+
+
+  if (
+    !validCoordinates(
+      latitude,
+      longitude
+    )
+  ) {
+
+    return null;
+
+  }
+
+
+  return {
+
+    latitude,
+
+    longitude,
+
+  };
+
+}
+
+
+/*
+===========================================================
+استخراج الحقول الإدارية من نتيجة Reverse Geocoding
+
+mapService يعيد:
+country / region / city / town / village
+
+لكن بعض مزودي الخرائط يضعون المحافظة والمنطقة
+في حقول مختلفة داخل address.
+
+لذلك نحتفظ بكل الاحتمالات دون الاعتماد على اسم واحد فقط.
+===========================================================
+*/
+
+function normalizeAdministrativeLocation(
+  result
+) {
+
+  if (
+    !result ||
+    typeof result !== "object"
+  ) {
+
+    return {
+
+      country: "",
+
+      governorate: "",
+
+      region: "",
+
+      district: "",
+
+      city: "",
+
+      town: "",
+
+      village: "",
+
+      placeName: "",
+
+      displayName: "",
+
+      road: "",
+
+    };
+
+  }
+
+
+  const address =
+    result.address &&
+    typeof result.address === "object"
+      ? result.address
+      : {};
+
+
+  const governorate =
+    cleanString(
+      result.governorate ||
+      result.state ||
+      address.state ||
+      address.province ||
+      address.governorate ||
+      ""
+    );
+
+
+  const region =
+    cleanString(
+      result.region ||
+      address.region ||
+      address.province ||
+      address.state_district ||
+      ""
+    );
+
+
+  const district =
+    cleanString(
+      result.district ||
+      address.district ||
+      address.county ||
+      address.municipality ||
+      address.city_district ||
+      address.suburb ||
+      ""
+    );
+
+
+  const city =
+    cleanString(
+      result.city ||
+      address.city ||
+      ""
+    );
+
+
+  const town =
+    cleanString(
+      result.town ||
+      address.town ||
+      ""
+    );
+
+
+  const village =
+    cleanString(
+      result.village ||
+      address.village ||
+      address.hamlet ||
+      ""
+    );
+
+
+  /*
+  ---------------------------------------------------------
+  الترتيب:
+
+  القرية ← البلدة ← المدينة
+
+  لكننا لا ننسخ البلدة إلى القرية إذا كانت القرية
+  موجودة أصلًا.
+  ---------------------------------------------------------
+  */
+
+  const resolvedVillage =
+    village ||
+    town ||
+    city;
+
+
+  const resolvedTown =
+    town ||
+    village ||
+    city;
+
+
+  const placeName =
+    cleanString(
+      result.placeName ||
+      result.nearestPlace ||
+      result.name ||
+      address.road ||
+      ""
+    );
+
+
+  return {
+
+    country:
+      cleanString(
+        result.country ||
+        address.country ||
+        ""
+      ),
+
+    governorate,
+
+    region,
+
+    district,
+
+    city,
+
+    town:
+      resolvedTown,
+
+    village:
+      resolvedVillage,
+
+    placeName,
+
+    displayName:
+      cleanString(
+        result.displayName ||
+        ""
+      ),
+
+    road:
+      cleanString(
+        result.road ||
+        address.road ||
+        ""
+      ),
+
+  };
+
+}
+
+
+/*
+===========================================================
+قراءة آخر LocationData محفوظ
+
+هذه ليست مصدرًا بديلًا للموقع.
+هي فقط وسيلة تجعل Crops أو أي شاشة أخرى
+تستطيع استلام آخر موقع محفوظ.
+
+المصدر الحقيقي للموقع عند الخريطة:
+latitude / longitude / boundary
+===========================================================
+*/
+
+function readSavedMapLocation() {
+
+  if (
+    typeof window === "undefined"
+  ) {
+
+    return null;
+
+  }
+
+
+  for (
+    const key of LOCATION_STORAGE_KEYS
+  ) {
+
+    try {
+
+      const raw =
+        window.localStorage.getItem(
+          key
+        );
+
+
+      if (!raw) {
+
+        continue;
+
+      }
+
+
+      const parsed =
+        JSON.parse(raw);
+
+
+      if (
+        parsed &&
+        validCoordinates(
+          parsed.latitude,
+          parsed.longitude
+        )
+      ) {
+
+        return parsed;
+
+      }
+
+    } catch {
+
+      // تجاهل السجل غير الصالح
+      // وانتقل إلى المفتاح التالي.
+
+    }
+
+  }
+
+
+  return null;
+
+}
+
+
+/*
+===========================================================
+حفظ LocationData للواجهات التي تحتاج استلام الموقع
+===========================================================
+
+هذا لا يستبدل mapRepository.
+
+الحفظ الأساسي:
+
+mapService → mapRepository
+
+أما localStorage هنا فهو جسر اختيار الموقع بين Map وCrops
+عندما تكون الواجهة تعمل بهذا النمط في المشروع الحالي.
+===========================================================
+*/
+
+function cacheMapLocation(
+  location
+) {
+
+  if (
+    typeof window === "undefined" ||
+    !location ||
+    typeof location !== "object"
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const serialized =
+      JSON.stringify(
+        location
+      );
+
+
+    window.localStorage.setItem(
+      "mapLocation",
+      serialized
+    );
+
+
+    window.localStorage.setItem(
+      "selectedLocation",
+      serialized
+    );
+
+
+  } catch (error) {
+
+    console.warn(
+      "Map location cache failed:",
+      error
+    );
+
+  }
+
+}
+
+
+// =========================================================
+// HOOK
+// =========================================================
+
 export default function useMap() {
 
 
-  // =========================================================
+  // =======================================================
   // SETTINGS
-  // =========================================================
+  // =======================================================
 
   const {
     settings,
@@ -155,9 +682,9 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // DATA
-  // =========================================================
+  // =======================================================
 
   const [
     farms,
@@ -177,9 +704,9 @@ export default function useMap() {
   ] = useState([]);
 
 
-  // =========================================================
+  // =======================================================
   // FORM STATE
-  // =========================================================
+  // =======================================================
 
   const [
     farmId,
@@ -199,9 +726,9 @@ export default function useMap() {
   ] = useState("text");
 
 
-  // =========================================================
-  // TEXT LOCATION
-  // =========================================================
+  // =======================================================
+  // ADMINISTRATIVE LOCATION
+  // =======================================================
 
   const [
     country,
@@ -210,8 +737,32 @@ export default function useMap() {
 
 
   const [
+    governorate,
+    setGovernorate,
+  ] = useState("");
+
+
+  const [
     region,
     setRegion,
+  ] = useState("");
+
+
+  const [
+    district,
+    setDistrict,
+  ] = useState("");
+
+
+  const [
+    city,
+    setCity,
+  ] = useState("");
+
+
+  const [
+    town,
+    setTown,
   ] = useState("");
 
 
@@ -239,9 +790,9 @@ export default function useMap() {
   ] = useState("");
 
 
-  // =========================================================
+  // =======================================================
   // DIRECTIONS
-  // =========================================================
+  // =======================================================
 
   const [
     north,
@@ -267,9 +818,33 @@ export default function useMap() {
   ] = useState("");
 
 
-  // =========================================================
+  const [
+    northNeighbor,
+    setNorthNeighbor,
+  ] = useState("");
+
+
+  const [
+    southNeighbor,
+    setSouthNeighbor,
+  ] = useState("");
+
+
+  const [
+    eastNeighbor,
+    setEastNeighbor,
+  ] = useState("");
+
+
+  const [
+    westNeighbor,
+    setWestNeighbor,
+  ] = useState("");
+
+
+  // =======================================================
   // COORDINATES
-  // =========================================================
+  // =======================================================
 
   const [
     latitude,
@@ -283,9 +858,9 @@ export default function useMap() {
   ] = useState("");
 
 
-  // =========================================================
+  // =======================================================
   // FIELD BOUNDARY
-  // =========================================================
+  // =======================================================
 
   const [
     points,
@@ -293,9 +868,9 @@ export default function useMap() {
   ] = useState([]);
 
 
-  // =========================================================
+  // =======================================================
   // MEASUREMENTS
-  // =========================================================
+  // =======================================================
 
   const [
     area,
@@ -315,9 +890,9 @@ export default function useMap() {
   ] = useState("");
 
 
-  // =========================================================
+  // =======================================================
   // STATE
-  // =========================================================
+  // =======================================================
 
   const [
     loading,
@@ -337,9 +912,9 @@ export default function useMap() {
   ] = useState("");
 
 
-  // =========================================================
+  // =======================================================
   // LOAD INITIAL DATA
-  // =========================================================
+  // =======================================================
 
   useEffect(() => {
 
@@ -369,19 +944,25 @@ export default function useMap() {
 
 
         if (!active) {
+
           return;
+
         }
 
 
         setFarms(
-          Array.isArray(farmsData)
+          Array.isArray(
+            farmsData
+          )
             ? farmsData
             : []
         );
 
 
         setLocations(
-          Array.isArray(locationsData)
+          Array.isArray(
+            locationsData
+          )
             ? locationsData
             : []
         );
@@ -433,9 +1014,9 @@ export default function useMap() {
   }, [t]);
 
 
-  // =========================================================
+  // =======================================================
   // SELECT MAP POINT
-  // =========================================================
+  // =======================================================
 
   const selectMapPoint =
     useCallback(
@@ -479,11 +1060,22 @@ export default function useMap() {
 
         setPoints(
           current => [
+
             ...current,
+
             point,
+
           ]
         );
 
+
+        /*
+        -----------------------------------------------------
+        لا نعتبر النقطة الأولى مركز الأرض النهائي.
+        هي فقط مركز أولي للواجهة.
+        المركز النهائي يحسب عند إنهاء الحدود.
+        -----------------------------------------------------
+        */
 
         setLatitude(
           current =>
@@ -510,9 +1102,9 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // SET MAP CENTER
-  // =========================================================
+  // =======================================================
 
   const setMapCenter =
     useCallback(
@@ -554,9 +1146,9 @@ export default function useMap() {
     );
 
 
-  // =========================================================
-  // SET COORDINATES DIRECTLY
-  // =========================================================
+  // =======================================================
+  // SET COORDINATES
+  // =======================================================
 
   const setCoordinates =
     useCallback(
@@ -605,9 +1197,9 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // REMOVE LAST POINT
-  // =========================================================
+  // =======================================================
 
   const removeLastPoint =
     useCallback(
@@ -633,18 +1225,23 @@ export default function useMap() {
 
             } else {
 
-              const first =
-                next[0];
+              const center =
+                calculateBoundaryCenter(
+                  next
+                );
 
 
-              setLatitude(
-                first.latitude
-              );
+              if (center) {
 
+                setLatitude(
+                  center.latitude
+                );
 
-              setLongitude(
-                first.longitude
-              );
+                setLongitude(
+                  center.longitude
+                );
+
+              }
 
             }
 
@@ -654,14 +1251,19 @@ export default function useMap() {
           }
         );
 
+
+        setArea(null);
+
+        setPerimeter(null);
+
       },
       []
     );
 
 
-  // =========================================================
+  // =======================================================
   // CLEAR MAP POINTS
-  // =========================================================
+  // =======================================================
 
   const clearPoints =
     useCallback(
@@ -686,9 +1288,9 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // LOAD NEARBY PLACES
-  // =========================================================
+  // =======================================================
 
   const loadNearbyPlaces =
     useCallback(
@@ -727,7 +1329,9 @@ export default function useMap() {
 
 
           const safePlaces =
-            Array.isArray(places)
+            Array.isArray(
+              places
+            )
               ? places
               : [];
 
@@ -762,9 +1366,9 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // REVERSE GEOCODING
-  // =========================================================
+  // =======================================================
 
   const reverseGeocode =
     useCallback(
@@ -821,49 +1425,69 @@ export default function useMap() {
     );
 
 
-  // =========================================================
-  // APPLY REVERSE GEOCODING
-  // =========================================================
+  // =======================================================
+  // APPLY GEOCODED LOCATION
+  // =======================================================
 
   const applyGeocodedLocation =
     useCallback(
       result => {
 
         if (!result) {
+
           return false;
+
         }
 
 
+        const normalized =
+          normalizeAdministrativeLocation(
+            result
+          );
+
+
         setCountry(
-          result.country ||
-          ""
+          normalized.country
+        );
+
+
+        setGovernorate(
+          normalized.governorate
         );
 
 
         setRegion(
-          result.region ||
-          ""
+          normalized.region
+        );
+
+
+        setDistrict(
+          normalized.district
+        );
+
+
+        setCity(
+          normalized.city
+        );
+
+
+        setTown(
+          normalized.town
         );
 
 
         setVillage(
-          result.village ||
-          result.town ||
-          result.city ||
-          ""
+          normalized.village
         );
 
 
         setPlaceName(
-          result.placeName ||
-          result.nearestPlace ||
-          ""
+          normalized.placeName
         );
 
 
         setLocationDescription(
-          result.displayName ||
-          ""
+          normalized.displayName
         );
 
 
@@ -897,9 +1521,9 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
   // MEASUREMENTS
-  // =========================================================
+  // =======================================================
 
   const setMeasurements =
     useCallback(
@@ -941,19 +1565,564 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
+  // BUILD MAP LOCATION DATA
+  // =======================================================
+  //
+  // هذه هي الدالة الجديدة الأساسية.
+  //
+  // لا تحفظ.
+  //
+  // فقط تبني LocationData موحدًا من:
+  //
+  // boundary
+  // center
+  // geocoding
+  // farm
+  //
+  // ثم يمكن تمرير الناتج إلى addLocation().
+  //
+  // =======================================================
+
+  const buildMapLocationData =
+    useCallback(
+      async (
+        options = {}
+      ) => {
+
+        const selectedFarmId =
+          options.farmId ||
+          farmId;
+
+
+        if (!selectedFarmId) {
+
+          const message =
+            t("farmRequired") ||
+            "اختر المزرعة أولًا";
+
+          setError(message);
+
+          return null;
+
+        }
+
+
+        const mapPoints =
+          normalizePoints(
+            options.points ??
+            points
+          );
+
+
+        if (
+          mapPoints.length < 3
+        ) {
+
+          const message =
+            t("minimumThreePoints") ||
+            "يجب تحديد ثلاث نقاط على الأقل";
+
+          setError(message);
+
+          return null;
+
+        }
+
+
+        /*
+        -----------------------------------------------------
+        1. حساب مركز الأرض الحقيقي.
+        -----------------------------------------------------
+        */
+
+        const center =
+          calculateBoundaryCenter(
+            mapPoints
+          );
+
+
+        if (!center) {
+
+          const message =
+            t("coordinatesRequired") ||
+            "تعذر حساب مركز الأرض";
+
+          setError(message);
+
+          return null;
+
+        }
+
+
+        setMapLoading(true);
+
+        setError("");
+
+
+        try {
+
+          /*
+          ---------------------------------------------------
+          2. حساب المساحة والمحيط من الحدود نفسها.
+          ---------------------------------------------------
+          */
+
+          const calculatedArea =
+            mapService.calculateArea(
+              mapPoints
+            );
+
+
+          const calculatedPerimeter =
+            mapService.calculatePerimeter(
+              mapPoints
+            );
+
+
+          /*
+          ---------------------------------------------------
+          3. Reverse Geocoding لمركز الأرض.
+
+          مهم جدًا:
+
+          نرسل مركز الأرض،
+          وليس اسم القرية،
+          وليس أول نقطة،
+          وليس موقعًا نصيًا.
+          ---------------------------------------------------
+          */
+
+          const geocoded =
+            await mapService.reverseGeocode(
+              center.latitude,
+              center.longitude,
+              language
+            );
+
+
+          const administrative =
+            normalizeAdministrativeLocation(
+              geocoded
+            );
+
+
+          /*
+          ---------------------------------------------------
+          4. اسم المزرعة إن توفر.
+          ---------------------------------------------------
+          */
+
+          const selectedFarm =
+            Array.isArray(farms)
+              ? farms.find(
+                  farm =>
+                    String(
+                      farm?.id
+                    ) ===
+                    String(
+                      selectedFarmId
+                    )
+                )
+              : null;
+
+
+          /*
+          ---------------------------------------------------
+          5. LocationData واحد.
+          ---------------------------------------------------
+          */
+
+          const locationData = {
+
+            farmId:
+              String(
+                selectedFarmId
+              ),
+
+
+            farmName:
+              cleanString(
+                options.farmName ||
+                selectedFarm?.name ||
+                ""
+              ),
+
+
+            type:
+              options.type ||
+              "field",
+
+
+            source:
+              "map",
+
+
+            /*
+            المركز الحقيقي للأرض
+            */
+
+            latitude:
+              center.latitude,
+
+            longitude:
+              center.longitude,
+
+
+            /*
+            حدود الأرض
+            */
+
+            points:
+              mapPoints,
+
+
+            boundary:
+              mapPoints,
+
+
+            /*
+            القياسات
+            */
+
+            area:
+              Number.isFinite(
+                Number(
+                  calculatedArea
+                )
+              )
+                ? Number(
+                    calculatedArea
+                  )
+                : null,
+
+
+            perimeter:
+              Number.isFinite(
+                Number(
+                  calculatedPerimeter
+                )
+              )
+                ? Number(
+                    calculatedPerimeter
+                  )
+                : null,
+
+
+            boundaryWidth:
+              options.boundaryWidth ??
+              boundaryWidth ??
+              "",
+
+
+            /*
+            -----------------------------------------------
+            الموقع الإداري
+            -----------------------------------------------
+            */
+
+            country:
+              administrative.country,
+
+
+            governorate:
+              administrative.governorate,
+
+
+            region:
+              administrative.region,
+
+
+            district:
+              administrative.district,
+
+
+            city:
+              administrative.city,
+
+
+            town:
+              administrative.town,
+
+
+            village:
+              administrative.village,
+
+
+            placeName:
+              administrative.placeName,
+
+
+            locationDescription:
+              administrative.displayName,
+
+
+            road:
+              administrative.road,
+
+
+            /*
+            -----------------------------------------------
+            الاتجاهات
+            -----------------------------------------------
+            */
+
+            north:
+              cleanString(
+                options.north ??
+                northNeighbor ||
+                north
+              ),
+
+
+            south:
+              cleanString(
+                options.south ??
+                southNeighbor ||
+                south
+              ),
+
+
+            east:
+              cleanString(
+                options.east ??
+                eastNeighbor ||
+                east
+              ),
+
+
+            west:
+              cleanString(
+                options.west ??
+                westNeighbor ||
+                west
+              ),
+
+
+            northNeighbor:
+              cleanString(
+                options.northNeighbor ??
+                northNeighbor ||
+                north
+              ),
+
+
+            southNeighbor:
+              cleanString(
+                options.southNeighbor ??
+                southNeighbor ||
+                south
+              ),
+
+
+            eastNeighbor:
+              cleanString(
+                options.eastNeighbor ??
+                eastNeighbor ||
+                east
+              ),
+
+
+            westNeighbor:
+              cleanString(
+                options.westNeighbor ??
+                westNeighbor ||
+                west
+              ),
+
+
+            notes:
+              cleanString(
+                options.notes ??
+                notes
+              ),
+
+
+            status:
+              options.status ||
+              "active",
+
+
+            createdAt:
+              options.createdAt ||
+              new Date().toISOString(),
+
+          };
+
+
+          /*
+          ---------------------------------------------------
+          6. تحديث حالة Hook.
+          ---------------------------------------------------
+          */
+
+          setLatitude(
+            center.latitude
+          );
+
+
+          setLongitude(
+            center.longitude
+          );
+
+
+          setPoints(
+            mapPoints
+          );
+
+
+          setArea(
+            calculatedArea
+          );
+
+
+          setPerimeter(
+            calculatedPerimeter
+          );
+
+
+          setCountry(
+            administrative.country
+          );
+
+
+          setGovernorate(
+            administrative.governorate
+          );
+
+
+          setRegion(
+            administrative.region
+          );
+
+
+          setDistrict(
+            administrative.district
+          );
+
+
+          setCity(
+            administrative.city
+          );
+
+
+          setTown(
+            administrative.town
+          );
+
+
+          setVillage(
+            administrative.village
+          );
+
+
+          setPlaceName(
+            administrative.placeName
+          );
+
+
+          setLocationDescription(
+            administrative.displayName
+          );
+
+
+          /*
+          ---------------------------------------------------
+          7. تخزين نسخة موحدة حتى تستلمها Crops.
+          ---------------------------------------------------
+          */
+
+          cacheMapLocation(
+            locationData
+          );
+
+
+          return locationData;
+
+        } catch (buildError) {
+
+          console.error(
+            "Building map location failed:",
+            buildError
+          );
+
+
+          const message =
+            t("geocodingError") ||
+            "تعذر تحديد الموقع الإداري للأرض";
+
+
+          setError(message);
+
+          return null;
+
+        } finally {
+
+          setMapLoading(false);
+
+        }
+
+      },
+      [
+        farmId,
+        points,
+        boundaryWidth,
+        northNeighbor,
+        southNeighbor,
+        eastNeighbor,
+        westNeighbor,
+        north,
+        south,
+        east,
+        west,
+        notes,
+        farms,
+        language,
+        t,
+      ]
+    );
+
+
+  // =======================================================
+  // FINALIZE MAP LOCATION
+  // =======================================================
+  //
+  // دالة مريحة لـ Map.jsx:
+  //
+  // تحديد الحدود
+  // ↓
+  // حساب المركز
+  // ↓
+  // Reverse Geocoding
+  // ↓
+  // بناء LocationData
+  //
+  // ولا تحفظ في قاعدة البيانات.
+  //
+  // الحفظ يبقى مسؤولية addLocation().
+  //
+  // =======================================================
+
+  const finalizeMapLocation =
+    useCallback(
+      async (
+        options = {}
+      ) => {
+
+        return buildMapLocationData(
+          options
+        );
+
+      },
+      [
+        buildMapLocationData,
+      ]
+    );
+
+
+  // =======================================================
   // VALIDATE FORM
-  // =========================================================
-  //
-  // مهم:
-  //
-  // Map.jsx يبني locationData بنفسه.
-  //
-  // لذلك عند الحفظ سنقوم بالتحقق من locationData
-  // المرسل فعليًا بدل الاعتماد على حالات Hook
-  // التي لا يتم تعبئتها من Map.jsx.
-  //
-  // =========================================================
+  // =======================================================
 
   const validateLocation =
     useCallback(
@@ -963,10 +2132,9 @@ export default function useMap() {
 
 
         /*
-        -------------------------------------------------------
-        إذا وصلت بيانات من Map.jsx
-        نتحقق من البيانات المرسلة مباشرة.
-        -------------------------------------------------------
+        -----------------------------------------------------
+        إذا وصلت LocationData من Map.jsx
+        -----------------------------------------------------
         */
 
         if (locationData) {
@@ -982,8 +2150,11 @@ export default function useMap() {
             setError(message);
 
             return {
+
               valid: false,
+
               message,
+
             };
 
           }
@@ -995,9 +2166,9 @@ export default function useMap() {
 
 
           /*
-          -----------------------------------------------------
+          ---------------------------------------------------
           MAP MODE
-          -----------------------------------------------------
+          ---------------------------------------------------
           */
 
           if (
@@ -1009,7 +2180,11 @@ export default function useMap() {
                 locationData.points
               )
                 ? locationData.points
-                : [];
+                : Array.isArray(
+                    locationData.boundary
+                  )
+                    ? locationData.boundary
+                    : [];
 
 
             if (
@@ -1023,32 +2198,76 @@ export default function useMap() {
               setError(message);
 
               return {
+
                 valid: false,
+
                 message,
+
               };
 
             }
 
 
+            if (
+              !validCoordinates(
+                locationData.latitude,
+                locationData.longitude
+              )
+            ) {
+
+              const center =
+                calculateBoundaryCenter(
+                  mapPoints
+                );
+
+
+              if (!center) {
+
+                const message =
+                  t("coordinatesRequired") ||
+                  "إحداثيات مركز الأرض غير صحيحة";
+
+                setError(message);
+
+                return {
+
+                  valid: false,
+
+                  message,
+
+                };
+
+              }
+
+            }
+
+
             return {
+
               valid: true,
+
               message: "",
+
             };
 
           }
 
 
           /*
-          -----------------------------------------------------
-          TEXT MODE
-          -----------------------------------------------------
+          ---------------------------------------------------
+          TEXT MODE — محفوظ للتوافق مع النظام القديم.
+          ---------------------------------------------------
           */
 
           const textValues = [
 
             locationData.country,
 
+            locationData.governorate,
+
             locationData.region,
+
+            locationData.district,
 
             locationData.city,
 
@@ -1084,9 +2303,9 @@ export default function useMap() {
           const hasTextData =
             textValues.some(
               value =>
-                String(
-                  value ?? ""
-                ).trim().length > 0
+                cleanString(
+                  value
+                ).length > 0
             );
 
 
@@ -1099,25 +2318,31 @@ export default function useMap() {
             setError(message);
 
             return {
+
               valid: false,
+
               message,
+
             };
 
           }
 
 
           return {
+
             valid: true,
+
             message: "",
+
           };
 
         }
 
 
         /*
-        -------------------------------------------------------
-        التحقق القديم عند استخدام Hook مباشرة
-        -------------------------------------------------------
+        -----------------------------------------------------
+        التحقق القديم عند استدعاء Hook مباشرة.
+        -----------------------------------------------------
         */
 
         if (!farmId) {
@@ -1129,8 +2354,11 @@ export default function useMap() {
           setError(message);
 
           return {
+
             valid: false,
+
             message,
+
           };
 
         }
@@ -1151,16 +2379,22 @@ export default function useMap() {
             setError(message);
 
             return {
+
               valid: false,
+
               message,
+
             };
 
           }
 
 
           return {
+
             valid: true,
+
             message: "",
+
           };
 
         }
@@ -1170,7 +2404,15 @@ export default function useMap() {
 
           country,
 
+          governorate,
+
           region,
+
+          district,
+
+          city,
+
+          town,
 
           village,
 
@@ -1188,11 +2430,19 @@ export default function useMap() {
 
           west,
 
+          northNeighbor,
+
+          southNeighbor,
+
+          eastNeighbor,
+
+          westNeighbor,
+
         ].some(
           value =>
-            String(
-              value ?? ""
-            ).trim().length > 0
+            cleanString(
+              value
+            ).length > 0
         );
 
 
@@ -1205,16 +2455,22 @@ export default function useMap() {
           setError(message);
 
           return {
+
             valid: false,
+
             message,
+
           };
 
         }
 
 
         return {
+
           valid: true,
+
           message: "",
+
         };
 
       },
@@ -1223,7 +2479,11 @@ export default function useMap() {
         locationMode,
         points.length,
         country,
+        governorate,
         region,
+        district,
+        city,
+        town,
         village,
         placeName,
         locationDescription,
@@ -1232,95 +2492,34 @@ export default function useMap() {
         south,
         east,
         west,
+        northNeighbor,
+        southNeighbor,
+        eastNeighbor,
+        westNeighbor,
         t,
       ]
     );
 
 
-  // =========================================================
-  // RESET
-  // =========================================================
-
-  const resetLocation =
-    useCallback(
-      () => {
-
-        setFarmId("");
-
-        setLocationType("farm");
-
-        setLocationMode("text");
-
-
-        setCountry("");
-
-        setRegion("");
-
-        setVillage("");
-
-        setPlaceName("");
-
-        setLocationDescription("");
-
-        setNotes("");
-
-
-        setNorth("");
-
-        setSouth("");
-
-        setEast("");
-
-        setWest("");
-
-
-        setLatitude("");
-
-        setLongitude("");
-
-
-        setPoints([]);
-
-
-        setArea(null);
-
-        setPerimeter(null);
-
-        setBoundaryWidth("");
-
-
-        setNearbyPlaces([]);
-
-        setError("");
-
-      },
-      []
-    );
-
-
-  // =========================================================
+  // =======================================================
   // ADD LOCATION
-  // =========================================================
+  // =======================================================
   //
-  // التعديل الأساسي:
+  // الحفظ الفعلي:
   //
-  // addLocation(locationData)
+  // useMap
+  // ↓
+  // mapService
+  // ↓
+  // mapRepository
   //
-  // أصبح يستقبل البيانات التي يرسلها Map.jsx.
-  //
-  // =========================================================
+  // =======================================================
 
   const addLocation =
     useCallback(
       async (
         locationData = null
       ) => {
-
-        /*
-        -------------------------------------------------------
-        يجب أن تصل البيانات من Map.jsx.
-        -------------------------------------------------------
-        */
 
         if (
           !locationData ||
@@ -1341,9 +2540,9 @@ export default function useMap() {
 
 
         /*
-        -------------------------------------------------------
-        التحقق من البيانات نفسها.
-        -------------------------------------------------------
+        -----------------------------------------------------
+        التحقق من البيانات.
+        -----------------------------------------------------
         */
 
         const validation =
@@ -1366,230 +2565,286 @@ export default function useMap() {
 
 
         /*
-        -------------------------------------------------------
-        تجهيز نسخة آمنة من البيانات.
-        -------------------------------------------------------
+        -----------------------------------------------------
+        إذا كان المصدر خريطة:
+        نتأكد أن المركز موجود.
+        -----------------------------------------------------
         */
 
-        const data = {
+        let dataToSave = {
 
           ...locationData,
+
+        };
+
+
+        if (
+          (
+            locationData.source ||
+            "text"
+          ) === "map"
+        ) {
+
+          const mapPoints =
+            normalizePoints(
+              locationData.points ||
+              locationData.boundary
+            );
+
+
+          const center =
+            calculateBoundaryCenter(
+              mapPoints
+            );
+
+
+          if (!center) {
+
+            const message =
+              t("coordinatesRequired") ||
+              "تعذر حساب مركز الأرض";
+
+            setError(message);
+
+            alert(message);
+
+            return false;
+
+          }
+
+
+          dataToSave = {
+
+            ...dataToSave,
+
+            points:
+              mapPoints,
+
+            boundary:
+              mapPoints,
+
+            latitude:
+              center.latitude,
+
+            longitude:
+              center.longitude,
+
+            area:
+              Number.isFinite(
+                Number(
+                  locationData.area
+                )
+              )
+                ? Number(
+                    locationData.area
+                  )
+                : mapService.calculateArea(
+                    mapPoints
+                  ),
+
+            perimeter:
+              Number.isFinite(
+                Number(
+                  locationData.perimeter
+                )
+              )
+                ? Number(
+                    locationData.perimeter
+                  )
+                : mapService.calculatePerimeter(
+                    mapPoints
+                  ),
+
+            source:
+              "map",
+
+          };
+
+        }
+
+
+        /*
+        -----------------------------------------------------
+        تجهيز نسخة آمنة.
+        -----------------------------------------------------
+        */
+
+        const safeData = {
+
+          ...dataToSave,
 
 
           farmId:
             String(
-              locationData.farmId
+              dataToSave.farmId
             ),
 
 
           farmName:
-            String(
-              locationData.farmName ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.farmName
+            ),
 
 
           type:
-            locationData.type ||
+            dataToSave.type ||
             "field",
 
 
           source:
-            locationData.source ||
+            dataToSave.source ||
             "text",
 
 
           country:
-            String(
-              locationData.country ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.country
+            ),
+
+
+          governorate:
+            cleanString(
+              dataToSave.governorate
+            ),
 
 
           region:
-            String(
-              locationData.region ||
-              locationData.province ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.region ||
+              dataToSave.province
+            ),
+
+
+          district:
+            cleanString(
+              dataToSave.district
+            ),
 
 
           city:
-            String(
-              locationData.city ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.city
+            ),
 
 
           town:
-            String(
-              locationData.town ||
-              locationData.village ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.town
+            ),
 
 
           village:
-            String(
-              locationData.village ||
-              locationData.town ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.village
+            ),
 
 
           placeName:
-            String(
-              locationData.placeName ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.placeName
+            ),
 
 
           locationDescription:
-            String(
-              locationData.locationDescription ||
-              locationData.description ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.locationDescription ||
+              dataToSave.description
+            ),
 
 
           notes:
-            String(
-              locationData.notes ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.notes
+            ),
 
 
           north:
-            String(
-              locationData.north ||
-              locationData.northNeighbor ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.north ||
+              dataToSave.northNeighbor
+            ),
 
 
           south:
-            String(
-              locationData.south ||
-              locationData.southNeighbor ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.south ||
+              dataToSave.southNeighbor
+            ),
 
 
           east:
-            String(
-              locationData.east ||
-              locationData.eastNeighbor ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.east ||
+              dataToSave.eastNeighbor
+            ),
 
 
           west:
-            String(
-              locationData.west ||
-              locationData.westNeighbor ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.west ||
+              dataToSave.westNeighbor
+            ),
 
 
           northNeighbor:
-            String(
-              locationData.northNeighbor ||
-              locationData.north ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.northNeighbor ||
+              dataToSave.north
+            ),
 
 
           southNeighbor:
-            String(
-              locationData.southNeighbor ||
-              locationData.south ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.southNeighbor ||
+              dataToSave.south
+            ),
 
 
           eastNeighbor:
-            String(
-              locationData.eastNeighbor ||
-              locationData.east ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.eastNeighbor ||
+              dataToSave.east
+            ),
 
 
           westNeighbor:
-            String(
-              locationData.westNeighbor ||
-              locationData.west ||
-              ""
-            ).trim(),
+            cleanString(
+              dataToSave.westNeighbor ||
+              dataToSave.west
+            ),
 
 
           points:
-            Array.isArray(
-              locationData.points
-            )
-              ? locationData.points.map(
-                  point => {
-
-                    if (
-                      Array.isArray(
-                        point
-                      )
-                    ) {
-
-                      return {
-
-                        latitude:
-                          Number(
-                            point[0]
-                          ),
-
-                        longitude:
-                          Number(
-                            point[1]
-                          ),
-
-                      };
-
-                    }
+            normalizePoints(
+              dataToSave.points
+            ),
 
 
-                    return {
-
-                      latitude:
-                        Number(
-                          point?.latitude
-                        ),
-
-                      longitude:
-                        Number(
-                          point?.longitude
-                        ),
-
-                    };
-
-                  }
-                )
-              : [],
+          boundary:
+            normalizePoints(
+              dataToSave.boundary ||
+              dataToSave.points
+            ),
 
 
           latitude:
             validCoordinates(
-              locationData.latitude,
-              locationData.longitude
+              dataToSave.latitude,
+              dataToSave.longitude
             )
               ? Number(
-                  locationData.latitude
+                  dataToSave.latitude
                 )
               : null,
 
 
           longitude:
             validCoordinates(
-              locationData.latitude,
-              locationData.longitude
+              dataToSave.latitude,
+              dataToSave.longitude
             )
               ? Number(
-                  locationData.longitude
+                  dataToSave.longitude
                 )
               : null,
 
@@ -1597,11 +2852,11 @@ export default function useMap() {
           area:
             Number.isFinite(
               Number(
-                locationData.area
+                dataToSave.area
               )
             )
               ? Number(
-                  locationData.area
+                  dataToSave.area
                 )
               : null,
 
@@ -1609,31 +2864,42 @@ export default function useMap() {
           perimeter:
             Number.isFinite(
               Number(
-                locationData.perimeter
+                dataToSave.perimeter
               )
             )
               ? Number(
-                  locationData.perimeter
+                  dataToSave.perimeter
                 )
               : null,
 
 
           boundaryWidth:
-            locationData.boundaryWidth ??
+            dataToSave.boundaryWidth ??
             "",
 
 
           status:
-            locationData.status ||
+            dataToSave.status ||
             "active",
 
         };
 
 
         /*
-        -------------------------------------------------------
-        الحفظ الفعلي.
-        -------------------------------------------------------
+        -----------------------------------------------------
+        حفظ نسخة الاختيار التي ستستلمها Crops.
+        -----------------------------------------------------
+        */
+
+        cacheMapLocation(
+          safeData
+        );
+
+
+        /*
+        -----------------------------------------------------
+        الحفظ الأساسي.
+        -----------------------------------------------------
         */
 
         try {
@@ -1645,13 +2911,13 @@ export default function useMap() {
 
           console.log(
             "Map location save payload:",
-            data
+            safeData
           );
 
 
           const saved =
             await mapService.createLocation(
-              data
+              safeData
             );
 
 
@@ -1665,23 +2931,65 @@ export default function useMap() {
 
 
           /*
-          -----------------------------------------------------
-          تحديث القائمة مباشرة بعد نجاح الحفظ.
-          -----------------------------------------------------
+          ---------------------------------------------------
+          تحديث القائمة.
+          ---------------------------------------------------
           */
 
           setLocations(
             current => [
+
               ...current,
+
               saved,
+
             ]
           );
 
 
           /*
-          -----------------------------------------------------
-          إعادة النموذج إلى الحالة الفارغة.
-          -----------------------------------------------------
+          ---------------------------------------------------
+          حفظ النسخة النهائية التي يمكن لـ Crops قراءتها.
+          ---------------------------------------------------
+          */
+
+          cacheMapLocation(
+            {
+              ...safeData,
+
+              ...saved,
+
+              /*
+              لا نسمح للسجل المحفوظ أن يبدل
+              مركز الأرض الصحيح إذا لم يكن موجودًا.
+              */
+
+              latitude:
+                validCoordinates(
+                  safeData.latitude,
+                  safeData.longitude
+                )
+                  ? safeData.latitude
+                  : saved?.latitude ??
+                    null,
+
+              longitude:
+                validCoordinates(
+                  safeData.latitude,
+                  safeData.longitude
+                )
+                  ? safeData.longitude
+                  : saved?.longitude ??
+                    null,
+
+            }
+          );
+
+
+          /*
+          ---------------------------------------------------
+          إعادة الحالة القديمة.
+          ---------------------------------------------------
           */
 
           resetLocation();
@@ -1693,7 +3001,7 @@ export default function useMap() {
           );
 
 
-          return true;
+          return saved;
 
         } catch (saveError) {
 
@@ -1735,9 +3043,54 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
+  // SAVE MAP LOCATION DIRECTLY
+  // =======================================================
+  //
+  // اختصار اختياري:
+  //
+  // finalizeMapLocation
+  // ↓
+  // addLocation
+  //
+  // يفيد Map.jsx إذا أردنا تنفيذ العملية كاملة بضغطة واحدة.
+  //
+  // =======================================================
+
+  const saveMapLocation =
+    useCallback(
+      async (
+        options = {}
+      ) => {
+
+        const locationData =
+          await buildMapLocationData(
+            options
+          );
+
+
+        if (!locationData) {
+
+          return false;
+
+        }
+
+
+        return addLocation(
+          locationData
+        );
+
+      },
+      [
+        buildMapLocationData,
+        addLocation,
+      ]
+    );
+
+
+  // =======================================================
   // DELETE LOCATION
-  // =========================================================
+  // =======================================================
 
   const deleteLocation =
     useCallback(
@@ -1772,7 +3125,9 @@ export default function useMap() {
             current =>
               current.filter(
                 item =>
-                  String(item.id) !==
+                  String(
+                    item.id
+                  ) !==
                   String(id)
               )
           );
@@ -1801,13 +3156,93 @@ export default function useMap() {
     );
 
 
-  // =========================================================
+  // =======================================================
+  // RESET
+  // =======================================================
+
+  const resetLocation =
+    useCallback(
+      () => {
+
+        setFarmId("");
+
+        setLocationType("farm");
+
+        setLocationMode("text");
+
+
+        setCountry("");
+
+        setGovernorate("");
+
+        setRegion("");
+
+        setDistrict("");
+
+        setCity("");
+
+        setTown("");
+
+        setVillage("");
+
+        setPlaceName("");
+
+        setLocationDescription("");
+
+        setNotes("");
+
+
+        setNorth("");
+
+        setSouth("");
+
+        setEast("");
+
+        setWest("");
+
+
+        setNorthNeighbor("");
+
+        setSouthNeighbor("");
+
+        setEastNeighbor("");
+
+        setWestNeighbor("");
+
+
+        setLatitude("");
+
+        setLongitude("");
+
+
+        setPoints([]);
+
+
+        setArea(null);
+
+        setPerimeter(null);
+
+        setBoundaryWidth("");
+
+
+        setNearbyPlaces([]);
+
+        setError("");
+
+      },
+      []
+    );
+
+
+  // =======================================================
   // RETURN
-  // =========================================================
+  // =======================================================
 
   return {
 
+    // =====================================================
     // DATA
+    // =====================================================
 
     farms,
 
@@ -1816,14 +3251,18 @@ export default function useMap() {
     nearbyPlaces,
 
 
+    // =====================================================
     // FARM
+    // =====================================================
 
     farmId,
 
     setFarmId,
 
 
+    // =====================================================
     // TYPE / MODE
+    // =====================================================
 
     locationType,
 
@@ -1834,15 +3273,33 @@ export default function useMap() {
     setLocationMode,
 
 
-    // TEXT LOCATION
+    // =====================================================
+    // ADMINISTRATIVE LOCATION
+    // =====================================================
 
     country,
 
     setCountry,
 
+    governorate,
+
+    setGovernorate,
+
     region,
 
     setRegion,
+
+    district,
+
+    setDistrict,
+
+    city,
+
+    setCity,
+
+    town,
+
+    setTown,
 
     village,
 
@@ -1861,7 +3318,9 @@ export default function useMap() {
     setNotes,
 
 
+    // =====================================================
     // DIRECTIONS
+    // =====================================================
 
     north,
 
@@ -1880,7 +3339,26 @@ export default function useMap() {
     setWest,
 
 
+    northNeighbor,
+
+    setNorthNeighbor,
+
+    southNeighbor,
+
+    setSouthNeighbor,
+
+    eastNeighbor,
+
+    setEastNeighbor,
+
+    westNeighbor,
+
+    setWestNeighbor,
+
+
+    // =====================================================
     // COORDINATES
+    // =====================================================
 
     latitude,
 
@@ -1893,7 +3371,9 @@ export default function useMap() {
     setCoordinates,
 
 
+    // =====================================================
     // FIELD BOUNDARY
+    // =====================================================
 
     points,
 
@@ -1908,7 +3388,9 @@ export default function useMap() {
     clearPoints,
 
 
+    // =====================================================
     // MEASUREMENTS
+    // =====================================================
 
     area,
 
@@ -1925,7 +3407,9 @@ export default function useMap() {
     setMeasurements,
 
 
+    // =====================================================
     // MAP INFORMATION
+    // =====================================================
 
     loadNearbyPlaces,
 
@@ -1934,7 +3418,22 @@ export default function useMap() {
     applyGeocodedLocation,
 
 
-    // VALIDATION / CRUD
+    // =====================================================
+    // LOCATION PIPELINE
+    // =====================================================
+
+    calculateBoundaryCenter,
+
+    buildMapLocationData,
+
+    finalizeMapLocation,
+
+    saveMapLocation,
+
+
+    // =====================================================
+    // CRUD / VALIDATION
+    // =====================================================
 
     validateLocation,
 
@@ -1945,7 +3444,16 @@ export default function useMap() {
     resetLocation,
 
 
+    // =====================================================
+    // HELPERS
+    // =====================================================
+
+    readSavedMapLocation,
+
+
+    // =====================================================
     // STATE
+    // =====================================================
 
     loading,
 
@@ -1954,7 +3462,9 @@ export default function useMap() {
     error,
 
 
+    // =====================================================
     // CONSTANTS
+    // =====================================================
 
     DEFAULT_POSITION,
 
