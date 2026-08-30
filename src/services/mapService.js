@@ -8,33 +8,21 @@ import mapRepository
 // LAVENDER — MAP SERVICE
 // =========================================================
 //
-// مصادر الموقع:
+// المصدر الحقيقي لموقع الأرض:
+// نقاط الخريطة التي يحددها المستخدم.
 //
-// 1. MAP
-//    المستخدم يرسم الأرض يدويًا.
-//    النقاط التي يحددها المستخدم هي المصدر الحقيقي للموقع.
+// Nominatim:
+// يستخدم فقط لاستخراج المعلومات الإدارية والوصفية.
 //
-// 2. TEXT
-//    المستخدم يكتب:
-//    البلد
-//    المحافظة / المنطقة
-//    المدينة
-//    البلدة / القرية
-//    وصف الأرض
-//    جار الشمال
-//    جار الجنوب
-//    جار الشرق
-//    جار الغرب
-//
-// Nominatim / Overpass:
-// معلومات جغرافية مساعدة فقط.
-// NEVER تستبدل موقع المستخدم.
+// لا يستبدل:
+// latitude
+// longitude
+// boundary
 //
 // =========================================================
 
 
 class MapService {
-
 
   // =======================================================
   // CONSTANTS
@@ -48,17 +36,14 @@ class MapService {
 
   static MAX_RESULTS = 100;
 
+  static EARTH_RADIUS = 6378137;
 
   static NOMINATIM_URL =
     "https://nominatim.openstreetmap.org/reverse";
 
-
   static OVERPASS_ENDPOINTS = [
-
     "https://overpass-api.de/api/interpreter",
-
     "https://overpass.kumi.systems/api/interpreter",
-
   ];
 
 
@@ -66,17 +51,10 @@ class MapService {
   // COORDINATES
   // =======================================================
 
-  validateCoordinates(
-    latitude,
-    longitude
-  ) {
+  validateCoordinates(latitude, longitude) {
 
-    const lat =
-      Number(latitude);
-
-    const lon =
-      Number(longitude);
-
+    const lat = Number(latitude);
+    const lon = Number(longitude);
 
     if (
       !Number.isFinite(lat) ||
@@ -86,22 +64,15 @@ class MapService {
       lon < -180 ||
       lon > 180
     ) {
-
       throw new Error(
         "MAP_COORDINATES_REQUIRED"
       );
-
     }
 
-
     return {
-
       latitude: lat,
-
       longitude: lon,
-
     };
-
   }
 
 
@@ -111,30 +82,19 @@ class MapService {
 
   validateRadius(radius) {
 
-    const value =
-      Number(radius);
+    const value = Number(radius);
 
-
-    if (
-      !Number.isFinite(value)
-    ) {
-
+    if (!Number.isFinite(value)) {
       return MapService.DEFAULT_RADIUS;
-
     }
 
-
     return Math.min(
-
       Math.max(
         value,
         MapService.MIN_RADIUS
       ),
-
       MapService.MAX_RADIUS
-
     );
-
   }
 
 
@@ -145,126 +105,254 @@ class MapService {
   normalizeLanguage(language) {
 
     if (language === "en") {
-
       return "en";
-
     }
-
 
     if (language === "tr") {
-
       return "tr";
-
     }
 
-
     return "ar";
-
   }
 
 
   getAcceptLanguage(language) {
 
     const lang =
-      this.normalizeLanguage(
-        language
-      );
-
+      this.normalizeLanguage(language);
 
     if (lang === "en") {
-
       return "en";
-
     }
-
 
     if (lang === "tr") {
-
       return "tr,en";
-
     }
 
-
     return "ar,en";
-
   }
 
 
   // =======================================================
-  // VALIDATE POINTS
+  // POINTS
   // =======================================================
 
   validatePoints(points) {
 
-    if (
-      !Array.isArray(points)
-    ) {
-
+    if (!Array.isArray(points)) {
       throw new Error(
         "MAP_POINTS_REQUIRED"
       );
-
     }
 
-
-    if (
-      points.length < 3
-    ) {
-
+    if (points.length < 3) {
       throw new Error(
         "MAP_THREE_POINTS_REQUIRED"
       );
+    }
 
+    return points.map(point => {
+
+      if (Array.isArray(point)) {
+
+        const coordinates =
+          this.validateCoordinates(
+            point[0],
+            point[1]
+          );
+
+        return {
+          latitude: coordinates.latitude,
+          longitude: coordinates.longitude,
+        };
+      }
+
+      if (
+        point &&
+        typeof point === "object"
+      ) {
+
+        return this.validateCoordinates(
+          point.latitude,
+          point.longitude
+        );
+      }
+
+      throw new Error(
+        "MAP_INVALID_POINT"
+      );
+    });
+  }
+
+
+  // =======================================================
+  // CENTER OF FIELD
+  // =======================================================
+  //
+  // نحسب مركز المضلع بدل استخدام أول نقطة.
+  //
+  // نستخدم إسقاطًا محليًا بسيطًا مناسبًا لحساب مركز
+  // الأراضي الزراعية ذات المساحة المحلية.
+  //
+  // =======================================================
+
+  calculateCentroid(points) {
+
+    const safePoints =
+      this.validatePoints(points);
+
+    const referenceLatitude =
+      safePoints.reduce(
+        (sum, point) =>
+          sum +
+          Number(point.latitude),
+        0
+      ) /
+      safePoints.length;
+
+    const referenceLatitudeRad =
+      referenceLatitude *
+      Math.PI /
+      180;
+
+    const cosLatitude =
+      Math.cos(
+        referenceLatitudeRad
+      );
+
+    const earthRadius =
+      MapService.EARTH_RADIUS;
+
+    const projected =
+      safePoints.map(point => {
+
+        const lat =
+          Number(point.latitude) *
+          Math.PI /
+          180;
+
+        const lon =
+          Number(point.longitude) *
+          Math.PI /
+          180;
+
+        return {
+          x:
+            earthRadius *
+            lon *
+            cosLatitude,
+
+          y:
+            earthRadius *
+            lat,
+        };
+      });
+
+
+    let crossSum = 0;
+    let xSum = 0;
+    let ySum = 0;
+
+
+    for (
+      let index = 0;
+      index < projected.length;
+      index++
+    ) {
+
+      const current =
+        projected[index];
+
+      const next =
+        projected[
+          (index + 1) %
+          projected.length
+        ];
+
+      const cross =
+        (
+          current.x *
+          next.y
+        ) -
+        (
+          next.x *
+          current.y
+        );
+
+      crossSum += cross;
+
+      xSum +=
+        (
+          current.x +
+          next.x
+        ) *
+        cross;
+
+      ySum +=
+        (
+          current.y +
+          next.y
+        ) *
+        cross;
     }
 
 
-    return points.map(
-      point => {
+    // إذا كان المضلع غير صالح حسابيًا،
+    // نعود إلى المتوسط الجغرافي الآمن.
 
-        if (
-          Array.isArray(point)
-        ) {
+    if (
+      Math.abs(crossSum) < 0.000001
+    ) {
 
-          const coordinates =
-            this.validateCoordinates(
-              point[0],
-              point[1]
-            );
+      return this.validateCoordinates(
+        referenceLatitude,
 
-
-          return {
-
-            latitude:
-              coordinates.latitude,
-
-            longitude:
-              coordinates.longitude,
-
-          };
-
-        }
+        safePoints.reduce(
+          (sum, point) =>
+            sum +
+            Number(point.longitude),
+          0
+        ) /
+        safePoints.length
+      );
+    }
 
 
-        if (
-          point &&
-          typeof point === "object"
-        ) {
+    const centroidX =
+      xSum /
+      (
+        3 *
+        crossSum
+      );
 
-          return this.validateCoordinates(
-            point.latitude,
-            point.longitude
-          );
+    const centroidY =
+      ySum /
+      (
+        3 *
+        crossSum
+      );
 
-        }
+
+    const latitude =
+      centroidY /
+      earthRadius *
+      180 /
+      Math.PI;
+
+    const longitude =
+      centroidX /
+      (
+        earthRadius *
+        cosLatitude
+      ) *
+      180 /
+      Math.PI;
 
 
-        throw new Error(
-          "MAP_INVALID_POINT"
-        );
-
-      }
+    return this.validateCoordinates(
+      latitude,
+      longitude
     );
-
   }
 
 
@@ -285,17 +373,14 @@ class MapService {
         longitude1
       );
 
-
     const second =
       this.validateCoordinates(
         latitude2,
         longitude2
       );
 
-
     const earthRadius =
       6371008.8;
-
 
     const toRadians =
       value =>
@@ -303,13 +388,11 @@ class MapService {
         Math.PI /
         180;
 
-
     const dLat =
       toRadians(
         second.latitude -
         first.latitude
       );
-
 
     const dLon =
       toRadians(
@@ -317,31 +400,21 @@ class MapService {
         first.longitude
       );
 
-
     const lat1 =
       toRadians(
         first.latitude
       );
-
 
     const lat2 =
       toRadians(
         second.latitude
       );
 
-
     const a =
-      Math.sin(
-        dLat / 2
-      ) ** 2 +
-
+      Math.sin(dLat / 2) ** 2 +
       Math.cos(lat1) *
       Math.cos(lat2) *
-
-      Math.sin(
-        dLon / 2
-      ) ** 2;
-
+      Math.sin(dLon / 2) ** 2;
 
     return (
       earthRadius *
@@ -351,7 +424,6 @@ class MapService {
         Math.sqrt(1 - a)
       )
     );
-
   }
 
 
@@ -359,18 +431,12 @@ class MapService {
   // PERIMETER
   // =======================================================
 
-  calculatePerimeter(
-    points
-  ) {
+  calculatePerimeter(points) {
 
     const safePoints =
-      this.validatePoints(
-        points
-      );
-
+      this.validatePoints(points);
 
     let total = 0;
-
 
     for (
       let index = 0;
@@ -381,32 +447,22 @@ class MapService {
       const current =
         safePoints[index];
 
-
       const next =
         safePoints[
           (index + 1) %
           safePoints.length
         ];
 
-
       total +=
         this.calculateDistance(
-
           current.latitude,
-
           current.longitude,
-
           next.latitude,
-
           next.longitude
-
         );
-
     }
 
-
     return total;
-
   }
 
 
@@ -414,26 +470,17 @@ class MapService {
   // AREA
   // =======================================================
 
-  calculateArea(
-    points
-  ) {
+  calculateArea(points) {
 
     const safePoints =
-      this.validatePoints(
-        points
-      );
-
+      this.validatePoints(points);
 
     const earthRadius =
-      6378137;
-
+      MapService.EARTH_RADIUS;
 
     const referenceLatitude =
       safePoints.reduce(
-        (
-          total,
-          point
-        ) =>
+        (total, point) =>
           total +
           (
             Number(point.latitude) *
@@ -444,46 +491,35 @@ class MapService {
       ) /
       safePoints.length;
 
-
     const cosLatitude =
       Math.cos(
         referenceLatitude
       );
 
-
     const projected =
-      safePoints.map(
-        point => {
+      safePoints.map(point => {
 
-          const latitude =
-            Number(point.latitude) *
-            Math.PI /
-            180;
+        const latitude =
+          Number(point.latitude) *
+          Math.PI /
+          180;
 
+        const longitude =
+          Number(point.longitude) *
+          Math.PI /
+          180;
 
-          const longitude =
-            Number(point.longitude) *
-            Math.PI /
-            180;
+        return [
+          earthRadius *
+          longitude *
+          cosLatitude,
 
-
-          return [
-
-            earthRadius *
-            longitude *
-            cosLatitude,
-
-            earthRadius *
-            latitude,
-
-          ];
-
-        }
-      );
-
+          earthRadius *
+          latitude,
+        ];
+      });
 
     let area = 0;
-
 
     for (
       let index = 0;
@@ -494,13 +530,11 @@ class MapService {
       const current =
         projected[index];
 
-
       const next =
         projected[
           (index + 1) %
           projected.length
         ];
-
 
       area +=
         (
@@ -511,14 +545,116 @@ class MapService {
           next[0] *
           current[1]
         );
-
     }
-
 
     return Math.abs(
       area / 2
     );
+  }
 
+
+  // =======================================================
+  // ADMINISTRATIVE NORMALIZATION
+  // =======================================================
+
+  normalizeAdministrativeAddress(
+    address = {}
+  ) {
+
+    const country =
+      String(
+        address.country || ""
+      ).trim();
+
+    const governorate =
+      String(
+        address.governorate ||
+        address.state ||
+        address.province ||
+        address.region ||
+        ""
+      ).trim();
+
+    const district =
+      String(
+        address.district ||
+        address.county ||
+        address.municipality ||
+        ""
+      ).trim();
+
+    const city =
+      String(
+        address.city ||
+        address.city_district ||
+        ""
+      ).trim();
+
+    const town =
+      String(
+        address.town ||
+        address.municipality ||
+        ""
+      ).trim();
+
+    const village =
+      String(
+        address.village ||
+        address.hamlet ||
+        ""
+      ).trim();
+
+    const hamlet =
+      String(
+        address.hamlet ||
+        ""
+      ).trim();
+
+
+    return {
+
+      country,
+
+      governorate,
+
+      state:
+        governorate,
+
+      province:
+        governorate,
+
+      region:
+        governorate,
+
+      district,
+
+      municipality:
+        String(
+          address.municipality ||
+          ""
+        ).trim(),
+
+      city,
+
+      town,
+
+      village,
+
+      hamlet,
+
+      road:
+        String(
+          address.road ||
+          address.pedestrian ||
+          ""
+        ).trim(),
+
+      postcode:
+        String(
+          address.postcode ||
+          ""
+        ).trim(),
+    };
   }
 
 
@@ -537,7 +673,6 @@ class MapService {
         latitude,
         longitude
       );
-
 
     const url =
       `${MapService.NOMINATIM_URL}` +
@@ -563,6 +698,7 @@ class MapService {
           url,
           {
             method: "GET",
+
             headers: {
               Accept:
                 "application/json",
@@ -576,61 +712,48 @@ class MapService {
         throw new Error(
           "MAP_GEOCODING_FAILED"
         );
-
       }
 
 
       const result =
         await response.json();
 
-
       const address =
         result?.address || {};
+
+      const administrative =
+        this.normalizeAdministrativeAddress(
+          address
+        );
 
 
       return {
 
+        // الموقع الحقيقي الذي أرسلناه
         latitude:
           coordinates.latitude,
 
         longitude:
           coordinates.longitude,
 
-        country:
-          address.country ||
+
+        // الإدارة
+        ...administrative,
+
+
+        // الاسم الأقرب
+        placeName:
+          result?.name ||
+          administrative.village ||
+          administrative.town ||
+          administrative.city ||
           "",
 
-        region:
-          address.state ||
-          address.province ||
-          address.region ||
-          "",
-
-        city:
-          address.city ||
-          "",
-
-        town:
-          address.town ||
-          "",
-
-        village:
-          address.village ||
-          address.hamlet ||
-          "",
-
-        road:
-          address.road ||
-          address.pedestrian ||
-          "",
 
         displayName:
           result?.display_name ||
           "",
 
-        placeName:
-          result?.name ||
-          "",
 
         osmType:
           result?.osm_type ||
@@ -640,8 +763,8 @@ class MapService {
           result?.osm_id ||
           null,
 
-        address,
 
+        address,
       };
 
     } catch (error) {
@@ -651,6 +774,9 @@ class MapService {
         error
       );
 
+
+      // مهم:
+      // لا نفقد إحداثيات الأرض إذا فشل Nominatim.
 
       return {
 
@@ -662,7 +788,17 @@ class MapService {
 
         country: "",
 
+        governorate: "",
+
+        state: "",
+
+        province: "",
+
         region: "",
+
+        district: "",
+
+        municipality: "",
 
         city: "",
 
@@ -670,22 +806,23 @@ class MapService {
 
         village: "",
 
+        hamlet: "",
+
         road: "",
 
-        displayName: "",
+        postcode: "",
 
         placeName: "",
+
+        displayName: "",
 
         osmType: null,
 
         osmId: null,
 
         address: {},
-
       };
-
     }
-
   }
 
 
@@ -693,28 +830,22 @@ class MapService {
   // CREATE LOCATION
   // =======================================================
 
-  async createLocation(
-    data
-  ) {
+  async createLocation(data) {
 
     if (
       !data ||
       typeof data !== "object"
     ) {
-
       throw new Error(
         "MAP_DATA_REQUIRED"
       );
-
     }
 
 
     if (!data.farmId) {
-
       throw new Error(
         "MAP_FARM_REQUIRED"
       );
-
     }
 
 
@@ -728,11 +859,9 @@ class MapService {
       source !== "map" &&
       source !== "text"
     ) {
-
       throw new Error(
         "MAP_SOURCE_INVALID"
       );
-
     }
 
 
@@ -748,100 +877,163 @@ class MapService {
         );
 
 
-      const firstPoint =
-        points[0];
+      // ---------------------------------------------------
+      // مركز الأرض الحقيقي
+      // ---------------------------------------------------
 
+      const center =
+        this.calculateCentroid(
+          points
+        );
+
+
+      // ---------------------------------------------------
+      // المساحة والمحيط
+      // ---------------------------------------------------
+
+      const area =
+        this.calculateArea(
+          points
+        );
+
+      const perimeter =
+        this.calculatePerimeter(
+          points
+        );
+
+
+      // ---------------------------------------------------
+      // Reverse Geocoding
+      //
+      // نستخدم مركز الأرض وليس أول نقطة.
+      // ---------------------------------------------------
+
+      let geocoded = null;
+
+      try {
+
+        geocoded =
+          await this.reverseGeocode(
+            center.latitude,
+            center.longitude,
+            data.language || "ar"
+          );
+
+      } catch {
+        geocoded = null;
+      }
+
+
+      const safeGeocode =
+        geocoded || {
+
+          latitude:
+            center.latitude,
+
+          longitude:
+            center.longitude,
+
+          country: "",
+          governorate: "",
+          state: "",
+          province: "",
+          region: "",
+          district: "",
+          municipality: "",
+          city: "",
+          town: "",
+          village: "",
+          hamlet: "",
+          road: "",
+          placeName: "",
+          displayName: "",
+        };
+
+
+      // ---------------------------------------------------
+      // البيانات الإدارية
+      // ---------------------------------------------------
+
+      const country =
+        String(
+          data.country ||
+          safeGeocode.country ||
+          ""
+        ).trim();
+
+      const governorate =
+        String(
+          data.governorate ||
+          safeGeocode.governorate ||
+          safeGeocode.state ||
+          safeGeocode.province ||
+          safeGeocode.region ||
+          ""
+        ).trim();
+
+      const district =
+        String(
+          data.district ||
+          safeGeocode.district ||
+          ""
+        ).trim();
+
+      const city =
+        String(
+          data.city ||
+          safeGeocode.city ||
+          ""
+        ).trim();
+
+      const town =
+        String(
+          data.town ||
+          safeGeocode.town ||
+          ""
+        ).trim();
+
+      const village =
+        String(
+          data.village ||
+          safeGeocode.village ||
+          ""
+        ).trim();
+
+
+      const placeName =
+        String(
+          data.placeName ||
+          safeGeocode.placeName ||
+          village ||
+          town ||
+          city ||
+          ""
+        ).trim();
+
+
+      // ---------------------------------------------------
+      // LocationData واحد
+      // ---------------------------------------------------
 
       const location = {
 
         ...data,
 
-        id:
-          undefined,
+        id: undefined,
 
         farmId:
-          String(data.farmId),
+          String(
+            data.farmId
+          ),
+
+        farmName:
+          String(
+            data.farmName ||
+            ""
+          ).trim(),
 
         source:
           "map",
-
-        points,
-
-        latitude:
-          firstPoint.latitude,
-
-        longitude:
-          firstPoint.longitude,
-
-        area:
-          this.calculateArea(
-            points
-          ),
-
-        perimeter:
-          this.calculatePerimeter(
-            points
-          ),
-
-        country:
-          String(
-            data.country || ""
-          ).trim(),
-
-        region:
-          String(
-            data.region || ""
-          ).trim(),
-
-        city:
-          String(
-            data.city || ""
-          ).trim(),
-
-        village:
-          String(
-            data.village || ""
-          ).trim(),
-
-        town:
-          String(
-            data.town || ""
-          ).trim(),
-
-        placeName:
-          String(
-            data.placeName || ""
-          ).trim(),
-
-        locationDescription:
-          String(
-            data.locationDescription || ""
-          ).trim(),
-
-        northNeighbor:
-          String(
-            data.northNeighbor || ""
-          ).trim(),
-
-        southNeighbor:
-          String(
-            data.southNeighbor || ""
-          ).trim(),
-
-        eastNeighbor:
-          String(
-            data.eastNeighbor || ""
-          ).trim(),
-
-        westNeighbor:
-          String(
-            data.westNeighbor || ""
-          ).trim(),
-
-        notes:
-          String(
-            data.notes || ""
-          ).trim(),
 
         type:
           data.type ||
@@ -851,10 +1043,124 @@ class MapService {
           data.status ||
           "active",
 
+
+        // الحدود الأصلية
+        points,
+
+
+        // مركز الأرض
+        latitude:
+          center.latitude,
+
+        longitude:
+          center.longitude,
+
+
+        // القياسات
+        area,
+
+        perimeter,
+
+        boundaryWidth:
+          data.boundaryWidth ??
+          "",
+
+
+        // الإدارة
+        country,
+
+        governorate,
+
+        state:
+          governorate,
+
+        province:
+          governorate,
+
+        region:
+          governorate,
+
+        district,
+
+        municipality:
+          String(
+            data.municipality ||
+            safeGeocode.municipality ||
+            ""
+          ).trim(),
+
+        city,
+
+        town,
+
+        village,
+
+        hamlet:
+          String(
+            data.hamlet ||
+            safeGeocode.hamlet ||
+            ""
+          ).trim(),
+
+
+        placeName,
+
+        road:
+          String(
+            data.road ||
+            safeGeocode.road ||
+            ""
+          ).trim(),
+
+
+        locationDescription:
+          String(
+            data.locationDescription ||
+            safeGeocode.displayName ||
+            ""
+          ).trim(),
+
+
+        northNeighbor:
+          String(
+            data.northNeighbor ||
+            data.north ||
+            ""
+          ).trim(),
+
+        southNeighbor:
+          String(
+            data.southNeighbor ||
+            data.south ||
+            ""
+          ).trim(),
+
+        eastNeighbor:
+          String(
+            data.eastNeighbor ||
+            data.east ||
+            ""
+          ).trim(),
+
+        westNeighbor:
+          String(
+            data.westNeighbor ||
+            data.west ||
+            ""
+          ).trim(),
+
+
+        notes:
+          String(
+            data.notes ||
+            ""
+          ).trim(),
+
+
+        // وقت الإنشاء
         createdAt:
           data.createdAt ||
           new Date().toISOString(),
-
       };
 
 
@@ -864,12 +1170,11 @@ class MapService {
       return mapRepository.create(
         location
       );
-
     }
 
 
     // =====================================================
-    // TEXT MODE
+    // TEXT MODE — يبقى لدعم Map الحالي
     // =====================================================
 
     const country =
@@ -877,52 +1182,63 @@ class MapService {
         data.country || ""
       ).trim();
 
-
     const region =
       String(
-        data.region || ""
+        data.region ||
+        data.province ||
+        ""
       ).trim();
-
 
     const city =
       String(
         data.city || ""
       ).trim();
 
-
     const town =
       String(
-        data.town || ""
+        data.town ||
+        data.village ||
+        ""
       ).trim();
 
+    const village =
+      String(
+        data.village ||
+        data.town ||
+        ""
+      ).trim();
 
     const locationDescription =
       String(
         data.locationDescription || ""
       ).trim();
 
-
     const northNeighbor =
       String(
-        data.northNeighbor || ""
+        data.northNeighbor ||
+        data.north ||
+        ""
       ).trim();
-
 
     const southNeighbor =
       String(
-        data.southNeighbor || ""
+        data.southNeighbor ||
+        data.south ||
+        ""
       ).trim();
-
 
     const eastNeighbor =
       String(
-        data.eastNeighbor || ""
+        data.eastNeighbor ||
+        data.east ||
+        ""
       ).trim();
-
 
     const westNeighbor =
       String(
-        data.westNeighbor || ""
+        data.westNeighbor ||
+        data.west ||
+        ""
       ).trim();
 
 
@@ -931,17 +1247,16 @@ class MapService {
       !region &&
       !city &&
       !town &&
+      !village &&
       !locationDescription &&
       !northNeighbor &&
       !southNeighbor &&
       !eastNeighbor &&
       !westNeighbor
     ) {
-
       throw new Error(
         "MAP_LOCATION_TEXT_REQUIRED"
       );
-
     }
 
 
@@ -950,39 +1265,64 @@ class MapService {
       ...data,
 
       farmId:
-        String(data.farmId),
+        String(
+          data.farmId
+        ),
 
       source:
         "text",
 
       points: [],
 
-      latitude:
-        null,
+      latitude: null,
 
-      longitude:
-        null,
+      longitude: null,
 
-      area:
-        null,
+      area: null,
 
-      perimeter:
-        null,
+      perimeter: null,
 
       country,
 
+      governorate:
+        String(
+          data.governorate ||
+          region
+        ).trim(),
+
+      state:
+        String(
+          data.governorate ||
+          region
+        ).trim(),
+
+      province:
+        String(
+          data.governorate ||
+          region
+        ).trim(),
+
       region,
+
+      district:
+        String(
+          data.district ||
+          ""
+        ).trim(),
 
       city,
 
       town,
 
-      village:
-        town,
+      village,
 
       placeName:
-        town ||
-        city,
+        String(
+          data.placeName ||
+          village ||
+          town ||
+          city
+        ).trim(),
 
       locationDescription,
 
@@ -1010,14 +1350,12 @@ class MapService {
       createdAt:
         data.createdAt ||
         new Date().toISOString(),
-
     };
 
 
     return mapRepository.create(
       location
     );
-
   }
 
 
@@ -1025,29 +1363,21 @@ class MapService {
   // UPDATE
   // =======================================================
 
-  async updateLocation(
-    id,
-    data
-  ) {
+  async updateLocation(id, data) {
 
     if (!id) {
-
       throw new Error(
         "MAP_ID_REQUIRED"
       );
-
     }
-
 
     if (
       !data ||
       typeof data !== "object"
     ) {
-
       throw new Error(
         "MAP_DATA_REQUIRED"
       );
-
     }
 
 
@@ -1067,30 +1397,29 @@ class MapService {
           updateData.points
         );
 
+      const center =
+        this.calculateCentroid(
+          points
+        );
 
       updateData.points =
         points;
 
-
       updateData.latitude =
-        points[0].latitude;
-
+        center.latitude;
 
       updateData.longitude =
-        points[0].longitude;
-
+        center.longitude;
 
       updateData.area =
         this.calculateArea(
           points
         );
 
-
       updateData.perimeter =
         this.calculatePerimeter(
           points
         );
-
     }
 
 
@@ -1103,13 +1432,10 @@ class MapService {
         updateData.latitude === undefined ||
         updateData.longitude === undefined
       ) {
-
         throw new Error(
           "MAP_COORDINATES_REQUIRED"
         );
-
       }
-
 
       const coordinates =
         this.validateCoordinates(
@@ -1117,24 +1443,27 @@ class MapService {
           updateData.longitude
         );
 
-
       updateData.latitude =
         coordinates.latitude;
 
-
       updateData.longitude =
         coordinates.longitude;
-
     }
 
 
     const textFields = [
 
       "country",
+      "governorate",
+      "state",
+      "province",
       "region",
+      "district",
+      "municipality",
       "city",
       "town",
       "village",
+      "hamlet",
       "placeName",
       "locationDescription",
       "northNeighbor",
@@ -1157,9 +1486,7 @@ class MapService {
             String(
               updateData[field] || ""
             ).trim();
-
         }
-
       }
     );
 
@@ -1168,7 +1495,6 @@ class MapService {
       id,
       updateData
     );
-
   }
 
 
@@ -1176,23 +1502,15 @@ class MapService {
   // DELETE
   // =======================================================
 
-  async deleteLocation(
-    id
-  ) {
+  async deleteLocation(id) {
 
     if (!id) {
-
       throw new Error(
         "MAP_ID_REQUIRED"
       );
-
     }
 
-
-    return mapRepository.delete(
-      id
-    );
-
+    return mapRepository.delete(id);
   }
 
 
@@ -1201,40 +1519,26 @@ class MapService {
   // =======================================================
 
   async getAllLocations() {
-
     return mapRepository.getAll();
-
   }
 
 
-  async getLocationById(
-    id
-  ) {
+  async getLocationById(id) {
 
     if (!id) {
-
       throw new Error(
         "MAP_ID_REQUIRED"
       );
-
     }
 
-
-    return mapRepository.getById(
-      id
-    );
-
+    return mapRepository.getById(id);
   }
 
 
-  async getLocationsByFarmId(
-    farmId
-  ) {
-
+  async getLocationsByFarmId(farmId) {
     return mapRepository.getByFarmId(
       farmId
     );
-
   }
 
 
@@ -1242,14 +1546,8 @@ class MapService {
   // EXISTS
   // =======================================================
 
-  async locationExists(
-    id
-  ) {
-
-    return mapRepository.exists(
-      id
-    );
-
+  async locationExists(id) {
+    return mapRepository.exists(id);
   }
 
 
@@ -1258,11 +1556,167 @@ class MapService {
   // =======================================================
 
   async countLocations() {
-
     return mapRepository.count();
-
   }
 
+
+  // =======================================================
+  // NEARBY PLACES
+  // =======================================================
+  //
+  // نحافظ على الوظيفة الموجودة في مشروعك.
+  //
+  // =======================================================
+
+  async getNearbyPlaces(
+    latitude,
+    longitude,
+    radius = MapService.DEFAULT_RADIUS,
+    language = "ar"
+  ) {
+
+    const coordinates =
+      this.validateCoordinates(
+        latitude,
+        longitude
+      );
+
+    const safeRadius =
+      this.validateRadius(
+        radius
+      );
+
+    const query = `
+      [out:json][timeout:20];
+      (
+        node(
+          around:${safeRadius},
+          ${coordinates.latitude},
+          ${coordinates.longitude}
+        )["place"];
+
+        way(
+          around:${safeRadius},
+          ${coordinates.latitude},
+          ${coordinates.longitude}
+        )["place"];
+      );
+      out center tags ${MapService.MAX_RESULTS};
+    `;
+
+
+    for (
+      const endpoint
+      of MapService.OVERPASS_ENDPOINTS
+    ) {
+
+      try {
+
+        const response =
+          await fetch(
+            endpoint,
+            {
+              method: "POST",
+
+              headers: {
+                "Content-Type":
+                  "application/x-www-form-urlencoded",
+                Accept:
+                  "application/json",
+              },
+
+              body:
+                `data=${encodeURIComponent(
+                  query
+                )}`,
+            }
+          );
+
+
+        if (!response.ok) {
+          continue;
+        }
+
+
+        const result =
+          await response.json();
+
+
+        const elements =
+          Array.isArray(
+            result?.elements
+          )
+            ? result.elements
+            : [];
+
+
+        return elements.map(
+          element => {
+
+            const tags =
+              element?.tags || {};
+
+            const center =
+              element?.center || element;
+
+
+            return {
+
+              id:
+                element?.id ??
+                null,
+
+              type:
+                element?.type ||
+                null,
+
+              name:
+                tags.name ||
+                tags[
+                  `name:${this.normalizeLanguage(
+                    language
+                  )}`
+                ] ||
+                "",
+
+              latitude:
+                Number(
+                  center?.lat
+                ),
+
+              longitude:
+                Number(
+                  center?.lon
+                ),
+
+              place:
+                tags.place ||
+                "",
+
+              distance:
+                this.calculateDistance(
+                  coordinates.latitude,
+                  coordinates.longitude,
+                  Number(center?.lat),
+                  Number(center?.lon)
+                ),
+            };
+          }
+        );
+
+      } catch (error) {
+
+        console.warn(
+          "Overpass endpoint failed:",
+          endpoint,
+          error
+        );
+      }
+    }
+
+
+    return [];
+  }
 }
 
 
