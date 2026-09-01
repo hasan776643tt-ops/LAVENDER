@@ -19,15 +19,19 @@ LAVENDER — useMap
 
 المسؤولية:
 
-إدارة موقع الأرض فقط.
+إدارة موقع المزرعة على الخريطة.
 
 المصدر الحقيقي للموقع:
-latitude / longitude / boundary
 
-الموقع النصي:
+latitude
+longitude
+points
+boundary
+
+الموقع النصي الناتج من Reverse Geocoding:
 معلومات وصفية فقط.
 
-المسار المعماري:
+المسار:
 
 Map.jsx
    ↓
@@ -37,10 +41,16 @@ mapService.js
    ↓
 mapRepository.js
    ↓
-storage / DataModel
+storageService
 
-لا يوجد هنا أي منطق خاص بالمحاصيل.
 
+لا يوجد هنا:
+
+- CropModel
+- MapModel
+- منطق المحاصيل
+- توصيات البذور
+- منطق المناخ
 ===========================================================
 */
 
@@ -57,6 +67,17 @@ const DEFAULT_POSITION = [
 
 const EMPTY_FIELD = Object.freeze({
 
+  farmId: "",
+
+  latitude: "",
+  longitude: "",
+
+  points: [],
+  boundary: [],
+
+  area: null,
+  perimeter: null,
+
   country: "",
   governorate: "",
   region: "",
@@ -64,44 +85,22 @@ const EMPTY_FIELD = Object.freeze({
   city: "",
   town: "",
   village: "",
+
   placeName: "",
   locationDescription: "",
-  notes: "",
 
-  north: "",
-  south: "",
-  east: "",
-  west: "",
-
-  northNeighbor: "",
-  southNeighbor: "",
-  eastNeighbor: "",
-  westNeighbor: "",
-
-  points: [],
-
-  latitude: "",
-  longitude: "",
-
-  area: null,
-  perimeter: null,
-
-  boundaryWidth: "",
+  source: "map",
+  status: "active",
 
 });
 
 
-const LOCATION_STORAGE_KEYS = Object.freeze([
-  "mapLocation",
-  "selectedLocation",
-  "selectedFarmLocation",
-  "farmLocation",
-  "fieldLocation",
-]);
+const LOCATION_STORAGE_KEY =
+  "mapLocation";
 
 
 // =========================================================
-// BASIC HELPERS
+// HELPERS
 // =========================================================
 
 function cleanString(value) {
@@ -113,26 +112,25 @@ function cleanString(value) {
 }
 
 
-function validCoordinates(
+function isValidCoordinate(
   latitude,
   longitude
 ) {
 
-  try {
+  const lat =
+    Number(latitude);
 
-    mapService.validateCoordinates(
-      latitude,
-      longitude
-    );
+  const lng =
+    Number(longitude);
 
-    return true;
-
-  } catch {
-
-    return false;
-
-  }
-
+  return (
+    Number.isFinite(lat) &&
+    Number.isFinite(lng) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lng >= -180 &&
+    lng <= 180
+  );
 }
 
 
@@ -142,98 +140,82 @@ function normalizePoint(point) {
 
     return {
 
-      latitude: Number(point[0]),
-      longitude: Number(point[1]),
+      latitude:
+        Number(point[0]),
+
+      longitude:
+        Number(point[1]),
 
     };
-
   }
-
 
   return {
 
-    latitude: Number(point?.latitude),
-    longitude: Number(point?.longitude),
+    latitude:
+      Number(point?.latitude),
+
+    longitude:
+      Number(point?.longitude),
 
   };
-
 }
 
 
 function normalizePoints(points) {
 
   if (!Array.isArray(points)) {
-
     return [];
-
   }
-
 
   return points
     .map(normalizePoint)
     .filter(
       point =>
-        validCoordinates(
+        isValidCoordinate(
           point.latitude,
           point.longitude
         )
     );
-
 }
 
 
-function calculateBoundaryCenter(points) {
+function calculateBoundaryCenter(
+  points
+) {
 
   const safePoints =
     normalizePoints(points);
 
-
   if (
     safePoints.length === 0
   ) {
-
     return null;
-
   }
-
 
   const latitude =
     safePoints.reduce(
-      (
-        total,
-        point
-      ) =>
-        total +
-        point.latitude,
+      (total, point) =>
+        total + point.latitude,
       0
     ) /
     safePoints.length;
-
 
   const longitude =
     safePoints.reduce(
-      (
-        total,
-        point
-      ) =>
-        total +
-        point.longitude,
+      (total, point) =>
+        total + point.longitude,
       0
     ) /
     safePoints.length;
 
-
   if (
-    !validCoordinates(
+    !isValidCoordinate(
       latitude,
       longitude
     )
   ) {
-
     return null;
-
   }
-
 
   return {
 
@@ -241,12 +223,11 @@ function calculateBoundaryCenter(points) {
     longitude,
 
   };
-
 }
 
 
 // =========================================================
-// ADMINISTRATIVE LOCATION
+// ADMINISTRATIVE DATA
 // =========================================================
 
 function normalizeAdministrativeLocation(
@@ -268,13 +249,10 @@ function normalizeAdministrativeLocation(
       town: "",
       village: "",
       placeName: "",
-      displayName: "",
-      road: "",
+      locationDescription: "",
 
     };
-
   }
-
 
   const address =
     result.address &&
@@ -282,27 +260,22 @@ function normalizeAdministrativeLocation(
       ? result.address
       : {};
 
-
   const governorate =
     cleanString(
       result.governorate ||
       result.state ||
       address.state ||
       address.province ||
-      address.governorate ||
       ""
     );
-
 
   const region =
     cleanString(
       result.region ||
       address.region ||
       address.province ||
-      address.state_district ||
       ""
     );
-
 
   const district =
     cleanString(
@@ -315,7 +288,6 @@ function normalizeAdministrativeLocation(
       ""
     );
 
-
   const city =
     cleanString(
       result.city ||
@@ -323,14 +295,12 @@ function normalizeAdministrativeLocation(
       ""
     );
 
-
   const town =
     cleanString(
       result.town ||
       address.town ||
       ""
     );
-
 
   const village =
     cleanString(
@@ -340,14 +310,12 @@ function normalizeAdministrativeLocation(
       ""
     );
 
-
   return {
 
     country:
       cleanString(
         result.country ||
-        address.country ||
-        ""
+        address.country
       ),
 
     governorate,
@@ -358,75 +326,52 @@ function normalizeAdministrativeLocation(
 
     city,
 
-    town:
-      town ||
-      village ||
-      city,
+    town,
 
-    village:
-      village ||
-      town ||
-      city,
+    village,
 
     placeName:
       cleanString(
         result.placeName ||
-        result.nearestPlace ||
         result.name ||
-        address.road ||
-        ""
+        address.road
       ),
 
-    displayName:
+    locationDescription:
       cleanString(
-        result.displayName ||
-        ""
-      ),
-
-    road:
-      cleanString(
-        result.road ||
-        address.road ||
-        ""
+        result.displayName
       ),
 
   };
-
 }
 
 
 // =========================================================
-// MAP LOCATION CACHE
+// CACHE
 // =========================================================
 
-function cacheMapLocation(location) {
+function cacheLocation(
+  location
+) {
 
   if (
-    typeof window === "undefined" ||
+    typeof window === "undefined"
+  ) {
+    return;
+  }
+
+  if (
     !location ||
     typeof location !== "object"
   ) {
-
     return;
-
   }
-
 
   try {
 
-    const serialized =
-      JSON.stringify(location);
-
-
     window.localStorage.setItem(
-      "mapLocation",
-      serialized
-    );
-
-
-    window.localStorage.setItem(
-      "selectedLocation",
-      serialized
+      LOCATION_STORAGE_KEY,
+      JSON.stringify(location)
     );
 
   } catch (error) {
@@ -435,9 +380,7 @@ function cacheMapLocation(location) {
       "Map location cache failed:",
       error
     );
-
   }
-
 }
 
 
@@ -446,58 +389,39 @@ function readSavedMapLocation() {
   if (
     typeof window === "undefined"
   ) {
-
     return null;
-
   }
 
+  try {
 
-  for (
-    const key of LOCATION_STORAGE_KEYS
-  ) {
+    const raw =
+      window.localStorage.getItem(
+        LOCATION_STORAGE_KEY
+      );
 
-    try {
-
-      const raw =
-        window.localStorage.getItem(
-          key
-        );
-
-
-      if (!raw) {
-
-        continue;
-
-      }
-
-
-      const parsed =
-        JSON.parse(raw);
-
-
-      if (
-        parsed &&
-        validCoordinates(
-          parsed.latitude,
-          parsed.longitude
-        )
-      ) {
-
-        return parsed;
-
-      }
-
-    } catch {
-
-      // الانتقال إلى المفتاح التالي.
-
+    if (!raw) {
+      return null;
     }
 
+    const location =
+      JSON.parse(raw);
+
+    if (
+      !location ||
+      !isValidCoordinate(
+        location.latitude,
+        location.longitude
+      )
+    ) {
+      return null;
+    }
+
+    return location;
+
+  } catch {
+
+    return null;
   }
-
-
-  return null;
-
 }
 
 
@@ -507,19 +431,12 @@ function readSavedMapLocation() {
 
 export default function useMap() {
 
-
-  // =======================================================
-  // SETTINGS
-  // =======================================================
-
   const {
     settings,
   } = useSettings();
 
-
   const language =
-    settings?.language ||
-    "ar";
+    settings?.language || "ar";
 
 
   const t =
@@ -556,7 +473,7 @@ export default function useMap() {
 
 
   // =======================================================
-  // FORM
+  // CURRENT FARM
   // =======================================================
 
   const [
@@ -565,136 +482,8 @@ export default function useMap() {
   ] = useState("");
 
 
-  const [
-    locationType,
-    setLocationType,
-  ] = useState("farm");
-
-
-  const [
-    locationMode,
-    setLocationMode,
-  ] = useState("text");
-
-
   // =======================================================
-  // ADMINISTRATIVE LOCATION
-  // =======================================================
-
-  const [
-    country,
-    setCountry,
-  ] = useState("");
-
-
-  const [
-    governorate,
-    setGovernorate,
-  ] = useState("");
-
-
-  const [
-    region,
-    setRegion,
-  ] = useState("");
-
-
-  const [
-    district,
-    setDistrict,
-  ] = useState("");
-
-
-  const [
-    city,
-    setCity,
-  ] = useState("");
-
-
-  const [
-    town,
-    setTown,
-  ] = useState("");
-
-
-  const [
-    village,
-    setVillage,
-  ] = useState("");
-
-
-  const [
-    placeName,
-    setPlaceName,
-  ] = useState("");
-
-
-  const [
-    locationDescription,
-    setLocationDescription,
-  ] = useState("");
-
-
-  const [
-    notes,
-    setNotes,
-  ] = useState("");
-
-
-  // =======================================================
-  // DIRECTIONS
-  // =======================================================
-
-  const [
-    north,
-    setNorth,
-  ] = useState("");
-
-
-  const [
-    south,
-    setSouth,
-  ] = useState("");
-
-
-  const [
-    east,
-    setEast,
-  ] = useState("");
-
-
-  const [
-    west,
-    setWest,
-  ] = useState("");
-
-
-  const [
-    northNeighbor,
-    setNorthNeighbor,
-  ] = useState("");
-
-
-  const [
-    southNeighbor,
-    setSouthNeighbor,
-  ] = useState("");
-
-
-  const [
-    eastNeighbor,
-    setEastNeighbor,
-  ] = useState("");
-
-
-  const [
-    westNeighbor,
-    setWestNeighbor,
-  ] = useState("");
-
-
-  // =======================================================
-  // COORDINATES
+  // LOCATION
   // =======================================================
 
   const [
@@ -708,10 +497,6 @@ export default function useMap() {
     setLongitude,
   ] = useState("");
 
-
-  // =======================================================
-  // BOUNDARY
-  // =======================================================
 
   const [
     points,
@@ -731,10 +516,18 @@ export default function useMap() {
   ] = useState(null);
 
 
+  // =======================================================
+  // ADMINISTRATIVE DATA
+  // =======================================================
+
   const [
-    boundaryWidth,
-    setBoundaryWidth,
-  ] = useState("");
+    administrative,
+    setAdministrative,
+  ] = useState(
+    () => ({
+      ...EMPTY_FIELD,
+    })
+  );
 
 
   // =======================================================
@@ -760,13 +553,12 @@ export default function useMap() {
 
 
   // =======================================================
-  // INITIAL LOAD
+  // LOAD
   // =======================================================
 
   useEffect(() => {
 
     let active = true;
-
 
     async function load() {
 
@@ -775,30 +567,26 @@ export default function useMap() {
         setLoading(true);
         setError("");
 
-
         const [
           farmsData,
           locationsData,
-        ] =
-          await Promise.all([
-            farmService.getAllFarms(),
-            mapService.getAllLocations(),
-          ]);
+        ] = await Promise.all([
 
+          farmService.getAllFarms(),
+
+          mapService.getAllLocations(),
+
+        ]);
 
         if (!active) {
-
           return;
-
         }
-
 
         setFarms(
           Array.isArray(farmsData)
             ? farmsData
             : []
         );
-
 
         setLocations(
           Array.isArray(locationsData)
@@ -809,10 +597,9 @@ export default function useMap() {
       } catch (loadError) {
 
         console.error(
-          "Map data loading failed:",
+          "Map loading failed:",
           loadError
         );
-
 
         if (active) {
 
@@ -823,36 +610,112 @@ export default function useMap() {
             t("loadError") ||
             "تعذر تحميل بيانات الخريطة"
           );
-
         }
 
       } finally {
 
         if (active) {
-
           setLoading(false);
-
         }
-
       }
-
     }
-
 
     load();
 
-
     return () => {
-
       active = false;
-
     };
 
   }, [t]);
 
 
   // =======================================================
-  // SELECT MAP POINT
+  // LOAD FARM LOCATION
+  // =======================================================
+
+  const loadFarmLocation =
+    useCallback(
+      async selectedFarmId => {
+
+        const id =
+          cleanString(
+            selectedFarmId
+          );
+
+        if (!id) {
+          return null;
+        }
+
+        try {
+
+          const location =
+            await mapService.getLocationByFarmId(
+              id
+            );
+
+          if (location) {
+
+            setFarmId(id);
+
+            setLatitude(
+              Number(
+                location.latitude
+              )
+            );
+
+            setLongitude(
+              Number(
+                location.longitude
+              )
+            );
+
+            setPoints(
+              normalizePoints(
+                location.points ||
+                location.boundary
+              )
+            );
+
+            setArea(
+              location.area ?? null
+            );
+
+            setPerimeter(
+              location.perimeter ?? null
+            );
+
+            setAdministrative(
+              normalizeAdministrativeLocation(
+                location
+              )
+            );
+
+            cacheLocation(
+              location
+            );
+
+            return location;
+          }
+
+          return null;
+
+        } catch (loadError) {
+
+          console.warn(
+            "Farm location loading failed:",
+            loadError
+          );
+
+          return null;
+        }
+
+      },
+      []
+    );
+
+
+  // =======================================================
+  // SELECT POINT
   // =======================================================
 
   const selectMapPoint =
@@ -863,7 +726,7 @@ export default function useMap() {
       ) => {
 
         if (
-          !validCoordinates(
+          !isValidCoordinate(
             selectedLatitude,
             selectedLongitude
           )
@@ -875,9 +738,7 @@ export default function useMap() {
           );
 
           return false;
-
         }
-
 
         const point = {
 
@@ -893,7 +754,6 @@ export default function useMap() {
 
         };
 
-
         setPoints(
           current => [
             ...current,
@@ -901,22 +761,17 @@ export default function useMap() {
           ]
         );
 
-
         setLatitude(
-          current =>
-            current === ""
-              ? point.latitude
-              : current
+          Number(
+            selectedLatitude
+          )
         );
-
 
         setLongitude(
-          current =>
-            current === ""
-              ? point.longitude
-              : current
+          Number(
+            selectedLongitude
+          )
         );
-
 
         setError("");
 
@@ -928,7 +783,7 @@ export default function useMap() {
 
 
   // =======================================================
-  // MAP CENTER
+  // SET CENTER
   // =======================================================
 
   const setMapCenter =
@@ -939,16 +794,13 @@ export default function useMap() {
       ) => {
 
         if (
-          !validCoordinates(
+          !isValidCoordinate(
             selectedLatitude,
             selectedLongitude
           )
         ) {
-
           return false;
-
         }
-
 
         setLatitude(
           Number(
@@ -956,13 +808,11 @@ export default function useMap() {
           )
         );
 
-
         setLongitude(
           Number(
             selectedLongitude
           )
         );
-
 
         return true;
 
@@ -972,7 +822,7 @@ export default function useMap() {
 
 
   // =======================================================
-  // COORDINATES
+  // SET COORDINATES
   // =======================================================
 
   const setCoordinates =
@@ -983,7 +833,7 @@ export default function useMap() {
       ) => {
 
         if (
-          !validCoordinates(
+          !isValidCoordinate(
             selectedLatitude,
             selectedLongitude
           )
@@ -995,9 +845,7 @@ export default function useMap() {
           );
 
           return false;
-
         }
-
 
         setLatitude(
           Number(
@@ -1005,13 +853,11 @@ export default function useMap() {
           )
         );
 
-
         setLongitude(
           Number(
             selectedLongitude
           )
         );
-
 
         setError("");
 
@@ -1039,42 +885,32 @@ export default function useMap() {
                 -1
               );
 
+            const center =
+              calculateBoundaryCenter(
+                next
+              );
 
-            if (
-              next.length === 0
-            ) {
+            if (center) {
+
+              setLatitude(
+                center.latitude
+              );
+
+              setLongitude(
+                center.longitude
+              );
+
+            } else {
 
               setLatitude("");
               setLongitude("");
 
-            } else {
-
-              const center =
-                calculateBoundaryCenter(
-                  next
-                );
-
-
-              if (center) {
-
-                setLatitude(
-                  center.latitude
-                );
-
-                setLongitude(
-                  center.longitude
-                );
-
-              }
-
             }
-
 
             return next;
 
           }
         );
-
 
         setArea(null);
         setPerimeter(null);
@@ -1085,7 +921,7 @@ export default function useMap() {
 
 
   // =======================================================
-  // CLEAR POINTS
+  // CLEAR
   // =======================================================
 
   const clearPoints =
@@ -1100,8 +936,6 @@ export default function useMap() {
         setArea(null);
         setPerimeter(null);
 
-        setBoundaryWidth("");
-
         setError("");
 
       },
@@ -1110,78 +944,60 @@ export default function useMap() {
 
 
   // =======================================================
-  // NEARBY PLACES
+  // CALCULATE MEASUREMENTS
   // =======================================================
 
-  const loadNearbyPlaces =
+  const calculateMeasurements =
     useCallback(
-      async (
-        selectedLatitude,
-        selectedLongitude,
-        radius = 1000
-      ) => {
+      mapPoints => {
+
+        const safePoints =
+          normalizePoints(
+            mapPoints
+          );
 
         if (
-          !validCoordinates(
-            selectedLatitude,
-            selectedLongitude
-          )
+          safePoints.length < 3
         ) {
 
-          setNearbyPlaces([]);
+          return {
 
-          return [];
+            area: null,
+            perimeter: null,
 
+          };
         }
 
-
-        try {
-
-          setMapLoading(true);
-
-
-          const places =
-            await mapService.getNearbyPlaces(
-              selectedLatitude,
-              selectedLongitude,
-              radius,
-              language
-            );
-
-
-          const safePlaces =
-            Array.isArray(places)
-              ? places
-              : [];
-
-
-          setNearbyPlaces(
-            safePlaces
+        const calculatedArea =
+          mapService.calculateArea(
+            safePoints
           );
 
-
-          return safePlaces;
-
-        } catch (nearbyError) {
-
-          console.warn(
-            "Nearby map data failed:",
-            nearbyError
+        const calculatedPerimeter =
+          mapService.calculatePerimeter(
+            safePoints
           );
 
+        setArea(
+          calculatedArea
+        );
 
-          setNearbyPlaces([]);
+        setPerimeter(
+          calculatedPerimeter
+        );
 
-          return [];
+        return {
 
-        } finally {
+          area:
+            calculatedArea,
 
-          setMapLoading(false);
+          perimeter:
+            calculatedPerimeter,
 
-        }
+        };
 
       },
-      [language]
+      []
     );
 
 
@@ -1197,27 +1013,51 @@ export default function useMap() {
       ) => {
 
         if (
-          !validCoordinates(
+          !isValidCoordinate(
             selectedLatitude,
             selectedLongitude
           )
         ) {
-
           return null;
-
         }
-
 
         try {
 
           setMapLoading(true);
 
+          const result =
+            await mapService.reverseGeocode(
+              selectedLatitude,
+              selectedLongitude,
+              language
+            );
 
-          return await mapService.reverseGeocode(
-            selectedLatitude,
-            selectedLongitude,
-            language
+          const normalized =
+            normalizeAdministrativeLocation(
+              result
+            );
+
+          setAdministrative(
+            normalized
           );
+
+          return {
+
+            ...result,
+
+            ...normalized,
+
+            latitude:
+              Number(
+                selectedLatitude
+              ),
+
+            longitude:
+              Number(
+                selectedLongitude
+              ),
+
+          };
 
         } catch (geocodeError) {
 
@@ -1226,13 +1066,11 @@ export default function useMap() {
             geocodeError
           );
 
-
           return null;
 
         } finally {
 
           setMapLoading(false);
-
         }
 
       },
@@ -1241,269 +1079,80 @@ export default function useMap() {
 
 
   // =======================================================
-  // APPLY GEOCODED LOCATION
-  // =======================================================
-
-  const applyGeocodedLocation =
-    useCallback(
-      result => {
-
-        if (!result) {
-
-          return false;
-
-        }
-
-
-        const normalized =
-          normalizeAdministrativeLocation(
-            result
-          );
-
-
-        setCountry(
-          normalized.country
-        );
-
-        setGovernorate(
-          normalized.governorate
-        );
-
-        setRegion(
-          normalized.region
-        );
-
-        setDistrict(
-          normalized.district
-        );
-
-        setCity(
-          normalized.city
-        );
-
-        setTown(
-          normalized.town
-        );
-
-        setVillage(
-          normalized.village
-        );
-
-        setPlaceName(
-          normalized.placeName
-        );
-
-        setLocationDescription(
-          normalized.displayName
-        );
-
-
-        if (
-          validCoordinates(
-            result.latitude,
-            result.longitude
-          )
-        ) {
-
-          setLatitude(
-            Number(
-              result.latitude
-            )
-          );
-
-          setLongitude(
-            Number(
-              result.longitude
-            )
-          );
-
-        }
-
-
-        return true;
-
-      },
-      []
-    );
-
-
-  // =======================================================
-  // MEASUREMENTS
-  // =======================================================
-
-  const setMeasurements =
-    useCallback(
-      ({
-        area: calculatedArea = null,
-        perimeter: calculatedPerimeter = null,
-        boundaryWidth: calculatedBoundaryWidth = null,
-      } = {}) => {
-
-        setArea(
-          calculatedArea
-        );
-
-        setPerimeter(
-          calculatedPerimeter
-        );
-
-
-        if (
-          calculatedBoundaryWidth !==
-          null
-        ) {
-
-          setBoundaryWidth(
-            calculatedBoundaryWidth
-          );
-
-        }
-
-      },
-      []
-    );
-
-
-  // =======================================================
-  // RESET
-  // =======================================================
-
-  const resetLocation =
-    useCallback(
-      () => {
-
-        setFarmId("");
-
-        setLocationType("farm");
-
-        setLocationMode("text");
-
-
-        setCountry("");
-        setGovernorate("");
-        setRegion("");
-        setDistrict("");
-        setCity("");
-        setTown("");
-        setVillage("");
-        setPlaceName("");
-        setLocationDescription("");
-        setNotes("");
-
-
-        setNorth("");
-        setSouth("");
-        setEast("");
-        setWest("");
-
-
-        setNorthNeighbor("");
-        setSouthNeighbor("");
-        setEastNeighbor("");
-        setWestNeighbor("");
-
-
-        setLatitude("");
-        setLongitude("");
-
-
-        setPoints([]);
-
-
-        setArea(null);
-        setPerimeter(null);
-        setBoundaryWidth("");
-
-
-        setNearbyPlaces([]);
-
-        setError("");
-
-      },
-      []
-    );
-
-
-  // =======================================================
-  // BUILD LOCATION DATA
+  // BUILD LOCATION
   // =======================================================
 
   const buildMapLocationData =
     useCallback(
-      async (
-        options = {}
-      ) => {
+      async ({
+        farmId: selectedFarmId,
+        farmName = "",
+        points: selectedPoints,
+      } = {}) => {
 
-        const selectedFarmId =
-          options.farmId ||
-          farmId;
+        const id =
+          cleanString(
+            selectedFarmId ||
+            farmId
+          );
 
+        if (!id) {
 
-        if (!selectedFarmId) {
-
-          const message =
+          setError(
             t("farmRequired") ||
-            "اختر المزرعة أولًا";
-
-          setError(message);
+            "اختر المزرعة أولًا"
+          );
 
           return null;
-
         }
-
 
         const mapPoints =
           normalizePoints(
-            options.points ??
+            selectedPoints ??
             points
           );
-
 
         if (
           mapPoints.length < 3
         ) {
 
-          const message =
+          setError(
             t("minimumThreePoints") ||
-            "يجب تحديد ثلاث نقاط على الأقل";
-
-          setError(message);
+            "يجب تحديد ثلاث نقاط على الأقل"
+          );
 
           return null;
-
         }
-
 
         const center =
           calculateBoundaryCenter(
             mapPoints
           );
 
-
         if (!center) {
 
-          const message =
+          setError(
             t("coordinatesRequired") ||
-            "تعذر حساب مركز الأرض";
-
-          setError(message);
+            "تعذر حساب مركز الأرض"
+          );
 
           return null;
-
         }
 
-
-        setMapLoading(true);
-        setError("");
-
-
         try {
+
+          setMapLoading(true);
+          setError("");
+
+
+          // -------------------------------------------------
+          // القياسات
+          // -------------------------------------------------
 
           const calculatedArea =
             mapService.calculateArea(
               mapPoints
             );
-
 
           const calculatedPerimeter =
             mapService.calculatePerimeter(
@@ -1511,14 +1160,12 @@ export default function useMap() {
             );
 
 
-          /*
-          ---------------------------------------------------
-          Reverse Geocoding للمركز الحقيقي فقط.
-
-          البيانات الناتجة وصفية.
-          لا تستبدل إحداثيات الخريطة.
-          ---------------------------------------------------
-          */
+          // -------------------------------------------------
+          // الموقع الإداري
+          //
+          // المركز فقط يستخدم للـ reverse geocoding.
+          // لا نسمح له بتغيير الإحداثيات الحقيقية.
+          // -------------------------------------------------
 
           const geocoded =
             await mapService.reverseGeocode(
@@ -1527,57 +1174,33 @@ export default function useMap() {
               language
             );
 
-
-          const administrative =
+          const administrativeData =
             normalizeAdministrativeLocation(
               geocoded
             );
 
 
-          const selectedFarm =
-            Array.isArray(farms)
-              ? farms.find(
-                  farm =>
-                    String(
-                      farm?.id
-                    ) ===
-                    String(
-                      selectedFarmId
-                    )
-                )
-              : null;
+          const farm =
+            farms.find(
+              item =>
+                String(item?.id) ===
+                id
+            );
 
 
           const locationData = {
 
             farmId:
-              String(
-                selectedFarmId
-              ),
-
+              id,
 
             farmName:
               cleanString(
-                options.farmName ||
-                selectedFarm?.name ||
-                ""
+                farmName ||
+                farm?.name
               ),
-
-
-            type:
-              options.type ||
-              "field",
-
 
             source:
               "map",
-
-
-            /*
-            -------------------------------------------------
-            الموقع الحقيقي
-            -------------------------------------------------
-            */
 
             latitude:
               center.latitude,
@@ -1585,25 +1208,11 @@ export default function useMap() {
             longitude:
               center.longitude,
 
-
-            /*
-            -------------------------------------------------
-            الحدود
-            -------------------------------------------------
-            */
-
             points:
               mapPoints,
 
             boundary:
               mapPoints,
-
-
-            /*
-            -------------------------------------------------
-            القياسات
-            -------------------------------------------------
-            */
 
             area:
               Number.isFinite(
@@ -1616,7 +1225,6 @@ export default function useMap() {
                   )
                 : null,
 
-
             perimeter:
               Number.isFinite(
                 Number(
@@ -1628,142 +1236,19 @@ export default function useMap() {
                   )
                 : null,
 
-
-            boundaryWidth:
-              options.boundaryWidth ??
-              boundaryWidth ??
-              "",
-
-
-            /*
-            -------------------------------------------------
-            الموقع الإداري
-            -------------------------------------------------
-            */
-
-            country:
-              administrative.country,
-
-            governorate:
-              administrative.governorate,
-
-            region:
-              administrative.region,
-
-            district:
-              administrative.district,
-
-            city:
-              administrative.city,
-
-            town:
-              administrative.town,
-
-            village:
-              administrative.village,
-
-            placeName:
-              administrative.placeName,
-
-            locationDescription:
-              administrative.displayName,
-
-            road:
-              administrative.road,
-
-
-            /*
-            -------------------------------------------------
-            الاتجاهات
-            -------------------------------------------------
-
-            تم وضع الأقواس لأن JavaScript لا يسمح بخلط
-            ?? و || في نفس التعبير دون تحديد الأولوية.
-            -------------------------------------------------
-            */
-
-            north:
-              cleanString(
-                (options.north ??
-                  northNeighbor) ||
-                north
-              ),
-
-            south:
-              cleanString(
-                (options.south ??
-                  southNeighbor) ||
-                south
-              ),
-
-            east:
-              cleanString(
-                (options.east ??
-                  eastNeighbor) ||
-                east
-              ),
-
-            west:
-              cleanString(
-                (options.west ??
-                  westNeighbor) ||
-                west
-              ),
-
-
-            northNeighbor:
-              cleanString(
-                (options.northNeighbor ??
-                  northNeighbor) ||
-                north
-              ),
-
-            southNeighbor:
-              cleanString(
-                (options.southNeighbor ??
-                  southNeighbor) ||
-                south
-              ),
-
-            eastNeighbor:
-              cleanString(
-                (options.eastNeighbor ??
-                  eastNeighbor) ||
-                east
-              ),
-
-            westNeighbor:
-              cleanString(
-                (options.westNeighbor ??
-                  westNeighbor) ||
-                west
-              ),
-
-
-            notes:
-              cleanString(
-                options.notes ??
-                notes
-              ),
-
+            ...administrativeData,
 
             status:
-              options.status ||
               "active",
-
-
-            createdAt:
-              options.createdAt ||
-              new Date().toISOString(),
 
           };
 
 
-          /*
-          ---------------------------------------------------
-          تحديث الحالة.
-          ---------------------------------------------------
-          */
+          // -------------------------------------------------
+          // تحديث الحالة
+          // -------------------------------------------------
+
+          setFarmId(id);
 
           setLatitude(
             center.latitude
@@ -1785,53 +1270,16 @@ export default function useMap() {
             calculatedPerimeter
           );
 
-
-          setCountry(
-            administrative.country
-          );
-
-          setGovernorate(
-            administrative.governorate
-          );
-
-          setRegion(
-            administrative.region
-          );
-
-          setDistrict(
-            administrative.district
-          );
-
-          setCity(
-            administrative.city
-          );
-
-          setTown(
-            administrative.town
-          );
-
-          setVillage(
-            administrative.village
-          );
-
-          setPlaceName(
-            administrative.placeName
-          );
-
-          setLocationDescription(
-            administrative.displayName
+          setAdministrative(
+            administrativeData
           );
 
 
-          /*
-          ---------------------------------------------------
-          جسر Map → Crops.
+          // -------------------------------------------------
+          // Cache
+          // -------------------------------------------------
 
-          الإحداثيات والحدود هي المصدر الحقيقي.
-          ---------------------------------------------------
-          */
-
-          cacheMapLocation(
+          cacheLocation(
             locationData
           );
 
@@ -1841,44 +1289,26 @@ export default function useMap() {
         } catch (buildError) {
 
           console.error(
-            "Building map location failed:",
+            "Building location failed:",
             buildError
           );
 
-
-          const message =
-            t("geocodingError") ||
-            "تعذر تحديد الموقع الإداري للأرض";
-
-
-          setError(message);
+          setError(
+            t("saveError") ||
+            "تعذر تجهيز موقع الأرض"
+          );
 
           return null;
 
         } finally {
 
           setMapLoading(false);
-
         }
 
       },
       [
         farmId,
         points,
-        boundaryWidth,
-
-        northNeighbor,
-        southNeighbor,
-        eastNeighbor,
-        westNeighbor,
-
-        north,
-        south,
-        east,
-        west,
-
-        notes,
-
         farms,
         language,
         t,
@@ -1887,802 +1317,63 @@ export default function useMap() {
 
 
   // =======================================================
-  // FINALIZE LOCATION
+  // SAVE
   // =======================================================
 
-  const finalizeMapLocation =
+  const saveMapLocation =
     useCallback(
-      async (
-        options = {}
-      ) => {
-
-        return buildMapLocationData(
-          options
-        );
-
-      },
-      [
-        buildMapLocationData,
-      ]
-    );
-
-
-  // =======================================================
-  // VALIDATION
-  // =======================================================
-
-  const validateLocation =
-    useCallback(
-      (locationData = null) => {
-
-        setError("");
-
-
-        if (locationData) {
-
-          if (!locationData.farmId) {
-
-            const message =
-              t("farmRequired") ||
-              "اختر المزرعة أولًا";
-
-            setError(message);
-
-            return {
-              valid: false,
-              message,
-            };
-
-          }
-
-
-          const mode =
-            locationData.source ||
-            "text";
-
-
-          // -------------------------------------------------
-          // MAP
-          // -------------------------------------------------
-
-          if (
-            mode === "map"
-          ) {
-
-            const mapPoints =
-              Array.isArray(
-                locationData.points
-              )
-                ? locationData.points
-                : Array.isArray(
-                    locationData.boundary
-                  )
-                    ? locationData.boundary
-                    : [];
-
-
-            if (
-              mapPoints.length < 3
-            ) {
-
-              const message =
-                t("minimumThreePoints") ||
-                "يجب تحديد ثلاث نقاط على الأقل";
-
-              setError(message);
-
-              return {
-                valid: false,
-                message,
-              };
-
-            }
-
-
-            const center =
-              calculateBoundaryCenter(
-                mapPoints
-              );
-
-
-            if (!center) {
-
-              const message =
-                t("coordinatesRequired") ||
-                "إحداثيات مركز الأرض غير صحيحة";
-
-              setError(message);
-
-              return {
-                valid: false,
-                message,
-              };
-
-            }
-
-
-            return {
-              valid: true,
-              message: "",
-            };
-
-          }
-
-
-          // -------------------------------------------------
-          // TEXT MODE
-          // -------------------------------------------------
-
-          const textValues = [
-
-            locationData.country,
-            locationData.governorate,
-            locationData.region,
-            locationData.district,
-            locationData.city,
-            locationData.town,
-            locationData.village,
-            locationData.placeName,
-            locationData.locationDescription,
-            locationData.notes,
-
-            locationData.north,
-            locationData.south,
-            locationData.east,
-            locationData.west,
-
-            locationData.northNeighbor,
-            locationData.southNeighbor,
-            locationData.eastNeighbor,
-            locationData.westNeighbor,
-
-          ];
-
-
-          const hasTextData =
-            textValues.some(
-              value =>
-                cleanString(
-                  value
-                ).length > 0
-            );
-
-
-          if (!hasTextData) {
-
-            const message =
-              t("locationTextRequired") ||
-              "أدخل معلومات الموقع";
-
-            setError(message);
-
-            return {
-              valid: false,
-              message,
-            };
-
-          }
-
-
-          return {
-            valid: true,
-            message: "",
-          };
-
-        }
-
-
-        // ---------------------------------------------------
-        // OLD DIRECT VALIDATION
-        // ---------------------------------------------------
-
-        if (!farmId) {
-
-          const message =
-            t("farmRequired") ||
-            "اختر المزرعة أولًا";
-
-          setError(message);
-
-          return {
-            valid: false,
-            message,
-          };
-
-        }
-
-
-        if (
-          locationMode === "map"
-        ) {
-
-          if (
-            points.length < 3
-          ) {
-
-            const message =
-              t("minimumThreePoints") ||
-              "يجب تحديد ثلاث نقاط على الأقل";
-
-            setError(message);
-
-            return {
-              valid: false,
-              message,
-            };
-
-          }
-
-
-          const center =
-            calculateBoundaryCenter(
-              points
-            );
-
-
-          if (!center) {
-
-            const message =
-              t("coordinatesRequired") ||
-              "إحداثيات مركز الأرض غير صحيحة";
-
-            setError(message);
-
-            return {
-              valid: false,
-              message,
-            };
-
-          }
-
-
-          return {
-            valid: true,
-            message: "",
-          };
-
-        }
-
-
-        const hasTextData = [
-
-          country,
-          governorate,
-          region,
-          district,
-          city,
-          town,
-          village,
-          placeName,
-          locationDescription,
-          notes,
-
-          north,
-          south,
-          east,
-          west,
-
-          northNeighbor,
-          southNeighbor,
-          eastNeighbor,
-          westNeighbor,
-
-        ].some(
-          value =>
-            cleanString(
-              value
-            ).length > 0
-        );
-
-
-        if (!hasTextData) {
-
-          const message =
-            t("locationTextRequired") ||
-            "أدخل معلومات الموقع";
-
-          setError(message);
-
-          return {
-            valid: false,
-            message,
-          };
-
-        }
-
-
-        return {
-          valid: true,
-          message: "",
-        };
-
-      },
-      [
-        farmId,
-        locationMode,
-        points,
-        country,
-        governorate,
-        region,
-        district,
-        city,
-        town,
-        village,
-        placeName,
-        locationDescription,
-        notes,
-        north,
-        south,
-        east,
-        west,
-        northNeighbor,
-        southNeighbor,
-        eastNeighbor,
-        westNeighbor,
-        t,
-      ]
-    );
-
-
-  // =======================================================
-  // ADD LOCATION
-  // =======================================================
-
-  const addLocation =
-    useCallback(
-      async (
-        locationData = null
-      ) => {
-
-        if (
-          !locationData ||
-          typeof locationData !== "object"
-        ) {
-
-          const message =
-            t("locationTextRequired") ||
-            "لم تصل بيانات الموقع للحفظ";
-
-          setError(message);
-
-          alert(message);
-
-          return false;
-
-        }
-
-
-        const validation =
-          validateLocation(
-            locationData
+      async options => {
+
+        const locationData =
+          await buildMapLocationData(
+            options
           );
 
-
-        if (
-          !validation.valid
-        ) {
-
-          alert(
-            validation.message
-          );
-
+        if (!locationData) {
           return false;
-
         }
-
-
-        let dataToSave = {
-          ...locationData,
-        };
-
-
-        /*
-        -----------------------------------------------------
-        إذا كان المصدر خريطة:
-
-        نعيد حساب المركز من الحدود.
-
-        هذا يمنع أي قيمة نصية أو قديمة من استبدال
-        الإحداثيات الحقيقية.
-        -----------------------------------------------------
-        */
-
-        if (
-          (
-            locationData.source ||
-            "text"
-          ) === "map"
-        ) {
-
-          const mapPoints =
-            normalizePoints(
-              locationData.points ||
-              locationData.boundary
-            );
-
-
-          const center =
-            calculateBoundaryCenter(
-              mapPoints
-            );
-
-
-          if (!center) {
-
-            const message =
-              t("coordinatesRequired") ||
-              "تعذر حساب مركز الأرض";
-
-            setError(message);
-
-            alert(message);
-
-            return false;
-
-          }
-
-
-          dataToSave = {
-
-            ...dataToSave,
-
-            points:
-              mapPoints,
-
-            boundary:
-              mapPoints,
-
-            latitude:
-              center.latitude,
-
-            longitude:
-              center.longitude,
-
-            area:
-              Number.isFinite(
-                Number(
-                  locationData.area
-                )
-              )
-                ? Number(
-                    locationData.area
-                  )
-                : mapService.calculateArea(
-                    mapPoints
-                  ),
-
-            perimeter:
-              Number.isFinite(
-                Number(
-                  locationData.perimeter
-                )
-              )
-                ? Number(
-                    locationData.perimeter
-                  )
-                : mapService.calculatePerimeter(
-                    mapPoints
-                  ),
-
-            source:
-              "map",
-
-          };
-
-        }
-
-
-        /*
-        -----------------------------------------------------
-        نسخة آمنة للحفظ.
-        -----------------------------------------------------
-        */
-
-        const safeData = {
-
-          ...dataToSave,
-
-
-          farmId:
-            String(
-              dataToSave.farmId
-            ),
-
-
-          farmName:
-            cleanString(
-              dataToSave.farmName
-            ),
-
-
-          type:
-            dataToSave.type ||
-            "field",
-
-
-          source:
-            dataToSave.source ||
-            "text",
-
-
-          country:
-            cleanString(
-              dataToSave.country
-            ),
-
-
-          governorate:
-            cleanString(
-              dataToSave.governorate
-            ),
-
-
-          region:
-            cleanString(
-              dataToSave.region ||
-              dataToSave.province
-            ),
-
-
-          district:
-            cleanString(
-              dataToSave.district
-            ),
-
-
-          city:
-            cleanString(
-              dataToSave.city
-            ),
-
-
-          town:
-            cleanString(
-              dataToSave.town
-            ),
-
-
-          village:
-            cleanString(
-              dataToSave.village
-            ),
-
-
-          placeName:
-            cleanString(
-              dataToSave.placeName
-            ),
-
-
-          locationDescription:
-            cleanString(
-              dataToSave.locationDescription ||
-              dataToSave.description
-            ),
-
-
-          notes:
-            cleanString(
-              dataToSave.notes
-            ),
-
-
-          north:
-            cleanString(
-              dataToSave.north ||
-              dataToSave.northNeighbor
-            ),
-
-
-          south:
-            cleanString(
-              dataToSave.south ||
-              dataToSave.southNeighbor
-            ),
-
-
-          east:
-            cleanString(
-              dataToSave.east ||
-              dataToSave.eastNeighbor
-            ),
-
-
-          west:
-            cleanString(
-              dataToSave.west ||
-              dataToSave.westNeighbor
-            ),
-
-
-          northNeighbor:
-            cleanString(
-              dataToSave.northNeighbor ||
-              dataToSave.north
-            ),
-
-
-          southNeighbor:
-            cleanString(
-              dataToSave.southNeighbor ||
-              dataToSave.south
-            ),
-
-
-          eastNeighbor:
-            cleanString(
-              dataToSave.eastNeighbor ||
-              dataToSave.east
-            ),
-
-
-          westNeighbor:
-            cleanString(
-              dataToSave.westNeighbor ||
-              dataToSave.west
-            ),
-
-
-          points:
-            normalizePoints(
-              dataToSave.points
-            ),
-
-
-          boundary:
-            normalizePoints(
-              dataToSave.boundary ||
-              dataToSave.points
-            ),
-
-
-          latitude:
-            validCoordinates(
-              dataToSave.latitude,
-              dataToSave.longitude
-            )
-              ? Number(
-                  dataToSave.latitude
-                )
-              : null,
-
-
-          longitude:
-            validCoordinates(
-              dataToSave.latitude,
-              dataToSave.longitude
-            )
-              ? Number(
-                  dataToSave.longitude
-                )
-              : null,
-
-
-          area:
-            Number.isFinite(
-              Number(
-                dataToSave.area
-              )
-            )
-              ? Number(
-                  dataToSave.area
-                )
-              : null,
-
-
-          perimeter:
-            Number.isFinite(
-              Number(
-                dataToSave.perimeter
-              )
-            )
-              ? Number(
-                  dataToSave.perimeter
-                )
-              : null,
-
-
-          boundaryWidth:
-            dataToSave.boundaryWidth ??
-            "",
-
-
-          status:
-            dataToSave.status ||
-            "active",
-
-        };
-
-
-        /*
-        -----------------------------------------------------
-        جسر الموقع إلى Crops.
-        -----------------------------------------------------
-        */
-
-        cacheMapLocation(
-          safeData
-        );
-
 
         try {
 
           setLoading(true);
           setError("");
 
-
-          console.log(
-            "Map location save payload:",
-            safeData
-          );
-
-
           const saved =
             await mapService.createLocation(
-              safeData
+              locationData
             );
 
-
           if (!saved) {
-
             throw new Error(
               "MAP_SAVE_FAILED"
             );
-
           }
 
-
           setLocations(
-            current => [
-              ...current,
-              saved,
-            ]
+            current => {
+
+              const withoutFarm =
+                current.filter(
+                  location =>
+                    String(
+                      location?.farmId
+                    ) !==
+                    String(
+                      saved.farmId
+                    )
+                );
+
+              return [
+                ...withoutFarm,
+                saved,
+              ];
+
+            }
           );
 
 
-          /*
-          ---------------------------------------------------
-          النسخة النهائية التي تستلمها Crops.
-          ---------------------------------------------------
-          */
-
-          const finalLocation = {
-
-            ...safeData,
-            ...saved,
-
-            latitude:
-              validCoordinates(
-                safeData.latitude,
-                safeData.longitude
-              )
-                ? safeData.latitude
-                : saved?.latitude ??
-                  null,
-
-            longitude:
-              validCoordinates(
-                safeData.latitude,
-                safeData.longitude
-              )
-                ? safeData.longitude
-                : saved?.longitude ??
-                  null,
-
-          };
-
-
-          cacheMapLocation(
-            finalLocation
-          );
-
-
-          resetLocation();
-
-
-          alert(
-            t("saveSuccess") ||
-            "تم حفظ الموقع بنجاح"
+          cacheLocation(
+            saved
           );
 
 
@@ -2695,76 +1386,92 @@ export default function useMap() {
             saveError
           );
 
-
-          const message =
-            saveError?.message &&
-            saveError.message !==
-              "MAP_SAVE_FAILED"
-              ? saveError.message
-              : (
-                t("saveError") ||
-                "تعذر حفظ الموقع"
-              );
-
-
-          setError(message);
-
-          alert(message);
+          setError(
+            t("saveError") ||
+            "تعذر حفظ موقع الأرض"
+          );
 
           return false;
 
         } finally {
 
           setLoading(false);
-
         }
 
       },
       [
-        validateLocation,
-        resetLocation,
+        buildMapLocationData,
         t,
       ]
     );
 
 
   // =======================================================
-  // SAVE MAP LOCATION
+  // NEARBY
   // =======================================================
 
-  const saveMapLocation =
+  const loadNearbyPlaces =
     useCallback(
       async (
-        options = {}
+        selectedLatitude,
+        selectedLongitude,
+        radius = 1000
       ) => {
 
-        const locationData =
-          await buildMapLocationData(
-            options
-          );
+        if (
+          !isValidCoordinate(
+            selectedLatitude,
+            selectedLongitude
+          )
+        ) {
 
+          setNearbyPlaces([]);
 
-        if (!locationData) {
-
-          return false;
+          return [];
 
         }
 
+        try {
 
-        return addLocation(
-          locationData
-        );
+          setMapLoading(true);
+
+          const result =
+            await mapService.getNearbyPlaces(
+              selectedLatitude,
+              selectedLongitude,
+              radius,
+              language
+            );
+
+          const safe =
+            Array.isArray(result)
+              ? result
+              : [];
+
+          setNearbyPlaces(
+            safe
+          );
+
+          return safe;
+
+        } catch {
+
+          setNearbyPlaces([]);
+
+          return [];
+
+        } finally {
+
+          setMapLoading(false);
+        }
 
       },
-      [
-        buildMapLocationData,
-        addLocation,
-      ]
+      [language]
     );
 
 
   // =======================================================
-  // DELETE LOCATION
+  // DELETE
   // =======================================================
 
   const deleteLocation =
@@ -2772,41 +1479,32 @@ export default function useMap() {
       async id => {
 
         if (!id) {
-
           return false;
-
         }
-
 
         try {
 
           setLoading(true);
-
 
           const deleted =
             await mapService.deleteLocation(
               id
             );
 
-
           if (!deleted) {
-
             return false;
-
           }
-
 
           setLocations(
             current =>
               current.filter(
-                item =>
+                location =>
                   String(
-                    item.id
+                    location?.id
                   ) !==
                   String(id)
               )
           );
-
 
           return true;
 
@@ -2817,14 +1515,45 @@ export default function useMap() {
             deleteError
           );
 
-
           return false;
 
         } finally {
 
           setLoading(false);
-
         }
+
+      },
+      []
+    );
+
+
+  // =======================================================
+  // RESET
+  // =======================================================
+
+  const resetLocation =
+    useCallback(
+      () => {
+
+        setFarmId("");
+
+        setLatitude("");
+        setLongitude("");
+
+        setPoints([]);
+
+        setArea(null);
+        setPerimeter(null);
+
+        setAdministrative(
+          {
+            ...EMPTY_FIELD,
+          }
+        );
+
+        setNearbyPlaces([]);
+
+        setError("");
 
       },
       []
@@ -2843,81 +1572,12 @@ export default function useMap() {
     locations,
     nearbyPlaces,
 
-
     // FARM
 
     farmId,
     setFarmId,
 
-
-    // TYPE / MODE
-
-    locationType,
-    setLocationType,
-
-    locationMode,
-    setLocationMode,
-
-
-    // ADMINISTRATIVE LOCATION
-
-    country,
-    setCountry,
-
-    governorate,
-    setGovernorate,
-
-    region,
-    setRegion,
-
-    district,
-    setDistrict,
-
-    city,
-    setCity,
-
-    town,
-    setTown,
-
-    village,
-    setVillage,
-
-    placeName,
-    setPlaceName,
-
-    locationDescription,
-    setLocationDescription,
-
-    notes,
-    setNotes,
-
-
-    // DIRECTIONS
-
-    north,
-    setNorth,
-
-    south,
-    setSouth,
-
-    east,
-    setEast,
-
-    west,
-    setWest,
-
-    northNeighbor,
-    setNorthNeighbor,
-
-    southNeighbor,
-    setSouthNeighbor,
-
-    eastNeighbor,
-    setEastNeighbor,
-
-    westNeighbor,
-    setWestNeighbor,
-
+    loadFarmLocation,
 
     // COORDINATES
 
@@ -2928,7 +1588,7 @@ export default function useMap() {
     setLongitude,
 
     setCoordinates,
-
+    setMapCenter,
 
     // BOUNDARY
 
@@ -2936,10 +1596,8 @@ export default function useMap() {
     setPoints,
 
     selectMapPoint,
-    setMapCenter,
     removeLastPoint,
     clearPoints,
-
 
     // MEASUREMENTS
 
@@ -2949,46 +1607,63 @@ export default function useMap() {
     perimeter,
     setPerimeter,
 
-    boundaryWidth,
-    setBoundaryWidth,
+    calculateMeasurements,
 
-    setMeasurements,
+    // ADMINISTRATIVE
 
+    administrative,
 
-    // MAP INFORMATION
+    country:
+      administrative.country,
 
-    loadNearbyPlaces,
+    governorate:
+      administrative.governorate,
+
+    region:
+      administrative.region,
+
+    district:
+      administrative.district,
+
+    city:
+      administrative.city,
+
+    town:
+      administrative.town,
+
+    village:
+      administrative.village,
+
+    placeName:
+      administrative.placeName,
+
+    locationDescription:
+      administrative.locationDescription,
+
+    // MAP SERVICES
+
     reverseGeocode,
-    applyGeocodedLocation,
+    loadNearbyPlaces,
 
+    // PIPELINE
 
-    // LOCATION PIPELINE
-
-    calculateBoundaryCenter,
     buildMapLocationData,
-    finalizeMapLocation,
     saveMapLocation,
 
+    // CRUD
 
-    // CRUD / VALIDATION
-
-    validateLocation,
-    addLocation,
     deleteLocation,
     resetLocation,
 
-
-    // HELPERS
+    // CACHE
 
     readSavedMapLocation,
-
 
     // STATE
 
     loading,
     mapLoading,
     error,
-
 
     // CONSTANTS
 
