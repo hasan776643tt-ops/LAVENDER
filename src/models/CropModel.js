@@ -1,293 +1,114 @@
-// src/models/CropModel.js
+// =========================================================
+// LAVENDER — CROP MODEL
+// =========================================================
 
+export const CropModel = Object.freeze({
 
-/**
- * Crop Model
- * نموذج بيانات المحصول الذكي
- *
- * المسؤوليات:
- * - إدارة بيانات المحصول
- * - الربط مع Farm و Field
- * - دعم التحليلات الزراعية
- * - قابل للتوسع مستقبلاً
- */
-
-
-export class CropModel {
-
-
-  constructor(data = {}) {
-
-
-    this.id =
-      data.id ||
-      Date.now();
-
-
-
-    // العلاقات
-
-    this.farmId =
-      data.farmId ||
-      "";
-
-
-    this.fieldId =
-      data.fieldId ||
-      "";
-
-
-
-    // بيانات المحصول
-
-    this.name =
-      data.name ||
-      "";
-
-
-    this.variety =
-      data.variety ||
-      "";
-
-
-
-    this.category =
-      data.category ||
-      "";
-
-
-
-    // الموسم الزراعي
-
-    this.season =
-      data.season ||
-      "";
-
-
-
-    // التواريخ
-
-    this.plantingDate =
-      data.plantingDate ||
-      "";
-
-
-    this.expectedHarvestDate =
-      data.expectedHarvestDate ||
-      "";
-
-
-    this.actualHarvestDate =
-      data.actualHarvestDate ||
-      "";
-
-
-
-    // الموارد
-
-    this.seedQuantity =
-      Number(data.seedQuantity) || 0;
-
-
-
-    this.unit =
-      data.unit ||
-      "kg";
-
-
-
-    // الإنتاج
-
-    this.expectedProduction =
-      Number(data.expectedProduction) || 0;
-
-
-
-    this.actualProduction =
-      Number(data.actualProduction) || 0;
-
-
-
-    // النمو والحالة
-
-    this.growthStage =
-      data.growthStage ||
-      "";
-
-
-    this.status =
-      data.status ||
-      "growing";
-
-
-
-    // ملاحظات
-
-    this.notes =
-      data.notes ||
-      "";
-
-
-
-    // النظام الزمني
-
-    this.createdAt =
-      data.createdAt ||
-      new Date().toISOString();
-
-
-    this.updatedAt =
-      data.updatedAt ||
-      new Date().toISOString();
-
-
-  }
-
-
-
-
-
-  update(data = {}){
-
-
-    Object.keys(data).forEach(key => {
-
-
-      if(data[key] !== undefined){
-
-
-        this[key] =
-          data[key];
-
-
-      }
-
-
-    });
-
-
-
-    this.updatedAt =
-      new Date().toISOString();
-
-
-
-    return this;
-
-
-  }
-
-
-
-
-
-  getProductionRate(){
-
-
-    if(!this.expectedProduction){
-
-
-      return 0;
-
-
-    }
-
-
-
-    return (
-
-      this.actualProduction /
-
-      this.expectedProduction
-
-    ) * 100;
-
-
-  }
-
-
-
-
-
-  toJSON(){
-
-
+  create(data = {}) {
     return {
+      id: data.id ?? null,
 
+      farmId:
+        data.farmId
+          ? String(data.farmId)
+          : "",
 
-      id:this.id,
+      cultivationType:
+        data.cultivationType || "field",
 
+      name:
+        String(data.name ?? "").trim(),
 
-      farmId:this.farmId,
+      seedType:
+        String(data.seedType ?? "").trim(),
 
+      seedVariety:
+        String(data.seedVariety ?? "").trim(),
 
-      fieldId:this.fieldId,
+      seedQuality:
+        String(data.seedQuality ?? "").trim(),
 
+      seedQuantity:
+        Number(data.seedQuantity || 0),
 
-      name:this.name,
+      treeType:
+        String(data.treeType ?? "").trim(),
 
+      treeVariety:
+        String(data.treeVariety ?? "").trim(),
 
-      variety:this.variety,
+      plantingDate:
+        data.plantingDate || "",
 
+      fertilizerType:
+        String(
+          data.fertilizerType ?? ""
+        ).trim(),
 
-      category:this.category,
+      fertilizerQuantity:
+        Number(
+          data.fertilizerQuantity || 0
+        ),
 
+      harvestDate:
+        data.harvestDate || "",
 
-      season:this.season,
+      expectedProduction:
+        Number(
+          data.expectedProduction || 0
+        ),
 
+      // الموقع الجغرافي الحقيقي
+      latitude:
+        Number.isFinite(
+          Number(data.latitude)
+        )
+          ? Number(data.latitude)
+          : null,
 
-      plantingDate:this.plantingDate,
+      longitude:
+        Number.isFinite(
+          Number(data.longitude)
+        )
+          ? Number(data.longitude)
+          : null,
 
+      boundary:
+        Array.isArray(data.boundary)
+          ? data.boundary
+          : [],
 
-      expectedHarvestDate:this.expectedHarvestDate,
+      climate:
+        String(
+          data.climate ?? ""
+        ).trim(),
 
+      recommendedSeeds:
+        Array.isArray(
+          data.recommendedSeeds
+        )
+          ? data.recommendedSeeds
+          : [],
 
-      actualHarvestDate:this.actualHarvestDate,
+      recommendedSeedVarieties:
+        Array.isArray(
+          data.recommendedSeedVarieties
+        )
+          ? data.recommendedSeedVarieties
+          : [],
 
+      notes:
+        String(data.notes ?? "").trim(),
 
-      seedQuantity:this.seedQuantity,
+      status:
+        data.status || "active",
 
+      createdAt:
+        data.createdAt || null,
 
-      unit:this.unit,
-
-
-      expectedProduction:this.expectedProduction,
-
-
-      actualProduction:this.actualProduction,
-
-
-      growthStage:this.growthStage,
-
-
-      status:this.status,
-
-
-      notes:this.notes,
-
-
-      createdAt:this.createdAt,
-
-
-      updatedAt:this.updatedAt
-
-
+      updatedAt:
+        data.updatedAt || null,
     };
+  },
 
-
-  }
-
-
-}
-
-
-
-
-
-export const createCrop = (data = {}) => {
-
-
-  return new CropModel(data);
-
-
-};
+});
