@@ -1,413 +1,66 @@
-import {
-  createContext,
-  useEffect,
-  useMemo,
-  useState
-} from "react";
+// src/controllers/cropController.js
 
-import farmController
-  from "../controllers/farmController.js";
+import cropService from "../services/cropService.js";
 
-import fieldController
-  from "../controllers/fieldController.js";
+class CropController {
 
-import cropController
-  from "../controllers/cropController.js";
+  async getAll() {
+    return cropService.getAll();
+  }
 
-import irrigationController
-  from "../controllers/irrigationController.js";
+  async getById(id) {
+    return cropService.getById(id);
+  }
 
-import fertilizerController
-  from "../controllers/fertilizerController.js";
+  async getByFarmId(farmId) {
+    if (!farmId) {
+      return [];
+    }
 
-import pesticideController
-  from "../controllers/pesticideController.js";
+    const crops =
+      await cropService.getAll();
 
-import diseaseController
-  from "../controllers/diseaseController.js";
-
-import expenseController
-  from "../controllers/expenseController.js";
-
-import harvestController
-  from "../controllers/harvestController.js";
-
-import inventoryController
-  from "../controllers/inventoryController.js";
-
-export const FarmContext =
-  createContext(null);
-
-export function FarmProvider({
-  children
-}) {
-
-  const [farms, setFarms] =
-    useState([]);
-
-  const [fields, setFields] =
-    useState([]);
-
-  const [crops, setCrops] =
-    useState([]);
-
-  const [irrigations, setIrrigations] =
-    useState([]);
-
-  const [fertilizers, setFertilizers] =
-    useState([]);
-
-  const [pesticides, setPesticides] =
-    useState([]);
-
-  const [diseases, setDiseases] =
-    useState([]);
-
-  const [expenses, setExpenses] =
-    useState([]);
-
-  const [harvests, setHarvests] =
-    useState([]);
-
-  const [inventory, setInventory] =
-    useState([]);
-
-  const [consultations, setConsultations] =
-    useState([]);
-
-  const [aiQuestions, setAiQuestions] =
-    useState([]);
-
-  const createActions =
-    (
-      setData,
-      controller
-    ) => ({
-
-      load: async () => {
-
-        const result =
-          await controller.getAll();
-
-        const data =
-          Array.isArray(result)
-            ? result
-            : [];
-
-        setData(data);
-
-        return data;
-      },
-
-      create: async (data) => {
-
-        const result =
-          await controller.create(data);
-
-        setData(prev => [
-          ...prev,
-          result
-        ]);
-
-        return result;
-      },
-
-      update: async (
-        id,
-        data
-      ) => {
-
-        const result =
-          await controller.update(
-            id,
-            data
-          );
-
-        setData(prev =>
-          prev.map(item =>
-            String(item.id) ===
-            String(id)
-              ? result
-              : item
-          )
-        );
-
-        return result;
-      },
-
-      delete: async (id) => {
-
-        const result =
-          await controller.delete(id);
-
-        setData(prev =>
-          prev.filter(item =>
-            String(item.id) !==
-            String(id)
-          )
-        );
-
-        return result;
-      },
-
-      count: async () => {
-
-        return controller.count();
-
-      },
-
-      exists: async (id) => {
-
-        return controller.exists(id);
-
-      }
-
-    });
-
-  const farmActions =
-    useMemo(
-      () =>
-        createActions(
-          setFarms,
-          farmController
-        ),
-      []
+    return crops.filter(
+      crop =>
+        String(crop?.farmId ?? "").trim() ===
+        String(farmId).trim()
     );
+  }
 
-  const fieldActions =
-    useMemo(
-      () =>
-        createActions(
-          setFields,
-          fieldController
-        ),
-      []
+  async create(data) {
+    return cropService.create(data);
+  }
+
+  async update(id, data) {
+    return cropService.update(
+      id,
+      data
     );
+  }
 
-  const cropActions =
-    useMemo(
-      () =>
-        createActions(
-          setCrops,
-          cropController
-        ),
-      []
-    );
+  async delete(id) {
+    return cropService.delete(id);
+  }
 
-  const irrigationActions =
-    useMemo(
-      () =>
-        createActions(
-          setIrrigations,
-          irrigationController
-        ),
-      []
-    );
+  async exists(id) {
+    try {
+      await cropService.getById(id);
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
-  const fertilizerActions =
-    useMemo(
-      () =>
-        createActions(
-          setFertilizers,
-          fertilizerController
-        ),
-      []
-    );
+  async count() {
+    const crops =
+      await cropService.getAll();
 
-  const pesticideActions =
-    useMemo(
-      () =>
-        createActions(
-          setPesticides,
-          pesticideController
-        ),
-      []
-    );
-
-  const diseaseActions =
-    useMemo(
-      () =>
-        createActions(
-          setDiseases,
-          diseaseController
-        ),
-      []
-    );
-
-  const expenseActions =
-    useMemo(
-      () =>
-        createActions(
-          setExpenses,
-          expenseController
-        ),
-      []
-    );
-
-  const harvestActions =
-    useMemo(
-      () =>
-        createActions(
-          setHarvests,
-          harvestController
-        ),
-      []
-    );
-
-  const inventoryActions =
-    useMemo(
-      () =>
-        createActions(
-          setInventory,
-          inventoryController
-        ),
-      []
-    );
-
-  useEffect(() => {
-
-    const loadData =
-      async () => {
-
-        try {
-
-          await Promise.all([
-            farmActions.load(),
-            fieldActions.load(),
-            cropActions.load(),
-            irrigationActions.load(),
-            fertilizerActions.load(),
-            pesticideActions.load(),
-            diseaseActions.load(),
-            expenseActions.load(),
-            harvestActions.load(),
-            inventoryActions.load()
-          ]);
-
-        } catch (error) {
-
-          console.error(
-            "FarmContext load error:",
-            error
-          );
-
-        }
-
-      };
-
-    loadData();
-
-  }, [
-    farmActions,
-    fieldActions,
-    cropActions,
-    irrigationActions,
-    fertilizerActions,
-    pesticideActions,
-    diseaseActions,
-    expenseActions,
-    harvestActions,
-    inventoryActions
-  ]);
-
-  const value =
-    useMemo(
-      () => ({
-
-        farms,
-        fields,
-        crops,
-
-        irrigations,
-        fertilizers,
-        pesticides,
-
-        diseases,
-
-        expenses,
-        harvests,
-
-        inventory,
-
-        consultations,
-        aiQuestions,
-
-        farmActions,
-        fieldActions,
-        cropActions,
-
-        irrigationActions,
-        fertilizerActions,
-
-        pesticideActions,
-        diseaseActions,
-
-        expenseActions,
-        harvestActions,
-
-        inventoryActions,
-
-        setFarms,
-        setFields,
-        setCrops,
-
-        setIrrigations,
-        setFertilizers,
-
-        setPesticides,
-        setDiseases,
-
-        setExpenses,
-        setHarvests,
-
-        setInventory,
-
-        setConsultations,
-        setAiQuestions
-
-      }),
-      [
-        farms,
-        fields,
-        crops,
-
-        irrigations,
-        fertilizers,
-        pesticides,
-
-        diseases,
-
-        expenses,
-        harvests,
-
-        inventory,
-
-        consultations,
-        aiQuestions,
-
-        farmActions,
-        fieldActions,
-        cropActions,
-
-        irrigationActions,
-        fertilizerActions,
-
-        pesticideActions,
-        diseaseActions,
-
-        expenseActions,
-        harvestActions,
-
-        inventoryActions
-      ]
-    );
-
-  return (
-    <FarmContext.Provider
-      value={value}
-    >
-      {children}
-    </FarmContext.Provider>
-  );
-
+    return Array.isArray(crops)
+      ? crops.length
+      : 0;
+  }
 }
+
+export default Object.freeze(
+  new CropController()
+);
