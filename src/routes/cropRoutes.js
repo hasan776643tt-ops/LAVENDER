@@ -1,43 +1,79 @@
-// src/routes/cropRoutes.js
+// =========================================================
+// LAVENDER — CROP ROUTES
+// =========================================================
+//
+// مسؤولية هذا الملف:
+// تعريف مسارات واجهة المحاصيل فقط.
+//
+// المعمارية:
+// Route → Page → Hook → Service → Repository → DataModel
+//
+// ملاحظة:
+// هذا الملف لا ينفذ عمليات CRUD.
+// عمليات المحاصيل تبقى في الطبقات الخاصة بها.
+// =========================================================
 
-import cropController
-  from "../controllers/cropController.js";
+import { lazy } from "react";
 
-const cropRoutes = Object.freeze({
+// =========================================================
+// PAGE
+// =========================================================
 
-  getAll() {
-    return cropController.getAll();
-  },
+const Crops = lazy(
+() => import("../pages/Crops.jsx")
+);
 
-  getById(id) {
-    return cropController.getById(id);
-  },
+// =========================================================
+// ROUTE IDS
+// =========================================================
+//
+// IDs ثابتة لاستخدامها داخليًا عند الحاجة.
+// لا تعتمد الواجهة على النصوص العربية لتحديد المسار.
+//
 
-  getByFarmId(farmId) {
-    return cropController.getByFarmId(
-      farmId
-    );
-  },
+const CROP_ROUTE_ID = "crops";
 
-  create(data) {
-    return cropController.create(
-      data
-    );
-  },
+// =========================================================
+// PATHS
+// =========================================================
+//
+// تعريف المسارات في مكان واضح يمنع تكرار النصوص
+// ويجعل تعديل المسار مستقبلاً أسهل.
+//
 
-  update(id, data) {
-    return cropController.update(
-      id,
-      data
-    );
-  },
+const CROP_PATH = "/crops";
 
-  delete(id) {
-    return cropController.delete(
-      id
-    );
-  },
+// =========================================================
+// CROP ROUTES
+// =========================================================
+//
+// Route object:
+// - id         : معرف داخلي ثابت
+// - path       : عنوان الصفحة
+// - element    : Component الخاص بالصفحة
+// - module     : اسم الوحدة
+// - protected  : الصفحة تحتاج إلى حماية الدخول
+//
+// Object.freeze يمنع تعديل تعريف المسار أثناء التشغيل.
+//
 
-});
+const cropRoutes = Object.freeze([
+Object.freeze({
+id: CROP_ROUTE_ID,
+
+path: CROP_PATH,
+
+element: Crops,
+
+module: "crops",
+
+protected: true,
+
+}),
+]);
+
+// =========================================================
+// EXPORT
+// =========================================================
 
 export default cropRoutes;
