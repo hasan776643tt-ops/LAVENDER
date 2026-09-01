@@ -1,39 +1,43 @@
 // src/routes/cropRoutes.js
 
+import cropController
+  from "../controllers/cropController.js";
 
-import {
-  lazy
-} from "react";
+const cropRoutes = Object.freeze({
 
+  getAll() {
+    return cropController.getAll();
+  },
 
+  getById(id) {
+    return cropController.getById(id);
+  },
 
-const Crops = lazy(
-  () =>
-    import("../pages/Crops.jsx")
-);
+  getByFarmId(farmId) {
+    return cropController.getByFarmId(
+      farmId
+    );
+  },
 
+  create(data) {
+    return cropController.create(
+      data
+    );
+  },
 
+  update(id, data) {
+    return cropController.update(
+      id,
+      data
+    );
+  },
 
-const cropRoutes = Object.freeze([
+  delete(id) {
+    return cropController.delete(
+      id
+    );
+  },
 
-
-  Object.freeze({
-
-    id: "crops",
-
-    path: "/crops",
-
-    element: Crops,
-
-    module: "crops",
-
-    protected: true
-
-  })
-
-
-]);
-
-
+});
 
 export default cropRoutes;
