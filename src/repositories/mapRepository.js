@@ -7,24 +7,33 @@ import { storageService } from "../storage";
 // LAVENDER — MAP REPOSITORY
 // =========================================================
 //
-// مسؤول فقط عن:
-// - قراءة المواقع
-// - إنشاء موقع
-// - تعديل موقع
-// - حذف موقع
-// - البحث عن موقع
+// مسؤول فقط عن تخزين واسترجاع LocationData.
 //
 // لا يحتوي على:
 // - Leaflet
+// - GPS
 // - Nominatim
-// - Overpass
-// - حسابات جغرافية
-// - منطق واجهة المستخدم
+// - حساب المساحة
+// - حساب المحيط
+// - منطق المحاصيل
+// - منطق الواجهة
+// - MapModel
+//
+// العلاقة الأساسية:
+//
+// farmId → LocationData
 //
 // =========================================================
 
 
 const LOCATIONS_KEY = "locations";
+
+
+function normalizeId(value) {
+  return value == null
+    ? ""
+    : String(value);
+}
 
 
 class MapRepository {
@@ -42,16 +51,9 @@ class MapRepository {
         []
       );
 
-
-    if (!Array.isArray(data)) {
-
-      return [];
-
-    }
-
-
-    return data;
-
+    return Array.isArray(data)
+      ? data
+      : [];
   }
 
 
@@ -61,25 +63,23 @@ class MapRepository {
 
   async getById(id) {
 
-    if (!id) {
+    const normalizedId =
+      normalizeId(id);
 
+    if (!normalizedId) {
       return null;
-
     }
-
 
     const locations =
       await this.getAll();
 
-
     return (
       locations.find(
-        item =>
-          String(item.id) ===
-          String(id)
+        location =>
+          normalizeId(location?.id) ===
+          normalizedId
       ) || null
     );
-
   }
 
 
@@ -89,23 +89,24 @@ class MapRepository {
 
   async getByFarmId(farmId) {
 
-    if (!farmId) {
+    const normalizedFarmId =
+      normalizeId(farmId);
 
-      return [];
-
+    if (!normalizedFarmId) {
+      return null;
     }
-
 
     const locations =
       await this.getAll();
 
-
-    return locations.filter(
-      item =>
-        String(item.farmId) ===
-        String(farmId)
+    return (
+      locations.find(
+        location =>
+          normalizeId(location?.farmId) ===
+          normalizedFarmId &&
+          location?.status !== "deleted"
+      ) || null
     );
-
   }
 
 
@@ -119,62 +120,115 @@ class MapRepository {
       !data ||
       typeof data !== "object"
     ) {
-
       throw new Error(
         "MAP_DATA_REQUIRED"
       );
-
     }
 
+    const farmId =
+      normalizeId(data.farmId);
+
+    if (!farmId) {
+      throw new Error(
+        "FARM_ID_REQUIRED"
+      );
+    }
 
     const locations =
       await this.getAll();
 
+    const existingIndex =
+      locations.findIndex(
+        location =>
+          normalizeId(location?.farmId) ===
+          farmId &&
+          location?.status !== "deleted"
+      );
 
     const id =
       typeof crypto !== "undefined" &&
       typeof crypto.randomUUID === "function"
-
         ? crypto.randomUUID()
-
         : `${Date.now()}-${Math.random()
             .toString(36)
             .slice(2)}`;
 
+    const now =
+      new Date().toISOString();
 
     const location = {
 
-      id,
-
       ...data,
 
-      createdAt:
-        data.createdAt ||
-        new Date().toISOString(),
+      id,
 
-      updatedAt:
-        null,
+      farmId,
+
+      source:
+        data.source || "map",
 
       status:
-        data.status ||
-        "active",
+        data.status || "active",
+
+      createdAt:
+        data.createdAt || now,
+
+      updatedAt:
+        now,
 
     };
 
 
-    locations.push(
-      location
-    );
+    // -----------------------------------------------------
+    // إذا كان للمزرعة موقع سابق:
+    // تحديثه بدل إنشاء موقع ثانٍ.
+    // -----------------------------------------------------
 
+    if (existingIndex !== -1) {
+
+      const existing =
+        locations[existingIndex];
+
+      const updated = {
+
+        ...existing,
+
+        ...location,
+
+        id:
+          existing.id,
+
+        farmId,
+
+        createdAt:
+          existing.createdAt ||
+          now,
+
+        updatedAt:
+          now,
+
+      };
+
+      locations[existingIndex] =
+        updated;
+
+      await storageService.save(
+        LOCATIONS_KEY,
+        locations
+      );
+
+      return updated;
+    }
+
+
+    locations.push(location);
 
     await storageService.save(
       LOCATIONS_KEY,
       locations
     );
 
-
     return location;
-
   }
 
 
@@ -182,48 +236,37 @@ class MapRepository {
   // UPDATE
   // =======================================================
 
-  async update(
-    id,
-    data
-  ) {
+  async update(id, data) {
 
-    if (!id) {
+    const normalizedId =
+      normalizeId(id);
 
+    if (!normalizedId) {
       return null;
-
     }
-
 
     if (
       !data ||
       typeof data !== "object"
     ) {
-
       throw new Error(
         "MAP_DATA_REQUIRED"
       );
-
     }
-
 
     const locations =
       await this.getAll();
 
-
     const index =
       locations.findIndex(
-        item =>
-          String(item.id) ===
-          String(id)
+        location =>
+          normalizeId(location?.id) ===
+          normalizedId
       );
 
-
     if (index === -1) {
-
       return null;
-
     }
-
 
     const updated = {
 
@@ -234,24 +277,23 @@ class MapRepository {
       id:
         locations[index].id,
 
+      farmId:
+        locations[index].farmId,
+
       updatedAt:
         new Date().toISOString(),
 
     };
 
-
     locations[index] =
       updated;
-
 
     await storageService.save(
       LOCATIONS_KEY,
       locations
     );
 
-
     return updated;
-
   }
 
 
@@ -261,43 +303,75 @@ class MapRepository {
 
   async delete(id) {
 
-    if (!id) {
+    const normalizedId =
+      normalizeId(id);
 
+    if (!normalizedId) {
       return false;
-
     }
-
 
     const locations =
       await this.getAll();
 
-
     const next =
       locations.filter(
-        item =>
-          String(item.id) !==
-          String(id)
+        location =>
+          normalizeId(location?.id) !==
+          normalizedId
       );
-
 
     if (
       next.length ===
       locations.length
     ) {
-
       return false;
-
     }
-
 
     await storageService.save(
       LOCATIONS_KEY,
       next
     );
 
+    return true;
+  }
+
+
+  // =======================================================
+  // DELETE BY FARM
+  // =======================================================
+
+  async deleteByFarmId(farmId) {
+
+    const normalizedFarmId =
+      normalizeId(farmId);
+
+    if (!normalizedFarmId) {
+      return false;
+    }
+
+    const locations =
+      await this.getAll();
+
+    const next =
+      locations.filter(
+        location =>
+          normalizeId(location?.farmId) !==
+          normalizedFarmId
+      );
+
+    if (
+      next.length ===
+      locations.length
+    ) {
+      return false;
+    }
+
+    await storageService.save(
+      LOCATIONS_KEY,
+      next
+    );
 
     return true;
-
   }
 
 
@@ -307,21 +381,9 @@ class MapRepository {
 
   async exists(id) {
 
-    if (!id) {
-
-      return false;
-
-    }
-
-
-    const location =
-      await this.getById(id);
-
-
     return Boolean(
-      location
+      await this.getById(id)
     );
-
   }
 
 
@@ -334,9 +396,7 @@ class MapRepository {
     const locations =
       await this.getAll();
 
-
     return locations.length;
-
   }
 
 }
