@@ -5,40 +5,91 @@
 export const CropModel = Object.freeze({
 
   create(data = {}) {
+
+    const latitude =
+      Number(data.latitude);
+
+    const longitude =
+      Number(data.longitude);
+
+    const boundary =
+      Array.isArray(data.boundary)
+        ? data.boundary
+        : Array.isArray(data.points)
+          ? data.points
+          : [];
+
     return {
-      id: data.id ?? null,
+
+      id:
+        data.id ?? null,
+
+      // =====================================================
+      // FARM
+      // =====================================================
 
       farmId:
         data.farmId
           ? String(data.farmId)
           : "",
 
+      // يبقى داخليًا للتوافق
       cultivationType:
-        data.cultivationType || "field",
+        data.cultivationType ||
+        "field",
+
+      // =====================================================
+      // CROP
+      // =====================================================
 
       name:
-        String(data.name ?? "").trim(),
+        String(
+          data.name ?? ""
+        ).trim(),
 
       seedType:
-        String(data.seedType ?? "").trim(),
+        String(
+          data.seedType ?? ""
+        ).trim(),
 
       seedVariety:
-        String(data.seedVariety ?? "").trim(),
+        String(
+          data.seedVariety ?? ""
+        ).trim(),
 
       seedQuality:
-        String(data.seedQuality ?? "").trim(),
+        String(
+          data.seedQuality ?? ""
+        ).trim(),
 
       seedQuantity:
-        Number(data.seedQuantity || 0),
+        Number(
+          data.seedQuantity || 0
+        ),
 
       treeType:
-        String(data.treeType ?? "").trim(),
+        String(
+          data.treeType ?? ""
+        ).trim(),
 
       treeVariety:
-        String(data.treeVariety ?? "").trim(),
+        String(
+          data.treeVariety ?? ""
+        ).trim(),
+
+      // =====================================================
+      // DATES
+      // =====================================================
 
       plantingDate:
         data.plantingDate || "",
+
+      harvestDate:
+        data.harvestDate || "",
+
+      // =====================================================
+      // FERTILIZER
+      // =====================================================
 
       fertilizerType:
         String(
@@ -50,33 +101,48 @@ export const CropModel = Object.freeze({
           data.fertilizerQuantity || 0
         ),
 
-      harvestDate:
-        data.harvestDate || "",
+      // =====================================================
+      // PRODUCTION
+      // =====================================================
 
       expectedProduction:
         Number(
           data.expectedProduction || 0
         ),
 
-      // الموقع الجغرافي الحقيقي
+      // =====================================================
+      // REAL FARM LOCATION
+      // =====================================================
+
       latitude:
-        Number.isFinite(
-          Number(data.latitude)
-        )
-          ? Number(data.latitude)
+        Number.isFinite(latitude)
+          ? latitude
           : null,
 
       longitude:
-        Number.isFinite(
-          Number(data.longitude)
-        )
-          ? Number(data.longitude)
+        Number.isFinite(longitude)
+          ? longitude
           : null,
 
-      boundary:
-        Array.isArray(data.boundary)
-          ? data.boundary
-          : [],
+      boundary,
+
+      // =====================================================
+      // LOCATION METADATA
+      // =====================================================
+
+      locationId:
+        data.locationId ?? null,
+
+      area:
+        Number.isFinite(
+          Number(data.area)
+        )
+          ? Number(data.area)
+          : null,
+
+      // =====================================================
+      // CLIMATE / RECOMMENDATION
+      // =====================================================
 
       climate:
         String(
@@ -97,17 +163,26 @@ export const CropModel = Object.freeze({
           ? data.recommendedSeedVarieties
           : [],
 
+      // =====================================================
+      // NOTES
+      // =====================================================
+
       notes:
-        String(data.notes ?? "").trim(),
+        String(
+          data.notes ?? ""
+        ).trim(),
 
       status:
-        data.status || "active",
+        data.status ||
+        "active",
 
       createdAt:
-        data.createdAt || null,
+        data.createdAt ||
+        null,
 
       updatedAt:
-        data.updatedAt || null,
+        data.updatedAt ||
+        null,
     };
   },
 
