@@ -1,76 +1,53 @@
-// =========================================================
-// LAVENDER — CROP ROUTES
-// =========================================================
-//
-// مسؤولية هذا الملف:
-// تعريف مسارات واجهة المحاصيل فقط.
-//
-// المعمارية:
-// Route → Page → Hook → Service → Repository → DataModel
-//
-// ملاحظة:
-// هذا الملف لا ينفذ عمليات CRUD.
-// عمليات المحاصيل تبقى في الطبقات الخاصة بها.
-// =========================================================
+// src/routes/cropRoutes.js
 
 import { lazy } from "react";
 
+
 // =========================================================
-// PAGE
+// CROPS PAGE
+// =========================================================
+//
+// Route definition only.
+//
+// Business/data operations belong to:
+// Hooks → Services → Controllers → Repositories
+//
+// This file is responsible only for registering
+// the Crops page inside the application router.
 // =========================================================
 
 const Crops = lazy(
-() => import("../pages/Crops.jsx")
+  () => import("../pages/Crops.jsx")
 );
 
-// =========================================================
-// ROUTE IDS
-// =========================================================
-//
-// IDs ثابتة لاستخدامها داخليًا عند الحاجة.
-// لا تعتمد الواجهة على النصوص العربية لتحديد المسار.
-//
-
-const CROP_ROUTE_ID = "crops";
-
-// =========================================================
-// PATHS
-// =========================================================
-//
-// تعريف المسارات في مكان واضح يمنع تكرار النصوص
-// ويجعل تعديل المسار مستقبلاً أسهل.
-//
-
-const CROP_PATH = "/crops";
 
 // =========================================================
 // CROP ROUTES
 // =========================================================
-//
-// Route object:
-// - id         : معرف داخلي ثابت
-// - path       : عنوان الصفحة
-// - element    : Component الخاص بالصفحة
-// - module     : اسم الوحدة
-// - protected  : الصفحة تحتاج إلى حماية الدخول
-//
-// Object.freeze يمنع تعديل تعريف المسار أثناء التشغيل.
-//
 
 const cropRoutes = Object.freeze([
-Object.freeze({
-id: CROP_ROUTE_ID,
 
-path: CROP_PATH,
+  Object.freeze({
 
-element: Crops,
+    // Unique route identifier.
+    id: "crops",
 
-module: "crops",
+    // Browser URL.
+    path: "/crops",
 
-protected: true,
+    // Page component.
+    element: Crops,
 
-}),
+    // Feature/module identifier.
+    module: "crops",
+
+    // Authentication requirement.
+    protected: true,
+
+  }),
+
 ]);
+
 
 // =========================================================
 // EXPORT
