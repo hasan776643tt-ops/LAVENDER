@@ -7,20 +7,17 @@ import { storageService } from "../storage";
 // LAVENDER — MAP REPOSITORY
 // =========================================================
 //
-// مسؤول فقط عن تخزين واسترجاع LocationData.
+// المسؤول فقط عن تخزين واسترجاع LocationData.
 //
 // لا يحتوي على:
-// - Leaflet
-// - GPS
-// - Nominatim
-// - حساب المساحة
-// - حساب المحيط
-// - منطق المحاصيل
-// - منطق الواجهة
 // - MapModel
+// - Leaflet
+// - Nominatim
+// - حسابات جغرافية
+// - React
+// - منطق المحاصيل
 //
-// العلاقة الأساسية:
-//
+// العلاقة:
 // farmId → LocationData
 //
 // =========================================================
@@ -29,15 +26,7 @@ import { storageService } from "../storage";
 const LOCATIONS_KEY = "locations";
 
 
-function normalizeId(value) {
-  return value == null
-    ? ""
-    : String(value);
-}
-
-
 class MapRepository {
-
 
   // =======================================================
   // GET ALL
@@ -63,10 +52,7 @@ class MapRepository {
 
   async getById(id) {
 
-    const normalizedId =
-      normalizeId(id);
-
-    if (!normalizedId) {
+    if (!id) {
       return null;
     }
 
@@ -75,9 +61,9 @@ class MapRepository {
 
     return (
       locations.find(
-        location =>
-          normalizeId(location?.id) ===
-          normalizedId
+        item =>
+          String(item?.id) ===
+          String(id)
       ) || null
     );
   }
@@ -89,23 +75,63 @@ class MapRepository {
 
   async getByFarmId(farmId) {
 
-    const normalizedFarmId =
-      normalizeId(farmId);
-
-    if (!normalizedFarmId) {
-      return null;
+    if (!farmId) {
+      return [];
     }
 
     const locations =
       await this.getAll();
 
+    return locations.filter(
+      item =>
+        String(item?.farmId) ===
+        String(farmId)
+    );
+  }
+
+
+  // =======================================================
+  // GET ACTIVE LOCATION BY FARM
+  // =======================================================
+
+  async getLatestByFarmId(farmId) {
+
+    const locations =
+      await this.getByFarmId(
+        farmId
+      );
+
+    if (!locations.length) {
+      return null;
+    }
+
+    const active =
+      locations.filter(
+        item =>
+          item?.status !==
+          "archived"
+      );
+
+    const source =
+      active.length
+        ? active
+        : locations;
+
     return (
-      locations.find(
-        location =>
-          normalizeId(location?.farmId) ===
-          normalizedFarmId &&
-          location?.status !== "deleted"
-      ) || null
+      [...source]
+        .sort(
+          (a, b) =>
+            new Date(
+              b?.updatedAt ||
+              b?.createdAt ||
+              0
+            ) -
+            new Date(
+              a?.updatedAt ||
+              a?.createdAt ||
+              0
+            )
+        )[0] || null
     );
   }
 
@@ -125,25 +151,14 @@ class MapRepository {
       );
     }
 
-    const farmId =
-      normalizeId(data.farmId);
-
-    if (!farmId) {
+    if (!data.farmId) {
       throw new Error(
-        "FARM_ID_REQUIRED"
+        "MAP_FARM_REQUIRED"
       );
     }
 
     const locations =
       await this.getAll();
-
-    const existingIndex =
-      locations.findIndex(
-        location =>
-          normalizeId(location?.farmId) ===
-          farmId &&
-          location?.status !== "deleted"
-      );
 
     const id =
       typeof crypto !== "undefined" &&
@@ -158,70 +173,29 @@ class MapRepository {
 
     const location = {
 
-      ...data,
-
       id,
 
-      farmId,
+      ...data,
 
-      source:
-        data.source || "map",
-
-      status:
-        data.status || "active",
+      farmId:
+        String(data.farmId),
 
       createdAt:
-        data.createdAt || now,
+        data.createdAt ||
+        now,
 
       updatedAt:
         now,
 
+      status:
+        data.status ||
+        "active",
+
     };
 
-
-    // -----------------------------------------------------
-    // إذا كان للمزرعة موقع سابق:
-    // تحديثه بدل إنشاء موقع ثانٍ.
-    // -----------------------------------------------------
-
-    if (existingIndex !== -1) {
-
-      const existing =
-        locations[existingIndex];
-
-      const updated = {
-
-        ...existing,
-
-        ...location,
-
-        id:
-          existing.id,
-
-        farmId,
-
-        createdAt:
-          existing.createdAt ||
-          now,
-
-        updatedAt:
-          now,
-
-      };
-
-      locations[existingIndex] =
-        updated;
-
-      await storageService.save(
-        LOCATIONS_KEY,
-        locations
-      );
-
-      return updated;
-    }
-
-
-    locations.push(location);
+    locations.push(
+      location
+    );
 
     await storageService.save(
       LOCATIONS_KEY,
@@ -236,12 +210,12 @@ class MapRepository {
   // UPDATE
   // =======================================================
 
-  async update(id, data) {
+  async update(
+    id,
+    data
+  ) {
 
-    const normalizedId =
-      normalizeId(id);
-
-    if (!normalizedId) {
+    if (!id) {
       return null;
     }
 
@@ -259,9 +233,9 @@ class MapRepository {
 
     const index =
       locations.findIndex(
-        location =>
-          normalizeId(location?.id) ===
-          normalizedId
+        item =>
+          String(item?.id) ===
+          String(id)
       );
 
     if (index === -1) {
@@ -278,7 +252,11 @@ class MapRepository {
         locations[index].id,
 
       farmId:
-        locations[index].farmId,
+        String(
+          data.farmId ??
+          locations[index].farmId ??
+          ""
+        ),
 
       updatedAt:
         new Date().toISOString(),
@@ -303,10 +281,7 @@ class MapRepository {
 
   async delete(id) {
 
-    const normalizedId =
-      normalizeId(id);
-
-    if (!normalizedId) {
+    if (!id) {
       return false;
     }
 
@@ -315,48 +290,9 @@ class MapRepository {
 
     const next =
       locations.filter(
-        location =>
-          normalizeId(location?.id) !==
-          normalizedId
-      );
-
-    if (
-      next.length ===
-      locations.length
-    ) {
-      return false;
-    }
-
-    await storageService.save(
-      LOCATIONS_KEY,
-      next
-    );
-
-    return true;
-  }
-
-
-  // =======================================================
-  // DELETE BY FARM
-  // =======================================================
-
-  async deleteByFarmId(farmId) {
-
-    const normalizedFarmId =
-      normalizeId(farmId);
-
-    if (!normalizedFarmId) {
-      return false;
-    }
-
-    const locations =
-      await this.getAll();
-
-    const next =
-      locations.filter(
-        location =>
-          normalizeId(location?.farmId) !==
-          normalizedFarmId
+        item =>
+          String(item?.id) !==
+          String(id)
       );
 
     if (
