@@ -14,7 +14,6 @@ import {
   Polyline,
   CircleMarker,
   Circle,
-  Tooltip,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -191,12 +190,15 @@ function MapResizeHandler() {
 // BOUNDARY POINT SELECTOR
 // ============================================================
 //
-// كل ضغطة على الخريطة = نقطة واحدة.
-// النقاط تحفظ بنفس ترتيب الضغط.
+// كل ضغطة على الخريطة = نقطة واحدة فقط.
 //
-// 1 → 2 → 3 → 4 → ...
+// الترتيب:
 //
-// لا يوجد رسم حر ولا تتبع للإصبع.
+// 1 → 2 → 3 → 4 → 5 ...
+//
+// لا يوجد تتبع للإصبع.
+// لا يوجد رسم حر.
+// لا يتم تحريك أي نقطة سابقة.
 // ============================================================
 
 function BoundaryPointSelector({
@@ -209,9 +211,11 @@ function BoundaryPointSelector({
         event.latlng.lng,
       ]);
 
-      if (point) {
-        onAddPoint(point);
+      if (!point) {
+        return;
       }
+
+      onAddPoint(point);
     },
   });
 
@@ -523,6 +527,253 @@ function GPSLocationVisual({
 
 
 // ============================================================
+// FORM FIELD
+// ============================================================
+
+function Field({
+  label,
+  value,
+  onChange,
+  placeholder,
+  textarea = false,
+  minHeight = "70px",
+}) {
+  return (
+    <label
+      style={{
+        display: "block",
+        direction: "rtl",
+      }}
+    >
+      <strong
+        style={{
+          display: "block",
+          marginBottom: "7px",
+          fontSize: "17px",
+        }}
+      >
+        {label}
+      </strong>
+
+      {textarea ? (
+        <textarea
+          value={value}
+          onChange={e =>
+            onChange(e.target.value)
+          }
+          placeholder={placeholder}
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            minHeight,
+            padding: "14px",
+            border: "2px solid #d7ded9",
+            borderRadius: "16px",
+            fontSize: "18px",
+            lineHeight: "1.8",
+            background: "#ffffff",
+            outline: "none",
+            resize: "vertical",
+          }}
+        />
+      ) : (
+        <input
+          type="text"
+          value={value}
+          onChange={e =>
+            onChange(e.target.value)
+          }
+          placeholder={placeholder}
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            minHeight: "64px",
+            padding: "14px",
+            border: "2px solid #d7ded9",
+            borderRadius: "16px",
+            fontSize: "18px",
+            lineHeight: "1.8",
+            background: "#ffffff",
+            outline: "none",
+          }}
+        />
+      )}
+    </label>
+  );
+}
+
+
+// ============================================================
+// TEXT LOCATION FORM
+// ============================================================
+
+function TextLocationForm({
+  country,
+  setCountry,
+  province,
+  setProvince,
+  city,
+  setCity,
+  town,
+  setTown,
+  description,
+  setDescription,
+  northNeighbor,
+  setNorthNeighbor,
+  southNeighbor,
+  setSouthNeighbor,
+  eastNeighbor,
+  setEastNeighbor,
+  westNeighbor,
+  setWestNeighbor,
+  notes,
+  setNotes,
+}) {
+  return (
+    <div
+      style={{
+        display: "grid",
+        gap: "18px",
+        direction: "rtl",
+      }}
+    >
+      <Field
+        label="🌍 البلد"
+        value={country}
+        onChange={setCountry}
+        placeholder="مثال: سوريا"
+      />
+
+      <Field
+        label="🏛️ المحافظة / المنطقة"
+        value={province}
+        onChange={setProvince}
+        placeholder="مثال: الرقة"
+      />
+
+      <Field
+        label="🏙️ المدينة"
+        value={city}
+        onChange={setCity}
+        placeholder="اسم المدينة"
+      />
+
+      <Field
+        label="🏘️ البلدة / القرية"
+        value={town}
+        onChange={setTown}
+        placeholder="مثال: الأبيض"
+      />
+
+      <Field
+        textarea
+        minHeight="140px"
+        label="📍 وصف موقع الأرض"
+        value={description}
+        onChange={setDescription}
+        placeholder="اكتب وصفًا واضحًا لمكان الأرض"
+      />
+
+      <div
+        style={{
+          padding: "18px",
+          borderRadius: "18px",
+          background: "#f2f7f3",
+          display: "grid",
+          gap: "14px",
+        }}
+      >
+        <strong
+          style={{
+            fontSize: "19px",
+          }}
+        >
+          🧭 الجهات المحيطة بالأرض
+        </strong>
+
+        <Field
+          label="⬆️ جار الشمال"
+          value={northNeighbor}
+          onChange={setNorthNeighbor}
+          placeholder="من يجاور الأرض من الشمال؟"
+        />
+
+        <Field
+          label="⬇️ جار الجنوب"
+          value={southNeighbor}
+          onChange={setSouthNeighbor}
+          placeholder="من يجاور الأرض من الجنوب؟"
+        />
+
+        <Field
+          label="➡️ جار الشرق"
+          value={eastNeighbor}
+          onChange={setEastNeighbor}
+          placeholder="من يجاور الأرض من الشرق؟"
+        />
+
+        <Field
+          label="⬅️ جار الغرب"
+          value={westNeighbor}
+          onChange={setWestNeighbor}
+          placeholder="من يجاور الأرض من الغرب؟"
+        />
+      </div>
+
+      <Field
+        textarea
+        minHeight="140px"
+        label="📝 ملاحظات"
+        value={notes}
+        onChange={setNotes}
+        placeholder="أي معلومات إضافية"
+      />
+    </div>
+  );
+}
+
+
+// ============================================================
+// GPS BUTTON
+// ============================================================
+
+function GPSButton({
+  onClick,
+  loading,
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={loading}
+      style={{
+        width: "100%",
+        minHeight: "58px",
+        border: "none",
+        borderRadius: "16px",
+        background: loading
+          ? "#78909c"
+          : "#1976d2",
+        color: "#ffffff",
+        fontSize: "17px",
+        fontWeight: "900",
+        boxShadow:
+          "0 3px 12px rgba(0,0,0,0.25)",
+        direction: "rtl",
+        cursor: loading
+          ? "wait"
+          : "pointer",
+      }}
+    >
+      {loading
+        ? "⏳ جارٍ البحث عن أفضل موقع..."
+        : "📍 تحديد موقعي الآن"}
+    </button>
+  );
+}
+
+
+// ============================================================
 // MAP EDITOR
 // ============================================================
 
@@ -635,10 +886,15 @@ function FieldMapEditor({
   // ADD POINT
   // ----------------------------------------------------------
   //
-  // كل ضغطة تضيف نقطة واحدة فقط.
+  // كل ضغطة على الخريطة تضيف نقطة واحدة.
   //
-  // النقطة الجديدة لا تحرك أي نقطة سابقة.
-  // ترتيب النقاط محفوظ كما ضغط عليها المستخدم.
+  // لا يتم تعديل النقاط السابقة.
+  // لا يتم تحريكها.
+  // لا يوجد رسم حر.
+  //
+  // الترتيب محفوظ:
+  //
+  // 1 → 2 → 3 → 4 → ...
   //
   // ----------------------------------------------------------
 
@@ -765,15 +1021,17 @@ function FieldMapEditor({
 
 
         {/* ====================================================
-            الخطوط بين النقاط
+            الخط بين النقاط
             ====================================================
+
+            النقاط ترسم بهذا الترتيب:
 
             1 → 2
             2 → 3
             3 → 4
-            ...
+            4 → 5
 
-            الخط مستقيم بين كل نقطتين.
+            الخطوط مستقيمة بين النقاط.
         */}
 
         {safePoints.length >= 2 && (
@@ -791,11 +1049,18 @@ function FieldMapEditor({
 
 
         {/* ====================================================
-            إغلاق الحدود
+            إغلاق حدود الأرض
             ====================================================
 
-            عندما توجد 3 نقاط أو أكثر، يتم إغلاق
-            الشكل من آخر نقطة إلى أول نقطة.
+            عند وجود 3 نقاط أو أكثر:
+
+            1 → 2
+            2 → 3
+            3 → 4
+            ...
+            آخر نقطة → 1
+
+            Polygon يغلق الشكل تلقائيًا.
         */}
 
         {safePoints.length >= 3 && (
@@ -817,12 +1082,13 @@ function FieldMapEditor({
             نقاط الحدود
             ====================================================
 
-            كل نقطة تبقى في مكانها الحقيقي.
+            كل نقطة عبارة عن CircleMarker فقط.
 
-            1 = أول زاوية
-            2 = ثاني زاوية
-            3 = ثالث زاوية
-            ...
+            لا Marker.
+            لا L.divIcon.
+            لا Tooltip.
+
+            النقطة تبقى في مكان الضغط الحقيقي.
         */}
 
         {safePoints.map(
@@ -837,15 +1103,7 @@ function FieldMapEditor({
                 fillColor: "#0b6e32",
                 fillOpacity: 1,
               }}
-            >
-              <Tooltip
-                permanent
-                direction="top"
-                offset={[0, -8]}
-              >
-                {index + 1}
-              </Tooltip>
-            </CircleMarker>
+            />
           )
         )}
       </MapContainer>
@@ -1091,9 +1349,7 @@ function FieldMapEditor({
         <button
           type="button"
           onClick={undo}
-          disabled={
-            !safePoints.length
-          }
+          disabled={!safePoints.length}
           style={{
             minHeight: "58px",
             border: "none",
@@ -1111,9 +1367,7 @@ function FieldMapEditor({
         <button
           type="button"
           onClick={clear}
-          disabled={
-            !safePoints.length
-          }
+          disabled={!safePoints.length}
           style={{
             minHeight: "58px",
             border: "none",
@@ -1131,9 +1385,7 @@ function FieldMapEditor({
         <button
           type="button"
           onClick={save}
-          disabled={
-            safePoints.length < 3
-          }
+          disabled={safePoints.length < 3}
           style={{
             minHeight: "58px",
             border: "none",
@@ -1743,10 +1995,10 @@ export default function Map() {
                 locationMethod === "text"
                   ? "#edf8f0"
                   : "#ffffff",
-              borderRadius: "18px",
               textAlign: "right",
               fontSize: "19px",
               fontWeight: "900",
+              borderRadius: "18px",
             }}
           >
             ✍️ كتابة موقع الأرض
@@ -1779,7 +2031,6 @@ export default function Map() {
                 locationMethod === "map"
                   ? "#edf8f0"
                   : "#ffffff",
-              borderRadius: "18px",
               textAlign: "right",
               fontSize: "19px",
               fontWeight: "900",
@@ -1787,6 +2038,7 @@ export default function Map() {
                 hasValidFarm
                   ? 1
                   : 0.55,
+              borderRadius: "18px",
             }}
           >
             🛰️ تحديد الأرض على الخريطة
@@ -1807,11 +2059,7 @@ export default function Map() {
       </Card>
 
 
-      <div
-        style={{
-          height: "14px",
-        }}
-      />
+      <div style={{ height: "14px" }} />
 
 
       {/* TEXT */}
@@ -1930,11 +2178,7 @@ export default function Map() {
       )}
 
 
-      <div
-        style={{
-          height: "18px",
-        }}
-      />
+      <div style={{ height: "18px" }} />
 
 
       {/* SAVE */}
