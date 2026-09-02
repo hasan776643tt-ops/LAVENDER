@@ -1293,6 +1293,9 @@ export default function Map() {
      * Crops يفتح:
      * /map?return=crops&farmId=...
      *
+     * NewFarm يفتح:
+     * /map?return=new-farm&farmId=...
+     *
      * يجب على Map أن يأخذ farmId
      * من الرابط ويضعه في حالة الخريطة.
      */
@@ -1669,11 +1672,13 @@ export default function Map() {
         resetForm();
 
         /*
-         * إذا جاءت الخريطة من المحاصيل،
-         * نعيد المستخدم إليها بعد الحفظ.
+         * إذا جاءت الخريطة من المحاصيل
+         * أو من إنشاء مزرعة جديدة،
+         * نعيد المستخدم إلى الصفحة السابقة.
          */
         if (
-          returnPath === "crops"
+          returnPath === "crops" ||
+          returnPath === "new-farm"
         ) {
           window.history.back();
         }
