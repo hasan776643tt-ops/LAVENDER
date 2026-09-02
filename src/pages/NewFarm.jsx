@@ -1078,10 +1078,17 @@ export default function NewFarm() {
     <main
       className="farms-selector"
       dir="rtl"
+      style={{
+        fontSize: "21px",
+      }}
     >
 
       <div
         className="farms-page-content"
+        style={{
+          padding:
+            "28px 16px 38px",
+        }}
       >
 
         <form
@@ -1089,14 +1096,33 @@ export default function NewFarm() {
             saveFarm
           }
           className="new-farm-form"
+          style={{
+            width: "100%",
+            maxWidth: "680px",
+            margin: "0 auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: "26px",
+          }}
         >
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
             <label
               htmlFor="farm-name"
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
             >
               اسم المزرعة
             </label>
@@ -1119,6 +1145,17 @@ export default function NewFarm() {
                 savingFarm ||
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "62px",
+                padding: "14px 17px",
+                borderRadius: "16px",
+                border: "2px solid rgba(255,255,255,.75)",
+                fontSize: "20px",
+                fontWeight: 700,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             />
 
           </section>
@@ -1126,10 +1163,21 @@ export default function NewFarm() {
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
             <label
               htmlFor="crop-name"
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
             >
               🌾 اسم النبات
             </label>
@@ -1150,6 +1198,17 @@ export default function NewFarm() {
                 savingFarm ||
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "62px",
+                padding: "14px 17px",
+                borderRadius: "16px",
+                border: "2px solid rgba(255,255,255,.75)",
+                fontSize: "20px",
+                fontWeight: 700,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             >
 
               <option
@@ -1187,9 +1246,21 @@ export default function NewFarm() {
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
-            <label>
+            <label
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
+            >
               📍 مكان الحقل
             </label>
 
@@ -1205,6 +1276,17 @@ export default function NewFarm() {
                 savingCrop ||
                 mapLoading
               }
+              style={{
+                width: "100%",
+                minHeight: "66px",
+                padding: "14px 18px",
+                borderRadius: "17px",
+                border: "2px solid rgba(255,255,255,.78)",
+                fontSize: "21px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             >
 
               {
@@ -1220,10 +1302,21 @@ export default function NewFarm() {
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
             <label
               htmlFor="seed-type"
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
             >
               🌱 البذور المستخدمة
             </label>
@@ -1245,6 +1338,17 @@ export default function NewFarm() {
               disabled={
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "62px",
+                padding: "14px 17px",
+                borderRadius: "16px",
+                border: "2px solid rgba(255,255,255,.75)",
+                fontSize: "20px",
+                fontWeight: 700,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             />
 
           </section>
@@ -1252,10 +1356,21 @@ export default function NewFarm() {
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
             <label
               htmlFor="planting-date"
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
             >
               📅 تاريخ الزراعة
             </label>
@@ -1276,6 +1391,17 @@ export default function NewFarm() {
               disabled={
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "62px",
+                padding: "14px 17px",
+                borderRadius: "16px",
+                border: "2px solid rgba(255,255,255,.75)",
+                fontSize: "20px",
+                fontWeight: 700,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             />
 
           </section>
@@ -1283,15 +1409,39 @@ export default function NewFarm() {
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
-            <label>
+            <label
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
+            >
               ⏳ عمر النبات
             </label>
 
 
             <div
               className="new-farm-readonly"
+              style={{
+                width: "100%",
+                minHeight: "62px",
+                padding: "14px 17px",
+                display: "flex",
+                alignItems: "center",
+                borderRadius: "16px",
+                boxSizing: "border-box",
+                fontSize: "20px",
+                fontWeight: 700,
+                lineHeight: 1.5,
+              }}
             >
               {
                 plantAge
@@ -1303,10 +1453,21 @@ export default function NewFarm() {
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
             <label
               htmlFor="fertilizer-type"
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
             >
               🧪 سماد الزراعة
             </label>
@@ -1328,6 +1489,17 @@ export default function NewFarm() {
               disabled={
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "62px",
+                padding: "14px 17px",
+                borderRadius: "16px",
+                border: "2px solid rgba(255,255,255,.75)",
+                fontSize: "20px",
+                fontWeight: 700,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             />
 
           </section>
@@ -1335,10 +1507,21 @@ export default function NewFarm() {
 
           <section
             className="new-farm-section"
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "10px",
+            }}
           >
 
             <label
               htmlFor="fertilizer-quantity"
+              style={{
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                textAlign: "right",
+              }}
             >
               كمية السماد
             </label>
@@ -1361,6 +1544,17 @@ export default function NewFarm() {
               disabled={
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "62px",
+                padding: "14px 17px",
+                borderRadius: "16px",
+                border: "2px solid rgba(255,255,255,.75)",
+                fontSize: "20px",
+                fontWeight: 700,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             />
 
           </section>
@@ -1372,6 +1566,14 @@ export default function NewFarm() {
               <div
                 className="new-farm-error"
                 role="alert"
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  lineHeight: 1.6,
+                  padding: "16px",
+                  borderRadius: "15px",
+                  textAlign: "center",
+                }}
               >
                 ⚠️ {error}
               </div>
@@ -1386,6 +1588,14 @@ export default function NewFarm() {
               <div
                 className="new-farm-success"
                 role="status"
+                style={{
+                  fontSize: "18px",
+                  fontWeight: 700,
+                  lineHeight: 1.6,
+                  padding: "16px",
+                  borderRadius: "15px",
+                  textAlign: "center",
+                }}
               >
                 ✅ {success}
               </div>
@@ -1396,6 +1606,13 @@ export default function NewFarm() {
 
           <div
             className="new-farm-actions"
+            style={{
+              width: "100%",
+              display: "flex",
+              flexDirection: "column",
+              gap: "15px",
+              marginTop: "8px",
+            }}
           >
 
             <button
@@ -1405,6 +1622,16 @@ export default function NewFarm() {
                 savingFarm ||
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "68px",
+                padding: "14px 18px",
+                borderRadius: "17px",
+                fontSize: "22px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             >
 
               {
@@ -1426,6 +1653,16 @@ export default function NewFarm() {
                 savingFarm ||
                 savingCrop
               }
+              style={{
+                width: "100%",
+                minHeight: "64px",
+                padding: "14px 18px",
+                borderRadius: "17px",
+                fontSize: "21px",
+                fontWeight: 800,
+                lineHeight: 1.5,
+                boxSizing: "border-box",
+              }}
             >
               إلغاء
             </button>
