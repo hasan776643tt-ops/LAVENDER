@@ -17,31 +17,6 @@ import useMap from "../hooks/useMap.js";
 
 
 // =========================================================
-// LAVENDER — NEW FARM
-// =========================================================
-// إنشاء مزرعة جديدة
-//
-// التسلسل:
-//
-// المزارع
-//   ↓
-// مزرعة جديدة
-//   ↓
-// إنشاء Farm للحصول على farmId
-//   ↓
-// الخريطة
-//   ↓
-// حفظ Location مرتبط بـ farmId
-//   ↓
-// العودة إلى النموذج
-//   ↓
-// حفظ Crop مرتبط بـ farmId
-//   ↓
-// المزارع
-// =========================================================
-
-
-// =========================================================
 // CONSTANTS
 // =========================================================
 
@@ -1096,7 +1071,7 @@ export default function NewFarm() {
 
   // =======================================================
   // RENDER
-  // =======================================================
+  // =========================================================
 
   return (
 
@@ -1109,59 +1084,12 @@ export default function NewFarm() {
         className="farms-page-content"
       >
 
-        {/* =================================================
-            HEADER
-        ================================================= */}
-
-        <header
-          className="farms-selector-header"
-        >
-
-          <div
-            className="farms-selector-symbol"
-            aria-hidden="true"
-          >
-            🌱
-          </div>
-
-
-          <h1
-            className="farms-selector-title"
-          >
-            مزرعة جديدة
-          </h1>
-
-
-          <div
-            className="farms-selector-brand"
-          >
-            LAVENDER
-          </div>
-
-
-          <p
-            className="farms-selector-subtitle"
-          >
-            تسجيل المزرعة والمحصول وموقع الحقل
-          </p>
-
-        </header>
-
-
-        {/* =================================================
-            FORM
-        ================================================= */}
-
         <form
           onSubmit={
             saveFarm
           }
           className="new-farm-form"
         >
-
-          {/* =================================================
-              FARM NAME
-          ================================================= */}
 
           <section
             className="new-farm-section"
@@ -1186,7 +1114,6 @@ export default function NewFarm() {
                   event.target.value
                 )
               }
-              placeholder="اكتب اسم المزرعة"
               autoComplete="off"
               disabled={
                 savingFarm ||
@@ -1196,10 +1123,6 @@ export default function NewFarm() {
 
           </section>
 
-
-          {/* =================================================
-              CROP
-          ================================================= */}
 
           <section
             className="new-farm-section"
@@ -1262,10 +1185,6 @@ export default function NewFarm() {
           </section>
 
 
-          {/* =================================================
-              MAP
-          ================================================= */}
-
           <section
             className="new-farm-section"
           >
@@ -1296,67 +1215,8 @@ export default function NewFarm() {
 
             </button>
 
-
-            {
-              hasLocation && (
-
-                <div
-                  className="new-farm-location-summary"
-                >
-
-                  <strong>
-                    📍 تم تحديد موقع الحقل
-                  </strong>
-
-
-                  <span>
-                    خط العرض:{" "}
-                    {
-                      Number(
-                        latitude
-                      ).toFixed(
-                        6
-                      )
-                    }
-                  </span>
-
-
-                  <span>
-                    خط الطول:{" "}
-                    {
-                      Number(
-                        longitude
-                      ).toFixed(
-                        6
-                      )
-                    }
-                  </span>
-
-
-                  {
-                    locationPointCount > 0 && (
-
-                      <span>
-                        نقاط الحدود:{" "}
-                        {
-                          locationPointCount
-                        }
-                      </span>
-
-                    )
-                  }
-
-                </div>
-
-              )
-            }
-
           </section>
 
-
-          {/* =================================================
-              SEEDS
-          ================================================= */}
 
           <section
             className="new-farm-section"
@@ -1381,7 +1241,6 @@ export default function NewFarm() {
                   event.target.value
                 )
               }
-              placeholder="اكتب نوع أو اسم البذور"
               autoComplete="off"
               disabled={
                 savingCrop
@@ -1390,10 +1249,6 @@ export default function NewFarm() {
 
           </section>
 
-
-          {/* =================================================
-              PLANTING DATE
-          ================================================= */}
 
           <section
             className="new-farm-section"
@@ -1426,10 +1281,6 @@ export default function NewFarm() {
           </section>
 
 
-          {/* =================================================
-              PLANT AGE
-          ================================================= */}
-
           <section
             className="new-farm-section"
           >
@@ -1443,17 +1294,12 @@ export default function NewFarm() {
               className="new-farm-readonly"
             >
               {
-                plantAge ||
-                "يُحسب تلقائيًا بعد إدخال تاريخ الزراعة"
+                plantAge
               }
             </div>
 
           </section>
 
-
-          {/* =================================================
-              FERTILIZER
-          ================================================= */}
 
           <section
             className="new-farm-section"
@@ -1478,7 +1324,6 @@ export default function NewFarm() {
                   event.target.value
                 )
               }
-              placeholder="نوع السماد المستخدم عند الزراعة"
               autoComplete="off"
               disabled={
                 savingCrop
@@ -1487,10 +1332,6 @@ export default function NewFarm() {
 
           </section>
 
-
-          {/* =================================================
-              FERTILIZER QUANTITY
-          ================================================= */}
 
           <section
             className="new-farm-section"
@@ -1517,7 +1358,6 @@ export default function NewFarm() {
                   event.target.value
                 )
               }
-              placeholder="الكمية"
               disabled={
                 savingCrop
               }
@@ -1525,10 +1365,6 @@ export default function NewFarm() {
 
           </section>
 
-
-          {/* =================================================
-              ERROR
-          ================================================= */}
 
           {
             error && (
@@ -1544,10 +1380,6 @@ export default function NewFarm() {
           }
 
 
-          {/* =================================================
-              SUCCESS
-          ================================================= */}
-
           {
             success && (
 
@@ -1561,10 +1393,6 @@ export default function NewFarm() {
             )
           }
 
-
-          {/* =================================================
-              ACTIONS
-          ================================================= */}
 
           <div
             className="new-farm-actions"
