@@ -118,6 +118,294 @@ const TYPES = [
 
 
 // =========================================================
+// UI STYLES
+// =========================================================
+//
+// هذه التنسيقات خاصة بصفحة المحاصيل فقط.
+// الهدف:
+// - حقول أكبر وأسهل للمس
+// - كلمات أوضح وأكبر
+// - labels بارزة
+// - مسافات مناسبة للموبايل
+// - الحفاظ على منطق الصفحة كما هو
+//
+// =========================================================
+
+const PAGE_STYLE = {
+
+  maxWidth:
+    "900px",
+
+  margin:
+    "0 auto",
+
+  padding:
+    "20px 16px 40px",
+
+};
+
+
+const PAGE_TITLE_STYLE = {
+
+  margin:
+    "0 0 8px",
+
+  fontSize:
+    "30px",
+
+  lineHeight:
+    "1.3",
+
+  fontWeight:
+    "800",
+
+};
+
+
+const PAGE_DESCRIPTION_STYLE = {
+
+  margin:
+    "0 0 24px",
+
+  fontSize:
+    "17px",
+
+  lineHeight:
+    "1.7",
+
+};
+
+
+const SECTION_STYLE = {
+
+  marginTop:
+    "24px",
+
+  padding:
+    "18px",
+
+  borderRadius:
+    "16px",
+
+  border:
+    "1px solid #e2e8e2",
+
+  background:
+    "#ffffff",
+
+  boxSizing:
+    "border-box",
+
+};
+
+
+const SECTION_TITLE_STYLE = {
+
+  margin:
+    "0 0 18px",
+
+  fontSize:
+    "22px",
+
+  lineHeight:
+    "1.4",
+
+  fontWeight:
+    "800",
+
+};
+
+
+const LABEL_STYLE = {
+
+  display:
+    "block",
+
+  margin:
+    "16px 0 8px",
+
+  fontSize:
+    "18px",
+
+  lineHeight:
+    "1.5",
+
+  fontWeight:
+    "700",
+
+};
+
+
+const FIELD_STYLE = {
+
+  display:
+    "block",
+
+  width:
+    "100%",
+
+  minHeight:
+    "52px",
+
+  boxSizing:
+    "border-box",
+
+  padding:
+    "12px 14px",
+
+  margin:
+    "0 0 6px",
+
+  border:
+    "1px solid #cbd5cb",
+
+  borderRadius:
+    "12px",
+
+  background:
+    "#ffffff",
+
+  fontSize:
+    "17px",
+
+  lineHeight:
+    "1.5",
+
+  fontWeight:
+    "500",
+
+  color:
+    "#1f2937",
+
+  outline:
+    "none",
+
+};
+
+
+const TEXTAREA_STYLE = {
+
+  ...FIELD_STYLE,
+
+  minHeight:
+    "120px",
+
+  resize:
+    "vertical",
+
+};
+
+
+const BUTTON_STYLE = {
+
+  width:
+    "100%",
+
+  minHeight:
+    "54px",
+
+  boxSizing:
+    "border-box",
+
+  padding:
+    "13px 16px",
+
+  marginTop:
+    "12px",
+
+  border:
+    "none",
+
+  borderRadius:
+    "13px",
+
+  fontSize:
+    "17px",
+
+  lineHeight:
+    "1.4",
+
+  fontWeight:
+    "800",
+
+  cursor:
+    "pointer",
+
+};
+
+
+const INFO_TEXT_STYLE = {
+
+  fontSize:
+    "17px",
+
+  lineHeight:
+    "1.7",
+
+};
+
+
+const MESSAGE_STYLE = {
+
+  marginTop:
+    "16px",
+
+  padding:
+    "12px 14px",
+
+  borderRadius:
+    "12px",
+
+  fontSize:
+    "17px",
+
+  lineHeight:
+    "1.6",
+
+};
+
+
+const ARTICLE_STYLE = {
+
+  marginTop:
+    "16px",
+
+  padding:
+    "18px",
+
+  border:
+    "1px solid #ddd",
+
+  borderRadius:
+    "16px",
+
+  background:
+    "#ffffff",
+
+  boxSizing:
+    "border-box",
+
+};
+
+
+const ARTICLE_TITLE_STYLE = {
+
+  margin:
+    "0 0 14px",
+
+  fontSize:
+    "21px",
+
+  lineHeight:
+    "1.4",
+
+  fontWeight:
+    "800",
+
+};
+
+
+// =========================================================
 // HELPERS
 // =========================================================
 
@@ -1381,25 +1669,35 @@ export default function Crops() {
 
     <main
       style={{
-        maxWidth: "900px",
-        margin: "0 auto",
-        padding: "20px",
+        ...PAGE_STYLE,
       }}
     >
 
-      <h1>
+      <h1
+        style={
+          PAGE_TITLE_STYLE
+        }
+      >
         🌱 المحاصيل
       </h1>
 
 
-      <p>
+      <p
+        style={
+          PAGE_DESCRIPTION_STYLE
+        }
+      >
         تسجيل وإدارة المحاصيل المرتبطة بالمزرعة وموقع الأرض.
       </p>
 
 
       {pageLoading && (
 
-        <p>
+        <p
+          style={
+            INFO_TEXT_STYLE
+          }
+        >
           ⏳ جارٍ تحميل البيانات...
         </p>
 
@@ -1410,7 +1708,9 @@ export default function Crops() {
 
         <p
           style={{
+            ...MESSAGE_STYLE,
             color: "crimson",
+            background: "#fff1f1",
           }}
         >
           ⚠️ {cropsError}
@@ -1423,18 +1723,40 @@ export default function Crops() {
       {/* FARM */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           1. المزرعة
         </h2>
 
 
+        <label
+          htmlFor="crop-farm"
+          style={
+            LABEL_STYLE
+          }
+        >
+          🏡 اختر المزرعة
+        </label>
+
+
         <select
+          id="crop-farm"
           name="farmId"
           value={form.farmId}
           onChange={change}
           disabled={farmsLoading}
+          style={
+            FIELD_STYLE
+          }
         >
 
           <option value="">
@@ -1460,7 +1782,11 @@ export default function Crops() {
 
         {selectedFarm && (
 
-          <p>
+          <p
+            style={
+              INFO_TEXT_STYLE
+            }
+          >
             🏡 المزرعة المختارة:
             {" "}
             <strong>
@@ -1479,16 +1805,28 @@ export default function Crops() {
       {/* LOCATION */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           2. موقع المزرعة
         </h2>
 
 
         {!form.farmId && (
 
-          <p>
+          <p
+            style={
+              INFO_TEXT_STYLE
+            }
+          >
             اختر المزرعة أولًا لتحميل موقعها.
           </p>
 
@@ -1498,7 +1836,11 @@ export default function Crops() {
         {form.farmId &&
           locationLoading && (
 
-            <p>
+            <p
+              style={
+                INFO_TEXT_STYLE
+              }
+            >
               ⏳ جارٍ تحميل موقع المزرعة...
             </p>
 
@@ -1515,14 +1857,22 @@ export default function Crops() {
 
             <div>
 
-              <p>
+              <p
+                style={
+                  INFO_TEXT_STYLE
+                }
+              >
                 📍 موقع الأرض محفوظ
               </p>
 
 
               {governorate && (
 
-                <p>
+                <p
+                  style={
+                    INFO_TEXT_STYLE
+                  }
+                >
                   🏛️ المحافظة:
                   {" "}
                   <strong>
@@ -1535,7 +1885,11 @@ export default function Crops() {
 
               {town && (
 
-                <p>
+                <p
+                  style={
+                    INFO_TEXT_STYLE
+                  }
+                >
                   🏘️ البلدة / الناحية:
                   {" "}
                   <strong>
@@ -1548,7 +1902,11 @@ export default function Crops() {
 
               {village && (
 
-                <p>
+                <p
+                  style={
+                    INFO_TEXT_STYLE
+                  }
+                >
                   🌾 القرية:
                   {" "}
                   <strong>
@@ -1563,7 +1921,11 @@ export default function Crops() {
                 !town &&
                 !village && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     📍 تم حفظ الموقع، لكن لم تُرجع خدمة الخرائط أسماء إدارية لهذا الموضع.
                   </p>
 
@@ -1573,7 +1935,11 @@ export default function Crops() {
 
               {mapLocation.boundary?.length >= 3 && (
 
-                <p>
+                <p
+                  style={
+                    INFO_TEXT_STYLE
+                  }
+                >
                   🗺️ حدود الأرض:
                   {" "}
                   {mapLocation.boundary.length}
@@ -1588,6 +1954,9 @@ export default function Crops() {
                 type="button"
                 onClick={
                   chooseMapLocation
+                }
+                style={
+                  BUTTON_STYLE
                 }
               >
                 🗺️ تعديل موقع الأرض
@@ -1605,12 +1974,20 @@ export default function Crops() {
 
             <div>
 
-              <p>
+              <p
+                style={
+                  INFO_TEXT_STYLE
+                }
+              >
                 ⚠️ لم يتم تحديد موقع لهذه المزرعة
               </p>
 
 
-              <p>
+              <p
+                style={
+                  INFO_TEXT_STYLE
+                }
+              >
                 يجب تحديد موقع الأرض قبل حساب المناخ والتوصيات الزراعية.
               </p>
 
@@ -1619,6 +1996,9 @@ export default function Crops() {
                 type="button"
                 onClick={
                   chooseMapLocation
+                }
+                style={
+                  BUTTON_STYLE
                 }
               >
                 🗺️ تحديد موقع الأرض
@@ -1632,7 +2012,11 @@ export default function Crops() {
 
         {locationMessage && (
 
-          <p>
+          <p
+            style={
+              INFO_TEXT_STYLE
+            }
+          >
             {locationMessage}
           </p>
 
@@ -1647,6 +2031,9 @@ export default function Crops() {
               refreshMapLocation
             }
             disabled={locationLoading}
+            style={
+              BUTTON_STYLE
+            }
           >
             🔄 تحديث موقع المزرعة
           </button>
@@ -1660,19 +2047,41 @@ export default function Crops() {
       {/* CULTIVATION */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           3. نوع الزراعة
         </h2>
 
 
+        <label
+          htmlFor="cultivation-type"
+          style={
+            LABEL_STYLE
+          }
+        >
+          🌱 اختر نوع الزراعة
+        </label>
+
+
         <select
+          id="cultivation-type"
           name="cultivationType"
           value={
             form.cultivationType
           }
           onChange={change}
+          style={
+            FIELD_STYLE
+          }
         >
 
           {TYPES.map(
@@ -1697,80 +2106,133 @@ export default function Crops() {
       {/* CROP */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           4. المحصول
         </h2>
 
 
-        <label>
-          اسم المحصول
+        <label
+          htmlFor="crop-name"
+          style={
+            LABEL_STYLE
+          }
+        >
+          🌱 اسم المحصول
         </label>
 
 
         <input
+          id="crop-name"
           type="text"
           name="name"
           value={form.name}
           onChange={change}
           placeholder="اكتب اسم المحصول مهما كان اسمه"
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <label>
-          نوع البذور
+        <label
+          htmlFor="seed-type"
+          style={
+            LABEL_STYLE
+          }
+        >
+          🌾 نوع البذور
         </label>
 
 
         <input
+          id="seed-type"
           type="text"
           name="seedType"
           value={form.seedType}
           onChange={change}
-          placeholder="نوع البذور"
+          placeholder="اكتب نوع البذور"
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <label>
-          الصنف
+        <label
+          htmlFor="seed-variety"
+          style={
+            LABEL_STYLE
+          }
+        >
+          🌿 الصنف
         </label>
 
 
         <input
+          id="seed-variety"
           type="text"
           name="seedVariety"
           value={form.seedVariety}
           onChange={change}
-          placeholder="الصنف"
+          placeholder="اكتب الصنف"
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <label>
-          جودة البذور
+        <label
+          htmlFor="seed-quality"
+          style={
+            LABEL_STYLE
+          }
+        >
+          ⭐ جودة البذور
         </label>
 
 
         <input
+          id="seed-quality"
           type="text"
           name="seedQuality"
           value={form.seedQuality}
           onChange={change}
-          placeholder="جودة البذور"
+          placeholder="اكتب جودة البذور"
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <label>
-          كمية البذور
+        <label
+          htmlFor="seed-quantity"
+          style={
+            LABEL_STYLE
+          }
+        >
+          ⚖️ كمية البذور
         </label>
 
 
         <input
+          id="seed-quantity"
           type="number"
           name="seedQuantity"
           value={form.seedQuantity}
           onChange={change}
-          placeholder="الكمية"
+          placeholder="أدخل الكمية"
+          style={
+            FIELD_STYLE
+          }
         />
 
       </section>
@@ -1780,29 +2242,50 @@ export default function Crops() {
       {/* PLANTING */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           5. تاريخ الزراعة والعمر
         </h2>
 
 
-        <label>
-          تاريخ الزراعة
+        <label
+          htmlFor="planting-date"
+          style={
+            LABEL_STYLE
+          }
+        >
+          📅 تاريخ الزراعة
         </label>
 
 
         <input
+          id="planting-date"
           type="date"
           name="plantingDate"
           value={
             form.plantingDate
           }
           onChange={change}
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <p>
+        <p
+          style={
+            INFO_TEXT_STYLE
+          }
+        >
           ⏳ عمر النبات:
           {" "}
           <strong>
@@ -1817,73 +2300,117 @@ export default function Crops() {
       {/* FERTILIZER / HARVEST */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           6. السماد والحصاد
         </h2>
 
 
-        <label>
-          سماد الزراعة
+        <label
+          htmlFor="fertilizer-type"
+          style={
+            LABEL_STYLE
+          }
+        >
+          🧪 سماد الزراعة
         </label>
 
 
         <input
+          id="fertilizer-type"
           type="text"
           name="fertilizerType"
           value={
             form.fertilizerType
           }
           onChange={change}
-          placeholder="نوع السماد"
+          placeholder="اكتب نوع السماد"
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <label>
-          كمية السماد
+        <label
+          htmlFor="fertilizer-quantity"
+          style={
+            LABEL_STYLE
+          }
+        >
+          ⚖️ كمية السماد
         </label>
 
 
         <input
+          id="fertilizer-quantity"
           type="number"
           name="fertilizerQuantity"
           value={
             form.fertilizerQuantity
           }
           onChange={change}
-          placeholder="الكمية"
+          placeholder="أدخل كمية السماد"
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <label>
-          تاريخ الحصاد
+        <label
+          htmlFor="harvest-date"
+          style={
+            LABEL_STYLE
+          }
+        >
+          📅 تاريخ الحصاد
         </label>
 
 
         <input
+          id="harvest-date"
           type="date"
           name="harvestDate"
           value={
             form.harvestDate
           }
           onChange={change}
+          style={
+            FIELD_STYLE
+          }
         />
 
 
-        <label>
-          الإنتاج المتوقع
+        <label
+          htmlFor="expected-production"
+          style={
+            LABEL_STYLE
+          }
+        >
+          📦 الإنتاج المتوقع
         </label>
 
 
         <input
+          id="expected-production"
           type="number"
           name="expectedProduction"
           value={
             form.expectedProduction
           }
           onChange={change}
-          placeholder="الإنتاج المتوقع"
+          placeholder="أدخل الإنتاج المتوقع"
+          style={
+            FIELD_STYLE
+          }
         />
 
       </section>
@@ -1896,9 +2423,17 @@ export default function Crops() {
       {mapLocation &&
         smartRecommendations && (
 
-          <section>
+          <section
+            style={
+              SECTION_STYLE
+            }
+          >
 
-            <h2>
+            <h2
+              style={
+                SECTION_TITLE_STYLE
+              }
+            >
               🌱 التوصيات الزراعية
             </h2>
 
@@ -1908,7 +2443,11 @@ export default function Crops() {
               smartRecommendations.climateName
             ) && (
 
-              <p>
+              <p
+                style={
+                  INFO_TEXT_STYLE
+                }
+              >
                 🌤️ المناخ:
                 {" "}
                 <strong>
@@ -1929,12 +2468,27 @@ export default function Crops() {
 
                 <div>
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     🌾 البذور الموصى بها:
                   </p>
 
 
-                  <ul>
+                  <ul
+                    style={{
+                      fontSize:
+                        "17px",
+
+                      lineHeight:
+                        "1.8",
+
+                      paddingRight:
+                        "24px",
+                    }}
+                  >
 
                     {smartRecommendations.recommendedSeeds.map(
                       (seed, index) => (
@@ -1965,19 +2519,41 @@ export default function Crops() {
       {/* NOTES */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           7. ملاحظات
         </h2>
 
 
+        <label
+          htmlFor="crop-notes"
+          style={
+            LABEL_STYLE
+          }
+        >
+          📝 ملاحظات المحصول
+        </label>
+
+
         <textarea
+          id="crop-notes"
           name="notes"
           value={form.notes}
           onChange={change}
           rows={4}
           placeholder="أضف ملاحظاتك..."
+          style={
+            TEXTAREA_STYLE
+          }
         />
 
       </section>
@@ -1991,7 +2567,9 @@ export default function Crops() {
 
         <p
           style={{
+            ...MESSAGE_STYLE,
             color: "crimson",
+            background: "#fff1f1",
           }}
         >
           ❌ {error}
@@ -2004,7 +2582,9 @@ export default function Crops() {
 
         <p
           style={{
+            ...MESSAGE_STYLE,
             color: "green",
+            background: "#f0f9f0",
           }}
         >
           {message}
@@ -2024,6 +2604,15 @@ export default function Crops() {
           saving ||
           !form.farmId
         }
+        style={{
+          ...BUTTON_STYLE,
+          marginTop:
+            "24px",
+          minHeight:
+            "58px",
+          fontSize:
+            "18px",
+        }}
       >
         {saving
           ? "⏳ جارٍ الحفظ..."
@@ -2035,16 +2624,28 @@ export default function Crops() {
       {/* REGISTERED CROPS */}
       {/* ================================================= */}
 
-      <section>
+      <section
+        style={
+          SECTION_STYLE
+        }
+      >
 
-        <h2>
+        <h2
+          style={
+            SECTION_TITLE_STYLE
+          }
+        >
           🌾 المحاصيل المسجلة
         </h2>
 
 
         {crops.length === 0 && (
 
-          <p>
+          <p
+            style={
+              INFO_TEXT_STYLE
+            }
+          >
             لا توجد محاصيل مسجلة حتى الآن.
           </p>
 
@@ -2091,20 +2692,25 @@ export default function Crops() {
                   crop.id ||
                   `${crop.farmId}-${crop.name}`
                 }
-                style={{
-                  marginTop: "16px",
-                  padding: "16px",
-                  border: "1px solid #ddd",
-                  borderRadius: "12px",
-                }}
+                style={
+                  ARTICLE_STYLE
+                }
               >
 
-                <h3>
+                <h3
+                  style={
+                    ARTICLE_TITLE_STYLE
+                  }
+                >
                   🌱 {crop.name}
                 </h3>
 
 
-                <p>
+                <p
+                  style={
+                    INFO_TEXT_STYLE
+                  }
+                >
                   🏡 المزرعة:
                   {" "}
                   {
@@ -2118,7 +2724,11 @@ export default function Crops() {
 
                 {crop.seedType && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     🌾 البذور:
                     {" "}
                     {crop.seedType}
@@ -2129,7 +2739,11 @@ export default function Crops() {
 
                 {crop.seedVariety && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     🌱 الصنف:
                     {" "}
                     {crop.seedVariety}
@@ -2140,7 +2754,11 @@ export default function Crops() {
 
                 {crop.plantingDate && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     📅 الزراعة:
                     {" "}
                     {crop.plantingDate}
@@ -2151,7 +2769,11 @@ export default function Crops() {
 
                 {crop.plantingDate && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     ⏳ العمر:
                     {" "}
                     {calculateAge(
@@ -2164,7 +2786,11 @@ export default function Crops() {
 
                 {crop.climate && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     🌤️ المناخ:
                     {" "}
                     {crop.climate}
@@ -2175,7 +2801,11 @@ export default function Crops() {
 
                 {cropGovernorate && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     🏛️ المحافظة:
                     {" "}
                     {cropGovernorate}
@@ -2186,7 +2816,11 @@ export default function Crops() {
 
                 {cropTown && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     🏘️ البلدة / الناحية:
                     {" "}
                     {cropTown}
@@ -2197,7 +2831,11 @@ export default function Crops() {
 
                 {cropVillage && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     🌾 القرية:
                     {" "}
                     {cropVillage}
@@ -2210,7 +2848,11 @@ export default function Crops() {
                   crop
                 ) && (
 
-                  <p>
+                  <p
+                    style={
+                      INFO_TEXT_STYLE
+                    }
+                  >
                     📍 موقع الأرض محفوظ
                   </p>
 
@@ -2252,6 +2894,11 @@ export default function Crops() {
 
                     }
                   }
+                  style={{
+                    ...BUTTON_STYLE,
+                    fontSize:
+                      "17px",
+                  }}
                 >
                   🗑️ حذف
                 </button>
