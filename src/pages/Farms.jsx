@@ -17,20 +17,14 @@ import useFarms from "../hooks/useFarms.js";
 // =========================================================
 // الصفحة الأولى للتطبيق
 //
-// /
-// ↓
-// Farms.jsx
-//
 // الوضع الأول:
 // اختيار المزرعة
 //
 // الوضع الثاني:
-// بعد الضغط على المزرعة → خدمات المزرعة
+// خدمات المزرعة
 //
-// التصميم:
-// 3 أعمدة دائمًا
-// 9 خانات على الأقل
-// + إضافة مزارع بلا حد عملي
+// إضافة:
+// إدارة وحذف المزارع من زر جانبي مستقل
 // =========================================================
 
 
@@ -176,6 +170,7 @@ export default function Farms() {
     loading,
     error,
     loadFarms,
+    deleteFarm,
   } = useFarms();
 
 
@@ -183,6 +178,24 @@ export default function Farms() {
     selectedFarm,
     setSelectedFarm,
   ] = useState(null);
+
+
+  const [
+    showDeletePanel,
+    setShowDeletePanel,
+  ] = useState(false);
+
+
+  const [
+    farmToDelete,
+    setFarmToDelete,
+  ] = useState(null);
+
+
+  const [
+    deletingFarm,
+    setDeletingFarm,
+  ] = useState(false);
 
 
   // =======================================================
@@ -235,27 +248,6 @@ export default function Farms() {
 
   // =======================================================
   // GRID SIZE
-  // =======================================================
-  //
-  // نحافظ على 9 خانات على الأقل.
-  //
-  // إذا كان عدد المزارع أقل من 9:
-  //
-  // 1  2  3
-  // 4  5  6
-  // 7  8  9
-  //       +
-  //
-  // إذا تجاوز المستخدم 9 مزارع:
-  //
-  // 1   2   3
-  // 4   5   6
-  // 7   8   9
-  // 10  11  12
-  // ...
-  //       +
-  //
-  // الزر + يبقى دائمًا بعد آخر مزرعة.
   // =======================================================
 
   const farmSlotCount =
@@ -365,6 +357,176 @@ export default function Farms() {
         String(farmId)
       )}`
     );
+
+  };
+
+
+  // =======================================================
+  // OPEN DELETE PANEL
+  // =======================================================
+
+  const openDeletePanel = () => {
+
+    setFarmToDelete(
+      null
+    );
+
+    setShowDeletePanel(
+      true
+    );
+
+  };
+
+
+  // =======================================================
+  // CLOSE DELETE PANEL
+  // =======================================================
+
+  const closeDeletePanel = () => {
+
+    if (
+      deletingFarm
+    ) {
+
+      return;
+
+    }
+
+
+    setFarmToDelete(
+      null
+    );
+
+    setShowDeletePanel(
+      false
+    );
+
+  };
+
+
+  // =======================================================
+  // SELECT FARM FOR DELETE
+  // =======================================================
+
+  const selectFarmForDelete = (
+    farm
+  ) => {
+
+    setFarmToDelete(
+      farm
+    );
+
+  };
+
+
+  // =======================================================
+  // CONFIRM DELETE
+  // =======================================================
+
+  const confirmDeleteFarm = async () => {
+
+    if (
+      !farmToDelete
+    ) {
+
+      return;
+
+    }
+
+
+    if (
+      typeof deleteFarm !==
+      "function"
+    ) {
+
+      return;
+
+    }
+
+
+    const farmId =
+      farmToDelete.__displayId;
+
+
+    if (
+      !farmId
+    ) {
+
+      return;
+
+    }
+
+
+    setDeletingFarm(
+      true
+    );
+
+
+    try {
+
+      const deleted =
+        await deleteFarm(
+          farmId
+        );
+
+
+      if (
+        !deleted
+      ) {
+
+        throw new Error(
+          "FARM_DELETE_FAILED"
+        );
+
+      }
+
+
+      if (
+        selectedFarm &&
+        String(
+          selectedFarm.__displayId
+        ) ===
+        String(
+          farmId
+        )
+      ) {
+
+        setSelectedFarm(
+          null
+        );
+
+      }
+
+
+      setFarmToDelete(
+        null
+      );
+
+      setShowDeletePanel(
+        false
+      );
+
+
+    } catch (
+      err
+    ) {
+
+      console.error(
+        "Failed to delete farm:",
+        err
+      );
+
+      alert(
+        "تعذر حذف المزرعة. حاول مرة أخرى."
+      );
+
+    } finally {
+
+      setDeletingFarm(
+        false
+      );
+
+    }
 
   };
 
@@ -794,6 +956,212 @@ export default function Farms() {
 
 
         {/* =================================================
+            DELETE MANAGER
+        ================================================= */}
+
+        <button
+          type="button"
+          className="farms-delete-manager-button"
+          onClick={
+            openDeletePanel
+          }
+        >
+          🗑️ إدارة حذف المزارع
+        </button>
+
+
+        {/* =================================================
+            DELETE PANEL
+        ================================================= */}
+
+        {
+          showDeletePanel && (
+
+            <section
+              className="farms-delete-panel"
+              aria-label="إدارة حذف المزارع"
+            >
+
+              <div
+                className="farms-delete-panel-header"
+              >
+
+                <h2>
+                  حذف مزرعة
+                </h2>
+
+
+                <button
+                  type="button"
+                  className="farms-delete-close-button"
+                  onClick={
+                    closeDeletePanel
+                  }
+                  disabled={
+                    deletingFarm
+                  }
+                  aria-label="إغلاق"
+                >
+                  ✕
+                </button>
+
+              </div>
+
+
+              <p
+                className="farms-delete-panel-description"
+              >
+                اختر المزرعة التي تريد حذفها:
+              </p>
+
+
+              {
+                normalizedFarms.length === 0 ? (
+
+                  <p>
+                    لا توجد مزارع مسجلة.
+                  </p>
+
+                ) : (
+
+                  <div
+                    className="farms-delete-list"
+                  >
+
+                    {
+                      normalizedFarms.map(
+                        (
+                          farm
+                        ) => (
+
+                          <button
+                            key={
+                              String(
+                                farm.__displayId
+                              )
+                            }
+                            type="button"
+                            className={
+                              `farms-delete-item ${
+                                farmToDelete &&
+                                String(
+                                  farmToDelete.__displayId
+                                ) ===
+                                String(
+                                  farm.__displayId
+                                )
+                                  ? "selected"
+                                  : ""
+                              }`
+                            }
+                            onClick={() =>
+                              selectFarmForDelete(
+                                farm
+                              )
+                            }
+                            disabled={
+                              deletingFarm
+                            }
+                          >
+
+                            <span>
+                              {
+                                farm.__number
+                              }
+                            </span>
+
+
+                            <strong>
+                              {
+                                farm.__displayName
+                              }
+                            </strong>
+
+
+                            <span>
+                              🗑️
+                            </span>
+
+                          </button>
+
+                        )
+                      )
+                    }
+
+                  </div>
+
+                )
+              }
+
+
+              {
+                farmToDelete && (
+
+                  <div
+                    className="farms-delete-confirm"
+                  >
+
+                    <p>
+                      هل تريد حذف المزرعة:
+                    </p>
+
+
+                    <strong>
+                      {
+                        farmToDelete.__displayName
+                      }
+                    </strong>
+
+
+                    <div
+                      className="farms-delete-confirm-actions"
+                    >
+
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setFarmToDelete(
+                            null
+                          )
+                        }
+                        disabled={
+                          deletingFarm
+                        }
+                      >
+                        إلغاء
+                      </button>
+
+
+                      <button
+                        type="button"
+                        onClick={
+                          confirmDeleteFarm
+                        }
+                        disabled={
+                          deletingFarm
+                        }
+                      >
+                        {
+                          deletingFarm
+                            ? "جاري الحذف..."
+                            : "تأكيد الحذف"
+                        }
+                      </button>
+
+                    </div>
+
+                  </div>
+
+                )
+              }
+
+            </section>
+
+          )
+        }
+
+
+        {/* =================================================
             FARM SECTION
         ================================================= */}
 
@@ -825,8 +1193,6 @@ export default function Farms() {
 
           {/* =================================================
               FARM GRID
-              3 COLUMNS
-              UNLIMITED PRACTICAL FARMS
           ================================================= */}
 
           <section
@@ -967,9 +1333,6 @@ export default function Farms() {
 
             {/* =================================================
                 ADD FARM BUTTON
-                =================================================
-                هذا الزر لا يدخل ضمن الحد 9.
-                يبقى دائمًا بعد آخر خانة.
             ================================================= */}
 
             <button
