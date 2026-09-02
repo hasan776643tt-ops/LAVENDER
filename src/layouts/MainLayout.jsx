@@ -9,11 +9,12 @@ import { useLocation } from "react-router-dom";
 // =========================================================
 // LAVENDER — Main Layout
 // =========================================================
-// Farms + Farm Services = Full Screen
+// Farms + New Farm + Farm Services = Full Screen
 //
 // الصفحة الرئيسية:
 // /
 // /farms
+// /farms/new
 //
 // خدمات المزرعة:
 // /crops
@@ -72,12 +73,13 @@ export default function MainLayout({
 
 
   // =======================================================
-  // FARMS SCREEN
+  // FARMS SCREENS
   // =======================================================
 
   const isFarmsScreen =
     pathname === "/" ||
-    pathname === "/farms";
+    pathname === "/farms" ||
+    pathname === "/farms/new";
 
 
   // =======================================================
@@ -94,10 +96,12 @@ export default function MainLayout({
   // FULL SCREEN MODE
   // =======================================================
   //
-  // Farms والخدمات الخاصة بالمزرعة
+  // Farms والمزرعة الجديدة والخدمات الخاصة بالمزرعة
   // لا تعرض Header / Sidebar / Footer.
   //
   // هذا يمنع ظهور القوائم العامة داخل:
+  // المزارع
+  // تسجيل مزرعة جديدة
   // الطقس
   // الأمراض
   // الأسمدة
