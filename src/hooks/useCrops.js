@@ -6,34 +6,29 @@ import {
   useState,
 } from "react";
 
-import cropService
-  from "../services/cropService.js";
+import cropService from "../services/cropService.js";
 
 
 // =========================================================
-// LAVENDER — useCrops
+// HELPERS
 // =========================================================
-//
-// مسؤول عن:
-// تحميل المحاصيل
-// إضافة محصول
-// تعديل محصول
-// حذف محصول
-// البحث
-// الإحصائيات
-//
-// الموقع يأتي من الخريطة.
-// لا يعتمد على إدخال موقع يدوي من Crops.
-//
-// =========================================================
-
 
 function normalizeNumber(
   value
 ) {
 
+  if (
+    value === "" ||
+    value === null ||
+    value === undefined
+  ) {
+    return null;
+  }
+
+
   const number =
     Number(value);
+
 
   return Number.isFinite(number)
     ? number
@@ -42,90 +37,86 @@ function normalizeNumber(
 
 
 function normalizeBoundary(
-  boundary
+  value
 ) {
 
-  if (
-    !Array.isArray(boundary)
-  ) {
+  if (!Array.isArray(value)) {
     return [];
   }
 
 
-  return boundary
+  return value
     .map(point => {
 
-      if (
-        Array.isArray(point)
-      ) {
-
-        const latitude =
-          normalizeNumber(
-            point[0]
-          );
-
-        const longitude =
-          normalizeNumber(
-            point[1]
-          );
-
-        if (
-          latitude === null ||
-          longitude === null
-        ) {
-          return null;
-        }
+      if (Array.isArray(point)) {
 
         return {
-          latitude,
-          longitude,
+
+          latitude:
+            normalizeNumber(
+              point[0]
+            ),
+
+          longitude:
+            normalizeNumber(
+              point[1]
+            ),
+
         };
       }
 
 
-      if (
-        point &&
-        typeof point === "object"
-      ) {
+      return {
 
-        const latitude =
+        latitude:
           normalizeNumber(
-            point.latitude
-          );
+            point?.latitude ??
+            point?.lat
+          ),
 
-        const longitude =
+        longitude:
           normalizeNumber(
-            point.longitude
-          );
+            point?.longitude ??
+            point?.lng ??
+            point?.lon
+          ),
 
-        if (
-          latitude === null ||
-          longitude === null
-        ) {
-          return null;
-        }
+      };
 
-        return {
-          latitude,
-          longitude,
-        };
-      }
-
-
-      return null;
     })
-    .filter(Boolean);
+    .filter(
+      point =>
+        Number.isFinite(
+          point.latitude
+        ) &&
+        Number.isFinite(
+          point.longitude
+        )
+    );
 }
 
+
+// =========================================================
+// CROP NORMALIZATION
+// =========================================================
 
 function normalizeCropData(
   data = {}
 ) {
 
+  const points =
+    normalizeBoundary(
+      data.points ??
+      data.boundary ??
+      []
+    );
+
+
   const latitude =
     normalizeNumber(
       data.latitude
     );
+
 
   const longitude =
     normalizeNumber(
@@ -133,148 +124,185 @@ function normalizeCropData(
     );
 
 
-  const boundary =
-    normalizeBoundary(
-      data.boundary ||
-      data.points
-    );
-
-
   return {
 
     ...data,
 
-
-    // =====================================================
-    // FARM
-    // =====================================================
+    id:
+      data.id ?? null,
 
     farmId:
       data.farmId
         ? String(data.farmId)
         : "",
 
+    cultivationType:
+      data.cultivationType ||
+      "field",
 
-    // =====================================================
-    // LOCATION
-    // =====================================================
+    name:
+      String(
+        data.name ??
+        ""
+      ).trim(),
+
+    seedType:
+      String(
+        data.seedType ??
+        ""
+      ).trim(),
+
+    seedVariety:
+      String(
+        data.seedVariety ??
+        ""
+      ).trim(),
+
+    seedQuality:
+      String(
+        data.seedQuality ??
+        ""
+      ).trim(),
+
+    seedQuantity:
+      normalizeNumber(
+        data.seedQuantity
+      ),
+
+    treeType:
+      String(
+        data.treeType ??
+        ""
+      ).trim(),
+
+    treeVariety:
+      String(
+        data.treeVariety ??
+        ""
+      ).trim(),
+
+    plantingDate:
+      data.plantingDate ||
+      "",
+
+    fertilizerType:
+      String(
+        data.fertilizerType ??
+        ""
+      ).trim(),
+
+    fertilizerQuantity:
+      normalizeNumber(
+        data.fertilizerQuantity
+      ),
+
+    harvestDate:
+      data.harvestDate ||
+      "",
+
+    expectedProduction:
+      normalizeNumber(
+        data.expectedProduction
+      ),
 
     latitude,
 
     longitude,
 
-    boundary,
+    points,
 
-    points:
-      boundary,
-
-
-    // =====================================================
-    // ADMINISTRATIVE LOCATION
-    // =====================================================
+    boundary:
+      points,
 
     country:
       String(
-        data.country ||
+        data.country ??
         ""
       ).trim(),
 
     governorate:
       String(
-        data.governorate ||
-        data.state ||
-        data.province ||
-        data.region ||
-        ""
-      ).trim(),
-
-    state:
-      String(
-        data.state ||
-        data.governorate ||
-        ""
-      ).trim(),
-
-    province:
-      String(
-        data.province ||
-        data.governorate ||
+        data.governorate ??
         ""
       ).trim(),
 
     region:
       String(
-        data.region ||
-        data.governorate ||
+        data.region ??
         ""
       ).trim(),
 
     district:
       String(
-        data.district ||
+        data.district ??
         ""
       ).trim(),
 
     municipality:
       String(
-        data.municipality ||
+        data.municipality ??
+        ""
+      ).trim(),
+
+    province:
+      String(
+        data.province ??
+        ""
+      ).trim(),
+
+    state:
+      String(
+        data.state ??
         ""
       ).trim(),
 
     city:
       String(
-        data.city ||
+        data.city ??
         ""
       ).trim(),
 
     town:
       String(
-        data.town ||
+        data.town ??
         ""
       ).trim(),
 
     village:
       String(
-        data.village ||
+        data.village ??
         ""
       ).trim(),
 
     hamlet:
       String(
-        data.hamlet ||
+        data.hamlet ??
         ""
       ).trim(),
-
-
-    // =====================================================
-    // LOCATION DISPLAY
-    // =====================================================
 
     locationName:
       String(
-        data.locationName ||
-        data.placeName ||
-        data.village ||
-        data.town ||
-        data.city ||
+        data.locationName ??
         ""
       ).trim(),
 
+    placeName:
+      String(
+        data.placeName ??
+        ""
+      ).trim(),
 
-    // =====================================================
-    // CLIMATE
-    // =====================================================
+    locationDescription:
+      String(
+        data.locationDescription ??
+        ""
+      ).trim(),
 
     climate:
       String(
-        data.climate ||
+        data.climate ??
         ""
       ).trim(),
-
-
-    // =====================================================
-    // RECOMMENDATIONS
-    // =====================================================
 
     recommendedSeeds:
       Array.isArray(
@@ -283,16 +311,26 @@ function normalizeCropData(
         ? data.recommendedSeeds
         : [],
 
-
     recommendedSeedVarieties:
       Array.isArray(
         data.recommendedSeedVarieties
       )
         ? data.recommendedSeedVarieties
         : [],
+
+    notes:
+      String(
+        data.notes ??
+        ""
+      ).trim(),
+
   };
 }
 
+
+// =========================================================
+// HOOK
+// =========================================================
 
 export default function useCrops() {
 
@@ -311,7 +349,7 @@ export default function useCrops() {
   const [
     error,
     setError,
-  ] = useState(null);
+  ] = useState("");
 
 
   // =======================================================
@@ -322,32 +360,49 @@ export default function useCrops() {
     useCallback(
       async () => {
 
-        setLoading(true);
-
-        setError(null);
-
-
         try {
+
+          setLoading(true);
+          setError("");
+
 
           const data =
             await cropService.getAll();
 
 
-          const result =
+          const normalized =
             Array.isArray(data)
-              ? data
+              ? data.map(
+                  normalizeCropData
+                )
               : [];
 
 
-          setCrops(result);
+          setCrops(
+            normalized
+          );
 
-          return result;
 
-        } catch (err) {
+          return normalized;
 
-          setError(err);
+        } catch (loadError) {
 
-          throw err;
+          console.error(
+            "Crops loading failed:",
+            loadError
+          );
+
+
+          setCrops([]);
+
+
+          setError(
+            loadError?.message ||
+            "تعذر تحميل المحاصيل"
+          );
+
+
+          return [];
 
         } finally {
 
@@ -362,8 +417,7 @@ export default function useCrops() {
 
   useEffect(() => {
 
-    loadCrops()
-      .catch(() => {});
+    loadCrops();
 
   }, [loadCrops]);
 
@@ -376,69 +430,68 @@ export default function useCrops() {
     useCallback(
       async data => {
 
-        setLoading(true);
-
-        setError(null);
-
-
-        try {
-
-          const payload =
-            normalizeCropData(
-              data
-            );
-
-
-          // المزرعة مطلوبة
-          if (
-            !payload.farmId
-          ) {
-
-            throw new Error(
-              "CROP_FARM_REQUIRED"
-            );
-          }
-
-
-          // الموقع الجغرافي مطلوب
-          if (
-            payload.latitude === null ||
-            payload.longitude === null
-          ) {
-
-            throw new Error(
-              "CROP_LOCATION_REQUIRED"
-            );
-          }
-
-
-          const crop =
-            await cropService.create(
-              payload
-            );
-
-
-          setCrops(
-            current => [
-              ...current,
-              crop,
-            ]
+        const normalized =
+          normalizeCropData(
+            data
           );
 
 
-          return crop;
+        if (
+          !normalized.farmId
+        ) {
 
-        } catch (err) {
-
-          setError(err);
-
-          throw err;
-
-        } finally {
-
-          setLoading(false);
-
+          throw new Error(
+            "CROP_FARM_REQUIRED"
+          );
         }
+
+
+        if (
+          !normalized.name
+        ) {
+
+          throw new Error(
+            "CROP_NAME_REQUIRED"
+          );
+        }
+
+
+        if (
+          !Number.isFinite(
+            normalized.latitude
+          ) ||
+          !Number.isFinite(
+            normalized.longitude
+          )
+        ) {
+
+          throw new Error(
+            "CROP_LOCATION_REQUIRED"
+          );
+        }
+
+
+        const created =
+          await cropService.create(
+            normalized
+          );
+
+
+        const result =
+          normalizeCropData(
+            created
+          );
+
+
+        setCrops(
+          current => [
+            ...current,
+            result,
+          ]
+        );
+
+
+        return result;
 
       },
       []
@@ -456,53 +509,43 @@ export default function useCrops() {
         data
       ) => {
 
-        setLoading(true);
-
-        setError(null);
-
-
-        try {
-
-          const payload =
-            normalizeCropData(
-              data
-            );
-
-
-          const updated =
-            await cropService.update(
-              id,
-              payload
-            );
-
-
-          setCrops(
-            current =>
-              current.map(
-                crop =>
-                  String(
-                    crop.id
-                  ) ===
-                  String(id)
-                    ? updated
-                    : crop
-              )
+        const normalized =
+          normalizeCropData(
+            data
           );
 
 
-          return updated;
+        const updated =
+          await cropService.update(
+            id,
+            normalized
+          );
 
-        } catch (err) {
 
-          setError(err);
-
-          throw err;
-
-        } finally {
-
-          setLoading(false);
-
+        if (!updated) {
+          return null;
         }
+
+
+        const result =
+          normalizeCropData(
+            updated
+          );
+
+
+        setCrops(
+          current =>
+            current.map(
+              crop =>
+                String(crop.id) ===
+                String(id)
+                  ? result
+                  : crop
+            )
+        );
+
+
+        return result;
 
       },
       []
@@ -517,43 +560,33 @@ export default function useCrops() {
     useCallback(
       async id => {
 
-        setLoading(true);
+        if (!id) {
+          return false;
+        }
 
-        setError(null);
 
-
-        try {
-
+        const deleted =
           await cropService.delete(
             id
           );
 
 
-          setCrops(
-            current =>
-              current.filter(
-                crop =>
-                  String(
-                    crop.id
-                  ) !==
-                  String(id)
-              )
-          );
-
-
-          return true;
-
-        } catch (err) {
-
-          setError(err);
-
-          throw err;
-
-        } finally {
-
-          setLoading(false);
-
+        if (!deleted) {
+          return false;
         }
+
+
+        setCrops(
+          current =>
+            current.filter(
+              crop =>
+                String(crop.id) !==
+                String(id)
+            )
+        );
+
+
+        return true;
 
       },
       []
@@ -566,63 +599,75 @@ export default function useCrops() {
 
   const searchCrops =
     useCallback(
-      (
-        items = crops,
-        text = ""
-      ) => {
-
-        const source =
-          Array.isArray(items)
-            ? items
-            : [];
-
+      query => {
 
         const value =
-          String(text)
+          String(
+            query ?? ""
+          )
             .trim()
             .toLowerCase();
 
 
         if (!value) {
-          return source;
+          return crops;
         }
 
 
-        return source.filter(
-          crop =>
-            [
+        return crops.filter(
+          crop => {
 
-              crop?.name,
+            const searchable = [
 
-              crop?.seedType,
+              crop.name,
 
-              crop?.seedVariety,
+              crop.seedType,
 
-              crop?.fertilizerType,
+              crop.seedVariety,
 
-              crop?.locationName,
+              crop.fertilizerType,
 
-              crop?.country,
+              crop.locationName,
 
-              crop?.governorate,
+              crop.placeName,
 
-              crop?.district,
+              crop.country,
 
-              crop?.city,
+              crop.governorate,
 
-              crop?.town,
+              crop.region,
 
-              crop?.village,
+              crop.district,
 
-              crop?.climate,
+              crop.municipality,
 
-              crop?.notes,
+              crop.province,
+
+              crop.state,
+
+              crop.city,
+
+              crop.town,
+
+              crop.village,
+
+              crop.hamlet,
+
+              crop.climate,
+
+              crop.notes,
 
             ]
               .filter(Boolean)
               .join(" ")
-              .toLowerCase()
-              .includes(value)
+              .toLowerCase();
+
+
+            return searchable.includes(
+              value
+            );
+
+          }
         );
 
       },
@@ -636,31 +681,31 @@ export default function useCrops() {
 
   const getStatistics =
     useCallback(
-      (items = crops) => {
-
-        const source =
-          Array.isArray(items)
-            ? items
-            : [];
-
+      () => {
 
         return {
 
           total:
-            source.length,
+            crops.length,
 
-          active:
-            source.filter(
+          withLocation:
+            crops.filter(
               crop =>
-                crop?.status ===
-                "active"
+                Number.isFinite(
+                  crop.latitude
+                ) &&
+                Number.isFinite(
+                  crop.longitude
+                )
             ).length,
 
-          archived:
-            source.filter(
+          withBoundary:
+            crops.filter(
               crop =>
-                crop?.status ===
-                "archived"
+                Array.isArray(
+                  crop.boundary
+                ) &&
+                crop.boundary.length >= 3
             ).length,
 
         };
@@ -695,4 +740,5 @@ export default function useCrops() {
     getStatistics,
 
   };
+
 }
