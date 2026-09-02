@@ -2,6 +2,32 @@
 
 import { storageService } from "../storage";
 
+
+// =========================================================
+// LAVENDER — MAP REPOSITORY
+// =========================================================
+//
+// المسؤول فقط عن تخزين واسترجاع LocationData.
+//
+// لا يحتوي على:
+// - MapModel
+// - Leaflet
+// - Nominatim
+// - حسابات جغرافية
+// - React
+// - منطق المحاصيل
+//
+// العلاقة:
+// farmId → LocationData
+//
+// القاعدة:
+// لكل مزرعة LocationData واحد فعّال.
+// عند حفظ موقع جديد لنفس farmId يتم تحديث الموقع
+// الموجود بدل إنشاء سجل مكرر.
+//
+// =========================================================
+
+
 const LOCATIONS_KEY = "locations";
 
 
@@ -30,10 +56,15 @@ class MapRepository {
 
 
     /*
-     * الموقع الفعّال لكل مزرعة يجب أن يظهر مرة واحدة فقط.
+     * -----------------------------------------------------
+     * تنظيف السجلات المكررة القديمة
+     * -----------------------------------------------------
      *
-     * إذا كانت هناك سجلات قديمة مكررة لنفس farmId،
+     * إذا كان هناك أكثر من LocationData لنفس farmId،
      * نحتفظ بأحدث سجل فقط.
+     *
+     * هذا يعالج السجلات التي تم إنشاؤها سابقًا
+     * قبل تطبيق قاعدة عدم التكرار.
      */
 
     const latestByFarm =
@@ -58,7 +89,7 @@ class MapRepository {
       }
 
 
-      const itemFarmId =
+      const farmId =
         item?.farmId
           ? String(
               item.farmId
@@ -66,8 +97,13 @@ class MapRepository {
           : "";
 
 
+      /*
+       * السجلات القديمة التي لا تحتوي farmId
+       * لا نحذفها تلقائيًا.
+       */
+
       if (
-        !itemFarmId
+        !farmId
       ) {
 
         withoutFarm.push(
@@ -81,7 +117,7 @@ class MapRepository {
 
       const existing =
         latestByFarm.get(
-          itemFarmId
+          farmId
         );
 
 
@@ -90,7 +126,7 @@ class MapRepository {
       ) {
 
         latestByFarm.set(
-          itemFarmId,
+          farmId,
           item
         );
 
@@ -121,7 +157,7 @@ class MapRepository {
       ) {
 
         latestByFarm.set(
-          itemFarmId,
+          farmId,
           item
         );
 
@@ -140,7 +176,7 @@ class MapRepository {
 
 
     /*
-     * تنظيف السجلات المكررة القديمة من التخزين.
+     * حفظ النسخة النظيفة إذا كان هناك تكرار.
      */
 
     if (
@@ -199,7 +235,7 @@ class MapRepository {
 
 
   // =======================================================
-  // GET BY FARM ID
+  // GET BY FARM
   // =======================================================
 
   async getByFarmId(
@@ -233,7 +269,7 @@ class MapRepository {
 
 
   // =======================================================
-  // GET LATEST BY FARM ID
+  // GET ACTIVE LOCATION BY FARM
   // =======================================================
 
   async getLatestByFarmId(
@@ -304,7 +340,15 @@ class MapRepository {
 
 
   // =======================================================
-  // CREATE / UPSERT BY FARM
+  // CREATE / UPDATE BY FARM
+  // =======================================================
+  //
+  // إذا كان للمزرعة موقع موجود:
+  // يتم تحديثه.
+  //
+  // إذا لم يكن للمزرعة موقع:
+  // يتم إنشاء موقع جديد.
+  //
   // =======================================================
 
   async create(
@@ -334,12 +378,6 @@ class MapRepository {
     }
 
 
-    /*
-     * مهم:
-     * لا ننشئ موقعًا ثانيًا لنفس المزرعة.
-     * إذا كان للمزرعة موقع موجود، يتم تحديثه.
-     */
-
     const locations =
       await this.getAll();
 
@@ -349,6 +387,10 @@ class MapRepository {
         data.farmId
       );
 
+
+    /*
+     * البحث عن موقع موجود لنفس المزرعة.
+     */
 
     const existingIndex =
       locations.findIndex(
@@ -365,7 +407,7 @@ class MapRepository {
 
 
     // =====================================================
-    // UPDATE EXISTING FARM LOCATION
+    // UPDATE EXISTING LOCATION
     // =====================================================
 
     if (
@@ -379,32 +421,47 @@ class MapRepository {
         ];
 
 
-      const updated =
-        {
+      const updated = {
 
-          ...existing,
+        ...existing,
 
-          ...data,
+        ...data,
 
-          id:
-            existing.id,
+        /*
+         * نحافظ على ID الأصلي.
+         */
 
-          farmId:
-            farmId,
+        id:
+          existing.id,
 
-          createdAt:
-            existing.createdAt ||
-            now,
+        /*
+         * farmId لا يتغير.
+         */
 
-          updatedAt:
-            now,
+        farmId:
+          farmId,
 
-          status:
-            data.status ||
-            existing.status ||
-            "active",
+        /*
+         * تاريخ الإنشاء الأصلي يبقى محفوظًا.
+         */
 
-        };
+        createdAt:
+          existing.createdAt ||
+          now,
+
+        /*
+         * تاريخ التعديل يتحدث.
+         */
+
+        updatedAt:
+          now,
+
+        status:
+          data.status ||
+          existing.status ||
+          "active",
+
+      };
 
 
       locations[
@@ -425,7 +482,7 @@ class MapRepository {
 
 
     // =====================================================
-    // CREATE NEW FARM LOCATION
+    // CREATE NEW LOCATION
     // =====================================================
 
     const id =
@@ -439,34 +496,27 @@ class MapRepository {
             .slice(2)}`;
 
 
-    const location =
-      {
+    const location = {
 
-        id:
+      id,
 
-          id,
+      ...data,
 
-        ...data,
+      farmId:
+        farmId,
 
-        farmId:
+      createdAt:
+        data.createdAt ||
+        now,
 
-          farmId,
+      updatedAt:
+        now,
 
-        createdAt:
+      status:
+        data.status ||
+        "active",
 
-          data.createdAt ||
-          now,
-
-        updatedAt:
-
-          now,
-
-        status:
-
-          data.status ||
-          "active",
-
-      };
+    };
 
 
     locations.push(
@@ -540,27 +590,26 @@ class MapRepository {
     }
 
 
-    const updated =
-      {
+    const updated = {
 
-        ...locations[index],
+      ...locations[index],
 
-        ...data,
+      ...data,
 
-        id:
-          locations[index].id,
+      id:
+        locations[index].id,
 
-        farmId:
-          String(
-            data.farmId ??
-            locations[index].farmId ??
-            ""
-          ),
+      farmId:
+        String(
+          data.farmId ??
+          locations[index].farmId ??
+          ""
+        ),
 
-        updatedAt:
-          new Date().toISOString(),
+      updatedAt:
+        new Date().toISOString(),
 
-      };
+    };
 
 
     locations[index] =
