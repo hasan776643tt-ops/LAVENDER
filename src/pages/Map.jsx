@@ -38,23 +38,39 @@ import {
 // ============================================================
 
 const DEFAULT_POSITION = [36.7, 38.7];
-
 const DEFAULT_ZOOM = 14;
-
 const GPS_ZOOM = 18;
 
 const GPS_ATTEMPTS = 4;
-
 const GPS_WAIT = 1800;
 
 const GOOD_ACCURACY = 50;
-
 const ACCEPTABLE_ACCURACY = 100;
 
 
 // ============================================================
-// BASIC HELPERS
+// HELPERS
 // ============================================================
+
+const clean = value =>
+  String(value ?? "").trim();
+
+
+const getFarmId = farm =>
+  clean(
+    farm?.id ??
+    farm?._id ??
+    farm?.farmId
+  );
+
+
+const getFarmName = farm =>
+  clean(
+    farm?.name ??
+    farm?.farmName ??
+    farm?.title
+  );
+
 
 const isPoint = point =>
   Array.isArray(point) &&
@@ -72,8 +88,28 @@ const normalizePoint = point =>
     : null;
 
 
-const clean = value =>
-  String(value ?? "").trim();
+const normalizePoints = points => {
+  if (!Array.isArray(points)) {
+    return [];
+  }
+
+  return points
+    .map(point => {
+      if (
+        point &&
+        typeof point === "object" &&
+        !Array.isArray(point)
+      ) {
+        return normalizePoint([
+          point.latitude,
+          point.longitude,
+        ]);
+      }
+
+      return normalizePoint(point);
+    })
+    .filter(Boolean);
+};
 
 
 // ============================================================
@@ -151,7 +187,7 @@ function MapResizeHandler() {
 
 
 // ============================================================
-// MANUAL MAP POINT
+// BOUNDARY POINT SELECTOR
 // ============================================================
 
 function BoundaryPointSelector({ onAddPoint }) {
@@ -306,12 +342,6 @@ function GPSController({
           });
 
           if (
-            accuracy <= GOOD_ACCURACY
-          ) {
-            break;
-          }
-
-          if (
             accuracy <= ACCEPTABLE_ACCURACY
           ) {
             break;
@@ -333,22 +363,14 @@ function GPSController({
             return;
           }
 
-          if (error?.code === 2) {
+          if (
+            error?.code === 2 ||
+            error?.code === 3
+          ) {
             statusRef.current?.({
               type: "loading",
               message:
                 "📡 موقع GPS غير متاح حاليًا — جارٍ إعادة المحاولة...",
-            });
-
-            await wait(GPS_WAIT);
-            continue;
-          }
-
-          if (error?.code === 3) {
-            statusRef.current?.({
-              type: "loading",
-              message:
-                "⏳ انتهت محاولة GPS — جارٍ إعادة المحاولة...",
             });
 
             await wait(GPS_WAIT);
@@ -501,24 +523,6 @@ function Field({
   textarea = false,
   minHeight = "70px",
 }) {
-  const style = {
-    width: "100%",
-    boxSizing: "border-box",
-    minHeight: textarea
-      ? minHeight
-      : "64px",
-    padding: "14px",
-    border: "2px solid #d7ded9",
-    borderRadius: "16px",
-    fontSize: "18px",
-    lineHeight: "1.8",
-    background: "#ffffff",
-    outline: "none",
-    resize: textarea
-      ? "vertical"
-      : "none",
-  };
-
   return (
     <label
       style={{
@@ -543,7 +547,19 @@ function Field({
             onChange(e.target.value)
           }
           placeholder={placeholder}
-          style={style}
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            minHeight,
+            padding: "14px",
+            border: "2px solid #d7ded9",
+            borderRadius: "16px",
+            fontSize: "18px",
+            lineHeight: "1.8",
+            background: "#ffffff",
+            outline: "none",
+            resize: "vertical",
+          }}
         />
       ) : (
         <input
@@ -553,7 +569,18 @@ function Field({
             onChange(e.target.value)
           }
           placeholder={placeholder}
-          style={style}
+          style={{
+            width: "100%",
+            boxSizing: "border-box",
+            minHeight: "64px",
+            padding: "14px",
+            border: "2px solid #d7ded9",
+            borderRadius: "16px",
+            fontSize: "18px",
+            lineHeight: "1.8",
+            background: "#ffffff",
+            outline: "none",
+          }}
         />
       )}
     </label>
@@ -741,9 +768,8 @@ function FieldMapEditor({
   onClose,
   onSave,
 }) {
-  const safePoints = Array.isArray(points)
-    ? points.filter(isPoint)
-    : [];
+  const safePoints =
+    normalizePoints(points);
 
   const [
     gpsRequestId,
@@ -957,8 +983,6 @@ function FieldMapEditor({
         )}
       </MapContainer>
 
-      {/* HEADER */}
-
       <div
         style={{
           position: "absolute",
@@ -1010,8 +1034,6 @@ function FieldMapEditor({
         </button>
       </div>
 
-      {/* GPS */}
-
       <div
         style={{
           position: "absolute",
@@ -1036,11 +1058,9 @@ function FieldMapEditor({
               background:
                 gpsStatus.type === "error"
                   ? "rgba(183,28,28,0.94)"
-                  : gpsStatus.type ===
-                      "warning"
+                  : gpsStatus.type === "warning"
                     ? "rgba(180,110,0,0.95)"
-                    : gpsStatus.type ===
-                        "success"
+                    : gpsStatus.type === "success"
                       ? "rgba(20,90,50,0.94)"
                       : "rgba(30,70,100,0.94)",
               color: "#ffffff",
@@ -1055,8 +1075,6 @@ function FieldMapEditor({
           </div>
         )}
       </div>
-
-      {/* INSTRUCTION */}
 
       <div
         style={{
@@ -1090,8 +1108,6 @@ function FieldMapEditor({
           🛰️ حرّك الخريطة وكبّر ثم حدد الزوايا بدقة
         </div>
       </div>
-
-      {/* GPS INFO */}
 
       {gpsPosition && (
         <div
@@ -1131,8 +1147,6 @@ function FieldMapEditor({
         </div>
       )}
 
-      {/* POINT COUNT */}
-
       <div
         style={{
           position: "absolute",
@@ -1151,8 +1165,6 @@ function FieldMapEditor({
       >
         📍 النقاط: {safePoints.length}
       </div>
-
-      {/* BOTTOM ACTIONS */}
 
       <div
         style={{
@@ -1223,7 +1235,7 @@ function FieldMapEditor({
               "0 2px 8px rgba(0,0,0,0.18)",
           }}
         >
-          💾 حفظ الأرض
+          💾 اعتماد الحدود
         </button>
       </div>
     </div>
@@ -1251,848 +1263,24 @@ export default function Map() {
   } = useMapHook();
 
   // ----------------------------------------------------------
-  // FORM
+  // URL CONTEXT
   // ----------------------------------------------------------
 
   const [
-    locationMethod,
-    setLocationMethod,
-  ] = useState("text");
-
-  const [country, setCountry] =
-    useState("");
-
-  const [province, setProvince] =
-    useState("");
-
-  const [city, setCity] =
-    useState("");
-
-  const [town, setTown] =
-    useState("");
-
-  const [
-    description,
-    setDescription,
+    returnPath,
+    setReturnPath,
   ] = useState("");
 
-  const [
-    northNeighbor,
-    setNorthNeighbor,
-  ] = useState("");
-
-  const [
-    southNeighbor,
-    setSouthNeighbor,
-  ] = useState("");
-
-  const [
-    eastNeighbor,
-    setEastNeighbor,
-  ] = useState("");
-
-  const [
-    westNeighbor,
-    setWestNeighbor,
-  ] = useState("");
-
-  const [
-    fieldPoints,
-    setFieldPoints,
-  ] = useState([]);
-
-  const [
-    mapEditor,
-    setMapEditor,
-  ] = useState(false);
-
-  // ----------------------------------------------------------
-  // FARM
-  // ----------------------------------------------------------
-
-  const selectedFarm =
-    useMemo(
-      () =>
-        farms.find(
-          farm =>
-            String(farm.id) ===
-            String(farmId)
-        ),
-      [farms, farmId]
-    );
-
-  // ----------------------------------------------------------
-  // MAP
-  // ----------------------------------------------------------
-
-  const openMap = () => {
-    setLocationMethod("map");
-    setMapEditor(true);
-  };
-
-  const closeMap = () => {
-    setMapEditor(false);
-  };
-
-  const saveMap = () => {
-    if (fieldPoints.length < 3) {
-      alert(
-        "حدد 3 نقاط على الأقل."
+  useEffect(() => {
+    const params =
+      new URLSearchParams(
+        window.location.search
       );
 
-      return;
-    }
+    const urlFarmId =
+      clean(params.get("farmId"));
 
-    setLocationMethod("map");
-    setMapEditor(false);
-  };
+    const urlReturn =
+      clean(params.get("return"));
 
-  // ----------------------------------------------------------
-  // RESET
-  // ----------------------------------------------------------
-
-  const resetForm = () => {
-    setCountry("");
-    setProvince("");
-    setCity("");
-    setTown("");
-    setDescription("");
-
-    setNorthNeighbor("");
-    setSouthNeighbor("");
-    setEastNeighbor("");
-    setWestNeighbor("");
-
-    setFieldPoints([]);
-
-    setNotes("");
-
-    setLocationMethod("text");
-  };
-
-  // ----------------------------------------------------------
-  // SAVE LOCATION
-  // ----------------------------------------------------------
-
-  const handleSave = async () => {
-    if (!farmId) {
-      alert(
-        "اختر المزرعة أولًا."
-      );
-
-      return;
-    }
-
-    if (
-      locationMethod === "map" &&
-      fieldPoints.length < 3
-    ) {
-      alert(
-        "حدد حدود الأرض على الخريطة أولًا."
-      );
-
-      return;
-    }
-
-    if (
-      locationMethod === "text"
-    ) {
-      const hasTextData = [
-        country,
-        province,
-        city,
-        town,
-        description,
-        northNeighbor,
-        southNeighbor,
-        eastNeighbor,
-        westNeighbor,
-        notes,
-      ].some(
-        value =>
-          clean(value).length > 0
-      );
-
-      if (!hasTextData) {
-        alert(
-          "اكتب معلومات موقع الأرض أولًا."
-        );
-
-        return;
-      }
-    }
-
-    const points =
-      fieldPoints
-        .map(normalizePoint)
-        .filter(Boolean);
-
-    const firstPoint =
-      points.length
-        ? points[0]
-        : null;
-
-    const calculatedArea =
-      locationMethod === "map"
-        ? calculateArea(points)
-        : null;
-
-    const calculatedPerimeter =
-      locationMethod === "map"
-        ? calculatePerimeter(points)
-        : null;
-
-    const locationData = {
-      farmId: String(farmId),
-
-      farmName:
-        selectedFarm?.name || "",
-
-      type:
-        locationType || "field",
-
-      source:
-        locationMethod,
-
-      country:
-        clean(country),
-
-      region:
-        clean(province),
-
-      province:
-        clean(province),
-
-      city:
-        clean(city),
-
-      town:
-        clean(town),
-
-      village:
-        clean(town),
-
-      placeName:
-        clean(town) ||
-        clean(city),
-
-      locationDescription:
-        clean(description),
-
-      description:
-        clean(description),
-
-      northNeighbor:
-        clean(northNeighbor),
-
-      southNeighbor:
-        clean(southNeighbor),
-
-      eastNeighbor:
-        clean(eastNeighbor),
-
-      westNeighbor:
-        clean(westNeighbor),
-
-      // توافق مع البيانات القديمة
-      north:
-        clean(northNeighbor),
-
-      south:
-        clean(southNeighbor),
-
-      east:
-        clean(eastNeighbor),
-
-      west:
-        clean(westNeighbor),
-
-      // الحدود
-      points: points.map(point => ({
-        latitude: point[0],
-        longitude: point[1],
-      })),
-
-      /*
-       * مهم:
-       * الإحداثيات هنا من النقطة الحقيقية
-       * التي حددها المستخدم، وليس من Nominatim.
-       */
-      latitude:
-        firstPoint?.[0] ?? null,
-
-      longitude:
-        firstPoint?.[1] ?? null,
-
-      area:
-        calculatedArea,
-
-      perimeter:
-        calculatedPerimeter,
-
-      notes:
-        clean(notes),
-
-      status:
-        "active",
-    };
-
-    try {
-      const saved =
-        await addLocation(
-          locationData
-        );
-
-      if (saved === true) {
-        resetForm();
-      }
-    } catch (error) {
-      console.error(
-        "Map save error:",
-        error
-      );
-
-      alert(
-        error?.message ||
-        "حدث خطأ أثناء حفظ موقع الأرض."
-      );
-    }
-  };
-
-  // ----------------------------------------------------------
-  // FULL SCREEN MAP
-  // ----------------------------------------------------------
-
-  if (mapEditor) {
-    return (
-      <FieldMapEditor
-        points={fieldPoints}
-        setPoints={setFieldPoints}
-        onClose={closeMap}
-        onSave={saveMap}
-      />
-    );
-  }
-
-  // ----------------------------------------------------------
-  // PAGE
-  // ----------------------------------------------------------
-
-  return (
-    <div
-      style={{
-        padding: "12px",
-        direction: "rtl",
-      }}
-    >
-      <h1
-        style={{
-          fontSize: "28px",
-          marginBottom: "18px",
-        }}
-      >
-        🗺️ موقع الأرض
-      </h1>
-
-      {/* FARM */}
-
-      <Card title="🌾 الأرض والمزرعة">
-        <select
-          value={farmId || ""}
-          onChange={e =>
-            setFarmId(
-              e.target.value
-            )
-          }
-          style={{
-            width: "100%",
-            minHeight: "64px",
-            padding: "12px",
-            border:
-              "2px solid #d7ded9",
-            borderRadius: "16px",
-            fontSize: "18px",
-            background: "#ffffff",
-          }}
-        >
-          <option value="">
-            اختر المزرعة
-          </option>
-
-          {farms.map(farm => (
-            <option
-              key={farm.id}
-              value={farm.id}
-            >
-              {farm.name}
-            </option>
-          ))}
-        </select>
-
-        <div
-          style={{
-            height: "14px",
-          }}
-        />
-
-        <select
-          value={
-            locationType || "field"
-          }
-          onChange={e =>
-            setLocationType(
-              e.target.value
-            )
-          }
-          style={{
-            width: "100%",
-            minHeight: "64px",
-            padding: "12px",
-            border:
-              "2px solid #d7ded9",
-            borderRadius: "16px",
-            fontSize: "18px",
-            background: "#ffffff",
-          }}
-        >
-          <option value="field">
-            🌱 حقل
-          </option>
-
-          <option value="farm">
-            🌾 مزرعة
-          </option>
-
-          <option value="waterSource">
-            💧 مصدر مياه
-          </option>
-        </select>
-      </Card>
-
-      <div style={{ height: "14px" }} />
-
-      {/* METHOD */}
-
-      <Card title="📍 كيف تريد تحديد موقع الأرض؟">
-        <div
-          style={{
-            display: "grid",
-            gap: "12px",
-          }}
-        >
-          <button
-            type="button"
-            onClick={() =>
-              setLocationMethod("text")
-            }
-            style={{
-              minHeight: "100px",
-              padding: "16px",
-              borderRadius: "18px",
-              border:
-                locationMethod === "text"
-                  ? "3px solid #1b7f3a"
-                  : "2px solid #d7ded9",
-              background:
-                locationMethod === "text"
-                  ? "#edf8f0"
-                  : "#ffffff",
-              textAlign: "right",
-              fontSize: "19px",
-              fontWeight: "900",
-            }}
-          >
-            ✍️ كتابة موقع الأرض
-
-            <div
-              style={{
-                marginTop: "7px",
-                fontSize: "15px",
-                fontWeight: "400",
-                lineHeight: "1.8",
-              }}
-            >
-              البلد → المحافظة → المدينة →
-              البلدة → الجهات المحيطة
-            </div>
-          </button>
-
-          <button
-            type="button"
-            onClick={openMap}
-            style={{
-              minHeight: "100px",
-              padding: "16px",
-              borderRadius: "18px",
-              border:
-                locationMethod === "map"
-                  ? "3px solid #1b7f3a"
-                  : "2px solid #d7ded9",
-              background:
-                locationMethod === "map"
-                  ? "#edf8f0"
-                  : "#ffffff",
-              textAlign: "right",
-              fontSize: "19px",
-              fontWeight: "900",
-            }}
-          >
-            🛰️ تحديد الأرض على الخريطة
-
-            <div
-              style={{
-                marginTop: "7px",
-                fontSize: "15px",
-                fontWeight: "400",
-                lineHeight: "1.8",
-              }}
-            >
-              قمر صناعي + طرق + مدن وقرى +
-              GPS + تحديد يدوي
-            </div>
-          </button>
-        </div>
-      </Card>
-
-      <div style={{ height: "14px" }} />
-
-      {/* TEXT */}
-
-      {locationMethod === "text" && (
-        <Card title="✍️ بيانات موقع الأرض">
-          <TextLocationForm
-            country={country}
-            setCountry={setCountry}
-            province={province}
-            setProvince={setProvince}
-            city={city}
-            setCity={setCity}
-            town={town}
-            setTown={setTown}
-            description={description}
-            setDescription={setDescription}
-            northNeighbor={northNeighbor}
-            setNorthNeighbor={
-              setNorthNeighbor
-            }
-            southNeighbor={southNeighbor}
-            setSouthNeighbor={
-              setSouthNeighbor
-            }
-            eastNeighbor={eastNeighbor}
-            setEastNeighbor={
-              setEastNeighbor
-            }
-            westNeighbor={westNeighbor}
-            setWestNeighbor={
-              setWestNeighbor
-            }
-            notes={notes || ""}
-            setNotes={setNotes}
-          />
-        </Card>
-      )}
-
-      {/* MAP SUMMARY */}
-
-      {locationMethod === "map" && (
-        <Card title="🛰️ حدود الأرض">
-          <div
-            style={{
-              padding: "18px",
-              borderRadius: "18px",
-              background: "#f2f7f3",
-              lineHeight: "1.9",
-              fontSize: "17px",
-            }}
-          >
-            <strong>
-              {fieldPoints.length >= 3
-                ? "تم تحديد حدود الأرض."
-                : "لم يتم تحديد حدود الأرض بعد."}
-            </strong>
-
-            <div
-              style={{
-                marginTop: "8px",
-              }}
-            >
-              النقاط المحددة:{" "}
-              <strong>
-                {fieldPoints.length}
-              </strong>
-            </div>
-
-            {fieldPoints.length >= 3 && (
-              <>
-                <div
-                  style={{
-                    marginTop: "8px",
-                  }}
-                >
-                  📐 المساحة:{" "}
-                  <strong>
-                    {formatArea(
-                      calculateArea(
-                        fieldPoints
-                      )
-                    )}
-                  </strong>
-                </div>
-
-                <div
-                  style={{
-                    marginTop: "5px",
-                  }}
-                >
-                  📏 المحيط:{" "}
-                  <strong>
-                    {formatDistance(
-                      calculatePerimeter(
-                        fieldPoints
-                      )
-                    )}
-                  </strong>
-                </div>
-              </>
-            )}
-
-            <div
-              style={{
-                marginTop: "15px",
-              }}
-            >
-              <Button onClick={openMap}>
-                🛰️ فتح الخريطة وتحديد الأرض
-              </Button>
-            </div>
-          </div>
-        </Card>
-      )}
-
-      <div style={{ height: "18px" }} />
-
-      {/* SAVE */}
-
-      <Button onClick={handleSave}>
-        {loading
-          ? "⏳ جارٍ الحفظ..."
-          : "💾 حفظ موقع الأرض"}
-      </Button>
-
-      {/* SAVED LOCATIONS */}
-
-      <h2
-        style={{
-          marginTop: "28px",
-          fontSize: "23px",
-        }}
-      >
-        🗺️ المواقع المحفوظة
-      </h2>
-
-      {locations.length === 0 ? (
-        <p>
-          لا توجد مواقع محفوظة حتى الآن.
-        </p>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gap: "14px",
-          }}
-        >
-          {locations.map(item => {
-            const title =
-              item.town ||
-              item.village ||
-              item.city ||
-              item.placeName ||
-              item.farmName ||
-              "موقع أرض";
-
-            const hasNeighbors =
-              item.northNeighbor ||
-              item.southNeighbor ||
-              item.eastNeighbor ||
-              item.westNeighbor;
-
-            const hasCoordinates =
-              Number.isFinite(
-                Number(item.latitude)
-              ) &&
-              Number.isFinite(
-                Number(item.longitude)
-              );
-
-            return (
-              <Card
-                key={item.id}
-                title={title}
-              >
-                {item.farmName && (
-                  <p>
-                    🌾 {item.farmName}
-                  </p>
-                )}
-
-                {item.country && (
-                  <p>
-                    🌍 {item.country}
-                  </p>
-                )}
-
-                {item.region && (
-                  <p>
-                    🏛️ {item.region}
-                  </p>
-                )}
-
-                {item.city && (
-                  <p>
-                    🏙️ {item.city}
-                  </p>
-                )}
-
-                {item.town && (
-                  <p>
-                    🏘️ {item.town}
-                  </p>
-                )}
-
-                {item.locationDescription && (
-                  <p
-                    style={{
-                      whiteSpace:
-                        "pre-wrap",
-                      lineHeight: "1.8",
-                    }}
-                  >
-                    📍{" "}
-                    {item.locationDescription}
-                  </p>
-                )}
-
-                {hasNeighbors && (
-                  <div
-                    style={{
-                      marginTop: "12px",
-                      padding: "16px",
-                      borderRadius: "14px",
-                      background:
-                        "#f2f7f3",
-                      lineHeight: "1.9",
-                    }}
-                  >
-                    <strong>
-                      🧭 الجهات المحيطة
-                    </strong>
-
-                    {item.northNeighbor && (
-                      <div>
-                        ⬆️ الشمال:{" "}
-                        {item.northNeighbor}
-                      </div>
-                    )}
-
-                    {item.southNeighbor && (
-                      <div>
-                        ⬇️ الجنوب:{" "}
-                        {item.southNeighbor}
-                      </div>
-                    )}
-
-                    {item.eastNeighbor && (
-                      <div>
-                        ➡️ الشرق:{" "}
-                        {item.eastNeighbor}
-                      </div>
-                    )}
-
-                    {item.westNeighbor && (
-                      <div>
-                        ⬅️ الغرب:{" "}
-                        {item.westNeighbor}
-                      </div>
-                    )}
-                  </div>
-                )}
-
-                {Number(item.area) > 0 && (
-                  <p>
-                    📐 المساحة:{" "}
-                    {formatArea(
-                      item.area
-                    )}
-                  </p>
-                )}
-
-                {Number(item.perimeter) > 0 && (
-                  <p>
-                    📏 المحيط:{" "}
-                    {formatDistance(
-                      item.perimeter
-                    )}
-                  </p>
-                )}
-
-                {Array.isArray(item.points) &&
-                  item.points.length >= 3 && (
-                    <p>
-                      📍 عدد نقاط الحدود:{" "}
-                      {item.points.length}
-                    </p>
-                  )}
-
-                {item.notes && (
-                  <p
-                    style={{
-                      whiteSpace:
-                        "pre-wrap",
-                    }}
-                  >
-                    📝 {item.notes}
-                  </p>
-                )}
-
-                {hasCoordinates && (
-                  <a
-                    href={
-                      `https://maps.google.com/?q=${item.latitude},${item.longitude}`
-                    }
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{
-                      display:
-                        "inline-block",
-                      marginTop: "8px",
-                      fontSize: "17px",
-                    }}
-                  >
-                    🗺️ فتح الموقع على Google Maps
-                  </a>
-                )}
-
-                <div
-                  style={{
-                    height: "12px",
-                  }}
-                />
-
-                <Button
-                  onClick={() =>
-                    deleteLocation(
-                      item.id
-                    )
-                  }
-                >
-                  🗑️ حذف
-                </Button>
-              </Card>
-            );
-          })}
-        </div>
-      )}
-    </div>
-  );
-}
+    if (urlReturn) {
