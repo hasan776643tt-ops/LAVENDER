@@ -13,6 +13,12 @@ const Farms = lazy(
 );
 
 
+const NewFarm = lazy(
+  () =>
+    import("../pages/NewFarm.jsx")
+);
+
+
 
 const farmRoutes = Object.freeze([
 
@@ -24,6 +30,21 @@ const farmRoutes = Object.freeze([
     path: "/farms",
 
     element: Farms,
+
+    module: "farms",
+
+    protected: true
+
+  }),
+
+
+  Object.freeze({
+
+    id: "farms-new",
+
+    path: "/farms/new",
+
+    element: NewFarm,
 
     module: "farms",
 
