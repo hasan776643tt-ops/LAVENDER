@@ -43,7 +43,6 @@ mapRepository.js
    ↓
 storageService
 
-
 لا يوجد هنا:
 
 - CropModel
@@ -1649,6 +1648,12 @@ export default function useMap() {
 
     buildMapLocationData,
     saveMapLocation,
+
+    // COMPATIBILITY
+    // Map.jsx يستخدم addLocation
+
+    addLocation:
+      saveMapLocation,
 
     // CRUD
 
