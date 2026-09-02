@@ -24,59 +24,6 @@ const DRAFT_STORAGE_KEY =
   "lavender:newFarmDraft";
 
 
-const CROP_OPTIONS = [
-
-  {
-    value: "wheat",
-    label: "قمح",
-    cultivationType: "field",
-  },
-
-  {
-    value: "cotton",
-    label: "قطن",
-    cultivationType: "field",
-  },
-
-  {
-    value: "corn",
-    label: "ذرة",
-    cultivationType: "field",
-  },
-
-  {
-    value: "barley",
-    label: "شعير",
-    cultivationType: "field",
-  },
-
-  {
-    value: "sorghum",
-    label: "سورغم",
-    cultivationType: "field",
-  },
-
-  {
-    value: "millet",
-    label: "دخن",
-    cultivationType: "field",
-  },
-
-  {
-    value: "sesame",
-    label: "سمسم",
-    cultivationType: "field",
-  },
-
-  {
-    value: "coriander",
-    label: "كزبرة",
-    cultivationType: "vegetables",
-  },
-
-];
-
-
 // =========================================================
 // HELPERS
 // =========================================================
@@ -548,24 +495,6 @@ export default function NewFarm() {
 
 
   // =======================================================
-  // SELECTED CROP
-  // =======================================================
-
-  const selectedCrop =
-    useMemo(
-      () =>
-        CROP_OPTIONS.find(
-          crop =>
-            crop.value ===
-            draft.cropName
-        ),
-      [
-        draft.cropName,
-      ]
-    );
-
-
-  // =======================================================
   // LOCATION STATUS
   // =======================================================
 
@@ -647,19 +576,6 @@ export default function NewFarm() {
 
       setError(
         "أدخل اسم المزرعة أولًا."
-      );
-
-      return;
-
-    }
-
-
-    if (
-      !draft.cropName
-    ) {
-
-      setError(
-        "اختر اسم النبات أولًا."
       );
 
       return;
@@ -852,11 +768,11 @@ export default function NewFarm() {
 
 
     if (
-      !draft.cropName
+      !draft.cropName.trim()
     ) {
 
       setError(
-        "اختر اسم النبات."
+        "أدخل اسم النبات."
       );
 
       return;
@@ -904,12 +820,10 @@ export default function NewFarm() {
 
 
       const cropName =
-        selectedCrop?.label ||
-        draft.cropName;
+        draft.cropName.trim();
 
 
       const cultivationType =
-        selectedCrop?.cultivationType ||
         draft.cultivationType ||
         "field";
 
@@ -1069,7 +983,7 @@ export default function NewFarm() {
     };
 
 
-  // =======================================================
+  // =========================================================
   // RENDER
   // =========================================================
 
@@ -1183,8 +1097,9 @@ export default function NewFarm() {
             </label>
 
 
-            <select
+            <input
               id="crop-name"
+              type="text"
               value={
                 draft.cropName
               }
@@ -1194,6 +1109,8 @@ export default function NewFarm() {
                   event.target.value
                 )
               }
+              autoComplete="off"
+              placeholder="اكتب اسم النبات كما تريد"
               disabled={
                 savingFarm ||
                 savingCrop
@@ -1209,37 +1126,7 @@ export default function NewFarm() {
                 lineHeight: 1.5,
                 boxSizing: "border-box",
               }}
-            >
-
-              <option
-                value=""
-              >
-                اختر النبات
-              </option>
-
-
-              {
-                CROP_OPTIONS.map(
-                  crop => (
-
-                    <option
-                      key={
-                        crop.value
-                      }
-                      value={
-                        crop.value
-                      }
-                    >
-                      {
-                        crop.label
-                      }
-                    </option>
-
-                  )
-                )
-              }
-
-            </select>
+            />
 
           </section>
 
@@ -1273,8 +1160,7 @@ export default function NewFarm() {
               }
               disabled={
                 savingFarm ||
-                savingCrop ||
-                mapLoading
+                savingCrop
               }
               style={{
                 width: "100%",
@@ -1292,7 +1178,9 @@ export default function NewFarm() {
               {
                 savingFarm
                   ? "جاري إنشاء المزرعة..."
-                  : "🗺️ تحديد الموقع"
+                  : hasLocation
+                    ? "🗺️ تعديل موقع الحقل"
+                    : "🗺️ تحديد الموقع"
               }
 
             </button>
