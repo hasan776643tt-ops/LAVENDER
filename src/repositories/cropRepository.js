@@ -4,9 +4,52 @@ import { storageService } from "../storage";
 
 const CROPS_KEY = "crops";
 
+
+// =========================================================
+// DATE
+// التاريخ يبقى Date-Only كما أدخله المستخدم
+// لا يوجد تحويل إلى Date
+// لا يوجد تحويل إلى ISO
+// =========================================================
+
+function normalizeDate(value) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+
+  const date =
+    String(value).trim();
+
+  if (!date) {
+    return "";
+  }
+
+  if (
+    /^\d{4}-\d{2}-\d{2}$/.test(date)
+  ) {
+    return date;
+  }
+
+  return "";
+}
+
+
+// =========================================================
+// REPOSITORY
+// =========================================================
+
 class CropRepository {
 
+  // =======================================================
+  // GET ALL
+  // =======================================================
+
   async getAll() {
+
     const data =
       await storageService.load(
         CROPS_KEY,
@@ -19,8 +62,15 @@ class CropRepository {
   }
 
 
+  // =======================================================
+  // GET BY ID
+  // =======================================================
+
   async getById(id) {
-    if (!id) return null;
+
+    if (!id) {
+      return null;
+    }
 
     const crops =
       await this.getAll();
@@ -40,6 +90,7 @@ class CropRepository {
   // =======================================================
 
   async getByFarmId(farmId) {
+
     const id =
       String(
         farmId ?? ""
@@ -61,7 +112,12 @@ class CropRepository {
   }
 
 
+  // =======================================================
+  // CREATE
+  // =======================================================
+
   async create(data) {
+
     if (
       !data ||
       typeof data !== "object"
@@ -71,11 +127,16 @@ class CropRepository {
       );
     }
 
+
     const crops =
       await this.getAll();
 
+
+    // هذا التاريخ للبيانات الداخلية فقط
+    // وليس تاريخ الزراعة أو الحصاد
     const now =
       new Date().toISOString();
+
 
     const id =
       typeof crypto !== "undefined" &&
@@ -85,30 +146,73 @@ class CropRepository {
             .toString(36)
             .slice(2)}`;
 
+
     const crop = {
+
       id,
+
       ...data,
+
+
       farmId:
         data.farmId
           ? String(data.farmId)
           : "",
-      createdAt: now,
-      updatedAt: now,
+
+
+      // ===================================================
+      // التاريخ الذي أدخله المستخدم
+      // يحفظ كما هو
+      // ===================================================
+
+      plantingDate:
+        normalizeDate(
+          data.plantingDate
+        ),
+
+
+      harvestDate:
+        normalizeDate(
+          data.harvestDate
+        ),
+
+
+      createdAt:
+        now,
+
+
+      updatedAt:
+        now,
+
     };
+
 
     await storageService.save(
       CROPS_KEY,
-      [...crops, crop]
+      [
+        ...crops,
+        crop,
+      ]
     );
+
 
     return crop;
   }
 
 
-  async update(id, data) {
+  // =======================================================
+  // UPDATE
+  // =======================================================
+
+  async update(
+    id,
+    data
+  ) {
+
     if (!id) {
       return null;
     }
+
 
     if (
       !data ||
@@ -119,8 +223,10 @@ class CropRepository {
       );
     }
 
+
     const crops =
       await this.getAll();
+
 
     const index =
       crops.findIndex(
@@ -129,46 +235,97 @@ class CropRepository {
           String(id)
       );
 
+
     if (index < 0) {
       return null;
     }
 
+
+    const existing =
+      crops[index];
+
+
     const updated = {
-      ...crops[index],
+
+      ...existing,
+
       ...data,
+
+
       id:
-        crops[index].id,
+        existing.id,
+
+
       farmId:
         data.farmId !== undefined
           ? String(data.farmId)
           : String(
-              crops[index].farmId ?? ""
+              existing.farmId ?? ""
             ),
+
+
+      // ===================================================
+      // لا نستخدم تاريخ اليوم
+      // ===================================================
+
+      plantingDate:
+        data.plantingDate !== undefined
+          ? normalizeDate(
+              data.plantingDate
+            )
+          : normalizeDate(
+              existing.plantingDate
+            ),
+
+
+      harvestDate:
+        data.harvestDate !== undefined
+          ? normalizeDate(
+              data.harvestDate
+            )
+          : normalizeDate(
+              existing.harvestDate
+            ),
+
+
       createdAt:
-        crops[index].createdAt,
+        existing.createdAt,
+
+
       updatedAt:
         new Date().toISOString(),
+
     };
+
 
     crops[index] =
       updated;
+
 
     await storageService.save(
       CROPS_KEY,
       crops
     );
 
+
     return updated;
   }
 
 
+  // =======================================================
+  // DELETE
+  // =======================================================
+
   async delete(id) {
+
     if (!id) {
       return false;
     }
 
+
     const crops =
       await this.getAll();
+
 
     const next =
       crops.filter(
@@ -177,6 +334,7 @@ class CropRepository {
           String(id)
       );
 
+
     if (
       next.length ===
       crops.length
@@ -184,23 +342,35 @@ class CropRepository {
       return false;
     }
 
+
     await storageService.save(
       CROPS_KEY,
       next
     );
 
+
     return true;
   }
 
 
+  // =======================================================
+  // EXISTS
+  // =======================================================
+
   async exists(id) {
+
     return Boolean(
       await this.getById(id)
     );
   }
 
 
+  // =======================================================
+  // COUNT
+  // =======================================================
+
   async count() {
+
     const crops =
       await this.getAll();
 
@@ -208,7 +378,12 @@ class CropRepository {
   }
 
 
+  // =======================================================
+  // COUNT BY FARM
+  // =======================================================
+
   async countByFarmId(farmId) {
+
     const crops =
       await this.getByFarmId(
         farmId
@@ -216,6 +391,7 @@ class CropRepository {
 
     return crops.length;
   }
+
 }
 
 
