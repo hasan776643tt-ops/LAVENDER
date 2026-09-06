@@ -3,438 +3,312 @@
 // src/repositories/cropRepository.js
 // =========================================================
 
-import { storageService } from "../storage";
+import storageService from "../storage/storageService.js";
 
 const CROPS_KEY = "crops";
 
+function createId() {
+  if (
+    typeof crypto !== "undefined" &&
+    typeof crypto.randomUUID === "function"
+  ) {
+    return crypto.randomUUID();
+  }
 
-// =========================================================
-// DATE
-// التاريخ الزراعي Date-Only
-// لا new Date()
-// لا toISOString()
-// لا تاريخ اليوم
-// =========================================================
+  return `${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2, 11)}`;
+}
 
 function normalizeDate(value) {
-
-  if (
-    value === null ||
-    value === undefined
-  ) {
+  if (value === null || value === undefined) {
     return "";
   }
 
-  const date =
-    String(value).trim();
+  const text = String(value).trim();
 
-  if (!date) {
-    return "";
-  }
-
-  if (
-    /^\d{4}-\d{2}-\d{2}$/.test(date)
-  ) {
-    return date;
+  // تاريخ HTML input من النوع date
+  // يجب أن يبقى كما هو: YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    return text;
   }
 
   return "";
 }
 
+const cropRepository = {
 
-// =========================================================
-// REPOSITORY
-// =========================================================
-
-class CropRepository {
-
-  // =======================================================
+  // -------------------------------------------------------
   // GET ALL
-  // =======================================================
-
+  // -------------------------------------------------------
   async getAll() {
+    const data = await storageService.load(
+      CROPS_KEY,
+      []
+    );
 
-    const data =
-      await storageService.load(
+    if (!Array.isArray(data)) {
+      return [];
+    }
+
+    let changed = false;
+
+    // إصلاح السجلات القديمة التي ليس لديها ID
+    const normalized = data.map((crop) => {
+
+      if (!crop || typeof crop !== "object") {
+        return crop;
+      }
+
+      let id = crop.id;
+
+      if (!id) {
+        id = createId();
+        changed = true;
+      }
+
+      const normalizedCrop = {
+        ...crop,
+        id,
+
+        // مهم جدًا:
+        // لا نضع تاريخ اليوم هنا.
+        plantingDate: normalizeDate(
+          crop.plantingDate
+        ),
+
+        harvestDate: normalizeDate(
+          crop.harvestDate
+        ),
+      };
+
+      if (
+        normalizedCrop.plantingDate !==
+        crop.plantingDate
+      ) {
+        changed = true;
+      }
+
+      if (
+        normalizedCrop.harvestDate !==
+        crop.harvestDate
+      ) {
+        changed = true;
+      }
+
+      return normalizedCrop;
+    });
+
+    if (changed) {
+      await storageService.save(
         CROPS_KEY,
-        []
+        normalized
       );
+    }
 
-    return Array.isArray(data)
-      ? data
-      : [];
-  }
+    return normalized;
+  },
 
-
-  // =======================================================
+  // -------------------------------------------------------
   // GET BY ID
-  // =======================================================
-
+  // -------------------------------------------------------
   async getById(id) {
-
     if (!id) {
       return null;
     }
 
-    const crops =
-      await this.getAll();
+    const crops = await this.getAll();
 
     return (
       crops.find(
-        crop =>
-          String(crop?.id) ===
-          String(id)
+        (crop) =>
+          String(crop.id) === String(id)
       ) || null
     );
-  }
+  },
 
-
-  // =======================================================
+  // -------------------------------------------------------
   // GET BY FARM
-  // =======================================================
-
+  // -------------------------------------------------------
   async getByFarmId(farmId) {
-
-    const id =
-      String(
-        farmId ?? ""
-      ).trim();
-
-    if (!id) {
+    if (!farmId) {
       return [];
     }
 
-    const crops =
-      await this.getAll();
+    const crops = await this.getAll();
 
     return crops.filter(
-      crop =>
-        String(
-          crop?.farmId ?? ""
-        ).trim() === id
+      (crop) =>
+        String(crop.farmId) ===
+        String(farmId)
     );
-  }
+  },
 
-
-  // =======================================================
+  // -------------------------------------------------------
   // CREATE
-  // =======================================================
+  // -------------------------------------------------------
+  async create(data = {}) {
 
-  async create(data) {
+    const crops = await this.getAll();
 
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
-      throw new Error(
-        "CROP_DATA_REQUIRED"
-      );
-    }
-
-
-    const crops =
-      await this.getAll();
-
-
-    // =====================================================
-    // هذا للتتبع الداخلي فقط
-    // وليس تاريخ الزراعة أو الحصاد
-    // =====================================================
+    const id = createId();
 
     const now =
       new Date().toISOString();
 
-
-    // =====================================================
-    // إنشاء ID حقيقي
-    // =====================================================
-
-    const id =
-      typeof crypto !== "undefined" &&
-      typeof crypto.randomUUID === "function"
-        ? crypto.randomUUID()
-        : `${Date.now()}-${Math.random()
-            .toString(36)
-            .slice(2)}`;
-
-
-    // =====================================================
-    // IMPORTANT
-    //
-    // id يجب أن يأتي بعد ...data
-    //
-    // لأن normalizeCropData() يضع:
-    // id: null
-    //
-    // ولو وضعنا id قبل ...data
-    // سيتم استبداله بـ null.
-    // =====================================================
+    /*
+     * مهم جدًا:
+     *
+     * id يأتي بعد ...data
+     * حتى لا يستطيع data.id = null
+     * الكتابة فوق الـ ID الجديد.
+     */
 
     const crop = {
-
       ...data,
 
-
-      // ID الحقيقي يجب أن يبقى هو المسيطر
       id,
 
+      farmId: data.farmId
+        ? String(data.farmId)
+        : "",
 
-      farmId:
-        data.farmId
-          ? String(data.farmId)
-          : "",
-
-
-      // ===================================================
-      // التاريخ الزراعي كما أدخله المستخدم
-      // ===================================================
-
+      /*
+       * التاريخ يؤخذ كما أدخله المستخدم.
+       *
+       * مثال:
+       * 2024-05-10
+       *
+       * يبقى:
+       * 2024-05-10
+       *
+       * ولا يتحول إلى تاريخ اليوم.
+       */
       plantingDate:
         normalizeDate(
           data.plantingDate
         ),
-
 
       harvestDate:
         normalizeDate(
           data.harvestDate
         ),
 
-
-      // ===================================================
-      // تواريخ النظام فقط
-      // لا علاقة لها بتاريخ الزراعة
-      // ===================================================
-
-      createdAt:
-        now,
-
-      updatedAt:
-        now,
-
+      createdAt: now,
+      updatedAt: now,
     };
 
+    const updated = [
+      ...crops,
+      crop,
+    ];
 
     await storageService.save(
       CROPS_KEY,
-      [
-        ...crops,
-        crop,
-      ]
+      updated
     );
 
-
     return crop;
-  }
+  },
 
-
-  // =======================================================
+  // -------------------------------------------------------
   // UPDATE
-  // =======================================================
-
-  async update(
-    id,
-    data
-  ) {
+  // -------------------------------------------------------
+  async update(id, data = {}) {
 
     if (!id) {
       return null;
     }
 
+    const crops = await this.getAll();
 
-    if (
-      !data ||
-      typeof data !== "object"
-    ) {
-      throw new Error(
-        "CROP_DATA_REQUIRED"
-      );
-    }
+    const index = crops.findIndex(
+      (crop) =>
+        String(crop.id) ===
+        String(id)
+    );
 
-
-    const crops =
-      await this.getAll();
-
-
-    const index =
-      crops.findIndex(
-        crop =>
-          String(crop?.id) ===
-          String(id)
-      );
-
-
-    if (index < 0) {
+    if (index === -1) {
       return null;
     }
 
+    const existing = crops[index];
 
-    const existing =
-      crops[index];
-
-
-    const updated = {
-
+    const updatedCrop = {
       ...existing,
-
       ...data,
 
+      // ID لا يتغير
+      id: existing.id,
 
-      // ===================================================
-      // ID الموجود في التخزين لا يتغير
-      // ===================================================
+      farmId: data.farmId !== undefined
+        ? String(data.farmId)
+        : existing.farmId,
 
-      id:
-        existing.id,
-
-
-      farmId:
-        data.farmId !== undefined
-          ? String(data.farmId)
-          : String(
-              existing.farmId ?? ""
-            ),
-
-
-      // ===================================================
-      // تاريخ الزراعة
-      // ===================================================
-
+      /*
+       * لا تستخدم new Date() هنا.
+       * نأخذ التاريخ القادم من المستخدم فقط.
+       */
       plantingDate:
         data.plantingDate !== undefined
           ? normalizeDate(
               data.plantingDate
             )
-          : normalizeDate(
-              existing.plantingDate
-            ),
-
-
-      // ===================================================
-      // تاريخ الحصاد
-      // ===================================================
+          : existing.plantingDate,
 
       harvestDate:
         data.harvestDate !== undefined
           ? normalizeDate(
               data.harvestDate
             )
-          : normalizeDate(
-              existing.harvestDate
-            ),
-
-
-      // ===================================================
-      // تواريخ النظام
-      // ===================================================
-
-      createdAt:
-        existing.createdAt,
+          : existing.harvestDate,
 
       updatedAt:
         new Date().toISOString(),
-
     };
 
-
-    crops[index] =
-      updated;
-
+    crops[index] = updatedCrop;
 
     await storageService.save(
       CROPS_KEY,
       crops
     );
 
+    return updatedCrop;
+  },
 
-    return updated;
-  }
-
-
-  // =======================================================
+  // -------------------------------------------------------
   // DELETE
-  // =======================================================
-
+  // -------------------------------------------------------
   async delete(id) {
 
     if (!id) {
       return false;
     }
 
+    const crops = await this.getAll();
 
-    const crops =
-      await this.getAll();
+    const index = crops.findIndex(
+      (crop) =>
+        String(crop.id) ===
+        String(id)
+    );
 
-
-    const next =
-      crops.filter(
-        crop =>
-          String(crop?.id) !==
-          String(id)
-      );
-
-
-    // لم يتم العثور على المحصول
-    if (
-      next.length ===
-      crops.length
-    ) {
+    if (index === -1) {
       return false;
     }
 
+    crops.splice(index, 1);
 
     await storageService.save(
       CROPS_KEY,
-      next
+      crops
     );
-
 
     return true;
-  }
-
-
-  // =======================================================
-  // EXISTS
-  // =======================================================
-
-  async exists(id) {
-
-    return Boolean(
-      await this.getById(id)
-    );
-  }
-
-
-  // =======================================================
-  // COUNT
-  // =======================================================
-
-  async count() {
-
-    const crops =
-      await this.getAll();
-
-    return crops.length;
-  }
-
-
-  // =======================================================
-  // COUNT BY FARM
-  // =======================================================
-
-  async countByFarmId(farmId) {
-
-    const crops =
-      await this.getByFarmId(
-        farmId
-      );
-
-    return crops.length;
-  }
-
-}
-
+  },
+};
 
 export default Object.freeze(
-  new CropRepository()
+  cropRepository
 );
