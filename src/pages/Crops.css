@@ -1,0 +1,492 @@
+/* =========================================================
+   LAVENDER — CROPS PAGE STYLES
+   src/pages/Crops.css
+   يتبع نفس هوية الألوان المستخدمة في App.css (أخضر/أبيض)
+========================================================= */
+
+.crops-page {
+  --crop-green-900: #173f27;
+  --crop-green-700: #1f6c37;
+  --crop-green-600: #2d8245;
+  --crop-green-400: #3b9855;
+  --crop-green-100: #e5f1e4;
+  --crop-green-50: #f4faf3;
+  --crop-border: rgba(23, 63, 39, 0.12);
+  --crop-shadow: 0 8px 22px rgba(11, 65, 27, 0.10);
+
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 18px 16px 48px;
+
+  color: var(--crop-green-900);
+  font-family: inherit;
+}
+
+/* ---------------------------------------------------------
+   HEADER
+--------------------------------------------------------- */
+
+.crops-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+}
+
+.crops-header h1 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: var(--crop-green-900);
+}
+
+/* ---------------------------------------------------------
+   MESSAGES
+--------------------------------------------------------- */
+
+.crops-message,
+.crops-error {
+  padding: 10px 14px;
+  border-radius: 12px;
+  margin-bottom: 14px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.crops-message {
+  background: var(--crop-green-100);
+  color: var(--crop-green-700);
+  border: 1px solid var(--crop-border);
+}
+
+.crops-error {
+  background: #fdecec;
+  color: #a4302a;
+  border: 1px solid rgba(164, 48, 42, 0.18);
+}
+
+/* ---------------------------------------------------------
+   SECTION CARD
+--------------------------------------------------------- */
+
+.crops-section {
+  background: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.98),
+    var(--crop-green-50) 100%
+  );
+
+  border: 1px solid var(--crop-border);
+  border-radius: 18px;
+  box-shadow: var(--crop-shadow);
+
+  padding: 18px 18px 20px;
+  margin-bottom: 16px;
+}
+
+.crops-section h2 {
+  margin: 0 0 14px;
+  font-size: 1.02rem;
+  color: var(--crop-green-700);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.crops-section > p {
+  margin: 0;
+  color: #4a5c4f;
+  font-size: 0.92rem;
+}
+
+/* ---------------------------------------------------------
+   FARM SELECT
+--------------------------------------------------------- */
+
+.crops-section select,
+.crops-section input[type="text"],
+.crops-section input[type="number"],
+.crops-section input[type="date"],
+.crops-section textarea {
+  width: 100%;
+  box-sizing: border-box;
+
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid var(--crop-border);
+  background: #fff;
+  color: var(--crop-green-900);
+  font-size: 0.95rem;
+
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.crops-section select:focus,
+.crops-section input:focus,
+.crops-section textarea:focus {
+  outline: none;
+  border-color: var(--crop-green-400);
+  box-shadow: 0 0 0 3px rgba(59, 152, 85, 0.15);
+}
+
+.crops-section textarea {
+  min-height: 84px;
+  resize: vertical;
+}
+
+/* ---------------------------------------------------------
+   SELECTED FARM CARD
+--------------------------------------------------------- */
+
+.crops-farm-card {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 16px;
+}
+
+.crops-farm-card strong.crops-farm-name {
+  font-size: 1.05rem;
+  color: var(--crop-green-900);
+}
+
+.crops-status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: var(--crop-green-100);
+  color: var(--crop-green-700);
+  border: 1px solid var(--crop-border);
+}
+
+/* ---------------------------------------------------------
+   CULTIVATION TYPE — SEGMENTED CONTROL
+--------------------------------------------------------- */
+
+.crops-type-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.crops-type-chip {
+  flex: 1 1 auto;
+  min-width: 90px;
+
+  padding: 10px 14px;
+  border-radius: 12px;
+  border: 1px solid var(--crop-border);
+  background: #fff;
+  color: var(--crop-green-900);
+
+  font-size: 0.9rem;
+  cursor: pointer;
+  text-align: center;
+
+  transition: background 0.15s ease, color 0.15s ease,
+    border-color 0.15s ease, transform 0.1s ease;
+}
+
+.crops-type-chip:hover {
+  border-color: var(--crop-green-400);
+}
+
+.crops-type-chip:active {
+  transform: scale(0.97);
+}
+
+.crops-type-chip.is-active {
+  background: linear-gradient(
+    135deg,
+    var(--crop-green-400),
+    var(--crop-green-600)
+  );
+  border-color: transparent;
+  color: #fff;
+}
+
+/* ---------------------------------------------------------
+   LOCATION SUMMARY
+--------------------------------------------------------- */
+
+.crops-location-summary {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.crops-location-place {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 0.98rem;
+  color: var(--crop-green-900);
+  line-height: 1.6;
+}
+
+.crops-location-place .crops-location-icon {
+  font-size: 1.1rem;
+  line-height: 1.4;
+}
+
+.crops-location-chain {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.crops-chain-tag {
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--crop-green-100);
+  color: var(--crop-green-700);
+  font-size: 0.78rem;
+  border: 1px solid var(--crop-border);
+}
+
+.crops-chain-tag.is-primary {
+  background: var(--crop-green-600);
+  color: #fff;
+  border-color: transparent;
+  font-weight: 600;
+}
+
+.crops-location-meta {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 8px 12px;
+  font-size: 0.82rem;
+  color: #52655a;
+}
+
+.crops-location-meta div strong {
+  display: block;
+  color: var(--crop-green-900);
+  font-size: 0.88rem;
+}
+
+.crops-location-empty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #7a6b3d;
+  background: #fbf6e8;
+  border: 1px solid rgba(122, 107, 61, 0.2);
+  padding: 10px 12px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+}
+
+.crops-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.crops-actions button {
+  flex: 1 1 auto;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid var(--crop-border);
+  background: #fff;
+  color: var(--crop-green-700);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.crops-actions button:hover {
+  background: var(--crop-green-100);
+}
+
+/* ---------------------------------------------------------
+   CLIMATE
+--------------------------------------------------------- */
+
+.crops-climate-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crops-climate-badge {
+  padding: 5px 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fff3d6, #ffe4a8);
+  color: #8a5a00;
+  font-size: 0.85rem;
+  border: 1px solid rgba(138, 90, 0, 0.15);
+}
+
+.crops-suggested-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.crops-suggested-item {
+  padding: 4px 12px;
+  border-radius: 999px;
+  background: var(--crop-green-50);
+  border: 1px dashed var(--crop-green-400);
+  color: var(--crop-green-700);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.crops-suggested-item:hover {
+  background: var(--crop-green-100);
+}
+
+/* ---------------------------------------------------------
+   FORM GRID
+--------------------------------------------------------- */
+
+.crops-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 14px 16px;
+}
+
+.crops-form-grid .crops-field-full {
+  grid-column: 1 / -1;
+}
+
+.crops-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crops-field label.crops-field-label {
+  font-size: 0.84rem;
+  color: #4a5c4f;
+  font-weight: 600;
+}
+
+.crops-field-hint {
+  font-size: 0.76rem;
+  color: #8a988e;
+}
+
+.crops-submit-row {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 6px;
+}
+
+.crops-submit-button {
+  padding: 12px 28px;
+  border-radius: 12px;
+  border: none;
+  background: linear-gradient(
+    135deg,
+    var(--crop-green-400),
+    var(--crop-green-600)
+  );
+  color: #fff;
+  font-size: 0.95rem;
+  cursor: pointer;
+  box-shadow: 0 8px 18px rgba(45, 130, 69, 0.28);
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+.crops-submit-button:hover {
+  transform: translateY(-1px);
+}
+
+.crops-submit-button:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+  transform: none;
+}
+
+@media (max-width: 620px) {
+  .crops-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .crops-submit-row {
+    justify-content: stretch;
+  }
+
+  .crops-submit-button {
+    width: 100%;
+  }
+}
+
+/* ---------------------------------------------------------
+   CROPS LIST
+--------------------------------------------------------- */
+
+.crops-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.crop-card {
+  background: #fff;
+  border: 1px solid var(--crop-border);
+  border-radius: 16px;
+  padding: 14px 16px 16px;
+  box-shadow: var(--crop-shadow);
+
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.crop-card h3 {
+  margin: 0 0 4px;
+  font-size: 1.02rem;
+  color: var(--crop-green-900);
+}
+
+.crop-card p {
+  margin: 0;
+  font-size: 0.84rem;
+  color: #52655a;
+  line-height: 1.5;
+}
+
+.crop-card .crop-card-location {
+  color: var(--crop-green-700);
+  font-weight: 600;
+}
+
+.crop-card .crop-card-dates {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 4px;
+  padding-top: 8px;
+  border-top: 1px dashed var(--crop-border);
+}
+
+.crop-card .crop-card-dates span.crop-date-label {
+  color: #8a988e;
+  font-size: 0.76rem;
+}
+
+.crop-card button {
+  margin-top: 10px;
+  align-self: flex-start;
+  padding: 7px 14px;
+  border-radius: 10px;
+  border: 1px solid rgba(164, 48, 42, 0.25);
+  background: #fff;
+  color: #a4302a;
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.crop-card button:hover {
+  background: #fdecec;
+}
