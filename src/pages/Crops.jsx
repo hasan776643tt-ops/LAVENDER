@@ -83,19 +83,46 @@ const CULTIVATION_TYPES = [
 
 
 // =========================================================
-// FERTILIZERS
+// FERTILIZER TYPES
 // =========================================================
 
 const FERTILIZERS = [
-  "عضوي",
-  "يوريا",
-  "نترات الأمونيوم",
-  "سوبر فوسفات",
-  "فوسفات",
-  "بوتاسيوم",
-  "مركب NPK",
-  "سماد ورقي",
-  "أخرى",
+  {
+    value: "عضوي",
+    label: "عضوي",
+  },
+  {
+    value: "يوريا",
+    label: "يوريا",
+  },
+  {
+    value: "نترات الأمونيوم",
+    label: "نترات الأمونيوم",
+  },
+  {
+    value: "سوبر فوسفات",
+    label: "سوبر فوسفات",
+  },
+  {
+    value: "فوسفات",
+    label: "فوسفات",
+  },
+  {
+    value: "بوتاسيوم",
+    label: "بوتاسيوم",
+  },
+  {
+    value: "مركب NPK",
+    label: "مركب NPK",
+  },
+  {
+    value: "سماد ورقي",
+    label: "سماد ورقي",
+  },
+  {
+    value: "أخرى",
+    label: "أخرى",
+  },
 ];
 
 
@@ -128,7 +155,10 @@ function getClimate(latitude) {
 // RECOMMENDED CROPS
 // =========================================================
 
-function getRecommendedSeeds(latitude, cultivationType) {
+function getRecommendedSeeds(
+  latitude,
+  cultivationType
+) {
   const climate = getClimate(latitude);
 
   if (!climate) {
@@ -222,7 +252,10 @@ function getRecommendedSeeds(latitude, cultivationType) {
 // =========================================================
 
 function normalizeLocation(location) {
-  if (!location || typeof location !== "object") {
+  if (
+    !location ||
+    typeof location !== "object"
+  ) {
     return null;
   }
 
@@ -247,9 +280,11 @@ function normalizeLocation(location) {
   return {
     latitude,
     longitude,
-    boundary: Array.isArray(location.boundary)
-      ? location.boundary
-      : [],
+
+    boundary:
+      Array.isArray(location.boundary)
+        ? location.boundary
+        : [],
   };
 }
 
@@ -263,9 +298,14 @@ function calculateAge(date) {
     return 0;
   }
 
-  const plantingDate = new Date(`${date}T00:00:00`);
+  const plantingDate =
+    new Date(`${date}T00:00:00`);
 
-  if (Number.isNaN(plantingDate.getTime())) {
+  if (
+    Number.isNaN(
+      plantingDate.getTime()
+    )
+  ) {
     return 0;
   }
 
@@ -292,7 +332,8 @@ function calculateAge(date) {
   }
 
   return Math.floor(
-    difference / (1000 * 60 * 60 * 24)
+    difference /
+      (1000 * 60 * 60 * 24)
   );
 }
 
@@ -301,17 +342,21 @@ function calculateAge(date) {
 // FARM → FORM
 // =========================================================
 
-function farmToForm(farm, currentForm) {
+function farmToForm(
+  farm,
+  currentForm
+) {
   if (!farm) {
     return currentForm;
   }
 
-  const location = normalizeLocation(
-    farm.location ??
-    farm.mapLocation ??
-    farm.fieldLocation ??
-    farm
-  );
+  const location =
+    normalizeLocation(
+      farm.location ??
+      farm.mapLocation ??
+      farm.fieldLocation ??
+      farm
+    );
 
   return {
     ...currentForm,
@@ -402,11 +447,15 @@ export default function Crops() {
       return loadedFarm;
     }
 
-    return farms.find(
-      (farm) =>
-        String(farm?.id ?? "").trim() ===
-        selectedFarmId
-    ) || null;
+    return (
+      farms.find(
+        (farm) =>
+          String(
+            farm?.id ?? ""
+          ).trim() ===
+          selectedFarmId
+      ) || null
+    );
   }, [
     loadedFarm,
     farms,
@@ -416,21 +465,27 @@ export default function Crops() {
   const [form, setForm] =
     useState(EMPTY_FORM);
 
-  const [mapLocation, setMapLocation] =
-    useState(null);
+  const [
+    mapLocation,
+    setMapLocation,
+  ] = useState(null);
 
-  const [message, setMessage] =
-    useState("");
+  const [
+    message,
+    setMessage,
+  ] = useState("");
 
   const [saving, setSaving] =
     useState(false);
 
-  const [deletingId, setDeletingId] =
-    useState(null);
+  const [
+    deletingId,
+    setDeletingId,
+  ] = useState(null);
 
 
   // =======================================================
-  // INITIAL FARM FROM URL
+  // FARM FROM URL
   // =======================================================
 
   useEffect(() => {
@@ -448,7 +503,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // LOAD FARM DATA INTO FORM
+  // LOAD SELECTED FARM
   // =======================================================
 
   useEffect(() => {
@@ -462,7 +517,8 @@ export default function Crops() {
         {
           ...EMPTY_FORM,
           ...previous,
-          farmId: selectedFarmId,
+          farmId:
+            selectedFarmId,
         }
       )
     );
@@ -473,7 +529,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // LOAD SAVED FARM LOCATION
+  // LOAD FARM LOCATION
   // =======================================================
 
   useEffect(() => {
@@ -496,10 +552,14 @@ export default function Crops() {
         }
 
         const normalized =
-          normalizeLocation(location);
+          normalizeLocation(
+            location
+          );
 
         if (normalized) {
-          setMapLocation(normalized);
+          setMapLocation(
+            normalized
+          );
 
           setForm((previous) => ({
             ...previous,
@@ -568,7 +628,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // SELECTED FARM CROPS ONLY
+  // ONLY SELECTED FARM CROPS
   // =======================================================
 
   const selectedFarmCrops =
@@ -581,7 +641,8 @@ export default function Crops() {
         (crop) =>
           String(
             crop?.farmId ?? ""
-          ).trim() === selectedFarmId
+          ).trim() ===
+          selectedFarmId
       );
     }, [
       crops,
@@ -590,14 +651,15 @@ export default function Crops() {
 
 
   // =======================================================
-  // INPUT CHANGE
+  // GENERAL INPUT
   // =======================================================
 
   function handleChange(event) {
-    const {
-      name,
-      value,
-    } = event.target;
+    const name =
+      event.target.name;
+
+    const value =
+      event.target.value;
 
     setForm((previous) => ({
       ...previous,
@@ -618,9 +680,14 @@ export default function Crops() {
 
     if (!farmId) {
       setSearchParams({});
-      setForm(EMPTY_FORM);
+
+      setForm(
+        EMPTY_FORM
+      );
+
       setMapLocation(null);
       setMessage("");
+
       return;
     }
 
@@ -650,10 +717,13 @@ export default function Crops() {
 
     setForm((previous) => ({
       ...previous,
+
       cultivationType,
+
       name: "",
       treeType: "",
       treeVariety: "",
+
       seedType: "",
       seedVariety: "",
     }));
@@ -669,6 +739,7 @@ export default function Crops() {
       setMessage(
         "اختر المزرعة أولاً"
       );
+
       return;
     }
 
@@ -681,7 +752,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // REFRESH MAP LOCATION
+  // REFRESH LOCATION
   // =======================================================
 
   async function refreshMapLocation() {
@@ -689,6 +760,7 @@ export default function Crops() {
       setMessage(
         "اختر المزرعة أولاً"
       );
+
       return;
     }
 
@@ -703,7 +775,9 @@ export default function Crops() {
         );
 
       const normalized =
-        normalizeLocation(location);
+        normalizeLocation(
+          location
+        );
 
       if (!normalized) {
         setMapLocation(null);
@@ -715,7 +789,9 @@ export default function Crops() {
         return;
       }
 
-      setMapLocation(normalized);
+      setMapLocation(
+        normalized
+      );
 
       setForm((previous) => ({
         ...previous,
@@ -757,6 +833,7 @@ export default function Crops() {
       setMessage(
         "اختر المزرعة أولاً"
       );
+
       return;
     }
 
@@ -779,6 +856,7 @@ export default function Crops() {
       setMessage(
         "يجب تحديد موقع المزرعة على الخريطة أولاً"
       );
+
       return;
     }
 
@@ -790,7 +868,8 @@ export default function Crops() {
       ).trim();
 
     if (
-      form.cultivationType === "trees" &&
+      form.cultivationType ===
+        "trees" &&
       !String(
         form.treeType ?? ""
       ).trim()
@@ -798,16 +877,19 @@ export default function Crops() {
       setMessage(
         "أدخل نوع الشجرة"
       );
+
       return;
     }
 
     if (
-      form.cultivationType !== "trees" &&
+      form.cultivationType !==
+        "trees" &&
       !cropName
     ) {
       setMessage(
         "أدخل اسم المحصول"
       );
+
       return;
     }
 
@@ -816,8 +898,6 @@ export default function Crops() {
     try {
       const payload = {
         ...form,
-
-        id: undefined,
 
         farmId:
           selectedFarmId,
@@ -838,19 +918,20 @@ export default function Crops() {
 
         recommendedSeeds,
 
-        /*
-         * مهم:
-         * تاريخ الزراعة يبقى كما أدخله المستخدم
-         * ولا يتم تحويله إلى تاريخ اليوم.
-         */
+        // ============================================
+        // التاريخ يحفظ كما أدخله المستخدم
+        // ============================================
+
         plantingDate:
           String(
-            form.plantingDate ?? ""
+            form.plantingDate ??
+            ""
           ).trim(),
 
         harvestDate:
           String(
-            form.harvestDate ?? ""
+            form.harvestDate ??
+            ""
           ).trim(),
 
         seedQuantity:
@@ -868,9 +949,9 @@ export default function Crops() {
               ),
       };
 
-      delete payload.id;
-
-      await addCrop(payload);
+      await addCrop(
+        payload
+      );
 
       setMessage(
         "تم حفظ المحصول بنجاح"
@@ -952,14 +1033,16 @@ export default function Crops() {
       ================================================= */}
 
       <header className="crops-header">
+
         <h1>
           🌱 المحاصيل
         </h1>
+
       </header>
 
 
       {/* =================================================
-          STATUS
+          MESSAGES
       ================================================= */}
 
       {message && (
@@ -992,24 +1075,34 @@ export default function Crops() {
         </h2>
 
         <select
-          value={selectedFarmId}
-          onChange={handleFarmChange}
-          disabled={farmsLoading}
+          value={
+            selectedFarmId
+          }
+          onChange={
+            handleFarmChange
+          }
+          disabled={
+            farmsLoading
+          }
         >
+
           <option value="">
             اختر المزرعة
           </option>
 
-          {farms.map((farm) => (
-            <option
-              key={farm.id}
-              value={farm.id}
-            >
-              {farm.name ||
-                farm.farmName ||
-                `مزرعة ${farm.id}`}
-            </option>
-          ))}
+          {farms.map(
+            (farm) => (
+              <option
+                key={farm.id}
+                value={farm.id}
+              >
+                {farm.name ||
+                  farm.farmName ||
+                  `مزرعة ${farm.id}`}
+              </option>
+            )
+          )}
+
         </select>
 
       </section>
@@ -1054,7 +1147,7 @@ export default function Crops() {
 
 
       {/* =================================================
-          2 — CULTIVATION TYPE
+          2 — CROP TYPE
       ================================================= */}
 
       <section className="crops-section">
@@ -1072,6 +1165,7 @@ export default function Crops() {
             handleCultivationType
           }
         >
+
           {CULTIVATION_TYPES.map(
             (type) => (
               <option
@@ -1082,13 +1176,14 @@ export default function Crops() {
               </option>
             )
           )}
+
         </select>
 
       </section>
 
 
       {/* =================================================
-          3 — FARM LOCATION
+          3 — LOCATION
       ================================================= */}
 
       <section className="crops-section">
@@ -1099,19 +1194,25 @@ export default function Crops() {
 
         {mapLocation ? (
           <div>
+
             <strong>
               📍 تم تحديد موقع الأرض
             </strong>
 
             <p>
               خط العرض:{" "}
-              {mapLocation.latitude}
+              {
+                mapLocation.latitude
+              }
             </p>
 
             <p>
               خط الطول:{" "}
-              {mapLocation.longitude}
+              {
+                mapLocation.longitude
+              }
             </p>
+
           </div>
         ) : (
           <div>
@@ -1159,12 +1260,15 @@ export default function Crops() {
             {climate}
           </p>
 
-          {recommendedSeeds.length > 0 && (
+          {recommendedSeeds.length >
+            0 && (
             <p>
               المحاصيل الموصى بها:{" "}
-              {recommendedSeeds.join(
-                "، "
-              )}
+              {
+                recommendedSeeds.join(
+                  "، "
+                )
+              }
             </p>
           )}
 
@@ -1189,12 +1293,13 @@ export default function Crops() {
         >
 
           {/* =============================================
-              TREE
+              TREE DATA
           ============================================= */}
 
           {form.cultivationType ===
-            "trees" ? (
+          "trees" ? (
             <>
+
               <label>
                 نوع الشجرة
 
@@ -1228,9 +1333,11 @@ export default function Crops() {
                   inputMode="text"
                 />
               </label>
+
             </>
           ) : (
             <>
+
               {/* =========================================
                   CROP NAME
               ========================================= */}
@@ -1251,6 +1358,7 @@ export default function Crops() {
                   inputMode="text"
                 />
               </label>
+
 
               {/* =========================================
                   SEED TYPE
@@ -1273,6 +1381,7 @@ export default function Crops() {
                 />
               </label>
 
+
               {/* =========================================
                   SEED VARIETY
               ========================================= */}
@@ -1293,6 +1402,7 @@ export default function Crops() {
                   inputMode="text"
                 />
               </label>
+
 
               {/* =========================================
                   SEED QUALITY
@@ -1315,6 +1425,7 @@ export default function Crops() {
                 />
               </label>
 
+
               {/* =========================================
                   SEED QUANTITY
               ========================================= */}
@@ -1334,13 +1445,14 @@ export default function Crops() {
                   inputMode="decimal"
                 />
               </label>
+
             </>
           )}
 
 
           {/* =============================================
               PLANTING DATE
-              هذا هو حقل التاريخ الأول فقط
+              التاريخ الأول والوحيد هنا
           ============================================= */}
 
           <label>
@@ -1361,11 +1473,16 @@ export default function Crops() {
 
           {/* =============================================
               FERTILIZER TYPE
-              مهم جداً:
-              هذا SELECT وليس DATE
-          ============================================= */}
+              =============================================
+              هذا العنصر SELECT صريح.
+              لا يحتوي type=date.
+              لا يحتوي input.
+              لا يحتوي value من plantingDate.
+              ============================================= */}
 
-          <label>
+          <label
+            htmlFor="fertilizerType"
+          >
             نوع السماد
 
             <select
@@ -1379,6 +1496,7 @@ export default function Crops() {
               }
               autoComplete="off"
             >
+
               <option value="">
                 اختر نوع السماد
               </option>
@@ -1386,13 +1504,20 @@ export default function Crops() {
               {FERTILIZERS.map(
                 (fertilizer) => (
                   <option
-                    key={fertilizer}
-                    value={fertilizer}
+                    key={
+                      fertilizer.value
+                    }
+                    value={
+                      fertilizer.value
+                    }
                   >
-                    {fertilizer}
+                    {
+                      fertilizer.label
+                    }
                   </option>
                 )
               )}
+
             </select>
           </label>
 
@@ -1420,7 +1545,7 @@ export default function Crops() {
 
           {/* =============================================
               HARVEST DATE
-              هذا هو حقل التاريخ الثاني والأخير
+              التاريخ الثاني والوحيد
           ============================================= */}
 
           <label>
@@ -1465,7 +1590,9 @@ export default function Crops() {
 
           <button
             type="submit"
-            disabled={saving}
+            disabled={
+              saving
+            }
           >
             {saving
               ? "جاري الحفظ..."
@@ -1519,7 +1646,9 @@ export default function Crops() {
 
                 return (
                   <article
-                    key={crop.id}
+                    key={
+                      crop.id
+                    }
                     className="crop-card"
                   >
 
@@ -1535,16 +1664,20 @@ export default function Crops() {
                     {crop.plantingDate && (
                       <p>
                         تاريخ الزراعة:{" "}
-                        {crop.plantingDate}
+                        {
+                          crop.plantingDate
+                        }
                       </p>
                     )}
 
                     {crop.plantingDate && (
                       <p>
                         العمر:{" "}
-                        {calculateAge(
-                          crop.plantingDate
-                        )}{" "}
+                        {
+                          calculateAge(
+                            crop.plantingDate
+                          )
+                        }{" "}
                         يوم
                       </p>
                     )}
@@ -1569,8 +1702,13 @@ export default function Crops() {
                     ) && (
                       <p>
                         الموقع:{" "}
-                        {crop.latitude},{" "}
-                        {crop.longitude}
+                        {
+                          crop.latitude
+                        }
+                        ,{" "}
+                        {
+                          crop.longitude
+                        }
                       </p>
                     )}
 
@@ -1586,10 +1724,12 @@ export default function Crops() {
                         )
                       }
                     >
-                      {deletingId ===
-                      crop.id
-                        ? "جاري الحذف..."
-                        : "🗑️ حذف"}
+                      {
+                        deletingId ===
+                        crop.id
+                          ? "جاري الحذف..."
+                          : "🗑️ حذف"
+                      }
                     </button>
 
                   </article>
