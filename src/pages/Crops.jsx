@@ -14,6 +14,7 @@ import {
 import mapService from "../services/mapService.js";
 import { useFarms } from "../hooks/useFarms.js";
 import { useCrops } from "../hooks/useCrops.js";
+import { useFarm } from "../hooks/useFarm.js";
 
 
 // =========================================================
@@ -220,12 +221,6 @@ function calculateAge(date) {
     return "";
   }
 
-  /*
-   * مهم:
-   * plantingDate لا يتم تعديله هنا.
-   * هذه الدالة تقرأ التاريخ فقط وتحسب العمر.
-   */
-
   const planted =
     new Date(`${date}T00:00:00`);
 
@@ -289,7 +284,10 @@ function calculateAge(date) {
     );
   }
 
-  if (days > 0 || result.length === 0) {
+  if (
+    days > 0 ||
+    result.length === 0
+  ) {
     result.push(
       `${days} يوم`
     );
@@ -340,7 +338,46 @@ function normalizeLocation(
         : Array.isArray(location.boundary)
           ? location.boundary
           : [],
+
+    province:
+      location.province ??
+      location.governorate ??
+      location.administrativeArea ??
+      "",
+
+    district:
+      location.district ??
+      "",
+
+    village:
+      location.village ??
+      location.locality ??
+      location.town ??
+      "",
   };
+}
+
+
+// =========================================================
+// SAFE VALUE
+// =========================================================
+
+function displayValue(value) {
+  if (
+    value === null ||
+    value === undefined ||
+    value === ""
+  ) {
+    return "";
+  }
+
+  if (
+    typeof value === "object"
+  ) {
+    return "";
+  }
+
+  return String(value);
 }
 
 
@@ -404,7 +441,45 @@ export default function Crops() {
 
 
   // =======================================================
-  // LOAD FARM
+  // SELECTED FARM ID
+  // =======================================================
+
+  const selectedFarmId =
+    String(
+      form.farmId ?? ""
+    ).trim();
+
+
+  // =======================================================
+  // LOAD SELECTED FARM DATA
+  // =======================================================
+
+  const {
+    farm: loadedFarm,
+    loading: selectedFarmLoading,
+  } = useFarm(
+    selectedFarmId || null
+  );
+
+
+  // =======================================================
+  // SELECTED FARM
+  // =======================================================
+
+  const selectedFarm =
+    loadedFarm ||
+    farms.find(
+      farm =>
+        String(
+          farm?.id
+        ) ===
+        selectedFarmId
+    ) ||
+    null;
+
+
+  // =======================================================
+  // FARM FROM URL
   // =======================================================
 
   useEffect(() => {
@@ -426,7 +501,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // LOAD LOCATION
+  // LOAD FARM LOCATION
   // =======================================================
 
   useEffect(() => {
@@ -434,8 +509,17 @@ export default function Crops() {
 
     async function loadLocation() {
       const farmId =
-        farmIdFromUrl ||
-        form.farmId;
+        selectedFarmId;
+
+      /*
+       * مهم:
+       * عند تغيير المزرعة نمسح الموقع السابق
+       * مؤقتًا حتى لا يظهر موقع مزرعة أخرى.
+       *
+       * هذا لا يحذف LocationData من التخزين.
+       */
+
+      setMapLocation(null);
 
       if (!farmId) {
         return;
@@ -444,27 +528,37 @@ export default function Crops() {
       try {
         const location =
           await mapService.getLocationByFarmId(
-            String(farmId)
+            farmId
           );
+
+        if (cancelled) {
+          return;
+        }
 
         const normalized =
           normalizeLocation(
             location
           );
 
-        if (
-          normalized &&
-          !cancelled
-        ) {
+        if (normalized) {
           setMapLocation(
             normalized
           );
+        } else {
+          setMapLocation(null);
         }
+
       } catch (error) {
+        if (cancelled) {
+          return;
+        }
+
         console.error(
           "CROP LOCATION ERROR:",
           error
         );
+
+        setMapLocation(null);
       }
     }
 
@@ -474,8 +568,32 @@ export default function Crops() {
       cancelled = true;
     };
   }, [
-    farmIdFromUrl,
-    form.farmId,
+    selectedFarmId,
+  ]);
+
+
+  // =======================================================
+  // AUTO LOAD FARM INFORMATION
+  // =======================================================
+
+  useEffect(() => {
+    if (!selectedFarm) {
+      return;
+    }
+
+    /*
+     * لا ننسخ FarmData داخل CropData.
+     *
+     * selectedFarm يبقى المصدر الأصلي
+     * لمعلومات المزرعة.
+     *
+     * CropData يحتفظ فقط بـ farmId.
+     */
+
+    setMessage("");
+
+  }, [
+    selectedFarm,
   ]);
 
 
@@ -488,6 +606,39 @@ export default function Crops() {
       name,
       value,
     } = event.target;
+
+    /*
+     * عند تغيير المزرعة:
+     * farmId فقط يتغير.
+     *
+     * لا يتم حذف أي سجل.
+     * لا يتم نقل أي محصول.
+     * لا يتم مسح localStorage.
+     */
+
+    if (name === "farmId") {
+      const newFarmId =
+        String(
+          value ?? ""
+        ).trim();
+
+      setForm(current => ({
+        ...EMPTY,
+
+        farmId:
+          newFarmId,
+
+        cultivationType:
+          current.cultivationType ||
+          "field",
+      }));
+
+      setMapLocation(null);
+
+      setMessage("");
+
+      return;
+    }
 
     setForm(current => ({
       ...current,
@@ -504,7 +655,7 @@ export default function Crops() {
 
   async function refreshMapLocation() {
     const farmId =
-      form.farmId;
+      selectedFarmId;
 
     if (!farmId) {
       setMessage(
@@ -517,7 +668,7 @@ export default function Crops() {
     try {
       const location =
         await mapService.getLocationByFarmId(
-          String(farmId)
+          farmId
         );
 
       const normalized =
@@ -529,7 +680,7 @@ export default function Crops() {
         setMapLocation(null);
 
         setMessage(
-          "لم يتم العثور على موقع محفوظ من الخريطة."
+          "لم يتم العثور على موقع محفوظ لهذه المزرعة."
         );
 
         return;
@@ -540,10 +691,12 @@ export default function Crops() {
       );
 
       setMessage(
-        "تم تحميل موقع الأرض."
+        "تم تحميل موقع الأرض الخاص بالمزرعة المختارة."
       );
+
     } catch (error) {
       console.error(
+        "REFRESH LOCATION ERROR:",
         error
       );
 
@@ -559,7 +712,7 @@ export default function Crops() {
   // =======================================================
 
   function chooseMapLocation() {
-    if (!form.farmId) {
+    if (!selectedFarmId) {
       setMessage(
         "يرجى اختيار المزرعة أولًا."
       );
@@ -569,7 +722,7 @@ export default function Crops() {
 
     navigate(
       `/map?return=crops&farmId=${encodeURIComponent(
-        String(form.farmId)
+        selectedFarmId
       )}`
     );
   }
@@ -623,6 +776,29 @@ export default function Crops() {
 
 
   // =======================================================
+  // CROPS OF SELECTED FARM ONLY
+  // =======================================================
+
+  const selectedFarmCrops =
+    useMemo(() => {
+      if (!selectedFarmId) {
+        return [];
+      }
+
+      return crops.filter(
+        crop =>
+          String(
+            crop?.farmId ?? ""
+          ).trim() ===
+          selectedFarmId
+      );
+    }, [
+      crops,
+      selectedFarmId,
+    ]);
+
+
+  // =======================================================
   // SAVE
   // =======================================================
 
@@ -631,7 +807,7 @@ export default function Crops() {
 
     setMessage("");
 
-    if (!form.farmId) {
+    if (!selectedFarmId) {
       setMessage(
         "يرجى اختيار المزرعة."
       );
@@ -680,22 +856,6 @@ export default function Crops() {
     }
 
 
-    /*
-     * =====================================================
-     * IMPORTANT
-     * =====================================================
-     *
-     * لا يوجد new Date() هنا.
-     *
-     * تاريخ الزراعة يؤخذ حرفيًا من input type=date.
-     *
-     * مثال:
-     * 2025-05-02
-     *
-     * يبقى:
-     * 2025-05-02
-     */
-
     const plantingDate =
       String(
         form.plantingDate
@@ -705,10 +865,11 @@ export default function Crops() {
     const payload = {
       ...form,
 
+      /*
+       * المصدر الوحيد للربط هو farmId.
+       */
       farmId:
-        String(
-          form.farmId
-        ),
+        selectedFarmId,
 
       name:
         String(
@@ -725,9 +886,6 @@ export default function Crops() {
           form.treeVariety ?? ""
         ).trim(),
 
-      /*
-       * التاريخ الحقيقي الذي أدخله المستخدم
-       */
       plantingDate,
 
       harvestDate:
@@ -784,11 +942,6 @@ export default function Crops() {
     };
 
 
-    /*
-     * حماية إضافية:
-     * نتحقق قبل الإرسال أن التاريخ لم يتغير.
-     */
-
     if (
       payload.plantingDate !==
       plantingDate
@@ -821,9 +974,11 @@ export default function Crops() {
 
 
       /*
-       * تنظيف النموذج فقط.
+       * تنظيف نموذج المحصول فقط.
        *
-       * لا علاقة لهذا بالسجل المحفوظ.
+       * farmId يبقى للمزرعة الحالية.
+       *
+       * لا يتم حذف أي محصول قديم.
        */
 
       setForm(current => ({
@@ -868,6 +1023,7 @@ export default function Crops() {
       setMessage(
         "تم حذف المحصول."
       );
+
     } catch (error) {
       console.error(
         "CROP DELETE ERROR:",
@@ -879,22 +1035,6 @@ export default function Crops() {
       );
     }
   }
-
-
-  // =======================================================
-  // SELECTED FARM
-  // =======================================================
-
-  const selectedFarm =
-    farms.find(
-      farm =>
-        String(
-          farm?.id
-        ) ===
-        String(
-          form.farmId
-        )
-    );
 
 
   // =======================================================
@@ -931,7 +1071,7 @@ export default function Crops() {
 
         <select
           name="farmId"
-          value={form.farmId}
+          value={selectedFarmId}
           onChange={change}
           style={FIELD_STYLE}
           disabled={farmsLoading}
@@ -952,14 +1092,81 @@ export default function Crops() {
           ))}
         </select>
 
-        {selectedFarm && (
-          <p>
-            🏡 المزرعة المختارة:{" "}
-            <strong>
-              {selectedFarm.name ||
-                selectedFarm.farmName}
-            </strong>
-          </p>
+        {(selectedFarm ||
+          selectedFarmLoading) && (
+          <div
+            style={{
+              marginTop: "12px",
+              padding: "12px",
+              borderRadius: "10px",
+              background: "#f5f8f5",
+              border: "1px solid #ddd",
+            }}
+          >
+
+            {selectedFarmLoading ? (
+              <p>
+                جاري تحميل بيانات المزرعة...
+              </p>
+            ) : selectedFarm ? (
+              <>
+                <p>
+                  🏡 المزرعة المختارة:{" "}
+                  <strong>
+                    {selectedFarm.name ||
+                      selectedFarm.farmName ||
+                      selectedFarm.id}
+                  </strong>
+                </p>
+
+                {Object.entries(
+                  selectedFarm
+                ).map(
+                  ([key, value]) => {
+                    /*
+                     * لا نعرض الحقول الداخلية.
+                     */
+                    if (
+                      [
+                        "id",
+                        "name",
+                        "farmName",
+                        "createdAt",
+                        "updatedAt",
+                      ].includes(key)
+                    ) {
+                      return null;
+                    }
+
+                    const text =
+                      displayValue(
+                        value
+                      );
+
+                    if (!text) {
+                      return null;
+                    }
+
+                    return (
+                      <p
+                        key={key}
+                        style={{
+                          margin:
+                            "6px 0",
+                        }}
+                      >
+                        <strong>
+                          {key}:
+                        </strong>{" "}
+                        {text}
+                      </p>
+                    );
+                  }
+                )}
+              </>
+            ) : null}
+
+          </div>
         )}
       </section>
 
@@ -1012,8 +1219,10 @@ export default function Crops() {
 
         {mapLocation ? (
           <div>
+
             <p>
-              📍 تم تحديد موقع الأرض
+              📍 تم تحميل موقع الأرض المحفوظ
+              للمزرعة المختارة.
             </p>
 
             <p>
@@ -1025,6 +1234,27 @@ export default function Crops() {
               خط الطول:{" "}
               {mapLocation.longitude}
             </p>
+
+            {mapLocation.province && (
+              <p>
+                المحافظة:{" "}
+                {mapLocation.province}
+              </p>
+            )}
+
+            {mapLocation.district && (
+              <p>
+                المنطقة:{" "}
+                {mapLocation.district}
+              </p>
+            )}
+
+            {mapLocation.village && (
+              <p>
+                القرية:{" "}
+                {mapLocation.village}
+              </p>
+            )}
 
             <p>
               عدد نقاط الحدود:{" "}
@@ -1042,10 +1272,16 @@ export default function Crops() {
             >
               🔄 تحديث الموقع
             </button>
+
           </div>
+        ) : selectedFarmId ? (
+          <p>
+            لم يتم العثور على موقع محفوظ
+            لهذه المزرعة.
+          </p>
         ) : (
           <p>
-            لم يتم تحديد موقع الأرض.
+            اختر المزرعة أولًا.
           </p>
         )}
 
@@ -1098,7 +1334,7 @@ export default function Crops() {
 
 
       {/* ================================================= */}
-      {/* FORM */}
+      {/* CROP FORM */}
       {/* ================================================= */}
 
       <form
@@ -1392,7 +1628,7 @@ export default function Crops() {
 
 
       {/* ================================================= */}
-      {/* CROPS LIST */}
+      {/* CROPS LIST — SELECTED FARM ONLY */}
       {/* ================================================= */}
 
       <section
@@ -1404,107 +1640,103 @@ export default function Crops() {
           🌱 المحاصيل المسجلة
         </h2>
 
-        {cropsLoading ? (
+        {!selectedFarmId ? (
+          <p>
+            اختر المزرعة لعرض محاصيلها.
+          </p>
+
+        ) : cropsLoading ? (
           <p>
             جاري تحميل المحاصيل...
           </p>
-        ) : crops.length === 0 ? (
+
+        ) : selectedFarmCrops.length === 0 ? (
           <p>
-            لا توجد محاصيل مسجلة.
+            لا توجد محاصيل مسجلة لهذه المزرعة.
           </p>
+
         ) : (
-          crops.map(crop => (
-            <div
-              key={crop.id}
-              style={{
-                padding: "15px",
-                marginBottom: "12px",
-                borderRadius: "12px",
-                border: "1px solid #ddd",
-              }}
-            >
+          selectedFarmCrops.map(
+            crop => (
+              <div
+                key={crop.id}
+                style={{
+                  padding: "15px",
+                  marginBottom: "12px",
+                  borderRadius: "12px",
+                  border:
+                    "1px solid #ddd",
+                }}
+              >
 
-              <h3>
-                {crop.name ||
-                  crop.treeType ||
-                  "محصول"}
-              </h3>
+                <h3>
+                  {crop.name ||
+                    crop.treeType ||
+                    "محصول"}
+                </h3>
 
-              {crop.farmId && (
                 <p>
                   🏡 المزرعة:{" "}
-                  {
-                    farms.find(
-                      farm =>
-                        String(
-                          farm.id
-                        ) ===
-                        String(
-                          crop.farmId
-                        )
-                    )?.name ||
-                    crop.farmId
-                  }
-                </p>
-              )}
-
-
-              {crop.plantingDate && (
-                <p>
-                  📅 الزراعة:{" "}
                   <strong>
-                    {crop.plantingDate}
+                    {selectedFarm?.name ||
+                      selectedFarm?.farmName ||
+                      selectedFarmId}
                   </strong>
                 </p>
-              )}
 
+                {crop.plantingDate && (
+                  <p>
+                    📅 الزراعة:{" "}
+                    <strong>
+                      {crop.plantingDate}
+                    </strong>
+                  </p>
+                )}
 
-              {crop.plantingDate && (
-                <p>
-                  ⏳ العمر:{" "}
-                  <strong>
-                    {calculateAge(
-                      crop.plantingDate
-                    )}
-                  </strong>
-                </p>
-              )}
+                {crop.plantingDate && (
+                  <p>
+                    ⏳ العمر:{" "}
+                    <strong>
+                      {calculateAge(
+                        crop.plantingDate
+                      )}
+                    </strong>
+                  </p>
+                )}
 
+                {crop.climate && (
+                  <p>
+                    🌤️ المناخ:{" "}
+                    {crop.climate}
+                  </p>
+                )}
 
-              {crop.climate && (
-                <p>
-                  🌤️ المناخ:{" "}
-                  {crop.climate}
-                </p>
-              )}
-
-
-              {Number.isFinite(
-                Number(
-                  crop.latitude
-                )
-              ) && (
-                <p>
-                  📍 الموقع:{" "}
-                  {crop.latitude},{" "}
-                  {crop.longitude}
-                </p>
-              )}
-
-
-              <button
-                type="button"
-                onClick={() =>
-                  removeCrop(
-                    crop.id
+                {Number.isFinite(
+                  Number(
+                    crop.latitude
                   )
-                }
-              >
-                🗑️ حذف
-              </button>
+                ) && (
+                  <p>
+                    📍 الموقع:{" "}
+                    {crop.latitude},{" "}
+                    {crop.longitude}
+                  </p>
+                )}
 
-            </div>
-          ))
+                <button
+                  type="button"
+                  onClick={() =>
+                    removeCrop(
+                      crop.id
+                    )
+                  }
+                >
+                  🗑️ حذف
+                </button>
+
+              </div>
+            )
+          )
         )}
       </section>
 
