@@ -13,9 +13,7 @@ import cropService from "../services/cropService.js";
 // HELPERS
 // =========================================================
 
-function normalizeNumber(
-  value
-) {
+function normalizeNumber(value) {
 
   if (
     value === "" ||
@@ -25,10 +23,7 @@ function normalizeNumber(
     return null;
   }
 
-
-  const number =
-    Number(value);
-
+  const number = Number(value);
 
   return Number.isFinite(number)
     ? number
@@ -36,14 +31,50 @@ function normalizeNumber(
 }
 
 
-function normalizeBoundary(
-  value
-) {
+// =========================================================
+// DATE — DATE ONLY
+// مهم جدًا:
+// لا نستخدم new Date()
+// لا نستخدم toISOString()
+// لا نستخدم تاريخ اليوم
+// التاريخ يحفظ كما أدخله المستخدم بصيغة YYYY-MM-DD
+// =========================================================
+
+function normalizeDate(value) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+
+  const date = String(value).trim();
+
+  if (!date) {
+    return "";
+  }
+
+  // التاريخ القادم من <input type="date">
+  if (
+    /^\d{4}-\d{2}-\d{2}$/.test(date)
+  ) {
+    return date;
+  }
+
+  return "";
+}
+
+
+// =========================================================
+// BOUNDARY
+// =========================================================
+
+function normalizeBoundary(value) {
 
   if (!Array.isArray(value)) {
     return [];
   }
-
 
   return value
     .map(point => {
@@ -64,7 +95,6 @@ function normalizeBoundary(
 
         };
       }
-
 
       return {
 
@@ -128,17 +158,21 @@ function normalizeCropData(
 
     ...data,
 
+
     id:
       data.id ?? null,
+
 
     farmId:
       data.farmId
         ? String(data.farmId)
         : "",
 
+
     cultivationType:
       data.cultivationType ||
       "field",
+
 
     name:
       String(
@@ -146,11 +180,13 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     seedType:
       String(
         data.seedType ??
         ""
       ).trim(),
+
 
     seedVariety:
       String(
@@ -158,16 +194,19 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     seedQuality:
       String(
         data.seedQuality ??
         ""
       ).trim(),
 
+
     seedQuantity:
       normalizeNumber(
         data.seedQuantity
       ),
+
 
     treeType:
       String(
@@ -175,15 +214,24 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     treeVariety:
       String(
         data.treeVariety ??
         ""
       ).trim(),
 
+
+    // =====================================================
+    // التاريخ الحقيقي الذي أدخله المستخدم
+    // لا يتم إنشاء تاريخ جديد
+    // =====================================================
+
     plantingDate:
-      data.plantingDate ||
-      "",
+      normalizeDate(
+        data.plantingDate
+      ),
+
 
     fertilizerType:
       String(
@@ -191,28 +239,40 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     fertilizerQuantity:
       normalizeNumber(
         data.fertilizerQuantity
       ),
 
+
+    // =====================================================
+    // تاريخ الحصاد الذي أدخله المستخدم
+    // =====================================================
+
     harvestDate:
-      data.harvestDate ||
-      "",
+      normalizeDate(
+        data.harvestDate
+      ),
+
 
     expectedProduction:
       normalizeNumber(
         data.expectedProduction
       ),
 
+
     latitude,
 
     longitude,
 
+
     points,
+
 
     boundary:
       points,
+
 
     country:
       String(
@@ -220,11 +280,13 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     governorate:
       String(
         data.governorate ??
         ""
       ).trim(),
+
 
     region:
       String(
@@ -232,11 +294,13 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     district:
       String(
         data.district ??
         ""
       ).trim(),
+
 
     municipality:
       String(
@@ -244,11 +308,13 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     province:
       String(
         data.province ??
         ""
       ).trim(),
+
 
     state:
       String(
@@ -256,11 +322,13 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     city:
       String(
         data.city ??
         ""
       ).trim(),
+
 
     town:
       String(
@@ -268,11 +336,13 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     village:
       String(
         data.village ??
         ""
       ).trim(),
+
 
     hamlet:
       String(
@@ -280,11 +350,13 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     locationName:
       String(
         data.locationName ??
         ""
       ).trim(),
+
 
     placeName:
       String(
@@ -292,17 +364,20 @@ function normalizeCropData(
         ""
       ).trim(),
 
+
     locationDescription:
       String(
         data.locationDescription ??
         ""
       ).trim(),
 
+
     climate:
       String(
         data.climate ??
         ""
       ).trim(),
+
 
     recommendedSeeds:
       Array.isArray(
@@ -311,12 +386,14 @@ function normalizeCropData(
         ? data.recommendedSeeds
         : [],
 
+
     recommendedSeedVarieties:
       Array.isArray(
         data.recommendedSeedVarieties
       )
         ? data.recommendedSeedVarieties
         : [],
+
 
     notes:
       String(
@@ -363,6 +440,7 @@ export default function useCrops() {
         try {
 
           setLoading(true);
+
           setError("");
 
 
@@ -443,6 +521,7 @@ export default function useCrops() {
           throw new Error(
             "CROP_FARM_REQUIRED"
           );
+
         }
 
 
@@ -453,6 +532,7 @@ export default function useCrops() {
           throw new Error(
             "CROP_NAME_REQUIRED"
           );
+
         }
 
 
@@ -468,6 +548,7 @@ export default function useCrops() {
           throw new Error(
             "CROP_LOCATION_REQUIRED"
           );
+
         }
 
 
@@ -688,6 +769,7 @@ export default function useCrops() {
           total:
             crops.length,
 
+
           withLocation:
             crops.filter(
               crop =>
@@ -698,6 +780,7 @@ export default function useCrops() {
                   crop.longitude
                 )
             ).length,
+
 
           withBoundary:
             crops.filter(
