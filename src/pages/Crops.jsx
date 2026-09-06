@@ -1,5 +1,3 @@
-// src/pages/Crops.jsx
-
 import {
   useEffect,
   useMemo,
@@ -83,15 +81,13 @@ const TYPES = [
 
 function getClimate(latitude) {
 
-  const lat =
-    Number(latitude);
+  const lat = Number(latitude);
 
   if (!Number.isFinite(lat)) {
     return "";
   }
 
-  const absolute =
-    Math.abs(lat);
+  const absolute = Math.abs(lat);
 
   if (absolute >= 50) {
     return "باردة";
@@ -106,7 +102,7 @@ function getClimate(latitude) {
 
 
 // =========================================================
-// RECOMMENDED SEEDS
+// RECOMMENDATIONS
 // =========================================================
 
 function getRecommendedSeeds(
@@ -215,16 +211,6 @@ function calculateAge(date) {
     return "";
   }
 
-  /*
-   * التاريخ القادم من input type=date
-   * يكون بصيغة:
-   *
-   * YYYY-MM-DD
-   *
-   * ولا نقوم بتحويله إلى ISO
-   * أو تغيير قيمته.
-   */
-
   const parts =
     String(date).split("-");
 
@@ -232,14 +218,9 @@ function calculateAge(date) {
     return "";
   }
 
-  const year =
-    Number(parts[0]);
-
-  const month =
-    Number(parts[1]);
-
-  const day =
-    Number(parts[2]);
+  const year = Number(parts[0]);
+  const month = Number(parts[1]);
+  const day = Number(parts[2]);
 
   if (
     !Number.isInteger(year) ||
@@ -256,34 +237,22 @@ function calculateAge(date) {
       day
     );
 
-  start.setHours(
-    0,
-    0,
-    0,
-    0
-  );
+  start.setHours(0, 0, 0, 0);
 
-  const today =
-    new Date();
+  const today = new Date();
 
-  today.setHours(
-    0,
-    0,
-    0,
-    0
-  );
+  today.setHours(0, 0, 0, 0);
 
   if (start > today) {
     return "0 يوم";
   }
 
-  const difference =
-    today.getTime() -
-    start.getTime();
-
   const days =
     Math.floor(
-      difference /
+      (
+        today.getTime() -
+        start.getTime()
+      ) /
       86400000
     );
 
@@ -323,15 +292,14 @@ function calculateAge(date) {
 function numberOrEmpty(value) {
 
   if (
+    value === "" ||
     value === null ||
-    value === undefined ||
-    value === ""
+    value === undefined
   ) {
     return "";
   }
 
-  const number =
-    Number(value);
+  const number = Number(value);
 
   return Number.isFinite(number)
     ? number
@@ -516,13 +484,11 @@ export default function Crops() {
   } =
     useCrops();
 
-
   const [
     form,
     setForm,
   ] =
     useState(EMPTY);
-
 
   const [
     mapLocation,
@@ -530,13 +496,11 @@ export default function Crops() {
   ] =
     useState(null);
 
-
   const [
     message,
     setMessage,
   ] =
     useState("");
-
 
   const [
     saving,
@@ -546,7 +510,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // URL FARM
+  // FARM
   // =======================================================
 
   const farmIdFromUrl =
@@ -556,11 +520,6 @@ export default function Crops() {
       )
     );
 
-
-  // =======================================================
-  // SELECTED FARM
-  // =======================================================
-
   const selectedFarmId =
     normalizeFarmId(
       form.farmId
@@ -568,8 +527,7 @@ export default function Crops() {
 
 
   const {
-    farm:
-      loadedFarm,
+    farm: loadedFarm,
     loading:
       selectedFarmLoading,
   } =
@@ -644,7 +602,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // LOAD FARM + LOCATION
+  // LOAD FARM LOCATION
   // =======================================================
 
   useEffect(() => {
@@ -755,7 +713,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // CHANGE
+  // INPUT CHANGE
   // =======================================================
 
   const handleChange =
@@ -775,10 +733,8 @@ export default function Crops() {
             value
           );
 
-
         setMessage("");
         setMapLocation(null);
-
 
         setForm({
 
@@ -789,7 +745,6 @@ export default function Crops() {
           cultivationType:
             "field",
         });
-
 
         return;
       }
@@ -954,7 +909,7 @@ export default function Crops() {
 
 
   // =======================================================
-  // ONLY SELECTED FARM
+  // SELECTED FARM CROPS
   // =======================================================
 
   const selectedFarmCrops =
@@ -1009,7 +964,6 @@ export default function Crops() {
           form.latitude
         );
 
-
       const longitude =
         Number(
           mapLocation?.longitude ??
@@ -1018,12 +972,8 @@ export default function Crops() {
 
 
       if (
-        !Number.isFinite(
-          latitude
-        ) ||
-        !Number.isFinite(
-          longitude
-        )
+        !Number.isFinite(latitude) ||
+        !Number.isFinite(longitude)
       ) {
 
         setMessage(
@@ -1035,12 +985,11 @@ export default function Crops() {
 
 
       /*
-       * التاريخ يؤخذ كما هو
-       * من input.
+       * التاريخ يحفظ كنص
+       * YYYY-MM-DD
        *
-       * لا new Date()
-       * لا toISOString()
-       * لا تاريخ اليوم.
+       * بدون Date
+       * وبدون ISO
        */
 
       const plantingDate =
@@ -1157,7 +1106,7 @@ export default function Crops() {
           ),
 
         /*
-         * التاريخ الأصلي فقط.
+         * التاريخ الأصلي.
          */
         plantingDate,
 
@@ -1225,7 +1174,6 @@ export default function Crops() {
             boundary:
               mapLocation?.boundary ??
               [],
-
           })
         );
 
@@ -1274,9 +1222,7 @@ export default function Crops() {
 
       } catch (err) {
 
-        console.error(
-          err
-        );
+        console.error(err);
 
         setMessage(
           "تعذر حذف المحصول"
@@ -1357,7 +1303,7 @@ export default function Crops() {
 
 
       {/* ================================================= */}
-      {/* FARM */}
+      {/* FARM DATA */}
       {/* ================================================= */}
 
       {selectedFarm && (
@@ -1407,13 +1353,10 @@ export default function Crops() {
                   <div
                     key={key}
                   >
-
                     <strong>
                       {key}:
                     </strong>{" "}
-
                     {String(value)}
-
                   </div>
 
                 );
@@ -1487,7 +1430,6 @@ export default function Crops() {
           {mapLocation ? (
 
             <>
-
               <p>
                 📍 تم تحديد موقع الأرض
               </p>
@@ -1514,7 +1456,6 @@ export default function Crops() {
               >
                 تعديل الموقع
               </button>
-
             </>
 
           ) : (
@@ -1595,6 +1536,10 @@ export default function Crops() {
           </h2>
 
 
+          {/* ================================================= */}
+          {/* TREE */}
+          {/* ================================================= */}
+
           {form.cultivationType ===
           "trees" ? (
 
@@ -1605,6 +1550,7 @@ export default function Crops() {
               </label>
 
               <input
+                type="text"
                 name="treeType"
                 value={
                   form.treeType
@@ -1612,6 +1558,7 @@ export default function Crops() {
                 onChange={
                   handleChange
                 }
+                autoComplete="off"
               />
 
 
@@ -1620,6 +1567,7 @@ export default function Crops() {
               </label>
 
               <input
+                type="text"
                 name="treeVariety"
                 value={
                   form.treeVariety
@@ -1627,6 +1575,7 @@ export default function Crops() {
                 onChange={
                   handleChange
                 }
+                autoComplete="off"
               />
 
             </>
@@ -1640,6 +1589,7 @@ export default function Crops() {
               </label>
 
               <input
+                type="text"
                 name="name"
                 value={
                   form.name
@@ -1647,6 +1597,7 @@ export default function Crops() {
                 onChange={
                   handleChange
                 }
+                autoComplete="off"
               />
 
 
@@ -1655,6 +1606,7 @@ export default function Crops() {
               </label>
 
               <input
+                type="text"
                 name="seedType"
                 value={
                   form.seedType
@@ -1662,6 +1614,7 @@ export default function Crops() {
                 onChange={
                   handleChange
                 }
+                autoComplete="off"
               />
 
 
@@ -1670,6 +1623,7 @@ export default function Crops() {
               </label>
 
               <input
+                type="text"
                 name="seedVariety"
                 value={
                   form.seedVariety
@@ -1677,6 +1631,7 @@ export default function Crops() {
                 onChange={
                   handleChange
                 }
+                autoComplete="off"
               />
 
 
@@ -1685,6 +1640,7 @@ export default function Crops() {
               </label>
 
               <input
+                type="text"
                 name="seedQuality"
                 value={
                   form.seedQuality
@@ -1692,6 +1648,7 @@ export default function Crops() {
                 onChange={
                   handleChange
                 }
+                autoComplete="off"
               />
 
 
@@ -1708,6 +1665,7 @@ export default function Crops() {
                 onChange={
                   handleChange
                 }
+                inputMode="decimal"
               />
 
             </>
@@ -1731,6 +1689,7 @@ export default function Crops() {
             onChange={
               handleChange
             }
+            autoComplete="off"
           />
 
 
@@ -1755,6 +1714,7 @@ export default function Crops() {
           </label>
 
           <input
+            type="text"
             name="fertilizerType"
             value={
               form.fertilizerType
@@ -1762,6 +1722,7 @@ export default function Crops() {
             onChange={
               handleChange
             }
+            autoComplete="off"
           />
 
 
@@ -1778,11 +1739,12 @@ export default function Crops() {
             onChange={
               handleChange
             }
+            inputMode="decimal"
           />
 
 
           {/* ================================================= */}
-          {/* HARVEST */}
+          {/* HARVEST DATE */}
           {/* ================================================= */}
 
           <label>
@@ -1798,6 +1760,7 @@ export default function Crops() {
             onChange={
               handleChange
             }
+            autoComplete="off"
           />
 
 
@@ -1817,6 +1780,7 @@ export default function Crops() {
             onChange={
               handleChange
             }
+            autoComplete="off"
           />
 
 
@@ -1881,103 +1845,125 @@ export default function Crops() {
           ) : (
 
             selectedFarmCrops.map(
-              crop => (
+              crop => {
 
-                <article
-                  key={
-                    crop.id
-                  }
-                >
+                const cropLatitude =
+                  Number(
+                    crop?.latitude
+                  );
 
-                  <h3>
-                    {
-                      crop.treeType ||
-                      crop.name ||
-                      "محصول"
-                    }
-                  </h3>
+                const cropLongitude =
+                  Number(
+                    crop?.longitude
+                  );
 
 
-                  <p>
-                    المزرعة:{" "}
-                    {
-                      selectedFarm.name ??
-                      selectedFarm.farmName ??
-                      "مزرعة"
-                    }
-                  </p>
-
-
-                  <p>
-                    تاريخ الزراعة:{" "}
-                    {
-                      crop.plantingDate ||
-                      "غير محدد"
-                    }
-                  </p>
-
-
-                  {crop.plantingDate && (
-
-                    <p>
-                      العمر:{" "}
-                      {
-                        calculateAge(
-                          crop.plantingDate
-                        )
-                      }
-                    </p>
-
-                  )}
-
-
-                  {crop.climate && (
-
-                    <p>
-                      المناخ:{" "}
-                      {
-                        crop.climate
-                      }
-                    </p>
-
-                  )}
-
-
-                  {Number.isFinite(
-                    crop.latitude
+                const hasLocation =
+                  Number.isFinite(
+                    cropLatitude
                   ) &&
                   Number.isFinite(
-                    crop.longitude
-                  ) && (
+                    cropLongitude
+                  ) &&
+                  !(
+                    cropLatitude === 0 &&
+                    cropLongitude === 0
+                  );
+
+
+                return (
+
+                  <article
+                    key={
+                      crop.id
+                    }
+                  >
+
+                    <h3>
+                      {
+                        crop.treeType ||
+                        crop.name ||
+                        "محصول"
+                      }
+                    </h3>
+
 
                     <p>
-                      الموقع:{" "}
+                      المزرعة:{" "}
                       {
-                        crop.latitude
-                      }
-                      {" / "}
-                      {
-                        crop.longitude
+                        selectedFarm.name ??
+                        selectedFarm.farmName ??
+                        "مزرعة"
                       }
                     </p>
 
-                  )}
+
+                    <p>
+                      تاريخ الزراعة:{" "}
+                      {
+                        crop.plantingDate ||
+                        "غير محدد"
+                      }
+                    </p>
 
 
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDelete(
-                        crop.id
-                      )
-                    }
-                  >
-                    🗑️ حذف
-                  </button>
+                    {crop.plantingDate && (
 
-                </article>
+                      <p>
+                        العمر:{" "}
+                        {
+                          calculateAge(
+                            crop.plantingDate
+                          )
+                        }
+                      </p>
 
-              )
+                    )}
+
+
+                    {crop.climate && (
+
+                      <p>
+                        المناخ:{" "}
+                        {
+                          crop.climate
+                        }
+                      </p>
+
+                    )}
+
+
+                    {hasLocation && (
+
+                      <p>
+                        الموقع:{" "}
+                        {
+                          cropLatitude
+                        }
+                        {" / "}
+                        {
+                          cropLongitude
+                        }
+                      </p>
+
+                    )}
+
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDelete(
+                          crop.id
+                        )
+                      }
+                    >
+                      🗑️ حذف
+                    </button>
+
+                  </article>
+
+                );
+              }
             )
           )}
 
