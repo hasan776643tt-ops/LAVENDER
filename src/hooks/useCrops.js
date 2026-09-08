@@ -32,12 +32,7 @@ function normalizeNumber(value) {
 
 
 // =========================================================
-// DATE — DATE ONLY
-// مهم جدًا:
-// لا نستخدم new Date()
-// لا نستخدم toISOString()
-// لا نستخدم تاريخ اليوم
-// التاريخ يحفظ كما أدخله المستخدم بصيغة YYYY-MM-DD
+// DATE
 // =========================================================
 
 function normalizeDate(value) {
@@ -49,13 +44,9 @@ function normalizeDate(value) {
     return "";
   }
 
-  const date = String(value).trim();
+  const date =
+    String(value).trim();
 
-  if (!date) {
-    return "";
-  }
-
-  // التاريخ القادم من <input type="date">
   if (
     /^\d{4}-\d{2}-\d{2}$/.test(date)
   ) {
@@ -82,17 +73,11 @@ function normalizeBoundary(value) {
       if (Array.isArray(point)) {
 
         return {
-
           latitude:
-            normalizeNumber(
-              point[0]
-            ),
+            normalizeNumber(point[0]),
 
           longitude:
-            normalizeNumber(
-              point[1]
-            ),
-
+            normalizeNumber(point[1]),
         };
       }
 
@@ -154,230 +139,259 @@ function normalizeCropData(
     );
 
 
+  const productionQuantity =
+    normalizeNumber(
+      data.productionQuantity
+    );
+
+
+  const pricePerTon =
+    normalizeNumber(
+      data.pricePerTon
+    );
+
+
+  const totalExpenses =
+    normalizeNumber(
+      data.totalExpenses
+    );
+
+
+  const safeProduction =
+    productionQuantity ?? 0;
+
+  const safePrice =
+    pricePerTon ?? 0;
+
+  const safeExpenses =
+    totalExpenses ?? 0;
+
+
+  const revenue =
+    Number.isFinite(
+      Number(data.revenue)
+    )
+      ? Number(data.revenue)
+      : safeProduction * safePrice;
+
+
+  const profit =
+    Number.isFinite(
+      Number(data.profit)
+    )
+      ? Number(data.profit)
+      : revenue - safeExpenses;
+
+
   return {
 
     ...data,
 
-
     id:
       data.id ?? null,
-
 
     farmId:
       data.farmId
         ? String(data.farmId)
         : "",
 
-
     cultivationType:
       data.cultivationType ||
       "field",
 
-
     name:
       String(
-        data.name ??
-        ""
+        data.name ?? ""
       ).trim(),
-
 
     seedType:
       String(
-        data.seedType ??
-        ""
+        data.seedType ?? ""
       ).trim(),
-
 
     seedVariety:
       String(
-        data.seedVariety ??
-        ""
+        data.seedVariety ?? ""
       ).trim(),
-
 
     seedQuality:
       String(
-        data.seedQuality ??
-        ""
+        data.seedQuality ?? ""
       ).trim(),
-
 
     seedQuantity:
       normalizeNumber(
         data.seedQuantity
       ),
 
-
     treeType:
       String(
-        data.treeType ??
-        ""
+        data.treeType ?? ""
       ).trim(),
-
 
     treeVariety:
       String(
-        data.treeVariety ??
-        ""
+        data.treeVariety ?? ""
       ).trim(),
-
-
-    // =====================================================
-    // التاريخ الحقيقي الذي أدخله المستخدم
-    // لا يتم إنشاء تاريخ جديد
-    // =====================================================
 
     plantingDate:
       normalizeDate(
         data.plantingDate
       ),
 
-
     fertilizerType:
       String(
-        data.fertilizerType ??
-        ""
+        data.fertilizerType ?? ""
       ).trim(),
-
 
     fertilizerQuantity:
       normalizeNumber(
         data.fertilizerQuantity
       ),
 
-
-    // =====================================================
-    // تاريخ الحصاد الذي أدخله المستخدم
-    // =====================================================
-
     harvestDate:
       normalizeDate(
         data.harvestDate
       ),
 
+    actualHarvestDate:
+      normalizeDate(
+        data.actualHarvestDate
+      ),
 
     expectedProduction:
       normalizeNumber(
         data.expectedProduction
       ),
 
+    // =====================================================
+    // REAL PRODUCTION
+    // =====================================================
+
+    productionQuantity,
+
+    productionUnit:
+      String(
+        data.productionUnit ||
+        "طن"
+      ).trim(),
+
+    pricePerTon,
+
+    // =====================================================
+    // FINANCIAL
+    // =====================================================
+
+    revenue,
+
+    totalExpenses,
+
+    profit,
+
+    // =====================================================
+    // HARVEST STATUS
+    // =====================================================
+
+    harvestStatus:
+      data.harvestStatus ||
+      "pending",
 
     latitude,
 
     longitude,
 
-
     points,
-
 
     boundary:
       points,
 
+    locationId:
+      data.locationId ?? null,
+
+    area:
+      normalizeNumber(
+        data.area
+      ),
+
+    perimeter:
+      normalizeNumber(
+        data.perimeter
+      ),
 
     country:
       String(
-        data.country ??
-        ""
+        data.country ?? ""
       ).trim(),
-
 
     governorate:
       String(
-        data.governorate ??
-        ""
+        data.governorate ?? ""
       ).trim(),
-
 
     region:
       String(
-        data.region ??
-        ""
+        data.region ?? ""
       ).trim(),
-
 
     district:
       String(
-        data.district ??
-        ""
+        data.district ?? ""
       ).trim(),
-
 
     municipality:
       String(
-        data.municipality ??
-        ""
+        data.municipality ?? ""
       ).trim(),
-
 
     province:
       String(
-        data.province ??
-        ""
+        data.province ?? ""
       ).trim(),
-
 
     state:
       String(
-        data.state ??
-        ""
+        data.state ?? ""
       ).trim(),
-
 
     city:
       String(
-        data.city ??
-        ""
+        data.city ?? ""
       ).trim(),
-
 
     town:
       String(
-        data.town ??
-        ""
+        data.town ?? ""
       ).trim(),
-
 
     village:
       String(
-        data.village ??
-        ""
+        data.village ?? ""
       ).trim(),
-
 
     hamlet:
       String(
-        data.hamlet ??
-        ""
+        data.hamlet ?? ""
       ).trim(),
-
 
     locationName:
       String(
-        data.locationName ??
-        ""
+        data.locationName ?? ""
       ).trim(),
-
 
     placeName:
       String(
-        data.placeName ??
-        ""
+        data.placeName ?? ""
       ).trim(),
-
 
     locationDescription:
       String(
-        data.locationDescription ??
-        ""
+        data.locationDescription ?? ""
       ).trim(),
-
 
     climate:
       String(
-        data.climate ??
-        ""
+        data.climate ?? ""
       ).trim(),
-
 
     recommendedSeeds:
       Array.isArray(
@@ -386,7 +400,6 @@ function normalizeCropData(
         ? data.recommendedSeeds
         : [],
 
-
     recommendedSeedVarieties:
       Array.isArray(
         data.recommendedSeedVarieties
@@ -394,11 +407,9 @@ function normalizeCropData(
         ? data.recommendedSeedVarieties
         : [],
 
-
     notes:
       String(
-        data.notes ??
-        ""
+        data.notes ?? ""
       ).trim(),
 
   };
@@ -429,10 +440,6 @@ export default function useCrops() {
   ] = useState("");
 
 
-  // =======================================================
-  // LOAD
-  // =======================================================
-
   const loadCrops =
     useCallback(
       async () => {
@@ -440,13 +447,10 @@ export default function useCrops() {
         try {
 
           setLoading(true);
-
           setError("");
-
 
           const data =
             await cropService.getAll();
-
 
           const normalized =
             Array.isArray(data)
@@ -455,11 +459,9 @@ export default function useCrops() {
                 )
               : [];
 
-
           setCrops(
             normalized
           );
-
 
           return normalized;
 
@@ -470,15 +472,12 @@ export default function useCrops() {
             loadError
           );
 
-
           setCrops([]);
-
 
           setError(
             loadError?.message ||
             "تعذر تحميل المحاصيل"
           );
-
 
           return [];
 
@@ -513,7 +512,6 @@ export default function useCrops() {
             data
           );
 
-
         if (
           !normalized.farmId
         ) {
@@ -524,9 +522,9 @@ export default function useCrops() {
 
         }
 
-
         if (
-          !normalized.name
+          !normalized.name &&
+          !normalized.treeType
         ) {
 
           throw new Error(
@@ -534,7 +532,6 @@ export default function useCrops() {
           );
 
         }
-
 
         if (
           !Number.isFinite(
@@ -551,18 +548,15 @@ export default function useCrops() {
 
         }
 
-
         const created =
           await cropService.create(
             normalized
           );
 
-
         const result =
           normalizeCropData(
             created
           );
-
 
         setCrops(
           current => [
@@ -570,7 +564,6 @@ export default function useCrops() {
             result,
           ]
         );
-
 
         return result;
 
@@ -595,24 +588,20 @@ export default function useCrops() {
             data
           );
 
-
         const updated =
           await cropService.update(
             id,
             normalized
           );
 
-
         if (!updated) {
           return null;
         }
-
 
         const result =
           normalizeCropData(
             updated
           );
-
 
         setCrops(
           current =>
@@ -624,7 +613,6 @@ export default function useCrops() {
                   : crop
             )
         );
-
 
         return result;
 
@@ -645,17 +633,14 @@ export default function useCrops() {
           return false;
         }
 
-
         const deleted =
           await cropService.delete(
             id
           );
 
-
         if (!deleted) {
           return false;
         }
-
 
         setCrops(
           current =>
@@ -665,7 +650,6 @@ export default function useCrops() {
                 String(id)
             )
         );
-
 
         return true;
 
@@ -689,11 +673,9 @@ export default function useCrops() {
             .trim()
             .toLowerCase();
 
-
         if (!value) {
           return crops;
         }
-
 
         return crops.filter(
           crop => {
@@ -701,48 +683,33 @@ export default function useCrops() {
             const searchable = [
 
               crop.name,
-
+              crop.treeType,
               crop.seedType,
-
               crop.seedVariety,
-
               crop.fertilizerType,
 
               crop.locationName,
-
               crop.placeName,
 
               crop.country,
-
               crop.governorate,
-
               crop.region,
-
               crop.district,
-
               crop.municipality,
-
               crop.province,
-
               crop.state,
-
               crop.city,
-
               crop.town,
-
               crop.village,
-
               crop.hamlet,
 
               crop.climate,
-
               crop.notes,
 
             ]
               .filter(Boolean)
               .join(" ")
               .toLowerCase();
-
 
             return searchable.includes(
               value
@@ -769,7 +736,6 @@ export default function useCrops() {
           total:
             crops.length,
 
-
           withLocation:
             crops.filter(
               crop =>
@@ -781,7 +747,6 @@ export default function useCrops() {
                 )
             ).length,
 
-
           withBoundary:
             crops.filter(
               crop =>
@@ -791,16 +756,44 @@ export default function useCrops() {
                 crop.boundary.length >= 3
             ).length,
 
+          totalProduction:
+            crops.reduce(
+              (sum, crop) =>
+                sum +
+                (Number(crop.productionQuantity) || 0),
+              0
+            ),
+
+          totalRevenue:
+            crops.reduce(
+              (sum, crop) =>
+                sum +
+                (Number(crop.revenue) || 0),
+              0
+            ),
+
+          totalExpenses:
+            crops.reduce(
+              (sum, crop) =>
+                sum +
+                (Number(crop.totalExpenses) || 0),
+              0
+            ),
+
+          totalProfit:
+            crops.reduce(
+              (sum, crop) =>
+                sum +
+                (Number(crop.profit) || 0),
+              0
+            ),
+
         };
 
       },
       [crops]
     );
 
-
-  // =======================================================
-  // RETURN
-  // =======================================================
 
   return {
 
