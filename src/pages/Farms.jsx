@@ -1,4 +1,7 @@
+// =========================================================
+// LAVENDER — FARMS
 // src/pages/Farms.jsx
+// =========================================================
 
 import {
   useMemo,
@@ -13,26 +16,22 @@ import useFarms from "../hooks/useFarms.js";
 
 
 // =========================================================
-// LAVENDER — FARMS
-// =========================================================
-// الصفحة الأولى للتطبيق
-//
-// الوضع الأول:
-// اختيار المزرعة
-//
-// الوضع الثاني:
-// خدمات المزرعة
-//
-// إضافة:
-// إدارة وحذف المزارع من زر جانبي مستقل
-// =========================================================
-
-
-// =========================================================
 // FARM SERVICES
 // =========================================================
+// الخدمات الأساسية الجديدة فقط
+//
+// المحاصيل
+// الري
+// المستشار الزراعي
+// الخريطة
+// المصروفات
+// الطقس
+//
+// الأسمدة / الأمراض / الحصاد / المخزون / المبيدات / التقارير
+// لم تعد تظهر في واجهة خدمات المزرعة.
+// =========================================================
 
-const FARM_SERVICES = [
+const FARM_SERVICES = Object.freeze([
 
   {
     id: "crops",
@@ -46,20 +45,6 @@ const FARM_SERVICES = [
     icon: "💧",
     title: "الري",
     path: "/irrigation",
-  },
-
-  {
-    id: "fertilizers",
-    icon: "🧪",
-    title: "الأسمدة",
-    path: "/fertilizers",
-  },
-
-  {
-    id: "diseases",
-    icon: "🐛",
-    title: "الأمراض",
-    path: "/diseases",
   },
 
   {
@@ -77,13 +62,6 @@ const FARM_SERVICES = [
   },
 
   {
-    id: "harvest",
-    icon: "🌽",
-    title: "الحصاد",
-    path: "/harvest",
-  },
-
-  {
     id: "expenses",
     icon: "💰",
     title: "المصروفات",
@@ -97,28 +75,7 @@ const FARM_SERVICES = [
     path: "/weather",
   },
 
-  {
-    id: "inventory",
-    icon: "📦",
-    title: "المخزون",
-    path: "/inventory",
-  },
-
-  {
-    id: "pesticides",
-    icon: "🛡️",
-    title: "المبيدات",
-    path: "/pesticides",
-  },
-
-  {
-    id: "reports",
-    icon: "📊",
-    title: "التقارير",
-    path: "/reports",
-  },
-
-];
+]);
 
 
 // =========================================================
@@ -247,7 +204,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // GRID SIZE
+  // FARM GRID
   // =======================================================
 
   const farmSlotCount =
@@ -266,14 +223,9 @@ export default function Farms() {
       (
         _,
         index
-      ) => {
-
-        return (
-          normalizedFarms[index]
-          ?? null
-        );
-
-      }
+      ) =>
+        normalizedFarms[index]
+        ?? null
     );
 
 
@@ -304,7 +256,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // BACK TO FARMS
+  // BACK
   // =======================================================
 
   const backToFarms = () => {
@@ -317,7 +269,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // OPEN FARM SERVICE
+  // OPEN SERVICE
   // =======================================================
 
   const openService = (
@@ -362,7 +314,7 @@ export default function Farms() {
 
 
   // =======================================================
-  // OPEN DELETE PANEL
+  // DELETE PANEL
   // =======================================================
 
   const openDeletePanel = () => {
@@ -377,10 +329,6 @@ export default function Farms() {
 
   };
 
-
-  // =======================================================
-  // CLOSE DELETE PANEL
-  // =======================================================
 
   const closeDeletePanel = () => {
 
@@ -403,10 +351,6 @@ export default function Farms() {
 
   };
 
-
-  // =======================================================
-  // SELECT FARM FOR DELETE
-  // =======================================================
 
   const selectFarmForDelete = (
     farm
@@ -505,7 +449,6 @@ export default function Farms() {
       setShowDeletePanel(
         false
       );
-
 
     } catch (
       err
@@ -842,6 +785,10 @@ export default function Farms() {
 
           </header>
 
+
+          {/* =================================================
+              FARM SERVICES
+          ================================================= */}
 
           <section
             className="farm-services-grid"
