@@ -1,5 +1,6 @@
 // =========================================================
 // LAVENDER — CROP MODEL
+// src/models/CropModel.js
 // =========================================================
 
 export const CropModel = Object.freeze({
@@ -19,6 +20,36 @@ export const CropModel = Object.freeze({
           ? data.points
           : [];
 
+    const productionQuantity =
+      Number(data.productionQuantity);
+
+    const pricePerTon =
+      Number(data.pricePerTon);
+
+    const totalExpenses =
+      Number(data.totalExpenses);
+
+    const safeProduction =
+      Number.isFinite(productionQuantity)
+        ? productionQuantity
+        : 0;
+
+    const safePrice =
+      Number.isFinite(pricePerTon)
+        ? pricePerTon
+        : 0;
+
+    const safeExpenses =
+      Number.isFinite(totalExpenses)
+        ? totalExpenses
+        : 0;
+
+    const revenue =
+      safeProduction * safePrice;
+
+    const profit =
+      revenue - safeExpenses;
+
     return {
 
       id:
@@ -33,7 +64,6 @@ export const CropModel = Object.freeze({
           ? String(data.farmId)
           : "",
 
-      // يبقى داخليًا للتوافق
       cultivationType:
         data.cultivationType ||
         "field",
@@ -87,6 +117,9 @@ export const CropModel = Object.freeze({
       harvestDate:
         data.harvestDate || "",
 
+      actualHarvestDate:
+        data.actualHarvestDate || "",
+
       // =====================================================
       // FERTILIZER
       // =====================================================
@@ -110,8 +143,39 @@ export const CropModel = Object.freeze({
           data.expectedProduction || 0
         ),
 
+      productionQuantity:
+        safeProduction,
+
+      productionUnit:
+        String(
+          data.productionUnit ||
+          "طن"
+        ).trim(),
+
+      pricePerTon:
+        safePrice,
+
       // =====================================================
-      // REAL FARM LOCATION
+      // FINANCIAL
+      // =====================================================
+
+      revenue,
+
+      totalExpenses:
+        safeExpenses,
+
+      profit,
+
+      // =====================================================
+      // HARVEST STATUS
+      // =====================================================
+
+      harvestStatus:
+        data.harvestStatus ||
+        "pending",
+
+      // =====================================================
+      // LOCATION
       // =====================================================
 
       latitude:
@@ -126,10 +190,6 @@ export const CropModel = Object.freeze({
 
       boundary,
 
-      // =====================================================
-      // LOCATION METADATA
-      // =====================================================
-
       locationId:
         data.locationId ?? null,
 
@@ -140,8 +200,89 @@ export const CropModel = Object.freeze({
           ? Number(data.area)
           : null,
 
+      perimeter:
+        Number.isFinite(
+          Number(data.perimeter)
+        )
+          ? Number(data.perimeter)
+          : null,
+
       // =====================================================
-      // CLIMATE / RECOMMENDATION
+      // LOCATION METADATA
+      // =====================================================
+
+      country:
+        String(
+          data.country ?? ""
+        ).trim(),
+
+      governorate:
+        String(
+          data.governorate ?? ""
+        ).trim(),
+
+      region:
+        String(
+          data.region ?? ""
+        ).trim(),
+
+      district:
+        String(
+          data.district ?? ""
+        ).trim(),
+
+      municipality:
+        String(
+          data.municipality ?? ""
+        ).trim(),
+
+      province:
+        String(
+          data.province ?? ""
+        ).trim(),
+
+      state:
+        String(
+          data.state ?? ""
+        ).trim(),
+
+      city:
+        String(
+          data.city ?? ""
+        ).trim(),
+
+      town:
+        String(
+          data.town ?? ""
+        ).trim(),
+
+      village:
+        String(
+          data.village ?? ""
+        ).trim(),
+
+      hamlet:
+        String(
+          data.hamlet ?? ""
+        ).trim(),
+
+      locationName:
+        String(
+          data.locationName ?? ""
+        ).trim(),
+
+      placeName:
+        String(
+          data.placeName ?? ""
+        ).trim(),
+
+      locationDescription:
+        String(
+          data.locationDescription ?? ""
+        ).trim(),
+
+      // =====================================================
+      // CLIMATE
       // =====================================================
 
       climate:
