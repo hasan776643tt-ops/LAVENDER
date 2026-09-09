@@ -31,6 +31,7 @@ const EMPTY_FORM = {
   city: "",
   village: "",
 
+  // التاريخ يكتبه المستخدم يدويًا
   plantingDate: "",
 
   seedQuantity: "",
@@ -39,10 +40,6 @@ const EMPTY_FORM = {
 
 // ---------------------------------------------------------
 // اقتراحات زراعية أولية
-// ---------------------------------------------------------
-// هذه قاعدة توصيات محلية أولية.
-// لاحقًا يمكن نقلها إلى Service مستقل وربطها
-// بقاعدة بيانات زراعية حقيقية.
 // ---------------------------------------------------------
 
 const SEED_RECOMMENDATIONS = {
@@ -116,9 +113,6 @@ const SEED_RECOMMENDATIONS = {
 // ---------------------------------------------------------
 // تحديد المناخ
 // ---------------------------------------------------------
-// يعتمد أولاً على اسم المنطقة، ثم يستخدم قاعدة عامة.
-// لا يتم ادعاء أن هذا طقس حي.
-// ---------------------------------------------------------
 
 function detectClimate({
   country,
@@ -161,15 +155,108 @@ function detectClimate({
     "قيصري",
   ];
 
-  if (coldRegions.some((name) => text.includes(name))) {
+  if (
+    coldRegions.some((name) =>
+      text.includes(name)
+    )
+  ) {
     return "بارد";
   }
 
-  if (hotRegions.some((name) => text.includes(name))) {
+  if (
+    hotRegions.some((name) =>
+      text.includes(name)
+    )
+  ) {
     return "حار";
   }
 
   return "معتدل";
+}
+
+// =========================================================
+// التاريخ — يدوي بالكامل
+// =========================================================
+//
+// يقبل:
+// 15/05/2024
+// 1/5/2024
+// 15-05-2024
+//
+// لا يستخدم input type="date"
+// ولا ينشئ تاريخ اليوم بدلًا من تاريخ المستخدم.
+// =========================================================
+
+function normalizeManualDate(value) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+// ---------------------------------------------------------
+// تحليل التاريخ اليدوي
+// ---------------------------------------------------------
+
+function parseManualDate(value) {
+  const text = normalizeManualDate(value);
+
+  if (!text) {
+    return null;
+  }
+
+  const match = text.match(
+    /^(\d{1,2})\s*[\/\-]\s*(\d{1,2})\s*[\/\-]\s*(\d{4})$/,
+  );
+
+  if (!match) {
+    return null;
+  }
+
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
+
+  if (
+    !Number.isInteger(day) ||
+    !Number.isInteger(month) ||
+    !Number.isInteger(year)
+  ) {
+    return null;
+  }
+
+  if (month < 1 || month > 12) {
+    return null;
+  }
+
+  if (day < 1 || day > 31) {
+    return null;
+  }
+
+  const date = new Date(
+    year,
+    month - 1,
+    day,
+  );
+
+  if (
+    date.getFullYear() !== year ||
+    date.getMonth() !== month - 1 ||
+    date.getDate() !== day
+  ) {
+    return null;
+  }
+
+  return {
+    day,
+    month,
+    year,
+    date,
+  };
 }
 
 // ---------------------------------------------------------
@@ -177,21 +264,20 @@ function detectClimate({
 // ---------------------------------------------------------
 
 function calculatePlantAge(plantingDate) {
-  if (!plantingDate) {
-    return "";
-  }
+  const parsed =
+    parseManualDate(plantingDate);
 
-  // مهم:
-  // لا نغير تاريخ المستخدم.
-  // نستخدم التاريخ فقط للحساب.
-
-  const start = new Date(`${plantingDate}T00:00:00`);
-
-  if (Number.isNaN(start.getTime())) {
+  if (!parsed) {
     return "";
   }
 
   const today = new Date();
+
+  const start = new Date(
+    parsed.year,
+    parsed.month - 1,
+    parsed.day,
+  );
 
   const current = new Date(
     today.getFullYear(),
@@ -199,36 +285,40 @@ function calculatePlantAge(plantingDate) {
     today.getDate(),
   );
 
-  const startDate = new Date(
-    start.getFullYear(),
-    start.getMonth(),
-    start.getDate(),
-  );
-
-  const difference =
-    current.getTime() - startDate.getTime();
-
-  if (difference < 0) {
+  if (start > current) {
     return "لم تبدأ الزراعة بعد";
   }
 
-  const days = Math.floor(
-    difference / (1000 * 60 * 60 * 24),
-  );
+  let years =
+    current.getFullYear() -
+    start.getFullYear();
 
-  if (days === 0) {
-    return "0 يوم";
+  let months =
+    current.getMonth() -
+    start.getMonth();
+
+  let days =
+    current.getDate() -
+    start.getDate();
+
+  if (days < 0) {
+    months -= 1;
+
+    const previousMonth =
+      new Date(
+        current.getFullYear(),
+        current.getMonth(),
+        0,
+      );
+
+    days +=
+      previousMonth.getDate();
   }
 
-  const years = Math.floor(days / 365);
-  const remainingAfterYears = days % 365;
-
-  const months = Math.floor(
-    remainingAfterYears / 30,
-  );
-
-  const remainingDays =
-    remainingAfterYears % 30;
+  if (months < 0) {
+    years -= 1;
+    months += 12;
+  }
 
   const parts = [];
 
@@ -240,8 +330,12 @@ function calculatePlantAge(plantingDate) {
     parts.push(`${months} شهر`);
   }
 
-  if (remainingDays > 0) {
-    parts.push(`${remainingDays} يوم`);
+  if (days > 0) {
+    parts.push(`${days} يوم`);
+  }
+
+  if (parts.length === 0) {
+    return "0 يوم";
   }
 
   return parts.join(" و ");
@@ -264,12 +358,13 @@ function getFarmName(farm) {
   );
 }
 
-// ---------------------------------------------------------
+// =========================================================
 // الصفحة
-// ---------------------------------------------------------
+// =========================================================
 
 export default function Crops() {
-  const [searchParams] = useSearchParams();
+  const [searchParams] =
+    useSearchParams();
 
   const farmIdFromUrl =
     searchParams.get("farmId") || "";
@@ -291,9 +386,14 @@ export default function Crops() {
     farmId: farmIdFromUrl,
   });
 
-  const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-  const [saving, setSaving] = useState(false);
+  const [message, setMessage] =
+    useState("");
+
+  const [error, setError] =
+    useState("");
+
+  const [saving, setSaving] =
+    useState(false);
 
   // -------------------------------------------------------
   // إذا جاء farmId من الرابط
@@ -319,9 +419,10 @@ export default function Crops() {
       (farm) =>
         String(
           farm.id ??
-          farm._id ??
-          farm.farmId,
-        ) === String(form.farmId),
+            farm._id ??
+            farm.farmId,
+        ) ===
+        String(form.farmId),
     );
   }, [farms, form.farmId]);
 
@@ -348,19 +449,26 @@ export default function Crops() {
   // -------------------------------------------------------
 
   const recommendations = useMemo(() => {
-    if (!climate || !form.plantType) {
+    if (
+      !climate ||
+      !form.plantType
+    ) {
       return [];
     }
 
     const climateRecommendations =
-      SEED_RECOMMENDATIONS[climate];
+      SEED_RECOMMENDATIONS[
+        climate
+      ];
 
     if (!climateRecommendations) {
       return [];
     }
 
     return (
-      climateRecommendations[form.plantType] ||
+      climateRecommendations[
+        form.plantType
+      ] ||
       climateRecommendations.default ||
       []
     );
@@ -377,7 +485,9 @@ export default function Crops() {
     return calculatePlantAge(
       form.plantingDate,
     );
-  }, [form.plantingDate]);
+  }, [
+    form.plantingDate,
+  ]);
 
   // -------------------------------------------------------
   // تغيير الحقول
@@ -391,7 +501,10 @@ export default function Crops() {
 
     setForm((previous) => ({
       ...previous,
-      [name]: value,
+      [name]:
+        name === "plantingDate"
+          ? normalizeManualDate(value)
+          : value,
     }));
 
     setMessage("");
@@ -413,9 +526,9 @@ export default function Crops() {
     );
   }
 
-  // -------------------------------------------------------
+  // =======================================================
   // حفظ المشروع الزراعي
-  // -------------------------------------------------------
+  // =======================================================
 
   async function handleSubmit(event) {
     event.preventDefault();
@@ -424,25 +537,33 @@ export default function Crops() {
     setError("");
 
     if (!form.farmId) {
-      setError("يرجى اختيار المزرعة.");
+      setError(
+        "يرجى اختيار المزرعة.",
+      );
       return;
     }
 
-    if (!form.projectName.trim()) {
+    if (
+      !form.projectName.trim()
+    ) {
       setError(
         "يرجى كتابة اسم المشروع الزراعي.",
       );
       return;
     }
 
-    if (!form.plantType.trim()) {
+    if (
+      !form.plantType.trim()
+    ) {
       setError(
         "يرجى كتابة نوع النبات المزروع.",
       );
       return;
     }
 
-    if (!form.seedType.trim()) {
+    if (
+      !form.seedType.trim()
+    ) {
       setError(
         "يرجى كتابة أو اختيار نوع البذار.",
       );
@@ -450,28 +571,58 @@ export default function Crops() {
     }
 
     if (!form.country.trim()) {
-      setError("يرجى كتابة الدولة.");
+      setError(
+        "يرجى كتابة الدولة.",
+      );
       return;
     }
 
-    if (!form.governorate.trim()) {
-      setError("يرجى كتابة المحافظة.");
+    if (
+      !form.governorate.trim()
+    ) {
+      setError(
+        "يرجى كتابة المحافظة.",
+      );
       return;
     }
 
     if (!form.city.trim()) {
-      setError("يرجى كتابة المدينة.");
+      setError(
+        "يرجى كتابة المدينة.",
+      );
       return;
     }
 
-    if (!form.village.trim()) {
-      setError("يرجى كتابة القرية أو البلدة.");
+    if (
+      !form.village.trim()
+    ) {
+      setError(
+        "يرجى كتابة القرية أو البلدة.",
+      );
       return;
     }
 
-    if (!form.plantingDate) {
+    if (
+      !form.plantingDate.trim()
+    ) {
       setError(
         "يرجى إدخال تاريخ الزراعة.",
+      );
+      return;
+    }
+
+    // -----------------------------------------------------
+    // التحقق من التاريخ اليدوي
+    // -----------------------------------------------------
+
+    const parsedDate =
+      parseManualDate(
+        form.plantingDate,
+      );
+
+    if (!parsedDate) {
+      setError(
+        "يرجى كتابة تاريخ صحيح بهذا الشكل: 15/05/2024",
       );
       return;
     }
@@ -479,20 +630,28 @@ export default function Crops() {
     setSaving(true);
 
     try {
-      // ---------------------------------------------------
-      // مهم جدًا:
-      // plantingDate يأخذ قيمة المستخدم نفسها.
-      // لا نستخدم new Date() لاستبدالها.
-      // ---------------------------------------------------
+      // ===================================================
+      // مهم:
+      // يتم إرسال نفس النص الذي كتبه المستخدم.
+      //
+      // لا يوجد:
+      // new Date()
+      //
+      // ولا:
+      // toISOString()
+      //
+      // ولا تحويل إلى تاريخ اليوم.
+      // ===================================================
+
+      const savedPlantingDate =
+        form.plantingDate.trim();
 
       const payload = {
         farmId: form.farmId,
 
-        // الاسم الجديد في الواجهة
         projectName:
           form.projectName.trim(),
 
-        // الحفاظ على name لدعم البنية القديمة
         name:
           form.projectName.trim(),
 
@@ -514,20 +673,23 @@ export default function Crops() {
         village:
           form.village.trim(),
 
+        // التاريخ كما كتبه المستخدم
         plantingDate:
-          form.plantingDate,
+          savedPlantingDate,
 
-        // العمر لا يُحفظ كقيمة ثابتة.
-        // يتم حسابه من تاريخ الزراعة.
         seedQuantity:
           form.seedQuantity === ""
             ? ""
-            : Number(form.seedQuantity),
+            : Number(
+                form.seedQuantity,
+              ),
 
         fertilizerQuantity:
           form.fertilizerQuantity === ""
             ? ""
-            : Number(form.fertilizerQuantity),
+            : Number(
+                form.fertilizerQuantity,
+              ),
 
         climate,
 
@@ -573,9 +735,10 @@ export default function Crops() {
       return;
     }
 
-    const confirmed = window.confirm(
-      "هل تريد حذف هذا المشروع الزراعي؟",
-    );
+    const confirmed =
+      window.confirm(
+        "هل تريد حذف هذا المشروع الزراعي؟",
+      );
 
     if (!confirmed) {
       return;
@@ -600,9 +763,9 @@ export default function Crops() {
     }
   }
 
-  // -------------------------------------------------------
+  // =======================================================
   // عرض الصفحة
-  // -------------------------------------------------------
+  // =======================================================
 
   return (
     <main
@@ -855,6 +1018,7 @@ export default function Crops() {
             {climate ? (
               <div>
                 {climate}
+
                 <small
                   style={{
                     display: "block",
@@ -879,7 +1043,8 @@ export default function Crops() {
             )}
           </div>
 
-          {recommendations.length > 0 && (
+          {recommendations.length >
+            0 && (
             <div>
               <div
                 style={{
@@ -931,10 +1096,13 @@ export default function Crops() {
 
           <Field label="📅 تاريخ الزراعة">
             <input
-              type="date"
+              type="text"
               name="plantingDate"
               value={form.plantingDate}
               onChange={handleChange}
+              inputMode="numeric"
+              autoComplete="off"
+              placeholder="مثال: 15/05/2024"
               style={inputStyle}
             />
 
@@ -945,9 +1113,9 @@ export default function Crops() {
                 color: "#666",
               }}
             >
-              يتم حفظ التاريخ الذي تدخله
-              أنت، ولا يتم استبداله بتاريخ
-              اليوم.
+              اكتب تاريخ الزراعة يدويًا
+              باليوم والشهر والسنة.
+              مثال: 15/05/2024
             </small>
           </Field>
 
@@ -974,7 +1142,8 @@ export default function Crops() {
                 fontSize: "22px",
               }}
             >
-              {plantAge || "سيظهر تلقائياً"}
+              {plantAge ||
+                "سيظهر تلقائياً"}
             </strong>
           </div>
         </section>
@@ -1074,7 +1243,9 @@ export default function Crops() {
         </SectionTitle>
 
         {cropsLoading ? (
-          <p>جاري تحميل المشاريع...</p>
+          <p>
+            جاري تحميل المشاريع...
+          </p>
         ) : crops.length === 0 ? (
           <p
             style={{
@@ -1104,7 +1275,8 @@ export default function Crops() {
                 <article
                   key={id}
                   style={{
-                    border: "1px solid #ddd",
+                    border:
+                      "1px solid #ddd",
                     borderRadius: "12px",
                     padding: "14px",
                   }}
@@ -1301,7 +1473,8 @@ function InfoRow({
     <div
       style={{
         display: "flex",
-        justifyContent: "space-between",
+        justifyContent:
+          "space-between",
         gap: "12px",
         padding: "8px 0",
         borderBottom:
@@ -1356,7 +1529,8 @@ const suggestionStyle = {
   width: "100%",
   padding: "11px 12px",
   borderRadius: "10px",
-  border: "1px solid #d5e4d5",
+  border:
+    "1px solid #d5e4d5",
   background: "#f7fbf7",
   cursor: "pointer",
   fontSize: "15px",
