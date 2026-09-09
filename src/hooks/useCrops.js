@@ -11,7 +11,6 @@ import {
 
 import cropService from "../services/cropService.js";
 
-
 // =========================================================
 // HELPERS
 // =========================================================
@@ -32,9 +31,21 @@ function normalizeNumber(value) {
     : null;
 }
 
-
 // =========================================================
 // DATE
+// =========================================================
+//
+// التاريخ هنا نص يدوي بالكامل.
+//
+// أمثلة صحيحة:
+// 15/05/2024
+// 1/5/2024
+// 15-05-2024
+//
+// مهم:
+// لا يوجد new Date()
+// ولا toISOString()
+// ولا تاريخ اليوم.
 // =========================================================
 
 function normalizeDate(value) {
@@ -45,25 +56,9 @@ function normalizeDate(value) {
     return "";
   }
 
-  const date = String(value).trim();
-
-  /*
-   * تاريخ الزراعة يجب أن يبقى كما أدخله المستخدم.
-   *
-   * مثال:
-   * 2024-05-10
-   *
-   * لا نستخدم:
-   * new Date()
-   * ولا تاريخ اليوم.
-   */
-  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
-    return date;
-  }
-
-  return "";
+  // نحفظ التاريخ كما كتبه المستخدم
+  return String(value).trim();
 }
-
 
 // =========================================================
 // BOUNDARY
@@ -78,8 +73,13 @@ function normalizeBoundary(value) {
     .map((point) => {
       if (Array.isArray(point)) {
         return {
-          latitude: normalizeNumber(point[0]),
-          longitude: normalizeNumber(point[1]),
+          latitude: normalizeNumber(
+            point[0]
+          ),
+
+          longitude: normalizeNumber(
+            point[1]
+          ),
         };
       }
 
@@ -98,42 +98,51 @@ function normalizeBoundary(value) {
     })
     .filter(
       (point) =>
-        Number.isFinite(point.latitude) &&
-        Number.isFinite(point.longitude)
+        Number.isFinite(
+          point.latitude
+        ) &&
+        Number.isFinite(
+          point.longitude
+        )
     );
 }
-
 
 // =========================================================
 // CROP NORMALIZATION
 // =========================================================
 
 function normalizeCropData(data = {}) {
-  const points = normalizeBoundary(
-    data.points ??
-    data.boundary ??
-    []
-  );
+  const points =
+    normalizeBoundary(
+      data.points ??
+      data.boundary ??
+      []
+    );
 
-  const latitude = normalizeNumber(
-    data.latitude
-  );
+  const latitude =
+    normalizeNumber(
+      data.latitude
+    );
 
-  const longitude = normalizeNumber(
-    data.longitude
-  );
+  const longitude =
+    normalizeNumber(
+      data.longitude
+    );
 
-  const productionQuantity = normalizeNumber(
-    data.productionQuantity
-  );
+  const productionQuantity =
+    normalizeNumber(
+      data.productionQuantity
+    );
 
-  const pricePerTon = normalizeNumber(
-    data.pricePerTon
-  );
+  const pricePerTon =
+    normalizeNumber(
+      data.pricePerTon
+    );
 
-  const totalExpenses = normalizeNumber(
-    data.totalExpenses
-  );
+  const totalExpenses =
+    normalizeNumber(
+      data.totalExpenses
+    );
 
   const safeProduction =
     productionQuantity ?? 0;
@@ -145,14 +154,20 @@ function normalizeCropData(data = {}) {
     totalExpenses ?? 0;
 
   const revenue =
-    Number.isFinite(Number(data.revenue))
+    Number.isFinite(
+      Number(data.revenue)
+    )
       ? Number(data.revenue)
-      : safeProduction * safePrice;
+      : safeProduction *
+        safePrice;
 
   const profit =
-    Number.isFinite(Number(data.profit))
+    Number.isFinite(
+      Number(data.profit)
+    )
       ? Number(data.profit)
-      : revenue - safeExpenses;
+      : revenue -
+        safeExpenses;
 
   return {
     ...data,
@@ -204,16 +219,20 @@ function normalizeCropData(data = {}) {
         data.treeVariety ?? ""
       ).trim(),
 
-    /*
-     * =====================================================
-     * IMPORTANT
-     * =====================================================
-     *
-     * plantingDate يأتي من المستخدم.
-     *
-     * لا يتم إنشاء تاريخ جديد.
-     * لا يتم استبداله بتاريخ اليوم.
-     */
+    // =====================================================
+    // تاريخ الزراعة
+    // =====================================================
+    //
+    // يحفظ كما كتبه المستخدم حرفيًا.
+    //
+    // مثال:
+    // المستخدم يكتب 15/05/2024
+    // القيمة المحفوظة = "15/05/2024"
+    //
+    // لا يتم إنشاء تاريخ جديد.
+    // لا يتم استبداله بتاريخ اليوم.
+    // =====================================================
+
     plantingDate:
       normalizeDate(
         data.plantingDate
@@ -279,12 +298,6 @@ function normalizeCropData(data = {}) {
     // =====================================================
     // OLD GPS DATA
     // =====================================================
-    //
-    // تبقى هذه الحقول للحفاظ على السجلات القديمة
-    // والتوافق مع البيانات السابقة.
-    //
-    // لكنها ليست مطلوبة لإنشاء مشروع زراعي جديد.
-    //
 
     latitude,
 
@@ -407,7 +420,6 @@ function normalizeCropData(data = {}) {
   };
 }
 
-
 // =========================================================
 // HOOK
 // =========================================================
@@ -427,7 +439,6 @@ export default function useCrops() {
     error,
     setError,
   ] = useState("");
-
 
   // =======================================================
   // LOAD
@@ -455,7 +466,6 @@ export default function useCrops() {
           );
 
           return normalized;
-
         } catch (loadError) {
           console.error(
             "Crops loading failed:",
@@ -470,7 +480,6 @@ export default function useCrops() {
           );
 
           return [];
-
         } finally {
           setLoading(false);
         }
@@ -478,11 +487,9 @@ export default function useCrops() {
       []
     );
 
-
   useEffect(() => {
     loadCrops();
   }, [loadCrops]);
-
 
   // =======================================================
   // ADD
@@ -494,7 +501,6 @@ export default function useCrops() {
         const normalized =
           normalizeCropData(data);
 
-
         // ---------------------------------------------------
         // FARM
         // ---------------------------------------------------
@@ -504,7 +510,6 @@ export default function useCrops() {
             "CROP_FARM_REQUIRED"
           );
         }
-
 
         // ---------------------------------------------------
         // PROJECT / PLANT
@@ -519,21 +524,9 @@ export default function useCrops() {
           );
         }
 
-
         // ---------------------------------------------------
         // MANUAL LOCATION
         // ---------------------------------------------------
-        //
-        // لا نطلب latitude / longitude.
-        //
-        // الموقع الجديد يعتمد على:
-        // country
-        // governorate
-        // city
-        // village
-        //
-        // بيانات GPS القديمة تبقى اختيارية فقط.
-        //
 
         if (
           !normalized.country ||
@@ -546,19 +539,15 @@ export default function useCrops() {
           );
         }
 
-
         // ---------------------------------------------------
         // PLANTING DATE
         // ---------------------------------------------------
         //
-        // إذا أرسل المستخدم تاريخًا صحيحًا:
+        // التاريخ يجب أن يكون موجودًا فقط.
         //
-        // 2024-05-10
-        //
-        // يبقى 2024-05-10.
-        //
-        // لا نستخدم تاريخ اليوم.
-        //
+        // لا يتم تعديله.
+        // لا يتم تحويله.
+        // ---------------------------------------------------
 
         if (
           !normalized.plantingDate
@@ -567,7 +556,6 @@ export default function useCrops() {
             "CROP_PLANTING_DATE_REQUIRED"
           );
         }
-
 
         // ---------------------------------------------------
         // CREATE
@@ -578,12 +566,10 @@ export default function useCrops() {
             normalized
           );
 
-
         const result =
           normalizeCropData(
             created
           );
-
 
         setCrops(
           (current) => [
@@ -592,12 +578,10 @@ export default function useCrops() {
           ]
         );
 
-
         return result;
       },
       []
     );
-
 
   // =======================================================
   // UPDATE
@@ -612,24 +596,20 @@ export default function useCrops() {
         const normalized =
           normalizeCropData(data);
 
-
         const updated =
           await cropService.update(
             id,
             normalized
           );
 
-
         if (!updated) {
           return null;
         }
-
 
         const result =
           normalizeCropData(
             updated
           );
-
 
         setCrops(
           (current) =>
@@ -642,12 +622,10 @@ export default function useCrops() {
             )
         );
 
-
         return result;
       },
       []
     );
-
 
   // =======================================================
   // DELETE
@@ -660,17 +638,14 @@ export default function useCrops() {
           return false;
         }
 
-
         const deleted =
           await cropService.delete(
             id
           );
 
-
         if (!deleted) {
           return false;
         }
-
 
         setCrops(
           (current) =>
@@ -681,12 +656,10 @@ export default function useCrops() {
             )
         );
 
-
         return true;
       },
       []
     );
-
 
   // =======================================================
   // SEARCH
@@ -702,11 +675,9 @@ export default function useCrops() {
             .trim()
             .toLowerCase();
 
-
         if (!value) {
           return crops;
         }
-
 
         return crops.filter(
           (crop) => {
@@ -739,7 +710,6 @@ export default function useCrops() {
               .join(" ")
               .toLowerCase();
 
-
             return searchable.includes(
               value
             );
@@ -748,7 +718,6 @@ export default function useCrops() {
       },
       [crops]
     );
-
 
   // =======================================================
   // STATISTICS
@@ -761,10 +730,6 @@ export default function useCrops() {
           total:
             crops.length,
 
-          /*
-           * البيانات القديمة التي تحتوي GPS.
-           * لا تُستخدم كشرط لإنشاء مشروع جديد.
-           */
           withLocation:
             crops.filter(
               (crop) =>
@@ -836,7 +801,6 @@ export default function useCrops() {
       },
       [crops]
     );
-
 
   // =======================================================
   // RETURN
