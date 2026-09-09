@@ -1,955 +1,764 @@
-  // src/pages/Expenses.jsx
+// src/pages/Expenses.jsx
 
 import {
   useContext,
+  useEffect,
   useMemo,
   useState
 } from "react";
 
+import {
+  useSearchParams
+} from "react-router-dom";
 
 import {
   FarmContext
 } from "../context/FarmContext";
 
+import useCrops from "../hooks/useCrops";
 
 import Card from "../components/Card";
 import Button from "../components/Button";
 
 
+// =========================================================
+// أدوات مساعدة
+// =========================================================
+
+const createRowId = () => (
+  globalThis.crypto?.randomUUID?.() ||
+  `${Date.now()}-${Math.random()}`
+);
+
+
+const numberValue = (value) => {
+  const number = Number(value);
+  return Number.isFinite(number)
+    ? number
+    : 0;
+};
+
+
+// =========================================================
+// الصفحة
+// =========================================================
 
 export default function Expenses() {
 
-
   const {
-
     farms = [],
-
     expenses = [],
-
-    expenseActions
-
+    expenseActions,
+    harvests = [],
+    harvestActions
   } = useContext(FarmContext);
 
 
-
-  // =========================
-  // Form Model
-  // =========================
-
-  const emptyForm = {
-
-    farmId: "",
-
-    type: "",
-
-    amount: "",
-
-    currency: "ل.س",
-
-    paymentMethod: "نقدي",
-
-    supplier: "",
-
-    invoice: "",
-
-    date: "",
-
-    category: "",
-
-    status: "paid",
-
-    notes: ""
-
-  };
+  const [searchParams] =
+    useSearchParams();
 
 
+  const requestedFarmId =
+    searchParams.get("farmId") || "";
 
-  const [form, setForm] =
-    useState(emptyForm);
+
+  const requestedCropId =
+    searchParams.get("cropId") || "";
 
 
-  const [editId, setEditId] =
+  // =======================================================
+  // المشاريع الزراعية
+  // =======================================================
+
+  const cropHook = useCrops?.() || {};
+
+  const crops =
+    Array.isArray(cropHook.crops)
+      ? cropHook.crops
+      : [];
+
+
+  // =======================================================
+  // المزرعة والمشروع المختاران
+  // =======================================================
+
+  const [selectedFarmId, setSelectedFarmId] =
+    useState(requestedFarmId);
+
+
+  const [selectedCropId, setSelectedCropId] =
+    useState(requestedCropId);
+
+
+  useEffect(() => {
+
+    if (requestedFarmId) {
+      setSelectedFarmId(requestedFarmId);
+    }
+
+  }, [requestedFarmId]);
+
+
+  useEffect(() => {
+
+    if (requestedCropId) {
+      setSelectedCropId(requestedCropId);
+    }
+
+  }, [requestedCropId]);
+
+
+  // =======================================================
+  // عند اختيار مزرعة
+  // =======================================================
+
+  const farmCrops =
+    useMemo(() => {
+
+      if (!selectedFarmId) {
+        return crops;
+      }
+
+      return crops.filter(
+        crop =>
+          String(
+            crop.farmId || ""
+          ) === String(
+            selectedFarmId
+          )
+      );
+
+    }, [
+      crops,
+      selectedFarmId
+    ]);
+
+
+  const selectedFarm =
+    farms.find(
+      farm =>
+        String(farm.id) ===
+        String(selectedFarmId)
+    );
+
+
+  const selectedCrop =
+    crops.find(
+      crop =>
+        String(crop.id) ===
+        String(selectedCropId)
+    );
+
+
+  // =======================================================
+  // جدول المصروفات
+  // =======================================================
+
+  const [rows, setRows] =
+    useState([]);
+
+
+  const [editingId, setEditingId] =
     useState(null);
 
 
-  const [search, setSearch] =
+  const [message, setMessage] =
     useState("");
 
 
+  // =======================================================
+  // تحميل مصروفات المشروع
+  // =======================================================
 
-  // =========================
-  // Update Form
-  // =========================
+  useEffect(() => {
 
-  const updateForm = (
-    key,
-    value
-  ) => {
+    if (!selectedFarmId) {
 
-    setForm(prev => ({
-
-      ...prev,
-
-      [key]: value
-
-    }));
-
-  };
-
-
-
-  // =========================
-  // Clear
-  // =========================
-
-  const clearForm = () => {
-
-    setForm({
-      ...emptyForm
-    });
-
-    setEditId(null);
-
-  };
-
-
-
-  // =========================
-  // Save
-  // =========================
-
-  const saveExpense = async () => {
-
-    if (
-      !form.type ||
-      !form.amount
-    ) {
+      setRows([]);
 
       return;
 
     }
 
 
-    if (editId) {
+    const projectExpenses =
+      expenses.filter(
+        item => {
 
-      await expenseActions.update(
+          const sameFarm =
+            String(item.farmId || "") ===
+            String(selectedFarmId);
 
-        editId,
 
-        form
+          if (!sameFarm) {
+            return false;
+          }
 
+
+          // إذا كان هناك مشروع محدد،
+          // نعرض مصروفاته فقط.
+          if (selectedCropId) {
+
+            return (
+              String(
+                item.cropId || ""
+              ) ===
+              String(selectedCropId)
+            );
+
+          }
+
+
+          // دعم المصروفات القديمة
+          // التي لم يكن لديها cropId.
+          return !item.cropId;
+
+        }
       );
 
-    } else {
 
-      await expenseActions.create({
+    setRows(projectExpenses);
 
-        ...form,
+  }, [
+    expenses,
+    selectedFarmId,
+    selectedCropId
+  ]);
 
-        amount:
-          Number(form.amount),
 
-        createdAt:
+  // =======================================================
+  // إضافة سطر جديد
+  // =======================================================
+
+  const addExpenseRow = () => {
+
+    setRows(prev => [
+
+      ...prev,
+
+      {
+        id: `new-${createRowId()}`,
+
+        farmId:
+          selectedFarmId,
+
+        cropId:
+          selectedCropId,
+
+        type: "",
+
+        quantity: "",
+
+        unit: "",
+
+        amount: "",
+
+        currency: "USD",
+
+        date:
           new Date()
             .toISOString()
+            .slice(0, 10),
 
-      });
+        notes: "",
 
-    }
+        isNew: true
 
+      }
 
-    clearForm();
+    ]);
 
   };
 
 
+  // =======================================================
+  // تغيير سطر
+  // =======================================================
 
-  // =========================
-  // Edit
-  // =========================
+  const updateRow = (
+    id,
+    key,
+    value
+  ) => {
 
-  const editExpense = (item) => {
+    setRows(prev =>
 
-    setForm({
+      prev.map(row =>
 
-      farmId:
-        item.farmId || "",
+        String(row.id) ===
+        String(id)
 
-      type:
-        item.type || "",
+          ? {
+              ...row,
+              [key]: value
+            }
 
-      amount:
-        item.amount || "",
+          : row
 
-      currency:
-        item.currency || "ل.س",
+      )
 
-      paymentMethod:
-        item.paymentMethod || "نقدي",
-
-      supplier:
-        item.supplier || "",
-
-      invoice:
-        item.invoice || "",
-
-      date:
-        item.date || "",
-
-      category:
-        item.category || "",
-
-      status:
-        item.status || "paid",
-
-      notes:
-        item.notes || ""
-
-    });
-
-
-    setEditId(
-      item.id
     );
 
   };
 
 
+  // =======================================================
+  // حفظ سطر
+  // =======================================================
 
-  // =========================
-  // Statistics
-  // =========================
+  const saveRow = async (row) => {
+
+    if (!row.type?.trim()) {
+
+      setMessage(
+        "⚠️ اكتب اسم المصروف أولاً."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      row.amount === "" ||
+      numberValue(row.amount) <= 0
+    ) {
+
+      setMessage(
+        "⚠️ اكتب قيمة المصروف."
+      );
+
+      return;
+
+    }
+
+
+    const data = {
+
+      farmId:
+        selectedFarmId,
+
+      cropId:
+        selectedCropId || "",
+
+      type:
+        row.type.trim(),
+
+      quantity:
+        row.quantity === ""
+          ? ""
+          : numberValue(row.quantity),
+
+      unit:
+        row.unit || "",
+
+      amount:
+        numberValue(row.amount),
+
+      currency:
+        row.currency || "USD",
+
+      date:
+        row.date || "",
+
+      notes:
+        row.notes || ""
+
+    };
+
+
+    try {
+
+      if (
+        row.isNew ||
+        String(row.id).startsWith("new-")
+      ) {
+
+        const created =
+          await expenseActions.create({
+
+            ...data,
+
+            createdAt:
+              new Date()
+                .toISOString()
+
+          });
+
+
+        setRows(prev =>
+
+          prev.map(item =>
+
+            String(item.id) ===
+            String(row.id)
+
+              ? created
+
+              : item
+
+          )
+
+        );
+
+      } else {
+
+        const updated =
+          await expenseActions.update(
+            row.id,
+            data
+          );
+
+
+        setRows(prev =>
+
+          prev.map(item =>
+
+            String(item.id) ===
+            String(row.id)
+
+              ? updated
+
+              : item
+
+          )
+
+        );
+
+      }
+
+
+      setEditingId(null);
+
+      setMessage(
+        "✅ تم حفظ المصروف."
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Expense save error:",
+        error
+      );
+
+      setMessage(
+        "❌ تعذر حفظ المصروف."
+      );
+
+    }
+
+  };
+
+
+  // =======================================================
+  // حذف سطر
+  // =======================================================
+
+  const deleteRow = async (row) => {
+
+    if (
+      String(row.id).startsWith("new-")
+    ) {
+
+      setRows(prev =>
+        prev.filter(
+          item =>
+            String(item.id) !==
+            String(row.id)
+        )
+      );
+
+      return;
+
+    }
+
+
+    try {
+
+      await expenseActions.delete(
+        row.id
+      );
+
+      setRows(prev =>
+        prev.filter(
+          item =>
+            String(item.id) !==
+            String(row.id)
+        )
+      );
+
+      setMessage(
+        "✅ تم حذف المصروف."
+      );
+
+    } catch (error) {
+
+      console.error(
+        "Expense delete error:",
+        error
+      );
+
+      setMessage(
+        "❌ تعذر حذف المصروف."
+      );
+
+    }
+
+  };
+
+
+  // =======================================================
+  // المصروفات النهائية فقط
+  // =======================================================
+
+  const savedRows =
+    rows.filter(
+      row =>
+        !String(row.id)
+          .startsWith("new-")
+    );
+
+
+  // =======================================================
+  // إجمالي المصروفات
+  // =======================================================
 
   const totalExpenses =
     useMemo(() => {
 
-      return expenses.reduce(
-
-        (sum, item) =>
-
-          sum +
-          Number(
-            item.amount || 0
-          ),
-
-        0
-
-      );
-
-    }, [
-      expenses
-    ]);
-
-
-
-  const expenseCount =
-    useMemo(() => {
-
-      return expenses.length;
-
-    }, [
-      expenses
-    ]);
-
-
-
-  // =========================
-  // Search
-  // =========================
-
-  const filteredExpenses =
-    useMemo(() => {
-
-      return expenses.filter(
-        item => {
+      return rows.reduce(
+        (sum, row) => {
 
           return (
-
-            item.type
-              ?.toLowerCase()
-              .includes(
-                search.toLowerCase()
-              )
-
+            sum +
+            numberValue(
+              row.amount
+            )
           );
+
+        },
+        0
+      );
+
+    }, [rows]);
+
+
+  // =======================================================
+  // بحث
+  // =======================================================
+
+  const [search, setSearch] =
+    useState("");
+
+
+  const visibleRows =
+    useMemo(() => {
+
+      const value =
+        search
+          .trim()
+          .toLowerCase();
+
+
+      if (!value) {
+        return rows;
+      }
+
+
+      return rows.filter(
+        row =>
+          String(
+            row.type || ""
+          )
+            .toLowerCase()
+            .includes(value)
+      );
+
+    }, [
+      rows,
+      search
+    ]);
+
+
+  // =======================================================
+  // بيانات الإنتاج
+  // =======================================================
+
+  const projectHarvests =
+    useMemo(() => {
+
+      return harvests.filter(
+        item => {
+
+          if (
+            String(item.farmId || "") !==
+            String(selectedFarmId)
+          ) {
+            return false;
+          }
+
+
+          if (selectedCropId) {
+
+            return (
+              String(
+                item.cropId || ""
+              ) ===
+              String(selectedCropId)
+            );
+
+          }
+
+
+          return true;
 
         }
       );
 
     }, [
-
-      expenses,
-
-      search
-
+      harvests,
+      selectedFarmId,
+      selectedCropId
     ]);
 
 
+  const latestHarvest =
+    projectHarvests.length
+      ? projectHarvests[
+          projectHarvests.length - 1
+        ]
+      : null;
 
-  // =========================
-  // Smart Analysis
-  // =========================
 
-  const smartAdvice =
+  const [production, setProduction] =
+    useState("");
+
+
+  const [productionUnit, setProductionUnit] =
+    useState("طن");
+
+
+  const [salePrice, setSalePrice] =
+    useState("");
+
+
+  const [productionCurrency, setProductionCurrency] =
+    useState("USD");
+
+
+  useEffect(() => {
+
+    if (!latestHarvest) {
+      return;
+    }
+
+
+    setProduction(
+      latestHarvest.quantity ??
+      latestHarvest.productionQuantity ??
+      ""
+    );
+
+
+    setProductionUnit(
+      latestHarvest.unit ||
+      latestHarvest.productionUnit ||
+      "طن"
+    );
+
+
+    setSalePrice(
+      latestHarvest.salePrice ??
+      latestHarvest.price ??
+      ""
+    );
+
+
+    setProductionCurrency(
+      latestHarvest.currency ||
+      "USD"
+    );
+
+  }, [latestHarvest]);
+
+
+  // =======================================================
+  // حساب الإيراد
+  // =======================================================
+
+  const totalRevenue =
     useMemo(() => {
 
-      if (
-        totalExpenses > 1000000
-      ) {
-
-        return "⚠️ المصاريف مرتفعة، راجع إدارة التكاليف.";
-
-      }
-
-
-      if (
-        expenseCount > 20
-      ) {
-
-        return "📊 يوجد نشاط مالي كبير، يفضل إنشاء تقرير مالي.";
-
-      }
-
-
-      return "✅ الوضع المالي يحتاج متابعة دورية.";
+      return (
+        numberValue(production) *
+        numberValue(salePrice)
+      );
 
     }, [
-
-      totalExpenses,
-
-      expenseCount
-
+      production,
+      salePrice
     ]);
 
 
+  // =======================================================
+  // صافي الربح
+  // =======================================================
 
-  // =========================
-  // UI
-  // =========================
+  const netProfit =
+    totalRevenue -
+    totalExpenses;
 
-  return (
 
-    <div>
+  // =======================================================
+  // حفظ الإنتاج
+  // =======================================================
 
-      <h1>
-        💰 الإدارة المالية الذكية
-      </h1>
+  const saveProduction = async () => {
 
+    if (!selectedFarmId) {
 
+      setMessage(
+        "⚠️ اختر المزرعة أولاً."
+      );
 
-      <Card
+      return;
 
-        title={
-          editId
-            ? "✏️ تعديل مصروف"
-            : "➕ إضافة مصروف جديد"
-        }
+    }
 
-      >
 
-        <select
+    if (
+      numberValue(production) <= 0
+    ) {
 
-          value={form.farmId}
+      setMessage(
+        "⚠️ اكتب كمية الإنتاج."
+      );
 
-          onChange={(e) =>
+      return;
 
-            updateForm(
-              "farmId",
-              e.target.value
-            )
+    }
 
-          }
 
-        >
+    if (
+      numberValue(salePrice) <= 0
+    ) {
 
-          <option value="">
-            اختر المزرعة
-          </option>
+      setMessage(
+        "⚠️ اكتب سعر البيع."
+      );
 
+      return;
 
-          {
+    }
 
-            farms.map(
-              farm => (
 
-                <option
+    // إذا كان هناك سجل حصاد موجود
+    // يتم تحديثه.
+    if (
+      latestHarvest &&
+      harvestActions?.update
+    ) {
 
-                  key={farm.id}
+      await harvestActions.update(
 
-                  value={farm.id}
-
-                >
-
-                  {farm.name}
-
-                </option>
-
-              )
-            )
-
-          }
-
-        </select>
-
-
-
-        <br />
-        <br />
-
-
-
-        <input
-
-          placeholder="نوع المصروف"
-
-          value={form.type}
-
-          onChange={(e) =>
-
-            updateForm(
-              "type",
-              e.target.value
-            )
-
-          }
-
-        />
-
-
-
-        <br />
-        <br />
-
-
-
-        <input
-
-          type="number"
-
-          placeholder="قيمة المصروف"
-
-          value={form.amount}
-
-          onChange={(e) =>
-
-            updateForm(
-              "amount",
-              e.target.value
-            )
-
-          }
-
-        />
-
-
-
-        <br />
-        <br />
-
-
-
-        <select
-
-          value={form.currency}
-
-          onChange={(e) =>
-
-            updateForm(
-              "currency",
-              e.target.value
-            )
-
-          }
-
-        >
-
-          <option value="ل.س">
-            ل.س
-          </option>
-
-          <option value="$">
-            $
-          </option>
-
-          <option value="€">
-            €
-          </option>
-
-          <option value="₺">
-            ₺
-          </option>
-
-        </select>
-
-
-
-        <br />
-        <br />
-
-
-
-        <select
-
-          value={
-            form.paymentMethod
-          }
-
-          onChange={(e) =>
-
-            updateForm(
-              "paymentMethod",
-              e.target.value
-            )
-
-          }
-
-        >
-
-          <option value="نقدي">
-            نقدي
-          </option>
-
-          <option value="تحويل بنكي">
-            تحويل بنكي
-          </option>
-
-          <option value="بطاقة">
-            بطاقة
-          </option>
-
-          <option value="محفظة إلكترونية">
-            محفظة إلكترونية
-          </option>
-
-        </select>
-
-
-
-        <br />
-        <br />
-
-
-
-        <input
-
-          placeholder="المورد"
-
-          value={form.supplier}
-
-          onChange={(e) =>
-
-            updateForm(
-              "supplier",
-              e.target.value
-            )
-
-          }
-
-        />
-
-
-
-        <br />
-        <br />
-
-
-
-        <input
-
-          placeholder="رقم الفاتورة"
-
-          value={form.invoice}
-
-          onChange={(e) =>
-
-            updateForm(
-              "invoice",
-              e.target.value
-            )
-
-          }
-
-        />
-
-
-
-        <br />
-        <br />
-
-
-
-        <input
-
-          type="date"
-
-          value={form.date}
-
-          onChange={(e) =>
-
-            updateForm(
-              "date",
-              e.target.value
-            )
-
-          }
-
-        />
-
-
-
-        <br />
-        <br />
-
-
-
-        <select
-
-          value={form.category}
-
-          onChange={(e) =>
-
-            updateForm(
-              "category",
-              e.target.value
-            )
-
-          }
-
-        >
-
-          <option value="">
-            تصنيف المصروف
-          </option>
-
-          <option value="تشغيل">
-            تشغيل
-          </option>
-
-          <option value="زراعة">
-            زراعة
-          </option>
-
-          <option value="معدات">
-            معدات
-          </option>
-
-          <option value="عمال">
-            عمال
-          </option>
-
-          <option value="نقل">
-            نقل
-          </option>
-
-          <option value="صيانة">
-            صيانة
-          </option>
-
-        </select>
-
-
-
-        <br />
-        <br />
-
-
-
-        <select
-
-          value={form.status}
-
-          onChange={(e) =>
-
-            updateForm(
-              "status",
-              e.target.value
-            )
-
-          }
-
-        >
-
-          <option value="paid">
-            مدفوع
-          </option>
-
-          <option value="pending">
-            معلق
-          </option>
-
-          <option value="scheduled">
-            مجدول
-          </option>
-
-        </select>
-
-
-
-        <br />
-        <br />
-
-
-
-        <textarea
-
-          placeholder="ملاحظات"
-
-          value={form.notes}
-
-          onChange={(e) =>
-
-            updateForm(
-              "notes",
-              e.target.value
-            )
-
-          }
-
-        />
-
-
-
-        <br />
-        <br />
-
-
-
-        <Button
-          onClick={saveExpense}
-        >
-
-          {
-
-            editId
-
-              ? "حفظ التعديل"
-
-              : "إضافة المصروف"
-
-          }
-
-        </Button>
-
-
-
-      </Card>
-
-
-
-      <Card
-        title="🤖 التحليل المالي الذكي"
-      >
-
-        <p>
-          {smartAdvice}
-        </p>
-
-      </Card>
-
-
-
-      <Card
-        title="🔎 البحث"
-      >
-
-        <input
-
-          placeholder="ابحث عن مصروف"
-
-          value={search}
-
-          onChange={(e) =>
-
-            setSearch(
-              e.target.value
-            )
-
-          }
-
-        />
-
-      </Card>
-
-
-
-      <Card
-        title="📊 الملخص المالي"
-      >
-
-        <h2>
-          {totalExpenses}
-        </h2>
-
-        <p>
-          إجمالي المصاريف
-        </p>
-
-        <p>
-
-          عدد العمليات:
-          {" "}
-
-          {expenseCount}
-
-        </p>
-
-      </Card>
-
-
-
-      <h2>
-        📑 سجل المصاريف
-      </h2>
-
-
-
-      {
-
-        filteredExpenses.map(
-          item => (
-
-            <Card
-
-              key={item.id}
-
-              title={
-                item.type
-              }
-
-            >
-
-              <p>
-
-                💵 القيمة:
-                {" "}
-
-                {item.amount}
-                {" "}
-
-                {item.currency}
-
-              </p>
-
-
-
-              <p>
-
-                🏦 الدفع:
-                {" "}
-
-                {item.paymentMethod}
-
-              </p>
-
-
-
-              <p>
-
-                🏢 المورد:
-                {" "}
-
-                {item.supplier}
-
-              </p>
-
-
-
-              <p>
-
-                🧾 الفاتورة:
-                {" "}
-
-                {item.invoice}
-
-              </p>
-
-
-
-              <p>
-
-                📂 التصنيف:
-                {" "}
-
-                {item.category}
-
-              </p>
-
-
-
-              <p>
-
-                📅 التاريخ:
-                {" "}
-
-                {item.date}
-
-              </p>
-
-
-
-              <p>
-
-                🚦 الحالة:
-                {" "}
-
-                {item.status}
-
-              </p>
-
-
-
-              <p>
-
-                📝 الملاحظات:
-                {" "}
-
-                {item.notes}
-
-              </p>
-
-
-
-              <Button
-
-                onClick={() =>
-                  editExpense(item)
-                }
-
-              >
-
-                تعديل
-
-              </Button>
-
-
-
-              <Button
-
-                onClick={() =>
-                  expenseActions.delete(
-                    item.id
-                  )
-                }
-
-              >
-
-                حذف
-
-              </Button>
-
-
-
-            </Card>
-
-          )
-        )
-
-      }
-
-
-
-    </div>
-
-  );
-
-}
+        latestHarvest.id,
