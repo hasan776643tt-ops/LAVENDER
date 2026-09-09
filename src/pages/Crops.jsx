@@ -31,7 +31,9 @@ const EMPTY_FORM = {
   city: "",
   village: "",
 
-  // التاريخ يكتبه المستخدم يدويًا
+  /*
+   * التاريخ نص حر بالكامل.
+   */
   plantingDate: "",
 
   seedQuantity: "",
@@ -172,19 +174,31 @@ function detectClimate({
   }
 
   return "معتدل";
-}
+};
 
 // =========================================================
-// التاريخ — يدوي بالكامل
+// التاريخ — نص حر بالكامل
 // =========================================================
 //
-// يقبل:
-// 15/05/2024
-// 1/5/2024
-// 15-05-2024
+// لا يوجد أي فرض لصيغة محددة.
 //
-// لا يستخدم input type="date"
-// ولا ينشئ تاريخ اليوم بدلًا من تاريخ المستخدم.
+// يقبل المستخدم ما يكتبه.
+//
+// أمثلة:
+//
+// 15.5.2024
+// 15-5-2024
+// 15/5/2024
+// 15 5 2024
+// 1.1.2027
+// 2 2 2024
+//
+// والأهم:
+//
+// إذا لم يستطع النظام فهم الصيغة لحساب العمر،
+// فهذا لا يمنع حفظ المشروع.
+//
+// التاريخ نفسه يبقى محفوظاً كما كتبه المستخدم.
 // =========================================================
 
 function normalizeManualDate(value) {
@@ -199,27 +213,104 @@ function normalizeManualDate(value) {
 }
 
 // ---------------------------------------------------------
-// تحليل التاريخ اليدوي
+// تحويل أرقام عربية إلى أرقام إنجليزية
+// ---------------------------------------------------------
+
+function convertArabicDigits(value) {
+  return String(value)
+    .replace(/[٠-٩]/g, (digit) =>
+      String(
+        "٠١٢٣٤٥٦٧٨٩".indexOf(
+          digit,
+        ),
+      )
+    )
+    .replace(/[۰-۹]/g, (digit) =>
+      String(
+        "۰۱۲۳۴۵۶۷۸۹".indexOf(
+          digit,
+        ),
+      )
+    );
+}
+
+// ---------------------------------------------------------
+// تحليل التاريخ فقط لحساب العمر
+// ---------------------------------------------------------
+//
+// هذا التحليل لا يقرر هل التاريخ مقبول أم لا.
+//
+// الحفظ مستقل تماماً عنه.
+//
+// يدعم:
+//
+// 15/5/2024
+// 15-5-2024
+// 15.5.2024
+// 15 5 2024
+// 15 / 5 / 2024
+// 15 - 5 - 2024
+// 15 . 5 . 2024
+//
+// كما يدعم الأرقام العربية.
 // ---------------------------------------------------------
 
 function parseManualDate(value) {
-  const text = normalizeManualDate(value);
+  let text =
+    normalizeManualDate(value);
 
   if (!text) {
     return null;
   }
 
-  const match = text.match(
-    /^(\d{1,2})\s*[\/\-]\s*(\d{1,2})\s*[\/\-]\s*(\d{4})$/,
+  text =
+    convertArabicDigits(text);
+
+  /*
+   * تحويل جميع الفواصل المحتملة
+   * إلى مسافة واحدة.
+   */
+  text = text.replace(
+    /[\/\-.]+/g,
+    " ",
   );
+
+  /*
+   * إزالة المسافات الزائدة.
+   */
+  text =
+    text.trim().replace(
+      /\s+/g,
+      " ",
+    );
+
+  /*
+   * نبحث عن ثلاثة أرقام:
+   *
+   * اليوم
+   * الشهر
+   * السنة
+   *
+   * ولا نفرض أن تكون الفواصل
+   * بشكل معين.
+   */
+  const match =
+    text.match(
+      /^(\d{1,2})\s+(\d{1,2})\s+(\d{1,4})$/,
+    );
 
   if (!match) {
     return null;
   }
 
-  const day = Number(match[1]);
-  const month = Number(match[2]);
-  const year = Number(match[3]);
+  const day =
+    Number(match[1]);
+
+  const month =
+    Number(match[2]);
+
+  const year =
+    Number(match[3]);
 
   if (
     !Number.isInteger(day) ||
@@ -229,23 +320,35 @@ function parseManualDate(value) {
     return null;
   }
 
-  if (month < 1 || month > 12) {
+  /*
+   * حساب العمر يحتاج سنة كاملة
+   * قابلة للفهم.
+   */
+  if (
+    year < 1 ||
+    month < 1 ||
+    month > 12 ||
+    day < 1 ||
+    day > 31
+  ) {
     return null;
   }
 
-  if (day < 1 || day > 31) {
-    return null;
-  }
+  const date =
+    new Date(
+      year,
+      month - 1,
+      day,
+    );
 
-  const date = new Date(
-    year,
-    month - 1,
-    day,
-  );
-
+  /*
+   * التأكد من صحة التاريخ
+   * فقط لأجل حساب العمر.
+   */
   if (
     date.getFullYear() !== year ||
-    date.getMonth() !== month - 1 ||
+    date.getMonth() !==
+      month - 1 ||
     date.getDate() !== day
   ) {
     return null;
@@ -263,27 +366,40 @@ function parseManualDate(value) {
 // حساب عمر النبات
 // ---------------------------------------------------------
 
-function calculatePlantAge(plantingDate) {
+function calculatePlantAge(
+  plantingDate,
+) {
   const parsed =
-    parseManualDate(plantingDate);
+    parseManualDate(
+      plantingDate,
+    );
 
+  /*
+   * إذا كانت الصيغة غير مفهومة،
+   * لا نرفض المشروع.
+   *
+   * فقط لا نحسب العمر.
+   */
   if (!parsed) {
     return "";
   }
 
-  const today = new Date();
+  const today =
+    new Date();
 
-  const start = new Date(
-    parsed.year,
-    parsed.month - 1,
-    parsed.day,
-  );
+  const start =
+    new Date(
+      parsed.year,
+      parsed.month - 1,
+      parsed.day,
+    );
 
-  const current = new Date(
-    today.getFullYear(),
-    today.getMonth(),
-    today.getDate(),
-  );
+  const current =
+    new Date(
+      today.getFullYear(),
+      today.getMonth(),
+      today.getDate(),
+    );
 
   if (start > current) {
     return "لم تبدأ الزراعة بعد";
@@ -323,15 +439,21 @@ function calculatePlantAge(plantingDate) {
   const parts = [];
 
   if (years > 0) {
-    parts.push(`${years} سنة`);
+    parts.push(
+      `${years} سنة`,
+    );
   }
 
   if (months > 0) {
-    parts.push(`${months} شهر`);
+    parts.push(
+      `${months} شهر`,
+    );
   }
 
   if (days > 0) {
-    parts.push(`${days} يوم`);
+    parts.push(
+      `${days} يوم`,
+    );
   }
 
   if (parts.length === 0) {
@@ -367,7 +489,9 @@ export default function Crops() {
     useSearchParams();
 
   const farmIdFromUrl =
-    searchParams.get("farmId") || "";
+    searchParams.get(
+      "farmId",
+    ) || "";
 
   const {
     farms = [],
@@ -381,10 +505,12 @@ export default function Crops() {
     deleteCrop,
   } = useCrops();
 
-  const [form, setForm] = useState({
-    ...EMPTY_FORM,
-    farmId: farmIdFromUrl,
-  });
+  const [form, setForm] =
+    useState({
+      ...EMPTY_FORM,
+      farmId:
+        farmIdFromUrl,
+    });
 
   const [message, setMessage] =
     useState("");
@@ -406,88 +532,106 @@ export default function Crops() {
 
     setForm((previous) => ({
       ...previous,
-      farmId: farmIdFromUrl,
+      farmId:
+        farmIdFromUrl,
     }));
-  }, [farmIdFromUrl]);
+  }, [
+    farmIdFromUrl,
+  ]);
 
   // -------------------------------------------------------
   // المزرعة المختارة
   // -------------------------------------------------------
 
-  const selectedFarm = useMemo(() => {
-    return farms.find(
-      (farm) =>
-        String(
-          farm.id ??
-            farm._id ??
-            farm.farmId,
-        ) ===
-        String(form.farmId),
-    );
-  }, [farms, form.farmId]);
+  const selectedFarm =
+    useMemo(() => {
+      return farms.find(
+        (farm) =>
+          String(
+            farm.id ??
+              farm._id ??
+              farm.farmId,
+          ) ===
+          String(
+            form.farmId,
+          ),
+      );
+    }, [
+      farms,
+      form.farmId,
+    ]);
 
   // -------------------------------------------------------
   // المناخ
   // -------------------------------------------------------
 
-  const climate = useMemo(() => {
-    return detectClimate({
-      country: form.country,
-      governorate: form.governorate,
-      city: form.city,
-      village: form.village,
-    });
-  }, [
-    form.country,
-    form.governorate,
-    form.city,
-    form.village,
-  ]);
+  const climate =
+    useMemo(() => {
+      return detectClimate({
+        country:
+          form.country,
+        governorate:
+          form.governorate,
+        city:
+          form.city,
+        village:
+          form.village,
+      });
+    }, [
+      form.country,
+      form.governorate,
+      form.city,
+      form.village,
+    ]);
 
   // -------------------------------------------------------
   // التوصيات
   // -------------------------------------------------------
 
-  const recommendations = useMemo(() => {
-    if (
-      !climate ||
-      !form.plantType
-    ) {
-      return [];
-    }
+  const recommendations =
+    useMemo(() => {
+      if (
+        !climate ||
+        !form.plantType
+      ) {
+        return [];
+      }
 
-    const climateRecommendations =
-      SEED_RECOMMENDATIONS[
-        climate
-      ];
+      const climateRecommendations =
+        SEED_RECOMMENDATIONS[
+          climate
+        ];
 
-    if (!climateRecommendations) {
-      return [];
-    }
+      if (
+        !climateRecommendations
+      ) {
+        return [];
+      }
 
-    return (
-      climateRecommendations[
-        form.plantType
-      ] ||
-      climateRecommendations.default ||
-      []
-    );
-  }, [
-    climate,
-    form.plantType,
-  ]);
+      return (
+        climateRecommendations[
+          form.plantType
+        ] ||
+        climateRecommendations.default ||
+        []
+      );
+    }, [
+      climate,
+      form.plantType,
+    ]);
 
   // -------------------------------------------------------
   // عمر النبات
   // -------------------------------------------------------
 
-  const plantAge = useMemo(() => {
-    return calculatePlantAge(
+  const plantAge =
+    useMemo(() => {
+      return calculatePlantAge(
+        form.plantingDate,
+      );
+    }, [
       form.plantingDate,
-    );
-  }, [
-    form.plantingDate,
-  ]);
+    ]);
 
   // -------------------------------------------------------
   // تغيير الحقول
@@ -502,8 +646,11 @@ export default function Crops() {
     setForm((previous) => ({
       ...previous,
       [name]:
-        name === "plantingDate"
-          ? normalizeManualDate(value)
+        name ===
+        "plantingDate"
+          ? normalizeManualDate(
+              value,
+            )
           : value,
     }));
 
@@ -515,7 +662,9 @@ export default function Crops() {
   // اختيار توصية
   // -------------------------------------------------------
 
-  function chooseRecommendation(seed) {
+  function chooseRecommendation(
+    seed,
+  ) {
     setForm((previous) => ({
       ...previous,
       seedType: seed,
@@ -530,7 +679,9 @@ export default function Crops() {
   // حفظ المشروع الزراعي
   // =======================================================
 
-  async function handleSubmit(event) {
+  async function handleSubmit(
+    event,
+  ) {
     event.preventDefault();
 
     setMessage("");
@@ -602,6 +753,34 @@ export default function Crops() {
       return;
     }
 
+    /*
+     * =====================================================
+     * لا يوجد أي تحقق من شكل التاريخ.
+     *
+     * هذا هو التغيير الأساسي.
+     *
+     * إذا كتب المستخدم:
+     *
+     * 15.5.2024
+     * 15-5-2024
+     * 15/5/2024
+     * 15 5 2024
+     * 1.1.2027
+     * 2 2 2024
+     *
+     * كلها نصوص مقبولة.
+     *
+     * لا يوجد:
+     *
+     * parseManualDate() لمنع الحفظ
+     *
+     * ولا رسالة:
+     *
+     * "اكتب بهذا الشكل..."
+     *
+     * =====================================================
+     */
+
     if (
       !form.plantingDate.trim()
     ) {
@@ -611,43 +790,19 @@ export default function Crops() {
       return;
     }
 
-    // -----------------------------------------------------
-    // التحقق من التاريخ اليدوي
-    // -----------------------------------------------------
-
-    const parsedDate =
-      parseManualDate(
-        form.plantingDate,
-      );
-
-    if (!parsedDate) {
-      setError(
-        "يرجى كتابة تاريخ صحيح بهذا الشكل: 15/05/2024",
-      );
-      return;
-    }
-
     setSaving(true);
 
     try {
-      // ===================================================
-      // مهم:
-      // يتم إرسال نفس النص الذي كتبه المستخدم.
-      //
-      // لا يوجد:
-      // new Date()
-      //
-      // ولا:
-      // toISOString()
-      //
-      // ولا تحويل إلى تاريخ اليوم.
-      // ===================================================
-
+      /*
+       * نحفظ النص كما كتبه المستخدم
+       * تماماً.
+       */
       const savedPlantingDate =
         form.plantingDate.trim();
 
       const payload = {
-        farmId: form.farmId,
+        farmId:
+          form.farmId,
 
         projectName:
           form.projectName.trim(),
@@ -673,7 +828,11 @@ export default function Crops() {
         village:
           form.village.trim(),
 
-        // التاريخ كما كتبه المستخدم
+        /*
+         * التاريخ الأصلي للمستخدم.
+         *
+         * لا تحويل.
+         */
         plantingDate:
           savedPlantingDate,
 
@@ -696,7 +855,9 @@ export default function Crops() {
         recommendations,
       };
 
-      await addCrop(payload);
+      await addCrop(
+        payload,
+      );
 
       setMessage(
         "تم حفظ المشروع الزراعي بنجاح.",
@@ -704,9 +865,12 @@ export default function Crops() {
 
       setForm({
         ...EMPTY_FORM,
-        farmId: form.farmId,
+        farmId:
+          form.farmId,
       });
-    } catch (saveError) {
+    } catch (
+      saveError
+    ) {
       console.error(
         "LAVENDER — save crop error:",
         saveError,
@@ -725,7 +889,9 @@ export default function Crops() {
   // حذف المشروع
   // -------------------------------------------------------
 
-  async function handleDelete(crop) {
+  async function handleDelete(
+    crop,
+  ) {
     const id =
       crop?.id ??
       crop?._id ??
@@ -750,7 +916,9 @@ export default function Crops() {
       setMessage(
         "تم حذف المشروع الزراعي.",
       );
-    } catch (deleteError) {
+    } catch (
+      deleteError
+    ) {
       console.error(
         "LAVENDER — delete crop error:",
         deleteError,
@@ -818,8 +986,10 @@ export default function Crops() {
             padding: "12px",
             marginBottom: "12px",
             borderRadius: "10px",
-            background: "#e8f5e9",
-            color: "#1b5e20",
+            background:
+              "#e8f5e9",
+            color:
+              "#1b5e20",
           }}
         >
           {message}
@@ -833,8 +1003,10 @@ export default function Crops() {
             padding: "12px",
             marginBottom: "12px",
             borderRadius: "10px",
-            background: "#ffebee",
-            color: "#b71c1c",
+            background:
+              "#ffebee",
+            color:
+              "#b71c1c",
           }}
         >
           {error}
@@ -842,13 +1014,17 @@ export default function Crops() {
       )}
 
       <form
-        onSubmit={handleSubmit}
+        onSubmit={
+          handleSubmit
+        }
       >
         {/* =================================================
             1 — المزرعة والمشروع
         ================================================= */}
 
-        <section style={cardStyle}>
+        <section
+          style={cardStyle}
+        >
           <SectionTitle>
             🏡 معلومات المشروع
           </SectionTitle>
@@ -856,41 +1032,57 @@ export default function Crops() {
           <Field label="المزرعة">
             <select
               name="farmId"
-              value={form.farmId}
-              onChange={handleChange}
-              style={inputStyle}
-              disabled={farmsLoading}
+              value={
+                form.farmId
+              }
+              onChange={
+                handleChange
+              }
+              style={
+                inputStyle
+              }
+              disabled={
+                farmsLoading
+              }
             >
               <option value="">
                 اختر المزرعة
               </option>
 
-              {farms.map((farm) => {
-                const id =
-                  farm.id ??
-                  farm._id ??
-                  farm.farmId;
+              {farms.map(
+                (farm) => {
+                  const id =
+                    farm.id ??
+                    farm._id ??
+                    farm.farmId;
 
-                return (
-                  <option
-                    key={id}
-                    value={id}
-                  >
-                    {getFarmName(farm)}
-                  </option>
-                );
-              })}
+                  return (
+                    <option
+                      key={id}
+                      value={id}
+                    >
+                      {getFarmName(
+                        farm,
+                      )}
+                    </option>
+                  );
+                },
+              )}
             </select>
 
             {selectedFarm && (
               <small
                 style={{
-                  display: "block",
-                  marginTop: "6px",
-                  color: "#555",
+                  display:
+                    "block",
+                  marginTop:
+                    "6px",
+                  color:
+                    "#555",
                 }}
               >
-                🏡 المزرعة المختارة:
+                🏡 المزرعة
+                المختارة:
                 {" "}
                 <strong>
                   {getFarmName(
@@ -905,10 +1097,16 @@ export default function Crops() {
             <input
               type="text"
               name="projectName"
-              value={form.projectName}
-              onChange={handleChange}
+              value={
+                form.projectName
+              }
+              onChange={
+                handleChange
+              }
               placeholder="مثال: قمح الحقل الشرقي"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
           </Field>
 
@@ -916,10 +1114,16 @@ export default function Crops() {
             <input
               type="text"
               name="plantType"
-              value={form.plantType}
-              onChange={handleChange}
+              value={
+                form.plantType
+              }
+              onChange={
+                handleChange
+              }
               placeholder="مثال: قمح، شعير، قطن، عدس"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
           </Field>
 
@@ -927,10 +1131,16 @@ export default function Crops() {
             <input
               type="text"
               name="seedType"
-              value={form.seedType}
-              onChange={handleChange}
+              value={
+                form.seedType
+              }
+              onChange={
+                handleChange
+              }
               placeholder="اكتب نوع أو صنف البذار"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
           </Field>
         </section>
@@ -939,7 +1149,9 @@ export default function Crops() {
             2 — الموقع الكتابي
         ================================================= */}
 
-        <section style={cardStyle}>
+        <section
+          style={cardStyle}
+        >
           <SectionTitle>
             🌍 موقع الحقل
           </SectionTitle>
@@ -948,10 +1160,16 @@ export default function Crops() {
             <input
               type="text"
               name="country"
-              value={form.country}
-              onChange={handleChange}
+              value={
+                form.country
+              }
+              onChange={
+                handleChange
+              }
               placeholder="مثال: سوريا"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
           </Field>
 
@@ -959,10 +1177,16 @@ export default function Crops() {
             <input
               type="text"
               name="governorate"
-              value={form.governorate}
-              onChange={handleChange}
+              value={
+                form.governorate
+              }
+              onChange={
+                handleChange
+              }
               placeholder="مثال: الرقة"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
           </Field>
 
@@ -970,10 +1194,16 @@ export default function Crops() {
             <input
               type="text"
               name="city"
-              value={form.city}
-              onChange={handleChange}
+              value={
+                form.city
+              }
+              onChange={
+                handleChange
+              }
               placeholder="مثال: تل أبيض"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
           </Field>
 
@@ -981,10 +1211,16 @@ export default function Crops() {
             <input
               type="text"
               name="village"
-              value={form.village}
-              onChange={handleChange}
+              value={
+                form.village
+              }
+              onChange={
+                handleChange
+              }
               placeholder="مثال: سلوك"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
           </Field>
         </section>
@@ -993,23 +1229,31 @@ export default function Crops() {
             3 — المناخ والتوصيات
         ================================================= */}
 
-        <section style={cardStyle}>
+        <section
+          style={cardStyle}
+        >
           <SectionTitle>
             🌤️ المناخ والتوصيات
           </SectionTitle>
 
           <div
             style={{
-              padding: "14px",
-              borderRadius: "10px",
-              background: "#f5f8f4",
-              marginBottom: "12px",
+              padding:
+                "14px",
+              borderRadius:
+                "10px",
+              background:
+                "#f5f8f4",
+              marginBottom:
+                "12px",
             }}
           >
             <div
               style={{
-                fontWeight: "700",
-                marginBottom: "5px",
+                fontWeight:
+                  "700",
+                marginBottom:
+                  "5px",
               }}
             >
               🌤️ المناخ
@@ -1021,23 +1265,30 @@ export default function Crops() {
 
                 <small
                   style={{
-                    display: "block",
-                    marginTop: "5px",
-                    color: "#666",
+                    display:
+                      "block",
+                    marginTop:
+                      "5px",
+                    color:
+                      "#666",
                   }}
                 >
-                  يعتمد التقدير على المنطقة
-                  التي كتبها المستخدم.
+                  يعتمد التقدير على
+                  المنطقة التي
+                  كتبها المستخدم.
                 </small>
               </div>
             ) : (
               <div
                 style={{
-                  color: "#777",
+                  color:
+                    "#777",
                 }}
               >
-                اكتب الدولة والمحافظة
-                والمدينة والقرية لعرض
+                اكتب الدولة
+                والمحافظة
+                والمدينة
+                والقرية لعرض
                 التقدير.
               </div>
             )}
@@ -1048,8 +1299,10 @@ export default function Crops() {
             <div>
               <div
                 style={{
-                  fontWeight: "700",
-                  marginBottom: "8px",
+                  fontWeight:
+                    "700",
+                  marginBottom:
+                    "8px",
                 }}
               >
                 💡 اقتراحات البذار
@@ -1057,14 +1310,18 @@ export default function Crops() {
 
               <div
                 style={{
-                  display: "grid",
-                  gap: "8px",
+                  display:
+                    "grid",
+                  gap:
+                    "8px",
                 }}
               >
                 {recommendations.map(
                   (seed) => (
                     <button
-                      key={seed}
+                      key={
+                        seed
+                      }
                       type="button"
                       onClick={() =>
                         chooseRecommendation(
@@ -1073,10 +1330,12 @@ export default function Crops() {
                       }
                       style={{
                         ...suggestionStyle,
-                        textAlign: "right",
+                        textAlign:
+                          "right",
                       }}
                     >
-                      🌱 {seed}
+                      🌱{" "}
+                      {seed}
                     </button>
                   ),
                 )}
@@ -1089,7 +1348,9 @@ export default function Crops() {
             4 — تاريخ الزراعة وعمر النبات
         ================================================= */}
 
-        <section style={cardStyle}>
+        <section
+          style={cardStyle}
+        >
           <SectionTitle>
             📅 الزراعة وعمر النبات
           </SectionTitle>
@@ -1098,40 +1359,73 @@ export default function Crops() {
             <input
               type="text"
               name="plantingDate"
-              value={form.plantingDate}
-              onChange={handleChange}
+              value={
+                form.plantingDate
+              }
+              onChange={
+                handleChange
+              }
+
+              /*
+               * لوحة أرقام في الهاتف
+               * لكن لا يوجد type=date.
+               */
               inputMode="numeric"
+
               autoComplete="off"
-              placeholder="مثال: 15/05/2024"
-              style={inputStyle}
+
+              /*
+               * لا نضع pattern.
+               * لا نضع min.
+               * لا نضع max.
+               * لا نضع أي قيد على الصيغة.
+               */
+              placeholder="اكتب تاريخ الزراعة بأي صيغة تريدها"
+
+              style={
+                inputStyle
+              }
             />
 
             <small
               style={{
-                display: "block",
-                marginTop: "6px",
-                color: "#666",
+                display:
+                  "block",
+                marginTop:
+                  "6px",
+                color:
+                  "#666",
               }}
             >
-              اكتب تاريخ الزراعة يدويًا
-              باليوم والشهر والسنة.
-              مثال: 15/05/2024
+              اكتب تاريخ الزراعة
+              بالطريقة التي تناسبك.
+              مثال: 15.5.2024 أو
+              15-5-2024 أو
+              15/5/2024 أو
+              15 5 2024.
             </small>
           </Field>
 
           <div
             style={{
-              padding: "16px",
-              borderRadius: "10px",
-              background: "#eef7ee",
-              textAlign: "center",
+              padding:
+                "16px",
+              borderRadius:
+                "10px",
+              background:
+                "#eef7ee",
+              textAlign:
+                "center",
             }}
           >
             <div
               style={{
-                fontSize: "14px",
-                color: "#555",
-                marginBottom: "5px",
+                fontSize:
+                  "14px",
+                color:
+                  "#555",
+                marginBottom:
+                  "5px",
               }}
             >
               ⏳ عمر النبات
@@ -1139,11 +1433,12 @@ export default function Crops() {
 
             <strong
               style={{
-                fontSize: "22px",
+                fontSize:
+                  "22px",
               }}
             >
               {plantAge ||
-                "سيظهر تلقائياً"}
+                "سيظهر تلقائياً عند إمكانية قراءة التاريخ"}
             </strong>
           </div>
         </section>
@@ -1152,7 +1447,9 @@ export default function Crops() {
             5 — الكميات
         ================================================= */}
 
-        <section style={cardStyle}>
+        <section
+          style={cardStyle}
+        >
           <SectionTitle>
             🌱 الكميات المستخدمة
           </SectionTitle>
@@ -1161,22 +1458,32 @@ export default function Crops() {
             <input
               type="number"
               name="seedQuantity"
-              value={form.seedQuantity}
-              onChange={handleChange}
+              value={
+                form.seedQuantity
+              }
+              onChange={
+                handleChange
+              }
               min="0"
               step="0.01"
               placeholder="مثال: 150"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
 
             <small
               style={{
-                display: "block",
-                marginTop: "5px",
-                color: "#777",
+                display:
+                  "block",
+                marginTop:
+                  "5px",
+                color:
+                  "#777",
               }}
             >
-              الكمية المستخدمة في الحقل.
+              الكمية المستخدمة
+              في الحقل.
             </small>
           </Field>
 
@@ -1187,21 +1494,29 @@ export default function Crops() {
               value={
                 form.fertilizerQuantity
               }
-              onChange={handleChange}
+              onChange={
+                handleChange
+              }
               min="0"
               step="0.01"
               placeholder="مثال: 300"
-              style={inputStyle}
+              style={
+                inputStyle
+              }
             />
 
             <small
               style={{
-                display: "block",
-                marginTop: "5px",
-                color: "#777",
+                display:
+                  "block",
+                marginTop:
+                  "5px",
+                color:
+                  "#777",
               }}
             >
-              الكمية المستخدمة في الحقل.
+              الكمية المستخدمة
+              في الحقل.
             </small>
           </Field>
         </section>
@@ -1212,19 +1527,32 @@ export default function Crops() {
 
         <button
           type="submit"
-          disabled={saving}
+          disabled={
+            saving
+          }
           style={{
-            width: "100%",
-            border: 0,
-            borderRadius: "12px",
-            padding: "15px",
-            fontSize: "17px",
-            fontWeight: "700",
-            cursor: saving
-              ? "not-allowed"
-              : "pointer",
-            opacity: saving ? 0.7 : 1,
-            marginBottom: "20px",
+            width:
+              "100%",
+            border:
+              0,
+            borderRadius:
+              "12px",
+            padding:
+              "15px",
+            fontSize:
+              "17px",
+            fontWeight:
+              "700",
+            cursor:
+              saving
+                ? "not-allowed"
+                : "pointer",
+            opacity:
+              saving
+                ? 0.7
+                : 1,
+            marginBottom:
+              "20px",
           }}
         >
           {saving
@@ -1237,7 +1565,9 @@ export default function Crops() {
           المشاريع المسجلة
       ================================================= */}
 
-      <section style={cardStyle}>
+      <section
+        style={cardStyle}
+      >
         <SectionTitle>
           🌱 مشاريعي الزراعية
         </SectionTitle>
@@ -1246,173 +1576,203 @@ export default function Crops() {
           <p>
             جاري تحميل المشاريع...
           </p>
-        ) : crops.length === 0 ? (
+        ) : crops.length ===
+          0 ? (
           <p
             style={{
-              textAlign: "center",
-              color: "#777",
+              textAlign:
+                "center",
+              color:
+                "#777",
             }}
           >
-            لا توجد مشاريع زراعية مسجلة.
+            لا توجد مشاريع
+            زراعية مسجلة.
           </p>
         ) : (
           <div
             style={{
-              display: "grid",
-              gap: "12px",
+              display:
+                "grid",
+              gap:
+                "12px",
             }}
           >
-            {crops.map((crop) => {
-              const id =
-                crop.id ??
-                crop._id ??
-                crop.cropId;
+            {crops.map(
+              (crop) => {
+                const id =
+                  crop.id ??
+                  crop._id ??
+                  crop.cropId;
 
-              const date =
-                crop.plantingDate || "";
+                /*
+                 * نعرض النص المحفوظ
+                 * كما هو.
+                 */
+                const date =
+                  crop.plantingDate ||
+                  "";
 
-              return (
-                <article
-                  key={id}
-                  style={{
-                    border:
-                      "1px solid #ddd",
-                    borderRadius: "12px",
-                    padding: "14px",
-                  }}
-                >
-                  <h3
+                return (
+                  <article
+                    key={id}
                     style={{
-                      marginTop: 0,
-                    }}
-                  >
-                    🌱{" "}
-                    {crop.projectName ||
-                      crop.name ||
-                      "مشروع زراعي"}
-                  </h3>
-
-                  <InfoRow
-                    label="🏡 المزرعة"
-                    value={
-                      getFarmName(
-                        farms.find(
-                          (farm) =>
-                            String(
-                              farm.id ??
-                                farm._id ??
-                                farm.farmId,
-                            ) ===
-                            String(
-                              crop.farmId,
-                            ),
-                        ),
-                      ) ||
-                      crop.farmName ||
-                      "-"
-                    }
-                  />
-
-                  <InfoRow
-                    label="🌾 النبات"
-                    value={
-                      crop.plantType ||
-                      "-"
-                    }
-                  />
-
-                  <InfoRow
-                    label="🌱 البذار"
-                    value={
-                      crop.seedType ||
-                      "-"
-                    }
-                  />
-
-                  <InfoRow
-                    label="🌍 الموقع"
-                    value={[
-                      crop.country,
-                      crop.governorate,
-                      crop.city,
-                      crop.village,
-                    ]
-                      .filter(Boolean)
-                      .join(" - ") ||
-                      "-"
-                    }
-                  />
-
-                  <InfoRow
-                    label="🌤️ المناخ"
-                    value={
-                      crop.climate ||
-                      "-"
-                    }
-                  />
-
-                  <InfoRow
-                    label="📅 تاريخ الزراعة"
-                    value={
-                      date || "-"
-                    }
-                  />
-
-                  <InfoRow
-                    label="⏳ العمر"
-                    value={
-                      calculatePlantAge(
-                        date,
-                      ) || "-"
-                    }
-                  />
-
-                  <InfoRow
-                    label="🌱 كمية البذار"
-                    value={
-                      crop.seedQuantity ===
-                        "" ||
-                      crop.seedQuantity ==
-                        null
-                        ? "-"
-                        : `${crop.seedQuantity}`
-                    }
-                  />
-
-                  <InfoRow
-                    label="🧪 كمية السماد"
-                    value={
-                      crop.fertilizerQuantity ===
-                        "" ||
-                      crop.fertilizerQuantity ==
-                        null
-                        ? "-"
-                        : `${crop.fertilizerQuantity}`
-                    }
-                  />
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      handleDelete(crop)
-                    }
-                    style={{
-                      width: "100%",
-                      marginTop: "12px",
-                      padding: "10px",
-                      borderRadius: "9px",
                       border:
-                        "1px solid #e0a0a0",
-                      background:
-                        "#fff5f5",
-                      cursor: "pointer",
+                        "1px solid #ddd",
+                      borderRadius:
+                        "12px",
+                      padding:
+                        "14px",
                     }}
                   >
-                    🗑️ حذف المشروع
-                  </button>
-                </article>
-              );
-            })}
+                    <h3
+                      style={{
+                        marginTop:
+                          0,
+                      }}
+                    >
+                      🌱{" "}
+                      {crop.projectName ||
+                        crop.name ||
+                        "مشروع زراعي"}
+                    </h3>
+
+                    <InfoRow
+                      label="🏡 المزرعة"
+                      value={
+                        getFarmName(
+                          farms.find(
+                            (
+                              farm,
+                            ) =>
+                              String(
+                                farm.id ??
+                                  farm._id ??
+                                  farm.farmId,
+                              ) ===
+                              String(
+                                crop.farmId,
+                              ),
+                          ),
+                        ) ||
+                        crop.farmName ||
+                        "-"
+                      }
+                    />
+
+                    <InfoRow
+                      label="🌾 النبات"
+                      value={
+                        crop.plantType ||
+                        "-"
+                      }
+                    />
+
+                    <InfoRow
+                      label="🌱 البذار"
+                      value={
+                        crop.seedType ||
+                        "-"
+                      }
+                    />
+
+                    <InfoRow
+                      label="🌍 الموقع"
+                      value={[
+                        crop.country,
+                        crop.governorate,
+                        crop.city,
+                        crop.village,
+                      ]
+                        .filter(
+                          Boolean,
+                        )
+                        .join(
+                          " - ",
+                        ) ||
+                        "-"
+                      }
+                    />
+
+                    <InfoRow
+                      label="🌤️ المناخ"
+                      value={
+                        crop.climate ||
+                        "-"
+                      }
+                    />
+
+                    <InfoRow
+                      label="📅 تاريخ الزراعة"
+                      value={
+                        date || "-"
+                      }
+                    />
+
+                    <InfoRow
+                      label="⏳ العمر"
+                      value={
+                        calculatePlantAge(
+                          date,
+                        ) ||
+                        "-"
+                      }
+                    />
+
+                    <InfoRow
+                      label="🌱 كمية البذار"
+                      value={
+                        crop.seedQuantity ===
+                          "" ||
+                        crop.seedQuantity ==
+                          null
+                          ? "-"
+                          : `${crop.seedQuantity}`
+                      }
+                    />
+
+                    <InfoRow
+                      label="🧪 كمية السماد"
+                      value={
+                        crop.fertilizerQuantity ===
+                          "" ||
+                        crop.fertilizerQuantity ==
+                          null
+                          ? "-"
+                          : `${crop.fertilizerQuantity}`
+                      }
+                    />
+
+                    <button
+                      type="button"
+                      onClick={() =>
+                        handleDelete(
+                          crop,
+                        )
+                      }
+                      style={{
+                        width:
+                          "100%",
+                        marginTop:
+                          "12px",
+                        padding:
+                          "10px",
+                        borderRadius:
+                          "9px",
+                        border:
+                          "1px solid #e0a0a0",
+                        background:
+                          "#fff5f5",
+                        cursor:
+                          "pointer",
+                      }}
+                    >
+                      🗑️ حذف المشروع
+                    </button>
+                  </article>
+                );
+              },
+            )}
           </div>
         )}
       </section>
@@ -1430,9 +1790,12 @@ function SectionTitle({
   return (
     <h2
       style={{
-        fontSize: "19px",
-        marginTop: 0,
-        marginBottom: "15px",
+        fontSize:
+          "19px",
+        marginTop:
+          0,
+        marginBottom:
+          "15px",
       }}
     >
       {children}
@@ -1447,14 +1810,18 @@ function Field({
   return (
     <div
       style={{
-        marginBottom: "14px",
+        marginBottom:
+          "14px",
       }}
     >
       <label
         style={{
-          display: "block",
-          fontWeight: "700",
-          marginBottom: "7px",
+          display:
+            "block",
+          fontWeight:
+            "700",
+          marginBottom:
+            "7px",
         }}
       >
         {label}
@@ -1472,18 +1839,22 @@ function InfoRow({
   return (
     <div
       style={{
-        display: "flex",
+        display:
+          "flex",
         justifyContent:
           "space-between",
-        gap: "12px",
-        padding: "8px 0",
+        gap:
+          "12px",
+        padding:
+          "8px 0",
         borderBottom:
           "1px solid #eee",
       }}
     >
       <span
         style={{
-          fontWeight: "600",
+          fontWeight:
+            "600",
         }}
       >
         {label}
@@ -1491,8 +1862,10 @@ function InfoRow({
 
       <span
         style={{
-          textAlign: "left",
-          color: "#555",
+          textAlign:
+            "left",
+          color:
+            "#555",
         }}
       >
         {value}
@@ -1506,32 +1879,50 @@ function InfoRow({
 // =========================================================
 
 const cardStyle = {
-  background: "#fff",
-  border: "1px solid #e5e5e5",
-  borderRadius: "14px",
-  padding: "16px",
-  marginBottom: "16px",
+  background:
+    "#fff",
+  border:
+    "1px solid #e5e5e5",
+  borderRadius:
+    "14px",
+  padding:
+    "16px",
+  marginBottom:
+    "16px",
   boxShadow:
     "0 2px 8px rgba(0,0,0,0.05)",
 };
 
 const inputStyle = {
-  width: "100%",
-  boxSizing: "border-box",
-  border: "1px solid #ccc",
-  borderRadius: "10px",
-  padding: "12px",
-  fontSize: "16px",
-  background: "#fff",
+  width:
+    "100%",
+  boxSizing:
+    "border-box",
+  border:
+    "1px solid #ccc",
+  borderRadius:
+    "10px",
+  padding:
+    "12px",
+  fontSize:
+    "16px",
+  background:
+    "#fff",
 };
 
 const suggestionStyle = {
-  width: "100%",
-  padding: "11px 12px",
-  borderRadius: "10px",
+  width:
+    "100%",
+  padding:
+    "11px 12px",
+  borderRadius:
+    "10px",
   border:
     "1px solid #d5e4d5",
-  background: "#f7fbf7",
-  cursor: "pointer",
-  fontSize: "15px",
+  background:
+    "#f7fbf7",
+  cursor:
+    "pointer",
+  fontSize:
+    "15px",
 };
