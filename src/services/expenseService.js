@@ -1,281 +1,169 @@
 // src/services/expenseService.js
 
 import expenseRepository
-from "../repositories/expenseRepository.js";
-
+  from "../repositories/expenseRepository.js";
 
 import {
   createError
-}
-from "../utils/errorHandler.js";
-
-
+} from "../utils/errorHandler.js";
 
 
 class ExpenseService {
 
-
-
   constructor() {
-
     this.repository =
       expenseRepository;
-
   }
-
-
-
 
 
   async getAll() {
-
     return this.repository.getAll();
-
   }
-
-
-
 
 
   async getById(id) {
 
-
     this.validateId(id);
-
-
 
     const expense =
       await this.repository.getById(id);
 
-
-
     if (!expense) {
-
-
       throw createError(
-
         "Expense not found",
-
         "EXPENSE_NOT_FOUND"
-
       );
-
-
     }
 
-
-
     return expense;
-
-
   }
 
 
+  async getByFarmId(farmId) {
 
+    if (!farmId) {
+      return [];
+    }
+
+    return this.repository
+      .getByFarmId(farmId);
+  }
+
+
+  async getByCropId(cropId) {
+
+    if (!cropId) {
+      return [];
+    }
+
+    return this.repository
+      .getByCropId(cropId);
+  }
 
 
   async create(data) {
 
-
     this.validateCreate(data);
-
-
 
     return this.repository.create(
       data
     );
-
-
   }
-
-
-
 
 
   async update(id, data) {
 
-
     this.validateId(id);
-
 
     this.validateUpdate(data);
 
-
-
     const updated =
       await this.repository.update(
-
         id,
-
         data
-
       );
-
-
 
     if (!updated) {
-
-
       throw createError(
-
         "Expense not found",
-
         "EXPENSE_NOT_FOUND"
-
       );
-
-
     }
 
-
-
     return updated;
-
-
   }
-
-
-
 
 
   async delete(id) {
 
-
     this.validateId(id);
-
-
 
     const deleted =
       await this.repository.delete(
         id
       );
 
-
-
     if (!deleted) {
-
-
       throw createError(
-
         "Expense not found",
-
         "EXPENSE_NOT_FOUND"
-
       );
-
-
     }
 
-
-
     return true;
-
-
   }
-
-
-
 
 
   async exists(id) {
 
-
     if (!id) {
-
       return false;
-
     }
-
-
 
     const expense =
       await this.repository.getById(
         id
       );
 
-
-
-    return Boolean(
-      expense
-    );
-
-
+    return Boolean(expense);
   }
-
-
-
 
 
   async count() {
 
-
     const expenses =
       await this.repository.getAll();
 
-
-
     return expenses.length;
-
-
   }
-
-
-
 
 
   validateId(id) {
 
-
     if (!id) {
-
-
       throw createError(
-
         "Expense id is required",
-
         "EXPENSE_ID_REQUIRED"
-
       );
-
-
     }
 
-
-
     return true;
-
-
   }
-
-
-
 
 
   validateCreate(data) {
 
-
     this.validateData(data);
-
-
 
     if (
       !data.type ||
       !String(data.type).trim()
     ) {
-
-
       throw createError(
-
         "Expense type is required",
-
         "EXPENSE_TYPE_REQUIRED"
-
       );
-
-
     }
-
-
 
     if (
       data.amount === undefined ||
@@ -283,55 +171,29 @@ class ExpenseService {
       data.amount === "" ||
       Number(data.amount) <= 0
     ) {
-
-
       throw createError(
-
         "Expense amount is required",
-
         "EXPENSE_AMOUNT_REQUIRED"
-
       );
-
-
     }
 
-
-
     return true;
-
-
   }
-
-
-
 
 
   validateUpdate(data) {
 
-
     this.validateData(data);
-
-
 
     if (
       data.type !== undefined &&
       !String(data.type).trim()
     ) {
-
-
       throw createError(
-
         "Expense type is required",
-
         "EXPENSE_TYPE_REQUIRED"
-
       );
-
-
     }
-
-
 
     if (
       data.amount !== undefined &&
@@ -340,67 +202,33 @@ class ExpenseService {
         Number(data.amount) <= 0
       )
     ) {
-
-
       throw createError(
-
         "Expense amount is required",
-
         "EXPENSE_AMOUNT_REQUIRED"
-
       );
-
-
     }
 
-
-
     return true;
-
-
   }
 
 
-
-
-
   validateData(data) {
-
 
     if (
       !data ||
       typeof data !== "object"
     ) {
-
-
       throw createError(
-
         "Expense data is required",
-
         "EXPENSE_DATA_REQUIRED"
-
       );
-
-
     }
 
-
-
     return true;
-
-
   }
-
-
-
 }
 
 
-
-
-
 export default Object.freeze(
-
   new ExpenseService()
-
 );
