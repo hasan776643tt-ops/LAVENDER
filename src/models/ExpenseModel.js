@@ -1,190 +1,544 @@
 // src/models/ExpenseModel.js
 
-/**
- * LAVENDER — Expense Model
- *
- * نموذج المصروفات والإنتاج والنتيجة المالية للمشروع الزراعي.
- *
- * كل مصروف هو سطر مستقل داخل جدول المشروع الزراعي.
- * يمكن إضافة عدد غير محدود من المصروفات.
- */
+// =========================================================
+// LAVENDER — EXPENSE MODEL
+// src/models/ExpenseModel.js
+// =========================================================
 
 export class ExpenseModel {
+
   constructor(data = {}) {
+
     this.id =
       data.id ||
-      globalThis.crypto?.randomUUID?.() ||
-      Date.now().toString();
+      null;
 
-    // ارتباط بالمزرعة
-    this.farmId = data.farmId || "";
 
-    // ارتباط بالمشروع الزراعي / الحقل
-    // cropId هو المرجع الأساسي للمشروع الزراعي.
-    this.cropId = data.cropId || "";
+    this.farmId =
+      data.farmId ||
+      "";
 
-    // اسم المصروف الذي يكتبه الفلاح
-    this.type = data.type || "";
 
-    // تصنيف اختياري
-    this.category = data.category || "other";
+    /*
+     * اسم المصروف
+     */
 
-    // المبلغ
-    this.amount = Number(data.amount) || 0;
+    this.type =
+      data.type ||
+      "";
 
-    // العملة
-    this.currency = data.currency || "USD";
 
-    // معلومات إضافية اختيارية
-    this.quantity =
-      data.quantity !== undefined &&
-      data.quantity !== null &&
-      data.quantity !== ""
-        ? Number(data.quantity)
-        : "";
+    /*
+     * التصنيف يبقى للتوافق مع البيانات القديمة.
+     */
 
-    this.unit = data.unit || "";
+    this.category =
+      data.category ||
+      "operation";
 
-    // التاريخ
-    this.date = data.date || "";
 
-    // المورد اختياري
-    this.supplier = data.supplier || "";
+    /*
+     * المبلغ
+     */
 
-    // ملاحظات
-    this.notes = data.notes || "";
+    this.amount =
+      Number(
+        data.amount || 0
+      );
 
-    // الاحتفاظ بالحقول القديمة للتوافق
+
+    /*
+     * العملة:
+     *
+     * لا يوجد تحويل.
+     *
+     * إذا اختار المستخدم:
+     * ل.س
+     *
+     * تبقى:
+     * ل.س
+     */
+
+    this.currency =
+      data.currency ||
+      "ل.س";
+
+
+    /*
+     * هذه الحقول القديمة تبقى
+     * حتى لا تتضرر البيانات السابقة.
+     */
+
     this.paymentMethod =
-      data.paymentMethod || "cash";
+      data.paymentMethod ||
+      "نقدي";
+
+
+    this.supplier =
+      data.supplier ||
+      "";
+
 
     this.invoice =
-      data.invoice || "";
+      data.invoice ||
+      "";
+
+
+    /*
+     * التاريخ:
+     *
+     * أهم جزء في هذا التعديل.
+     *
+     * لا نستخدم:
+     *
+     * new Date()
+     *
+     * ولا:
+     *
+     * new Date().toISOString()
+     *
+     * كقيمة بديلة.
+     *
+     * نحفظ النص الذي أرسله المستخدم كما هو.
+     */
+
+    this.date =
+      data.date !== undefined &&
+      data.date !== null
+
+        ? String(data.date)
+
+        : "";
+
+
+    /*
+     * الحالة القديمة
+     */
 
     this.status =
-      data.status || "paid";
+      data.status ||
+      "paid";
 
-    // التحليل الذكي القديم
+
+    /*
+     * الملاحظات
+     */
+
+    this.notes =
+      data.notes !== undefined &&
+      data.notes !== null
+
+        ? String(data.notes)
+
+        : "";
+
+
+    /*
+     * التحليل القديم
+     */
+
     this.aiAnalysis =
-      data.aiAnalysis || {
-        costLevel: "normal",
-        recommendation: "",
-        savingTips: [],
-        farmImpact: ""
-      };
+      data.aiAnalysis ||
+      null;
 
-    // النظام الزمني
+
+    /*
+     * التواريخ التقنية للنظام.
+     *
+     * createdAt و updatedAt مختلفان
+     * عن تاريخ المصروف الذي يدخله الفلاح.
+     */
+
     this.createdAt =
       data.createdAt ||
-      new Date().toISOString();
+      null;
+
 
     this.updatedAt =
       data.updatedAt ||
-      new Date().toISOString();
+      null;
+
   }
+
+
+  // =========================================================
+  // تحديث البيانات
+  // =========================================================
 
   update(data = {}) {
-    Object.keys(data).forEach((key) => {
-      if (data[key] !== undefined) {
-        this[key] = data[key];
-      }
-    });
-
-    if (data.amount !== undefined) {
-      this.amount = Number(data.amount) || 0;
-    }
 
     if (
-      data.quantity !== undefined &&
-      data.quantity !== ""
+      data.farmId !== undefined
     ) {
-      this.quantity = Number(data.quantity) || 0;
+
+      this.farmId =
+        data.farmId;
+
     }
 
-    this.updatedAt =
-      new Date().toISOString();
+
+    if (
+      data.type !== undefined
+    ) {
+
+      this.type =
+        String(
+          data.type
+        );
+
+    }
+
+
+    if (
+      data.category !== undefined
+    ) {
+
+      this.category =
+        data.category;
+
+    }
+
+
+    if (
+      data.amount !== undefined
+    ) {
+
+      this.amount =
+        Number(
+          data.amount
+        ) || 0;
+
+    }
+
+
+    /*
+     * العملة تحفظ كما هي.
+     */
+
+    if (
+      data.currency !== undefined
+    ) {
+
+      this.currency =
+        String(
+          data.currency
+        );
+
+    }
+
+
+    if (
+      data.paymentMethod !== undefined
+    ) {
+
+      this.paymentMethod =
+        data.paymentMethod;
+
+    }
+
+
+    if (
+      data.supplier !== undefined
+    ) {
+
+      this.supplier =
+        data.supplier;
+
+    }
+
+
+    if (
+      data.invoice !== undefined
+    ) {
+
+      this.invoice =
+        data.invoice;
+
+    }
+
+
+    /*
+     * التاريخ يحفظ كما أدخله المستخدم.
+     *
+     * لا يوجد أي استبدال بتاريخ اليوم.
+     */
+
+    if (
+      data.date !== undefined
+    ) {
+
+      this.date =
+        String(
+          data.date
+        );
+
+    }
+
+
+    if (
+      data.status !== undefined
+    ) {
+
+      this.status =
+        data.status;
+
+    }
+
+
+    if (
+      data.notes !== undefined
+    ) {
+
+      this.notes =
+        String(
+          data.notes
+        );
+
+    }
+
+
+    if (
+      data.aiAnalysis !== undefined
+    ) {
+
+      this.aiAnalysis =
+        data.aiAnalysis;
+
+    }
+
+
+    if (
+      data.updatedAt !== undefined
+    ) {
+
+      this.updatedAt =
+        data.updatedAt;
+
+    }
+
 
     return this;
+
   }
+
+
+  // =========================================================
+  // قيمة المصروف
+  // =========================================================
 
   getAmount() {
-    return {
-      value: Number(this.amount) || 0,
-      currency: this.currency
-    };
+
+    return Number(
+      this.amount || 0
+    );
+
   }
+
+
+  // =========================================================
+  // تحويل إلى JSON
+  // =========================================================
 
   toJSON() {
+
     return {
-      id: this.id,
 
-      farmId: this.farmId,
+      id:
+        this.id,
 
-      cropId: this.cropId,
+      farmId:
+        this.farmId,
 
-      type: this.type,
+      type:
+        this.type,
 
-      category: this.category,
+      category:
+        this.category,
 
-      amount: Number(this.amount) || 0,
+      amount:
+        this.amount,
 
-      currency: this.currency,
+      currency:
+        this.currency,
 
-      quantity:
-        this.quantity === ""
-          ? ""
-          : Number(this.quantity) || 0,
+      paymentMethod:
+        this.paymentMethod,
 
-      unit: this.unit,
+      supplier:
+        this.supplier,
 
-      date: this.date,
+      invoice:
+        this.invoice,
 
-      supplier: this.supplier,
+      /*
+       * التاريخ المدخل من الفلاح نفسه.
+       */
 
-      invoice: this.invoice,
+      date:
+        this.date,
 
-      paymentMethod: this.paymentMethod,
+      status:
+        this.status,
 
-      status: this.status,
+      notes:
+        this.notes,
 
-      aiAnalysis: this.aiAnalysis,
+      aiAnalysis:
+        this.aiAnalysis,
 
-      notes: this.notes,
+      createdAt:
+        this.createdAt,
 
-      createdAt: this.createdAt,
+      updatedAt:
+        this.updatedAt
 
-      updatedAt: this.updatedAt
     };
+
   }
+
 }
 
-export const createExpense = (data = {}) => {
-  return new ExpenseModel(data);
-};
+
+// =========================================================
+// Factory
+// =========================================================
+
+export function createExpense(
+  data = {}
+) {
+
+  return new ExpenseModel(
+    data
+  );
+
+}
+
+
+// =========================================================
+// التصنيفات
+// =========================================================
 
 export const expenseCategories = [
-  "seed",
-  "fertilizer",
-  "pesticide",
-  "workers",
-  "tractor",
-  "irrigation",
-  "fuel",
-  "transport",
-  "maintenance",
-  "equipment",
-  "other"
+
+  {
+    value: "operation",
+    label: "تشغيل"
+  },
+
+  {
+    value: "agriculture",
+    label: "زراعة"
+  },
+
+  {
+    value: "seed",
+    label: "بذار"
+  },
+
+  {
+    value: "fertilizer",
+    label: "سماد"
+  },
+
+  {
+    value: "pesticide",
+    label: "مبيد"
+  },
+
+  {
+    value: "workers",
+    label: "عمال"
+  },
+
+  {
+    value: "tractor",
+    label: "جرار"
+  },
+
+  {
+    value: "irrigation",
+    label: "ري"
+  },
+
+  {
+    value: "fuel",
+    label: "وقود"
+  },
+
+  {
+    value: "transport",
+    label: "نقل"
+  },
+
+  {
+    value: "maintenance",
+    label: "صيانة"
+  },
+
+  {
+    value: "equipment",
+    label: "معدات"
+  },
+
+  {
+    value: "other",
+    label: "أخرى"
+  }
+
 ];
+
+
+// =========================================================
+// طرق الدفع — للتوافق مع البيانات القديمة
+// =========================================================
 
 export const paymentMethods = [
-  "cash",
-  "bank_transfer",
-  "card",
-  "digital_wallet"
+
+  {
+    value: "نقدي",
+    label: "نقدي"
+  },
+
+  {
+    value: "تحويل بنكي",
+    label: "تحويل بنكي"
+  },
+
+  {
+    value: "بطاقة",
+    label: "بطاقة"
+  },
+
+  {
+    value: "محفظة إلكترونية",
+    label: "محفظة إلكترونية"
+  }
+
 ];
 
+
+// =========================================================
+// حالات المصروف — للتوافق مع البيانات القديمة
+// =========================================================
+
 export const expenseStatus = [
-  "paid",
-  "pending",
-  "scheduled"
+
+  {
+    value: "paid",
+    label: "مدفوع"
+  },
+
+  {
+    value: "pending",
+    label: "معلق"
+  },
+
+  {
+    value: "scheduled",
+    label: "مجدول"
+  }
+
 ];
+
+
+export default ExpenseModel;
