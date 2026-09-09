@@ -11,58 +11,56 @@ import {
 
 import cropService from "../services/cropService.js";
 
-// =========================================================
-// HELPERS
-// =========================================================
+/*
+ * =========================================================
+ * الأرقام
+ * =========================================================
+ */
 
 function normalizeNumber(value) {
-  if (
-    value === "" ||
-    value === null ||
-    value === undefined
-  ) {
+  if (value === "" || value === null || value === undefined) {
     return null;
   }
 
   const number = Number(value);
 
-  return Number.isFinite(number)
-    ? number
-    : null;
+  return Number.isFinite(number) ? number : null;
 }
 
-// =========================================================
-// DATE
-// =========================================================
-//
-// التاريخ هنا نص يدوي بالكامل.
-//
-// أمثلة صحيحة:
-// 15/05/2024
-// 1/5/2024
-// 15-05-2024
-//
-// مهم:
-// لا يوجد new Date()
-// ولا toISOString()
-// ولا تاريخ اليوم.
-// =========================================================
+/*
+ * =========================================================
+ * التاريخ
+ *
+ * مهم جداً:
+ *
+ * التاريخ هنا نص حر يكتبه المستخدم.
+ *
+ * لا يوجد:
+ * - new Date(value)
+ * - toISOString()
+ * - تاريخ اليوم
+ * - فرض YYYY-MM-DD
+ * - فرض /
+ * - فرض -
+ * - فرض .
+ *
+ * يتم حفظ ما كتبه المستخدم كما هو.
+ * =========================================================
+ */
 
 function normalizeDate(value) {
-  if (
-    value === null ||
-    value === undefined
-  ) {
+  if (value === null || value === undefined) {
     return "";
   }
 
-  // نحفظ التاريخ كما كتبه المستخدم
   return String(value).trim();
 }
 
-// =========================================================
-// BOUNDARY
-// =========================================================
+/*
+ * =========================================================
+ * الحدود
+ * =========================================================
+ */
 
 function normalizeBoundary(value) {
   if (!Array.isArray(value)) {
@@ -73,22 +71,15 @@ function normalizeBoundary(value) {
     .map((point) => {
       if (Array.isArray(point)) {
         return {
-          latitude: normalizeNumber(
-            point[0]
-          ),
-
-          longitude: normalizeNumber(
-            point[1]
-          ),
+          latitude: normalizeNumber(point[0]),
+          longitude: normalizeNumber(point[1]),
         };
       }
 
       return {
         latitude: normalizeNumber(
-          point?.latitude ??
-          point?.lat
+          point?.latitude ?? point?.lat
         ),
-
         longitude: normalizeNumber(
           point?.longitude ??
           point?.lng ??
@@ -98,51 +89,36 @@ function normalizeBoundary(value) {
     })
     .filter(
       (point) =>
-        Number.isFinite(
-          point.latitude
-        ) &&
-        Number.isFinite(
-          point.longitude
-        )
+        Number.isFinite(point.latitude) &&
+        Number.isFinite(point.longitude)
     );
 }
 
-// =========================================================
-// CROP NORMALIZATION
-// =========================================================
+/*
+ * =========================================================
+ * توحيد بيانات المشروع الزراعي
+ * =========================================================
+ */
 
 function normalizeCropData(data = {}) {
-  const points =
-    normalizeBoundary(
-      data.points ??
-      data.boundary ??
-      []
-    );
+  const points = normalizeBoundary(
+    data.points ?? data.boundary ?? []
+  );
 
-  const latitude =
-    normalizeNumber(
-      data.latitude
-    );
+  const latitude = normalizeNumber(data.latitude);
+  const longitude = normalizeNumber(data.longitude);
 
-  const longitude =
-    normalizeNumber(
-      data.longitude
-    );
+  const productionQuantity = normalizeNumber(
+    data.productionQuantity
+  );
 
-  const productionQuantity =
-    normalizeNumber(
-      data.productionQuantity
-    );
+  const pricePerTon = normalizeNumber(
+    data.pricePerTon
+  );
 
-  const pricePerTon =
-    normalizeNumber(
-      data.pricePerTon
-    );
-
-  const totalExpenses =
-    normalizeNumber(
-      data.totalExpenses
-    );
+  const totalExpenses = normalizeNumber(
+    data.totalExpenses
+  );
 
   const safeProduction =
     productionQuantity ?? 0;
@@ -154,132 +130,77 @@ function normalizeCropData(data = {}) {
     totalExpenses ?? 0;
 
   const revenue =
-    Number.isFinite(
-      Number(data.revenue)
-    )
+    Number.isFinite(Number(data.revenue))
       ? Number(data.revenue)
-      : safeProduction *
-        safePrice;
+      : safeProduction * safePrice;
 
   const profit =
-    Number.isFinite(
-      Number(data.profit)
-    )
+    Number.isFinite(Number(data.profit))
       ? Number(data.profit)
-      : revenue -
-        safeExpenses;
+      : revenue - safeExpenses;
 
   return {
     ...data,
 
-    id:
-      data.id ?? null,
+    id: data.id ?? null,
 
-    farmId:
-      data.farmId
-        ? String(data.farmId)
-        : "",
+    farmId: data.farmId
+      ? String(data.farmId)
+      : "",
 
     cultivationType:
-      data.cultivationType ||
-      "field",
+      data.cultivationType || "field",
 
     name:
-      String(
-        data.name ?? ""
-      ).trim(),
+      String(data.name ?? "").trim(),
 
     seedType:
-      String(
-        data.seedType ?? ""
-      ).trim(),
+      String(data.seedType ?? "").trim(),
 
     seedVariety:
-      String(
-        data.seedVariety ?? ""
-      ).trim(),
+      String(data.seedVariety ?? "").trim(),
 
     seedQuality:
-      String(
-        data.seedQuality ?? ""
-      ).trim(),
+      String(data.seedQuality ?? "").trim(),
 
     seedQuantity:
-      normalizeNumber(
-        data.seedQuantity
-      ),
+      normalizeNumber(data.seedQuantity),
 
     treeType:
-      String(
-        data.treeType ?? ""
-      ).trim(),
+      String(data.treeType ?? "").trim(),
 
     treeVariety:
-      String(
-        data.treeVariety ?? ""
-      ).trim(),
+      String(data.treeVariety ?? "").trim(),
 
-    // =====================================================
-    // تاريخ الزراعة
-    // =====================================================
-    //
-    // يحفظ كما كتبه المستخدم حرفيًا.
-    //
-    // مثال:
-    // المستخدم يكتب 15/05/2024
-    // القيمة المحفوظة = "15/05/2024"
-    //
-    // لا يتم إنشاء تاريخ جديد.
-    // لا يتم استبداله بتاريخ اليوم.
-    // =====================================================
-
+    /*
+     * التاريخ يبقى كما كتبه المستخدم.
+     */
     plantingDate:
-      normalizeDate(
-        data.plantingDate
-      ),
+      normalizeDate(data.plantingDate),
 
     fertilizerType:
-      String(
-        data.fertilizerType ?? ""
-      ).trim(),
+      String(data.fertilizerType ?? "").trim(),
 
     fertilizerQuantity:
-      normalizeNumber(
-        data.fertilizerQuantity
-      ),
+      normalizeNumber(data.fertilizerQuantity),
 
     harvestDate:
-      normalizeDate(
-        data.harvestDate
-      ),
+      normalizeDate(data.harvestDate),
 
     actualHarvestDate:
-      normalizeDate(
-        data.actualHarvestDate
-      ),
+      normalizeDate(data.actualHarvestDate),
 
     expectedProduction:
-      normalizeNumber(
-        data.expectedProduction
-      ),
-
-    // =====================================================
-    // REAL PRODUCTION
-    // =====================================================
+      normalizeNumber(data.expectedProduction),
 
     productionQuantity,
 
     productionUnit:
       String(
-        data.productionUnit ||
-        "طن"
+        data.productionUnit || "طن"
       ).trim(),
 
     pricePerTon,
-
-    // =====================================================
-    // FINANCIAL
-    // =====================================================
 
     revenue,
 
@@ -287,17 +208,8 @@ function normalizeCropData(data = {}) {
 
     profit,
 
-    // =====================================================
-    // HARVEST STATUS
-    // =====================================================
-
     harvestStatus:
-      data.harvestStatus ||
-      "pending",
-
-    // =====================================================
-    // OLD GPS DATA
-    // =====================================================
+      data.harvestStatus || "pending",
 
     latitude,
 
@@ -311,506 +223,405 @@ function normalizeCropData(data = {}) {
       data.locationId ?? null,
 
     area:
-      normalizeNumber(
-        data.area
-      ),
+      normalizeNumber(data.area),
 
     perimeter:
-      normalizeNumber(
-        data.perimeter
-      ),
-
-    // =====================================================
-    // MANUAL LOCATION
-    // =====================================================
+      normalizeNumber(data.perimeter),
 
     country:
-      String(
-        data.country ?? ""
-      ).trim(),
+      String(data.country ?? "").trim(),
 
     governorate:
-      String(
-        data.governorate ?? ""
-      ).trim(),
+      String(data.governorate ?? "").trim(),
 
     region:
-      String(
-        data.region ?? ""
-      ).trim(),
+      String(data.region ?? "").trim(),
 
     district:
-      String(
-        data.district ?? ""
-      ).trim(),
+      String(data.district ?? "").trim(),
 
     municipality:
-      String(
-        data.municipality ?? ""
-      ).trim(),
+      String(data.municipality ?? "").trim(),
 
     province:
-      String(
-        data.province ?? ""
-      ).trim(),
+      String(data.province ?? "").trim(),
 
     state:
-      String(
-        data.state ?? ""
-      ).trim(),
+      String(data.state ?? "").trim(),
 
     city:
-      String(
-        data.city ?? ""
-      ).trim(),
+      String(data.city ?? "").trim(),
 
     town:
-      String(
-        data.town ?? ""
-      ).trim(),
+      String(data.town ?? "").trim(),
 
     village:
-      String(
-        data.village ?? ""
-      ).trim(),
+      String(data.village ?? "").trim(),
 
     hamlet:
-      String(
-        data.hamlet ?? ""
-      ).trim(),
+      String(data.hamlet ?? "").trim(),
 
     locationName:
-      String(
-        data.locationName ?? ""
-      ).trim(),
+      String(data.locationName ?? "").trim(),
 
     placeName:
-      String(
-        data.placeName ?? ""
-      ).trim(),
+      String(data.placeName ?? "").trim(),
 
     locationDescription:
-      String(
-        data.locationDescription ?? ""
-      ).trim(),
+      String(data.locationDescription ?? "").trim(),
 
     climate:
-      String(
-        data.climate ?? ""
-      ).trim(),
+      String(data.climate ?? "").trim(),
 
     recommendedSeeds:
-      Array.isArray(
-        data.recommendedSeeds
-      )
+      Array.isArray(data.recommendedSeeds)
         ? data.recommendedSeeds
         : [],
 
     recommendedSeedVarieties:
-      Array.isArray(
-        data.recommendedSeedVarieties
-      )
+      Array.isArray(data.recommendedSeedVarieties)
         ? data.recommendedSeedVarieties
         : [],
 
     notes:
-      String(
-        data.notes ?? ""
-      ).trim(),
+      String(data.notes ?? "").trim(),
   };
 }
 
-// =========================================================
-// HOOK
-// =========================================================
+/*
+ * =========================================================
+ * Hook
+ * =========================================================
+ */
 
 export default function useCrops() {
-  const [
-    crops,
-    setCrops,
-  ] = useState([]);
+  const [crops, setCrops] = useState([]);
 
-  const [
-    loading,
-    setLoading,
-  ] = useState(false);
+  const [loading, setLoading] =
+    useState(false);
 
-  const [
-    error,
-    setError,
-  ] = useState("");
+  const [error, setError] =
+    useState("");
 
-  // =======================================================
-  // LOAD
-  // =======================================================
+  /*
+   * =======================================================
+   * تحميل المشاريع
+   * =======================================================
+   */
 
-  const loadCrops =
-    useCallback(
-      async () => {
-        try {
-          setLoading(true);
-          setError("");
+  const loadCrops = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
 
-          const data =
-            await cropService.getAll();
+      const data =
+        await cropService.getAll();
 
-          const normalized =
-            Array.isArray(data)
-              ? data.map(
-                  normalizeCropData
-                )
-              : [];
+      const normalized =
+        Array.isArray(data)
+          ? data.map(normalizeCropData)
+          : [];
 
-          setCrops(
-            normalized
-          );
+      setCrops(normalized);
 
-          return normalized;
-        } catch (loadError) {
-          console.error(
-            "Crops loading failed:",
-            loadError
-          );
+      return normalized;
+    } catch (loadError) {
+      console.error(
+        "Crops loading failed:",
+        loadError
+      );
 
-          setCrops([]);
+      setCrops([]);
 
-          setError(
-            loadError?.message ||
-            "تعذر تحميل المحاصيل"
-          );
+      setError(
+        loadError?.message ||
+        "تعذر تحميل المشاريع الزراعية"
+      );
 
-          return [];
-        } finally {
-          setLoading(false);
-        }
-      },
-      []
-    );
+      return [];
+    } finally {
+      setLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
     loadCrops();
   }, [loadCrops]);
 
-  // =======================================================
-  // ADD
-  // =======================================================
+  /*
+   * =======================================================
+   * إضافة مشروع
+   * =======================================================
+   */
 
-  const addCrop =
-    useCallback(
-      async (data) => {
-        const normalized =
-          normalizeCropData(data);
+  const addCrop = useCallback(
+    async (data) => {
+      const normalized =
+        normalizeCropData(data);
 
-        // ---------------------------------------------------
-        // FARM
-        // ---------------------------------------------------
+      if (!normalized.farmId) {
+        throw new Error(
+          "CROP_FARM_REQUIRED"
+        );
+      }
 
-        if (!normalized.farmId) {
-          throw new Error(
-            "CROP_FARM_REQUIRED"
-          );
-        }
+      if (
+        !normalized.name &&
+        !normalized.treeType
+      ) {
+        throw new Error(
+          "CROP_NAME_REQUIRED"
+        );
+      }
 
-        // ---------------------------------------------------
-        // PROJECT / PLANT
-        // ---------------------------------------------------
+      if (
+        !normalized.country ||
+        !normalized.governorate ||
+        !normalized.city ||
+        !normalized.village
+      ) {
+        throw new Error(
+          "CROP_MANUAL_LOCATION_REQUIRED"
+        );
+      }
 
-        if (
-          !normalized.name &&
-          !normalized.treeType
-        ) {
-          throw new Error(
-            "CROP_NAME_REQUIRED"
-          );
-        }
+      /*
+       * التاريخ مطلوب فقط ككتابة من المستخدم.
+       *
+       * لا نتحقق من:
+       * DD/MM/YYYY
+       * DD-MM-YYYY
+       * DD.MM.YYYY
+       *
+       * أي نص تاريخ يدخله المستخدم يتم قبوله.
+       */
 
-        // ---------------------------------------------------
-        // MANUAL LOCATION
-        // ---------------------------------------------------
+      if (!normalized.plantingDate) {
+        throw new Error(
+          "CROP_PLANTING_DATE_REQUIRED"
+        );
+      }
 
-        if (
-          !normalized.country ||
-          !normalized.governorate ||
-          !normalized.city ||
-          !normalized.village
-        ) {
-          throw new Error(
-            "CROP_MANUAL_LOCATION_REQUIRED"
-          );
-        }
-
-        // ---------------------------------------------------
-        // PLANTING DATE
-        // ---------------------------------------------------
-        //
-        // التاريخ يجب أن يكون موجودًا فقط.
-        //
-        // لا يتم تعديله.
-        // لا يتم تحويله.
-        // ---------------------------------------------------
-
-        if (
-          !normalized.plantingDate
-        ) {
-          throw new Error(
-            "CROP_PLANTING_DATE_REQUIRED"
-          );
-        }
-
-        // ---------------------------------------------------
-        // CREATE
-        // ---------------------------------------------------
-
-        const created =
-          await cropService.create(
-            normalized
-          );
-
-        const result =
-          normalizeCropData(
-            created
-          );
-
-        setCrops(
-          (current) => [
-            ...current,
-            result,
-          ]
+      const created =
+        await cropService.create(
+          normalized
         );
 
-        return result;
-      },
-      []
-    );
+      const result =
+        normalizeCropData(created);
 
-  // =======================================================
-  // UPDATE
-  // =======================================================
+      setCrops((current) => [
+        ...current,
+        result,
+      ]);
 
-  const updateCrop =
-    useCallback(
-      async (
-        id,
-        data
-      ) => {
-        const normalized =
-          normalizeCropData(data);
+      return result;
+    },
+    []
+  );
 
-        const updated =
-          await cropService.update(
-            id,
-            normalized
-          );
+  /*
+   * =======================================================
+   * تعديل مشروع
+   * =======================================================
+   */
 
-        if (!updated) {
-          return null;
-        }
+  const updateCrop = useCallback(
+    async (id, data) => {
+      const normalized =
+        normalizeCropData(data);
 
-        const result =
-          normalizeCropData(
-            updated
-          );
-
-        setCrops(
-          (current) =>
-            current.map(
-              (crop) =>
-                String(crop.id) ===
-                String(id)
-                  ? result
-                  : crop
-            )
+      const updated =
+        await cropService.update(
+          id,
+          normalized
         );
 
-        return result;
-      },
-      []
-    );
+      if (!updated) {
+        return null;
+      }
 
-  // =======================================================
-  // DELETE
-  // =======================================================
+      const result =
+        normalizeCropData(updated);
 
-  const deleteCrop =
-    useCallback(
-      async (id) => {
-        if (!id) {
-          return false;
-        }
+      setCrops((current) =>
+        current.map((crop) =>
+          String(crop.id) === String(id)
+            ? result
+            : crop
+        )
+      );
 
-        const deleted =
-          await cropService.delete(
-            id
-          );
+      return result;
+    },
+    []
+  );
 
-        if (!deleted) {
-          return false;
-        }
+  /*
+   * =======================================================
+   * حذف مشروع
+   * =======================================================
+   */
 
-        setCrops(
-          (current) =>
-            current.filter(
-              (crop) =>
-                String(crop.id) !==
-                String(id)
-            )
-        );
+  const deleteCrop = useCallback(
+    async (id) => {
+      if (!id) {
+        return false;
+      }
 
-        return true;
-      },
-      []
-    );
+      const deleted =
+        await cropService.delete(id);
 
-  // =======================================================
-  // SEARCH
-  // =======================================================
+      if (!deleted) {
+        return false;
+      }
 
-  const searchCrops =
-    useCallback(
-      (query) => {
-        const value =
-          String(
-            query ?? ""
-          )
-            .trim()
-            .toLowerCase();
+      setCrops((current) =>
+        current.filter(
+          (crop) =>
+            String(crop.id) !==
+            String(id)
+        )
+      );
 
-        if (!value) {
-          return crops;
-        }
+      return true;
+    },
+    []
+  );
 
-        return crops.filter(
-          (crop) => {
-            const searchable = [
-              crop.name,
-              crop.treeType,
-              crop.seedType,
-              crop.seedVariety,
-              crop.fertilizerType,
+  /*
+   * =======================================================
+   * البحث
+   * =======================================================
+   */
 
-              crop.locationName,
-              crop.placeName,
+  const searchCrops = useCallback(
+    (query) => {
+      const value =
+        String(query ?? "")
+          .trim()
+          .toLowerCase();
 
-              crop.country,
-              crop.governorate,
-              crop.region,
-              crop.district,
-              crop.municipality,
-              crop.province,
-              crop.state,
-              crop.city,
-              crop.town,
-              crop.village,
-              crop.hamlet,
+      if (!value) {
+        return crops;
+      }
 
-              crop.climate,
-              crop.notes,
-            ]
-              .filter(Boolean)
-              .join(" ")
-              .toLowerCase();
+      return crops.filter((crop) => {
+        const searchable = [
+          crop.name,
+          crop.treeType,
+          crop.seedType,
+          crop.seedVariety,
+          crop.fertilizerType,
+          crop.locationName,
+          crop.placeName,
+          crop.country,
+          crop.governorate,
+          crop.region,
+          crop.district,
+          crop.municipality,
+          crop.province,
+          crop.state,
+          crop.city,
+          crop.town,
+          crop.village,
+          crop.hamlet,
+          crop.climate,
+          crop.notes,
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
 
-            return searchable.includes(
-              value
-            );
-          }
-        );
-      },
-      [crops]
-    );
+        return searchable.includes(value);
+      });
+    },
+    [crops]
+  );
 
-  // =======================================================
-  // STATISTICS
-  // =======================================================
+  /*
+   * =======================================================
+   * الإحصائيات
+   * =======================================================
+   */
 
   const getStatistics =
     useCallback(
-      () => {
-        return {
-          total:
-            crops.length,
+      () => ({
+        total: crops.length,
 
-          withLocation:
-            crops.filter(
-              (crop) =>
-                Number.isFinite(
-                  crop.latitude
-                ) &&
-                Number.isFinite(
-                  crop.longitude
-                )
-            ).length,
+        withLocation:
+          crops.filter(
+            (crop) =>
+              Number.isFinite(
+                crop.latitude
+              ) &&
+              Number.isFinite(
+                crop.longitude
+              )
+          ).length,
 
-          withBoundary:
-            crops.filter(
-              (crop) =>
-                Array.isArray(
-                  crop.boundary
-                ) &&
-                crop.boundary.length >= 3
-            ).length,
+        withBoundary:
+          crops.filter(
+            (crop) =>
+              Array.isArray(
+                crop.boundary
+              ) &&
+              crop.boundary.length >= 3
+          ).length,
 
-          totalProduction:
-            crops.reduce(
-              (sum, crop) =>
-                sum +
-                (
-                  Number(
-                    crop.productionQuantity
-                  ) || 0
-                ),
-              0
-            ),
+        totalProduction:
+          crops.reduce(
+            (sum, crop) =>
+              sum +
+              (Number(
+                crop.productionQuantity
+              ) || 0),
+            0
+          ),
 
-          totalRevenue:
-            crops.reduce(
-              (sum, crop) =>
-                sum +
-                (
-                  Number(
-                    crop.revenue
-                  ) || 0
-                ),
-              0
-            ),
+        totalRevenue:
+          crops.reduce(
+            (sum, crop) =>
+              sum +
+              (Number(
+                crop.revenue
+              ) || 0),
+            0
+          ),
 
-          totalExpenses:
-            crops.reduce(
-              (sum, crop) =>
-                sum +
-                (
-                  Number(
-                    crop.totalExpenses
-                  ) || 0
-                ),
-              0
-            ),
+        totalExpenses:
+          crops.reduce(
+            (sum, crop) =>
+              sum +
+              (Number(
+                crop.totalExpenses
+              ) || 0),
+            0
+          ),
 
-          totalProfit:
-            crops.reduce(
-              (sum, crop) =>
-                sum +
-                (
-                  Number(
-                    crop.profit
-                  ) || 0
-                ),
-              0
-            ),
-        };
-      },
+        totalProfit:
+          crops.reduce(
+            (sum, crop) =>
+              sum +
+              (Number(
+                crop.profit
+              ) || 0),
+            0
+          ),
+      }),
       [crops]
     );
 
-  // =======================================================
-  // RETURN
-  // =======================================================
+  /*
+   * =======================================================
+   * الإرجاع
+   * =======================================================
+   */
 
   return {
     crops,
-
     loading,
-
     error,
 
     loadCrops,
