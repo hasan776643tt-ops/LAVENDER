@@ -40,7 +40,7 @@ export default function Expenses() {
 
 
   // =========================================================
-  // التعديل
+  // وضع التعديل
   // =========================================================
 
   const [editingId, setEditingId] =
@@ -48,20 +48,19 @@ export default function Expenses() {
 
 
   // =========================================================
-  // إنشاء سطر مصروف فارغ
+  // نموذج المصروف
   //
-  // ملاحظة:
-  // لا نضع تاريخ اليوم هنا.
-  // التاريخ يبقى فارغاً حتى يختاره المستخدم.
+  // فقط:
+  // اسم المصروف
+  // المبلغ
+  // العملة
+  // التاريخ
+  // الملاحظات
   // =========================================================
 
   const createEmptyRow = () => ({
 
     type: "",
-
-    quantity: "",
-
-    unit: "",
 
     amount: "",
 
@@ -99,7 +98,7 @@ export default function Expenses() {
 
 
   // =========================================================
-  // تحديث حقل المصروف
+  // تحديث نموذج المصروف
   // =========================================================
 
   const updateRow = (
@@ -119,7 +118,7 @@ export default function Expenses() {
 
 
   // =========================================================
-  // تحديث بيانات الإنتاج
+  // تحديث الإنتاج
   // =========================================================
 
   const updateProduction = (
@@ -139,7 +138,7 @@ export default function Expenses() {
 
 
   // =========================================================
-  // مصروفات المزرعة المختارة فقط
+  // مصروفات المزرعة المختارة
   // =========================================================
 
   const farmExpenses =
@@ -187,10 +186,12 @@ export default function Expenses() {
               item.type || ""
             ).toLowerCase();
 
+
           const notes =
             String(
               item.notes || ""
             ).toLowerCase();
+
 
           const date =
             String(
@@ -214,10 +215,9 @@ export default function Expenses() {
 
 
   // =========================================================
-  // تجميع المصروفات حسب العملة
+  // مجموع المصروفات حسب العملة
   //
-  // مهم:
-  // لا نحول الليرة إلى دولار أو العكس.
+  // لا يوجد أي تحويل بين العملات.
   // =========================================================
 
   const expensesByCurrency =
@@ -230,8 +230,9 @@ export default function Expenses() {
         item => {
 
           const currency =
-            item.currency ||
-            "ل.س";
+            String(
+              item.currency || "ل.س"
+            );
 
 
           const amount =
@@ -265,6 +266,12 @@ export default function Expenses() {
     ]);
 
 
+  const expenseCurrencies =
+    Object.keys(
+      expensesByCurrency
+    );
+
+
   // =========================================================
   // قيمة الإنتاج
   // =========================================================
@@ -293,39 +300,12 @@ export default function Expenses() {
 
 
   // =========================================================
-  // العملة المستخدمة في المصروفات
-  // =========================================================
-
-  const expenseCurrencies =
-    Object.keys(
-      expensesByCurrency
-    );
-
-
-  // =========================================================
-  // هل المصروفات كلها بعملة واحدة؟
-  // =========================================================
-
-  const hasSingleExpenseCurrency =
-    expenseCurrencies.length === 1;
-
-
-  const singleExpenseCurrency =
-    hasSingleExpenseCurrency
-      ? expenseCurrencies[0]
-      : null;
-
-
-  // =========================================================
-  // الربح / الخسارة
-  //
-  // نحسبه فقط عندما تكون المصروفات كلها
-  // بنفس عملة الإنتاج.
+  // إمكانية حساب الربح
   // =========================================================
 
   const canCalculateProfit =
-    hasSingleExpenseCurrency &&
-    singleExpenseCurrency ===
+    expenseCurrencies.length === 1 &&
+    expenseCurrencies[0] ===
       production.currency;
 
 
@@ -412,67 +392,55 @@ export default function Expenses() {
 
 
     /*
-     * التاريخ يؤخذ مباشرة من newRow.date.
+     * التاريخ هنا نص عادي.
      *
-     * لا نضع new Date()
-     * ولا نضع تاريخ اليوم.
+     * إذا كتب المستخدم:
      *
-     * لذلك إذا كتب المستخدم:
-     * 2024-06-02
+     * 2006 7 2024
      *
-     * سيتم حفظ:
-     * 2024-06-02
+     * نحفظ نفس النص:
+     *
+     * 2006 7 2024
+     *
+     * ولا نستعمل تاريخ اليوم.
      */
 
-    await expenseActions.create({
+    const expenseData = {
 
       farmId:
         selectedFarmId,
 
       type:
-
         type,
 
-      quantity:
-
-        newRow.quantity === ""
-          ? ""
-          : Number(
-              newRow.quantity
-            ) || 0,
-
-      unit:
-
-        newRow.unit || "",
-
       amount:
-
         amount,
 
-      /*
-       * العملة التي اختارها المستخدم
-       * تحفظ كما هي.
-       */
-
       currency:
-
         newRow.currency || "ل.س",
 
-      /*
-       * التاريخ الذي اختاره المستخدم
-       * يحفظ كما هو.
-       */
-
       date:
-
-        newRow.date || "",
+        String(
+          newRow.date || ""
+        ),
 
       notes:
+        String(
+          newRow.notes || ""
+        )
 
-        newRow.notes || ""
+    };
 
-    });
 
+    await expenseActions.create(
+      expenseData
+    );
+
+
+    /*
+     * بعد الحفظ نفتح سطراً جديداً
+     * بدون وضع تاريخ اليوم.
+     */
 
     setNewRow(
       createEmptyRow()
@@ -482,7 +450,7 @@ export default function Expenses() {
 
 
   // =========================================================
-  // بدء تعديل مصروف
+  // تعديل مصروف
   // =========================================================
 
   const startEdit = (
@@ -499,12 +467,6 @@ export default function Expenses() {
       type:
         item.type || "",
 
-      quantity:
-        item.quantity ?? "",
-
-      unit:
-        item.unit || "",
-
       amount:
         item.amount ?? "",
 
@@ -512,12 +474,13 @@ export default function Expenses() {
         item.currency || "ل.س",
 
       /*
-       * نستعيد التاريخ المحفوظ.
-       * لا نضع تاريخ اليوم.
+       * استعادة التاريخ نفسه.
        */
 
       date:
-        item.date || "",
+        String(
+          item.date || ""
+        ),
 
       notes:
         item.notes || ""
@@ -528,7 +491,7 @@ export default function Expenses() {
 
 
   // =========================================================
-  // حفظ تعديل المصروف
+  // حفظ التعديل
   // =========================================================
 
   const saveEdit = async () => {
@@ -573,35 +536,25 @@ export default function Expenses() {
         type:
           type,
 
-        quantity:
-          newRow.quantity === ""
-            ? ""
-            : Number(
-                newRow.quantity
-              ) || 0,
-
-        unit:
-          newRow.unit || "",
-
         amount:
           amount,
-
-        /*
-         * نفس العملة التي اختارها المستخدم.
-         */
 
         currency:
           newRow.currency || "ل.س",
 
         /*
-         * نفس التاريخ الذي اختاره المستخدم.
+         * لا نغير التاريخ أثناء التعديل.
          */
 
         date:
-          newRow.date || "",
+          String(
+            newRow.date || ""
+          ),
 
         notes:
-          newRow.notes || ""
+          String(
+            newRow.notes || ""
+          )
 
       }
 
@@ -689,7 +642,12 @@ export default function Expenses() {
       </h1>
 
 
-      <p>
+      <p
+        style={{
+          fontSize: "17px",
+          lineHeight: "1.8"
+        }}
+      >
         سجل جميع مصروفات الحقل واحسب تكلفة الإنتاج والربح تلقائياً.
       </p>
 
@@ -713,11 +671,11 @@ export default function Expenses() {
 
             width: "100%",
 
-            minHeight: "56px",
+            minHeight: "60px",
 
-            padding: "12px 14px",
+            padding: "14px",
 
-            fontSize: "18px",
+            fontSize: "19px",
 
             borderRadius: "10px",
 
@@ -738,9 +696,7 @@ export default function Expenses() {
                 key={farm.id}
                 value={farm.id}
               >
-
                 {farm.name}
-
               </option>
 
             )
@@ -790,359 +746,319 @@ export default function Expenses() {
                 lineHeight: "1.8"
               }}
             >
-              أضف أي عدد من المصروفات.
-              الجدول يبقى مفتوحاً طوال مدة المشروع الزراعي.
+              كل مصروف تضيفه سيظهر كسطر مستقل في الجدول.
+              يمكنك إضافة عدد غير محدود من المصروفات.
             </p>
 
 
-            {/* ===============================================
-                نموذج إضافة / تعديل
-            ================================================ */}
+            {/* =================================================
+                اسم المصروف
+            ================================================== */}
 
-            <div
+            <label
+              style={{
+                display: "block",
+                fontSize: "18px",
+                fontWeight: "600",
+                marginBottom: "8px"
+              }}
+            >
+              اسم المصروف
+            </label>
+
+
+            <input
+              placeholder="مثال: أجار جرار، بذار، سماد، عمال"
+              value={newRow.type}
+              onChange={(e) =>
+                updateRow(
+                  "type",
+                  e.target.value
+                )
+              }
               style={{
 
-                display: "grid",
+                width: "100%",
 
-                gap: "14px",
+                minHeight: "62px",
 
-                marginBottom: "24px"
+                padding: "14px",
+
+                fontSize: "19px",
+
+                borderRadius: "10px",
+
+                boxSizing: "border-box",
+
+                marginBottom: "16px"
+
+              }}
+            />
+
+
+            {/* =================================================
+                مبلغ المصروف
+            ================================================== */}
+
+            <label
+              style={{
+                display: "block",
+                fontSize: "18px",
+                fontWeight: "600",
+                marginBottom: "8px"
+              }}
+            >
+              مبلغ المصروف
+            </label>
+
+
+            <input
+              type="number"
+              min="0"
+              step="any"
+              placeholder="اكتب مبلغ المصروف"
+              value={newRow.amount}
+              onChange={(e) =>
+                updateRow(
+                  "amount",
+                  e.target.value
+                )
+              }
+              style={{
+
+                width: "100%",
+
+                minHeight: "64px",
+
+                padding: "14px",
+
+                fontSize: "21px",
+
+                fontWeight: "600",
+
+                borderRadius: "10px",
+
+                boxSizing: "border-box",
+
+                marginBottom: "16px"
+
+              }}
+            />
+
+
+            {/* =================================================
+                العملة
+            ================================================== */}
+
+            <label
+              style={{
+                display: "block",
+                fontSize: "18px",
+                fontWeight: "600",
+                marginBottom: "8px"
+              }}
+            >
+              العملة
+            </label>
+
+
+            <select
+              value={newRow.currency}
+              onChange={(e) =>
+                updateRow(
+                  "currency",
+                  e.target.value
+                )
+              }
+              style={{
+
+                width: "100%",
+
+                minHeight: "62px",
+
+                padding: "14px",
+
+                fontSize: "19px",
+
+                borderRadius: "10px",
+
+                boxSizing: "border-box",
+
+                marginBottom: "16px"
 
               }}
             >
 
-              <label
-                style={{
-                  fontSize: "17px",
-                  fontWeight: "600"
-                }}
+              <option value="ل.س">
+                ليرة سورية — ل.س
+              </option>
+
+              <option value="$">
+                دولار أمريكي — $
+              </option>
+
+              <option value="₺">
+                ليرة تركية — ₺
+              </option>
+
+              <option value="€">
+                يورو — €
+              </option>
+
+            </select>
+
+
+            {/* =================================================
+                التاريخ
+            ================================================== */}
+
+            <label
+              style={{
+                display: "block",
+                fontSize: "18px",
+                fontWeight: "600",
+                marginBottom: "8px"
+              }}
+            >
+              تاريخ المصروف
+            </label>
+
+
+            {/*
+             * مهم جداً:
+             * هذا حقل نص وليس type="date".
+             *
+             * السبب:
+             * المستخدم يريد أن يكتب التاريخ بنفس الصيغة
+             * التي يريدها، ويجب حفظ النص نفسه.
+             */}
+
+            <input
+              type="text"
+              inputMode="text"
+              placeholder="مثال: 2006 7 2024"
+              value={newRow.date}
+              onChange={(e) =>
+                updateRow(
+                  "date",
+                  e.target.value
+                )
+              }
+              style={{
+
+                width: "100%",
+
+                minHeight: "64px",
+
+                padding: "14px",
+
+                fontSize: "20px",
+
+                borderRadius: "10px",
+
+                boxSizing: "border-box",
+
+                marginBottom: "16px"
+
+              }}
+            />
+
+
+            {/* =================================================
+                الملاحظات
+            ================================================== */}
+
+            <label
+              style={{
+                display: "block",
+                fontSize: "18px",
+                fontWeight: "600",
+                marginBottom: "8px"
+              }}
+            >
+              ملاحظات — اختياري
+            </label>
+
+
+            <textarea
+              placeholder="مثال: حرث الحقل، 10 عمال، جرار مان..."
+              value={newRow.notes}
+              onChange={(e) =>
+                updateRow(
+                  "notes",
+                  e.target.value
+                )
+              }
+              rows={4}
+              style={{
+
+                width: "100%",
+
+                minHeight: "120px",
+
+                padding: "14px",
+
+                fontSize: "19px",
+
+                lineHeight: "1.7",
+
+                borderRadius: "10px",
+
+                boxSizing: "border-box",
+
+                resize: "vertical",
+
+                marginBottom: "18px"
+
+              }}
+            />
+
+
+            {/* =================================================
+                زر الإضافة / التعديل
+            ================================================== */}
+
+            {editingId ? (
+
+              <Button
+                onClick={saveEdit}
               >
-                اسم المصروف
-              </label>
+                💾 حفظ التعديل
+              </Button>
 
+            ) : (
 
-              <input
-                placeholder="مثال: بذار، سماد، مبيد، عمال، أجار جرار"
-                value={newRow.type}
-                onChange={(e) =>
-                  updateRow(
-                    "type",
-                    e.target.value
-                  )
-                }
-                style={{
-
-                  width: "100%",
-
-                  minHeight: "58px",
-
-                  padding: "12px 14px",
-
-                  fontSize: "18px",
-
-                  borderRadius: "10px",
-
-                  boxSizing: "border-box"
-
-                }}
-              />
-
-
-              <label
-                style={{
-                  fontSize: "17px",
-                  fontWeight: "600"
-                }}
+              <Button
+                onClick={addExpense}
               >
-                الكمية
-              </label>
+                ➕ إضافة المصروف إلى الجدول
+              </Button>
+
+            )}
 
 
-              <input
-                type="number"
-                min="0"
-                step="any"
-                placeholder="مثال: 500"
-                value={newRow.quantity}
-                onChange={(e) =>
-                  updateRow(
-                    "quantity",
-                    e.target.value
-                  )
-                }
-                style={{
+            {editingId && (
 
-                  width: "100%",
+              <Button
+                onClick={() => {
 
-                  minHeight: "58px",
+                  setEditingId(null);
 
-                  padding: "12px 14px",
-
-                  fontSize: "18px",
-
-                  borderRadius: "10px",
-
-                  boxSizing: "border-box"
-
-                }}
-              />
-
-
-              <label
-                style={{
-                  fontSize: "17px",
-                  fontWeight: "600"
-                }}
-              >
-                الوحدة
-              </label>
-
-
-              <input
-                placeholder="مثال: كيس، كغ، ساعة، يوم"
-                value={newRow.unit}
-                onChange={(e) =>
-                  updateRow(
-                    "unit",
-                    e.target.value
-                  )
-                }
-                style={{
-
-                  width: "100%",
-
-                  minHeight: "58px",
-
-                  padding: "12px 14px",
-
-                  fontSize: "18px",
-
-                  borderRadius: "10px",
-
-                  boxSizing: "border-box"
-
-                }}
-              />
-
-
-              <label
-                style={{
-                  fontSize: "17px",
-                  fontWeight: "600"
-                }}
-              >
-                مبلغ المصروف
-              </label>
-
-
-              <input
-                type="number"
-                min="0"
-                step="any"
-                placeholder="اكتب مبلغ المصروف"
-                value={newRow.amount}
-                onChange={(e) =>
-                  updateRow(
-                    "amount",
-                    e.target.value
-                  )
-                }
-                style={{
-
-                  width: "100%",
-
-                  minHeight: "62px",
-
-                  padding: "12px 14px",
-
-                  fontSize: "20px",
-
-                  fontWeight: "600",
-
-                  borderRadius: "10px",
-
-                  boxSizing: "border-box"
-
-                }}
-              />
-
-
-              <label
-                style={{
-                  fontSize: "17px",
-                  fontWeight: "600"
-                }}
-              >
-                العملة
-              </label>
-
-
-              <select
-                value={newRow.currency}
-                onChange={(e) =>
-                  updateRow(
-                    "currency",
-                    e.target.value
-                  )
-                }
-                style={{
-
-                  width: "100%",
-
-                  minHeight: "58px",
-
-                  padding: "12px 14px",
-
-                  fontSize: "18px",
-
-                  borderRadius: "10px",
-
-                  boxSizing: "border-box"
+                  setNewRow(
+                    createEmptyRow()
+                  );
 
                 }}
               >
+                إلغاء التعديل
+              </Button>
 
-                <option value="ل.س">
-                  ليرة سورية — ل.س
-                </option>
-
-                <option value="$">
-                  دولار أمريكي — $
-                </option>
-
-                <option value="₺">
-                  ليرة تركية — ₺
-                </option>
-
-                <option value="€">
-                  يورو — €
-                </option>
-
-              </select>
+            )}
 
 
-              <label
-                style={{
-                  fontSize: "17px",
-                  fontWeight: "600"
-                }}
-              >
-                تاريخ المصروف
-              </label>
-
-
-              <input
-                type="date"
-                value={newRow.date}
-                onChange={(e) =>
-                  updateRow(
-                    "date",
-                    e.target.value
-                  )
-                }
-                style={{
-
-                  width: "100%",
-
-                  minHeight: "62px",
-
-                  padding: "12px 14px",
-
-                  fontSize: "19px",
-
-                  borderRadius: "10px",
-
-                  boxSizing: "border-box"
-
-                }}
-              />
-
-
-              <label
-                style={{
-                  fontSize: "17px",
-                  fontWeight: "600"
-                }}
-              >
-                ملاحظات
-              </label>
-
-
-              <textarea
-                placeholder="اكتب أي ملاحظة عن المصروف"
-                value={newRow.notes}
-                onChange={(e) =>
-                  updateRow(
-                    "notes",
-                    e.target.value
-                  )
-                }
-                rows={4}
-                style={{
-
-                  width: "100%",
-
-                  minHeight: "110px",
-
-                  padding: "14px",
-
-                  fontSize: "18px",
-
-                  lineHeight: "1.6",
-
-                  borderRadius: "10px",
-
-                  resize: "vertical",
-
-                  boxSizing: "border-box"
-
-                }}
-              />
-
-
-              {editingId ? (
-
-                <Button
-                  onClick={saveEdit}
-                >
-                  💾 حفظ التعديل
-                </Button>
-
-              ) : (
-
-                <Button
-                  onClick={addExpense}
-                >
-                  ➕ إضافة المصروف إلى الجدول
-                </Button>
-
-              )}
-
-
-              {editingId && (
-
-                <Button
-                  onClick={() => {
-
-                    setEditingId(null);
-
-                    setNewRow(
-                      createEmptyRow()
-                    );
-
-                  }}
-                >
-                  إلغاء التعديل
-                </Button>
-
-              )}
-
-            </div>
-
-
-            {/* ===============================================
+            {/* =================================================
                 البحث
-            ================================================ */}
+            ================================================== */}
 
             <input
               placeholder="🔎 ابحث عن مصروف أو تاريخ أو ملاحظة"
@@ -1156,54 +1072,55 @@ export default function Expenses() {
 
                 width: "100%",
 
-                minHeight: "58px",
+                minHeight: "60px",
 
-                padding: "12px 14px",
+                padding: "14px",
 
                 fontSize: "18px",
 
-                marginBottom: "20px",
-
                 borderRadius: "10px",
 
-                boxSizing: "border-box"
+                boxSizing: "border-box",
+
+                marginTop: "22px"
 
               }}
             />
 
 
-            {/* ===============================================
+            {/* =================================================
                 الجدول
-            ================================================ */}
+            ================================================== */}
 
-            {filteredExpenses.length === 0 ? (
+            <div
+              style={{
+                overflowX: "auto",
+                marginTop: "20px"
+              }}
+            >
 
-              <p
-                style={{
-                  fontSize: "17px"
-                }}
-              >
-                لا توجد مصروفات لهذا الحقل حتى الآن.
-              </p>
+              {filteredExpenses.length === 0 ? (
 
-            ) : (
+                <p
+                  style={{
+                    fontSize: "17px"
+                  }}
+                >
+                  لا توجد مصروفات لهذا الحقل حتى الآن.
+                </p>
 
-              <div
-                style={{
-                  overflowX: "auto"
-                }}
-              >
+              ) : (
 
                 <table
                   style={{
 
                     width: "100%",
 
+                    minWidth: "700px",
+
                     borderCollapse: "collapse",
 
-                    minWidth: "850px",
-
-                    fontSize: "16px"
+                    fontSize: "17px"
 
                   }}
                 >
@@ -1221,14 +1138,6 @@ export default function Expenses() {
                       </th>
 
                       <th>
-                        الكمية
-                      </th>
-
-                      <th>
-                        الوحدة
-                      </th>
-
-                      <th>
                         المبلغ
                       </th>
 
@@ -1237,7 +1146,7 @@ export default function Expenses() {
                       </th>
 
                       <th>
-                        ملاحظات
+                        الملاحظات
                       </th>
 
                       <th>
@@ -1260,18 +1169,16 @@ export default function Expenses() {
 
                           <td
                             style={{
-                              padding: "12px"
+                              padding: "14px"
                             }}
                           >
-
                             {item.date || "-"}
-
                           </td>
 
 
                           <td
                             style={{
-                              padding: "12px"
+                              padding: "14px"
                             }}
                           >
 
@@ -1284,31 +1191,7 @@ export default function Expenses() {
 
                           <td
                             style={{
-                              padding: "12px"
-                            }}
-                          >
-
-                            {item.quantity === ""
-                              ? "-"
-                              : item.quantity}
-
-                          </td>
-
-
-                          <td
-                            style={{
-                              padding: "12px"
-                            }}
-                          >
-
-                            {item.unit || "-"}
-
-                          </td>
-
-
-                          <td
-                            style={{
-                              padding: "12px",
+                              padding: "14px",
                               fontWeight: "600"
                             }}
                           >
@@ -1322,7 +1205,7 @@ export default function Expenses() {
 
                           <td
                             style={{
-                              padding: "12px",
+                              padding: "14px",
                               fontWeight: "600"
                             }}
                           >
@@ -1334,7 +1217,7 @@ export default function Expenses() {
 
                           <td
                             style={{
-                              padding: "12px"
+                              padding: "14px"
                             }}
                           >
 
@@ -1345,7 +1228,7 @@ export default function Expenses() {
 
                           <td
                             style={{
-                              padding: "12px"
+                              padding: "14px"
                             }}
                           >
 
@@ -1390,15 +1273,15 @@ export default function Expenses() {
 
                 </table>
 
-              </div>
+              )}
 
-            )}
+            </div>
 
           </Card>
 
 
           {/* =================================================
-              إجمالي المصروفات حسب العملة
+              المجموع الدائم
           ================================================== */}
 
           <Card
@@ -1419,13 +1302,14 @@ export default function Expenses() {
                   <div
                     key={currency}
                     style={{
-                      marginBottom: "14px"
+                      padding: "14px 0"
                     }}
                   >
 
-                    <span
+                    <p
                       style={{
-                        fontSize: "17px"
+                        fontSize: "18px",
+                        margin: "0 0 5px"
                       }}
                     >
                       إجمالي المصروفات بـ
@@ -1433,11 +1317,13 @@ export default function Expenses() {
                       <strong>
                         {currency}
                       </strong>
-                    </span>
+                    </p>
+
 
                     <h2
                       style={{
-                        margin: "5px 0"
+                        margin: 0,
+                        fontSize: "28px"
                       }}
                     >
 
@@ -1461,7 +1347,11 @@ export default function Expenses() {
             )}
 
 
-            <p>
+            <p
+              style={{
+                fontSize: "18px"
+              }}
+            >
               عدد عمليات المصروف:
               {" "}
               <strong>
@@ -1486,15 +1376,15 @@ export default function Expenses() {
                 lineHeight: "1.8"
               }}
             >
-              أدخل كمية الإنتاج وسعر بيع الوحدة.
-              التطبيق يحسب قيمة الإنتاج تلقائياً.
+              أدخل كمية الإنتاج وسعر البيع.
+              التطبيق يضرب الكمية بسعر الوحدة تلقائياً.
             </p>
 
 
             <label
               style={{
                 display: "block",
-                fontSize: "17px",
+                fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "8px"
               }}
@@ -1519,17 +1409,17 @@ export default function Expenses() {
 
                 width: "100%",
 
-                minHeight: "62px",
+                minHeight: "64px",
 
-                padding: "12px 14px",
+                padding: "14px",
 
-                fontSize: "20px",
+                fontSize: "21px",
 
                 borderRadius: "10px",
 
                 boxSizing: "border-box",
 
-                marginBottom: "14px"
+                marginBottom: "16px"
 
               }}
             />
@@ -1538,7 +1428,7 @@ export default function Expenses() {
             <label
               style={{
                 display: "block",
-                fontSize: "17px",
+                fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "8px"
               }}
@@ -1559,17 +1449,17 @@ export default function Expenses() {
 
                 width: "100%",
 
-                minHeight: "58px",
+                minHeight: "62px",
 
-                padding: "12px 14px",
+                padding: "14px",
 
-                fontSize: "18px",
+                fontSize: "19px",
 
                 borderRadius: "10px",
 
                 boxSizing: "border-box",
 
-                marginBottom: "14px"
+                marginBottom: "16px"
 
               }}
             >
@@ -1588,7 +1478,7 @@ export default function Expenses() {
             <label
               style={{
                 display: "block",
-                fontSize: "17px",
+                fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "8px"
               }}
@@ -1613,17 +1503,17 @@ export default function Expenses() {
 
                 width: "100%",
 
-                minHeight: "62px",
+                minHeight: "64px",
 
-                padding: "12px 14px",
+                padding: "14px",
 
-                fontSize: "20px",
+                fontSize: "21px",
 
                 borderRadius: "10px",
 
                 boxSizing: "border-box",
 
-                marginBottom: "14px"
+                marginBottom: "16px"
 
               }}
             />
@@ -1632,7 +1522,7 @@ export default function Expenses() {
             <label
               style={{
                 display: "block",
-                fontSize: "17px",
+                fontSize: "18px",
                 fontWeight: "600",
                 marginBottom: "8px"
               }}
@@ -1653,11 +1543,11 @@ export default function Expenses() {
 
                 width: "100%",
 
-                minHeight: "58px",
+                minHeight: "62px",
 
-                padding: "12px 14px",
+                padding: "14px",
 
-                fontSize: "18px",
+                fontSize: "19px",
 
                 borderRadius: "10px",
 
@@ -1688,7 +1578,7 @@ export default function Expenses() {
             <div
               style={{
                 marginTop: "24px",
-                padding: "18px",
+                padding: "20px",
                 borderRadius: "12px"
               }}
             >
@@ -1711,12 +1601,14 @@ export default function Expenses() {
               </h2>
 
 
-              <p>
+              <p
+                style={{
+                  fontSize: "17px"
+                }}
+              >
 
                 {formatNumber(
-                  Number(
-                    production.quantity || 0
-                  )
+                  production.quantity
                 )}
 
                 {" "}
@@ -1726,9 +1618,7 @@ export default function Expenses() {
                 {" × "}
 
                 {formatNumber(
-                  Number(
-                    production.price || 0
-                  )
+                  production.price
                 )}
 
                 {" "}
@@ -1743,7 +1633,7 @@ export default function Expenses() {
 
 
           {/* =================================================
-              النتيجة المالية
+              الربح والخسارة
           ================================================== */}
 
           <Card
@@ -1756,11 +1646,11 @@ export default function Expenses() {
 
                 <p
                   style={{
-                    fontSize: "18px"
+                    fontSize: "19px"
                   }}
                 >
 
-                  💰 المصروفات:
+                  💰 إجمالي المصروفات:
                   {" "}
 
                   <strong>
@@ -1769,8 +1659,11 @@ export default function Expenses() {
                         production.currency
                       ] || 0
                     )}
+
                     {" "}
+
                     {production.currency}
+
                   </strong>
 
                 </p>
@@ -1778,19 +1671,22 @@ export default function Expenses() {
 
                 <p
                   style={{
-                    fontSize: "18px"
+                    fontSize: "19px"
                   }}
                 >
 
-                  💵 المبيعات:
+                  💵 إجمالي المبيعات:
                   {" "}
 
                   <strong>
                     {formatNumber(
                       totalRevenue
                     )}
+
                     {" "}
+
                     {production.currency}
+
                   </strong>
 
                 </p>
@@ -1825,30 +1721,18 @@ export default function Expenses() {
 
             ) : (
 
-              <>
+              <p
+                style={{
+                  fontSize: "18px",
+                  lineHeight: "1.8"
+                }}
+              >
 
-                <p
-                  style={{
-                    fontSize: "18px",
-                    lineHeight: "1.8"
-                  }}
-                >
+                ⚠️ عند استخدام أكثر من عملة في المصروفات،
+                يعرض التطبيق مجموع كل عملة بشكل مستقل
+                ولا يقوم بتحويل العملات تلقائياً.
 
-                  ⚠️ لا يمكن حساب الربح الصافي
-                  عند وجود مصروفات بعملات مختلفة
-                  عن عملة البيع.
-
-                </p>
-
-
-                <p>
-
-                  يتم حفظ كل عملة كما اختارها المستخدم
-                  دون تحويلها.
-
-                </p>
-
-              </>
+              </p>
 
             )}
 
