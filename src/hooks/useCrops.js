@@ -1,4 +1,7 @@
+// =========================================================
+// LAVENDER — CROPS HOOK
 // src/hooks/useCrops.js
+// =========================================================
 
 import {
   useCallback,
@@ -14,7 +17,6 @@ import cropService from "../services/cropService.js";
 // =========================================================
 
 function normalizeNumber(value) {
-
   if (
     value === "" ||
     value === null ||
@@ -36,7 +38,6 @@ function normalizeNumber(value) {
 // =========================================================
 
 function normalizeDate(value) {
-
   if (
     value === null ||
     value === undefined
@@ -44,12 +45,19 @@ function normalizeDate(value) {
     return "";
   }
 
-  const date =
-    String(value).trim();
+  const date = String(value).trim();
 
-  if (
-    /^\d{4}-\d{2}-\d{2}$/.test(date)
-  ) {
+  /*
+   * تاريخ الزراعة يجب أن يبقى كما أدخله المستخدم.
+   *
+   * مثال:
+   * 2024-05-10
+   *
+   * لا نستخدم:
+   * new Date()
+   * ولا تاريخ اليوم.
+   */
+  if (/^\d{4}-\d{2}-\d{2}$/.test(date)) {
     return date;
   }
 
@@ -62,51 +70,36 @@ function normalizeDate(value) {
 // =========================================================
 
 function normalizeBoundary(value) {
-
   if (!Array.isArray(value)) {
     return [];
   }
 
   return value
-    .map(point => {
-
+    .map((point) => {
       if (Array.isArray(point)) {
-
         return {
-          latitude:
-            normalizeNumber(point[0]),
-
-          longitude:
-            normalizeNumber(point[1]),
+          latitude: normalizeNumber(point[0]),
+          longitude: normalizeNumber(point[1]),
         };
       }
 
       return {
+        latitude: normalizeNumber(
+          point?.latitude ??
+          point?.lat
+        ),
 
-        latitude:
-          normalizeNumber(
-            point?.latitude ??
-            point?.lat
-          ),
-
-        longitude:
-          normalizeNumber(
-            point?.longitude ??
-            point?.lng ??
-            point?.lon
-          ),
-
+        longitude: normalizeNumber(
+          point?.longitude ??
+          point?.lng ??
+          point?.lon
+        ),
       };
-
     })
     .filter(
-      point =>
-        Number.isFinite(
-          point.latitude
-        ) &&
-        Number.isFinite(
-          point.longitude
-        )
+      (point) =>
+        Number.isFinite(point.latitude) &&
+        Number.isFinite(point.longitude)
     );
 }
 
@@ -115,47 +108,32 @@ function normalizeBoundary(value) {
 // CROP NORMALIZATION
 // =========================================================
 
-function normalizeCropData(
-  data = {}
-) {
+function normalizeCropData(data = {}) {
+  const points = normalizeBoundary(
+    data.points ??
+    data.boundary ??
+    []
+  );
 
-  const points =
-    normalizeBoundary(
-      data.points ??
-      data.boundary ??
-      []
-    );
+  const latitude = normalizeNumber(
+    data.latitude
+  );
 
+  const longitude = normalizeNumber(
+    data.longitude
+  );
 
-  const latitude =
-    normalizeNumber(
-      data.latitude
-    );
+  const productionQuantity = normalizeNumber(
+    data.productionQuantity
+  );
 
+  const pricePerTon = normalizeNumber(
+    data.pricePerTon
+  );
 
-  const longitude =
-    normalizeNumber(
-      data.longitude
-    );
-
-
-  const productionQuantity =
-    normalizeNumber(
-      data.productionQuantity
-    );
-
-
-  const pricePerTon =
-    normalizeNumber(
-      data.pricePerTon
-    );
-
-
-  const totalExpenses =
-    normalizeNumber(
-      data.totalExpenses
-    );
-
+  const totalExpenses = normalizeNumber(
+    data.totalExpenses
+  );
 
   const safeProduction =
     productionQuantity ?? 0;
@@ -166,25 +144,17 @@ function normalizeCropData(
   const safeExpenses =
     totalExpenses ?? 0;
 
-
   const revenue =
-    Number.isFinite(
-      Number(data.revenue)
-    )
+    Number.isFinite(Number(data.revenue))
       ? Number(data.revenue)
       : safeProduction * safePrice;
 
-
   const profit =
-    Number.isFinite(
-      Number(data.profit)
-    )
+    Number.isFinite(Number(data.profit))
       ? Number(data.profit)
       : revenue - safeExpenses;
 
-
   return {
-
     ...data,
 
     id:
@@ -234,6 +204,16 @@ function normalizeCropData(
         data.treeVariety ?? ""
       ).trim(),
 
+    /*
+     * =====================================================
+     * IMPORTANT
+     * =====================================================
+     *
+     * plantingDate يأتي من المستخدم.
+     *
+     * لا يتم إنشاء تاريخ جديد.
+     * لا يتم استبداله بتاريخ اليوم.
+     */
     plantingDate:
       normalizeDate(
         data.plantingDate
@@ -296,14 +276,23 @@ function normalizeCropData(
       data.harvestStatus ||
       "pending",
 
+    // =====================================================
+    // OLD GPS DATA
+    // =====================================================
+    //
+    // تبقى هذه الحقول للحفاظ على السجلات القديمة
+    // والتوافق مع البيانات السابقة.
+    //
+    // لكنها ليست مطلوبة لإنشاء مشروع زراعي جديد.
+    //
+
     latitude,
 
     longitude,
 
     points,
 
-    boundary:
-      points,
+    boundary: points,
 
     locationId:
       data.locationId ?? null,
@@ -317,6 +306,10 @@ function normalizeCropData(
       normalizeNumber(
         data.perimeter
       ),
+
+    // =====================================================
+    // MANUAL LOCATION
+    // =====================================================
 
     country:
       String(
@@ -411,7 +404,6 @@ function normalizeCropData(
       String(
         data.notes ?? ""
       ).trim(),
-
   };
 }
 
@@ -421,18 +413,15 @@ function normalizeCropData(
 // =========================================================
 
 export default function useCrops() {
-
   const [
     crops,
     setCrops,
   ] = useState([]);
 
-
   const [
     loading,
     setLoading,
   ] = useState(false);
-
 
   const [
     error,
@@ -440,12 +429,14 @@ export default function useCrops() {
   ] = useState("");
 
 
+  // =======================================================
+  // LOAD
+  // =======================================================
+
   const loadCrops =
     useCallback(
       async () => {
-
         try {
-
           setLoading(true);
           setError("");
 
@@ -466,7 +457,6 @@ export default function useCrops() {
           return normalized;
 
         } catch (loadError) {
-
           console.error(
             "Crops loading failed:",
             loadError
@@ -482,20 +472,15 @@ export default function useCrops() {
           return [];
 
         } finally {
-
           setLoading(false);
-
         }
-
       },
       []
     );
 
 
   useEffect(() => {
-
     loadCrops();
-
   }, [loadCrops]);
 
 
@@ -505,68 +490,110 @@ export default function useCrops() {
 
   const addCrop =
     useCallback(
-      async data => {
-
+      async (data) => {
         const normalized =
-          normalizeCropData(
-            data
-          );
+          normalizeCropData(data);
 
-        if (
-          !normalized.farmId
-        ) {
 
+        // ---------------------------------------------------
+        // FARM
+        // ---------------------------------------------------
+
+        if (!normalized.farmId) {
           throw new Error(
             "CROP_FARM_REQUIRED"
           );
-
         }
+
+
+        // ---------------------------------------------------
+        // PROJECT / PLANT
+        // ---------------------------------------------------
 
         if (
           !normalized.name &&
           !normalized.treeType
         ) {
-
           throw new Error(
             "CROP_NAME_REQUIRED"
           );
-
         }
+
+
+        // ---------------------------------------------------
+        // MANUAL LOCATION
+        // ---------------------------------------------------
+        //
+        // لا نطلب latitude / longitude.
+        //
+        // الموقع الجديد يعتمد على:
+        // country
+        // governorate
+        // city
+        // village
+        //
+        // بيانات GPS القديمة تبقى اختيارية فقط.
+        //
 
         if (
-          !Number.isFinite(
-            normalized.latitude
-          ) ||
-          !Number.isFinite(
-            normalized.longitude
-          )
+          !normalized.country ||
+          !normalized.governorate ||
+          !normalized.city ||
+          !normalized.village
         ) {
-
           throw new Error(
-            "CROP_LOCATION_REQUIRED"
+            "CROP_MANUAL_LOCATION_REQUIRED"
           );
-
         }
+
+
+        // ---------------------------------------------------
+        // PLANTING DATE
+        // ---------------------------------------------------
+        //
+        // إذا أرسل المستخدم تاريخًا صحيحًا:
+        //
+        // 2024-05-10
+        //
+        // يبقى 2024-05-10.
+        //
+        // لا نستخدم تاريخ اليوم.
+        //
+
+        if (
+          !normalized.plantingDate
+        ) {
+          throw new Error(
+            "CROP_PLANTING_DATE_REQUIRED"
+          );
+        }
+
+
+        // ---------------------------------------------------
+        // CREATE
+        // ---------------------------------------------------
 
         const created =
           await cropService.create(
             normalized
           );
 
+
         const result =
           normalizeCropData(
             created
           );
 
+
         setCrops(
-          current => [
+          (current) => [
             ...current,
             result,
           ]
         );
 
-        return result;
 
+        return result;
       },
       []
     );
@@ -582,11 +609,9 @@ export default function useCrops() {
         id,
         data
       ) => {
-
         const normalized =
-          normalizeCropData(
-            data
-          );
+          normalizeCropData(data);
+
 
         const updated =
           await cropService.update(
@@ -594,19 +619,22 @@ export default function useCrops() {
             normalized
           );
 
+
         if (!updated) {
           return null;
         }
+
 
         const result =
           normalizeCropData(
             updated
           );
 
+
         setCrops(
-          current =>
+          (current) =>
             current.map(
-              crop =>
+              (crop) =>
                 String(crop.id) ===
                 String(id)
                   ? result
@@ -614,8 +642,8 @@ export default function useCrops() {
             )
         );
 
-        return result;
 
+        return result;
       },
       []
     );
@@ -627,32 +655,34 @@ export default function useCrops() {
 
   const deleteCrop =
     useCallback(
-      async id => {
-
+      async (id) => {
         if (!id) {
           return false;
         }
+
 
         const deleted =
           await cropService.delete(
             id
           );
 
+
         if (!deleted) {
           return false;
         }
 
+
         setCrops(
-          current =>
+          (current) =>
             current.filter(
-              crop =>
+              (crop) =>
                 String(crop.id) !==
                 String(id)
             )
         );
 
-        return true;
 
+        return true;
       },
       []
     );
@@ -664,8 +694,7 @@ export default function useCrops() {
 
   const searchCrops =
     useCallback(
-      query => {
-
+      (query) => {
         const value =
           String(
             query ?? ""
@@ -673,15 +702,15 @@ export default function useCrops() {
             .trim()
             .toLowerCase();
 
+
         if (!value) {
           return crops;
         }
 
+
         return crops.filter(
-          crop => {
-
+          (crop) => {
             const searchable = [
-
               crop.name,
               crop.treeType,
               crop.seedType,
@@ -705,19 +734,17 @@ export default function useCrops() {
 
               crop.climate,
               crop.notes,
-
             ]
               .filter(Boolean)
               .join(" ")
               .toLowerCase();
 
+
             return searchable.includes(
               value
             );
-
           }
         );
-
       },
       [crops]
     );
@@ -730,15 +757,17 @@ export default function useCrops() {
   const getStatistics =
     useCallback(
       () => {
-
         return {
-
           total:
             crops.length,
 
+          /*
+           * البيانات القديمة التي تحتوي GPS.
+           * لا تُستخدم كشرط لإنشاء مشروع جديد.
+           */
           withLocation:
             crops.filter(
-              crop =>
+              (crop) =>
                 Number.isFinite(
                   crop.latitude
                 ) &&
@@ -749,7 +778,7 @@ export default function useCrops() {
 
           withBoundary:
             crops.filter(
-              crop =>
+              (crop) =>
                 Array.isArray(
                   crop.boundary
                 ) &&
@@ -760,7 +789,11 @@ export default function useCrops() {
             crops.reduce(
               (sum, crop) =>
                 sum +
-                (Number(crop.productionQuantity) || 0),
+                (
+                  Number(
+                    crop.productionQuantity
+                  ) || 0
+                ),
               0
             ),
 
@@ -768,7 +801,11 @@ export default function useCrops() {
             crops.reduce(
               (sum, crop) =>
                 sum +
-                (Number(crop.revenue) || 0),
+                (
+                  Number(
+                    crop.revenue
+                  ) || 0
+                ),
               0
             ),
 
@@ -776,7 +813,11 @@ export default function useCrops() {
             crops.reduce(
               (sum, crop) =>
                 sum +
-                (Number(crop.totalExpenses) || 0),
+                (
+                  Number(
+                    crop.totalExpenses
+                  ) || 0
+                ),
               0
             ),
 
@@ -784,19 +825,24 @@ export default function useCrops() {
             crops.reduce(
               (sum, crop) =>
                 sum +
-                (Number(crop.profit) || 0),
+                (
+                  Number(
+                    crop.profit
+                  ) || 0
+                ),
               0
             ),
-
         };
-
       },
       [crops]
     );
 
 
-  return {
+  // =======================================================
+  // RETURN
+  // =======================================================
 
+  return {
     crops,
 
     loading,
@@ -814,7 +860,5 @@ export default function useCrops() {
     searchCrops,
 
     getStatistics,
-
   };
-
 }
