@@ -34,6 +34,7 @@ const DRAFT_STORAGE_KEY =
 function createEmptyDraft() {
   return {
     farmId: "",
+    farmName: "",
     projectName: "",
     plantType: "",
     seedType: "",
@@ -480,6 +481,20 @@ function estimateRecommendedSeeds({
 
 
 // =========================================================
+// FARM ID NORMALIZER
+// =========================================================
+
+function getFarmId(farm) {
+  return (
+    farm?.id ??
+    farm?._id ??
+    farm?.farmId ??
+    ""
+  );
+}
+
+
+// =========================================================
 // COMPONENT
 // =========================================================
 
@@ -497,13 +512,8 @@ export default function NewFarm() {
   // =======================================================
 
   const {
-    farms = [],
+    addFarm,
   } = useFarms();
-
-  const farmList =
-    Array.isArray(farms)
-      ? farms
-      : [];
 
 
   // =======================================================
@@ -573,6 +583,11 @@ export default function NewFarm() {
   );
 
   const [
+    savingFarm,
+    setSavingFarm,
+  ] = useState(false);
+
+  const [
     savingCrop,
     setSavingCrop,
   ] = useState(false);
@@ -589,7 +604,7 @@ export default function NewFarm() {
 
 
   // =======================================================
-  // URL FARM
+  // URL FARM ID
   // =======================================================
 
   const urlFarmId =
@@ -599,7 +614,7 @@ export default function NewFarm() {
 
 
   // =======================================================
-  // SELECTED FARM
+  // NEW FARM ID
   // =======================================================
 
   const selectedFarmId =
@@ -608,26 +623,9 @@ export default function NewFarm() {
     mapFarmId ||
     "";
 
-  const selectedFarm =
-    farmList.find(
-      farm => {
-        const id =
-          farm?.id ??
-          farm?._id ??
-          farm?.farmId;
-
-        return (
-          String(id) ===
-          String(
-            selectedFarmId
-          )
-        );
-      }
-    ) || null;
-
 
   // =======================================================
-  // MAP LOCATION
+  // LOCATION
   // =======================================================
 
   const hasLocation =
@@ -761,15 +759,8 @@ export default function NewFarm() {
           urlFarmId
         );
 
-      if (setMapFarmId) {
-        setMapFarmId(
-          normalizedId
-        );
-      }
-
       setDraft(
         previous => {
-
           const next = {
             ...previous,
             farmId:
@@ -783,6 +774,12 @@ export default function NewFarm() {
           return next;
         }
       );
+
+      if (setMapFarmId) {
+        setMapFarmId(
+          normalizedId
+        );
+      }
     },
     [
       urlFarmId,
@@ -808,7 +805,6 @@ export default function NewFarm() {
 
       setDraft(
         previous => {
-
           const next = {
             ...previous,
 
@@ -888,71 +884,175 @@ export default function NewFarm() {
 
 
   // =======================================================
-  // FARM SELECT
-  // =======================================================
-
-  const handleFarmChange = (
-    event
-  ) => {
-    const value =
-      event.target.value;
-
-    updateField(
-      "farmId",
-      value
-    );
-
-    if (
-      value &&
-      setMapFarmId
-    ) {
-      setMapFarmId(
-        String(value)
-      );
-    }
-  };
-
-
-  // =======================================================
   // OPEN MAP
   // =======================================================
 
-  const openMap = () => {
+  const openMap = async () => {
     setError("");
     setSuccess("");
 
-    const currentFarmId =
-      draft.farmId ||
-      selectedFarmId;
+    const farmName =
+      String(
+        draft.farmName || ""
+      ).trim();
 
-    if (!currentFarmId) {
+    if (!farmName) {
       setError(
-        "اختر المزرعة أولًا ثم حدد موقع الحقل من الخريطة."
+        "أدخل اسم المزرعة الجديدة أولًا."
       );
 
       return;
     }
 
-    if (setMapFarmId) {
-      setMapFarmId(
-        String(
-          currentFarmId
-        )
+    if (
+      !draft.projectName.trim()
+    ) {
+      setError(
+        "أدخل اسم المشروع الزراعي أولًا."
       );
+
+      return;
     }
 
-    navigate(
-      `/map?farmId=${encodeURIComponent(
-        String(
-          currentFarmId
-        )
-      )}&return=new-farm`
+    if (
+      !draft.plantType.trim()
+    ) {
+      setError(
+        "أدخل نوع النبات المزروع أولًا."
+      );
+
+      return;
+    }
+
+    if (
+      !draft.seedType.trim()
+    ) {
+      setError(
+        "أدخل نوع البذار المختار أولًا."
+      );
+
+      return;
+    }
+
+
+    // -------------------------------------------------------
+    // If this new farm already has an ID,
+    // continue directly to the map.
+    // -------------------------------------------------------
+
+    if (selectedFarmId) {
+      if (setMapFarmId) {
+        setMapFarmId(
+          String(
+            selectedFarmId
+          )
+        );
+      }
+
+      navigate(
+        `/map?farmId=${encodeURIComponent(
+          String(
+            selectedFarmId
+          )
+        )}&return=new-farm`
+      );
+
+      return;
+    }
+
+
+    // -------------------------------------------------------
+    // Create the NEW farm identity.
+    // Existing farms are never selected here.
+    // -------------------------------------------------------
+
+    setSavingFarm(
+      true
     );
+
+    try {
+      const createdFarm =
+        await addFarm({
+          name:
+            farmName,
+
+          farmName:
+            farmName,
+
+          status:
+            "active",
+        });
+
+
+      const createdFarmId =
+        getFarmId(
+          createdFarm
+        );
+
+      if (!createdFarmId) {
+        throw new Error(
+          "Farm was created without an ID."
+        );
+      }
+
+      const normalizedId =
+        String(
+          createdFarmId
+        );
+
+
+      const nextDraft = {
+        ...draft,
+
+        farmId:
+          normalizedId,
+
+        farmName:
+          farmName,
+      };
+
+      setDraft(
+        nextDraft
+      );
+
+      saveDraft(
+        nextDraft
+      );
+
+
+      if (setMapFarmId) {
+        setMapFarmId(
+          normalizedId
+        );
+      }
+
+
+      navigate(
+        `/map?farmId=${encodeURIComponent(
+          normalizedId
+        )}&return=new-farm`
+      );
+
+    } catch (err) {
+      console.error(
+        "Failed to create new farm:",
+        err
+      );
+
+      setError(
+        "تعذر إنشاء المزرعة الجديدة. حاول مرة أخرى."
+      );
+
+    } finally {
+      setSavingFarm(
+        false
+      );
+    }
   };
 
 
   // =======================================================
-  // SAVE PROJECT
+  // SAVE AGRICULTURAL PROJECT
   // =======================================================
 
   const saveFarm = async (
@@ -963,17 +1063,41 @@ export default function NewFarm() {
     setError("");
     setSuccess("");
 
+
     const currentFarmId =
       draft.farmId ||
-      selectedFarmId;
+      urlFarmId ||
+      mapFarmId ||
+      "";
+
+
+    // -------------------------------------------------------
+    // FARM
+    // -------------------------------------------------------
 
     if (!currentFarmId) {
       setError(
-        "اختر المزرعة أولًا."
+        "أدخل اسم المزرعة الجديدة وحدد موقعها من الخريطة أولًا."
       );
 
       return;
     }
+
+
+    if (
+      !draft.farmName.trim()
+    ) {
+      setError(
+        "أدخل اسم المزرعة الجديدة."
+      );
+
+      return;
+    }
+
+
+    // -------------------------------------------------------
+    // PROJECT
+    // -------------------------------------------------------
 
     if (
       !draft.projectName.trim()
@@ -985,6 +1109,7 @@ export default function NewFarm() {
       return;
     }
 
+
     if (
       !draft.plantType.trim()
     ) {
@@ -995,13 +1120,45 @@ export default function NewFarm() {
       return;
     }
 
-    if (!hasLocation) {
+
+    if (
+      !draft.seedType.trim()
+    ) {
       setError(
-        "يجب تحديد موقع الحقل من الخريطة أولًا."
+        "أدخل نوع البذار المختار."
       );
 
       return;
     }
+
+
+    // -------------------------------------------------------
+    // LOCATION
+    // -------------------------------------------------------
+
+    if (!hasLocation) {
+      setError(
+        "يجب تحديد موقع الحقل يدويًا من الخريطة أولًا."
+      );
+
+      return;
+    }
+
+
+    if (
+      locationPointCount < 3
+    ) {
+      setError(
+        "يجب تحديد 3 نقاط حدود على الأقل في الخريطة."
+      );
+
+      return;
+    }
+
+
+    // -------------------------------------------------------
+    // DATE
+    // -------------------------------------------------------
 
     if (
       !draft.plantingDate.trim()
@@ -1012,6 +1169,7 @@ export default function NewFarm() {
 
       return;
     }
+
 
     if (
       !parseManualDate(
@@ -1025,9 +1183,11 @@ export default function NewFarm() {
       return;
     }
 
+
     setSavingCrop(
       true
     );
+
 
     try {
       const normalizedFarmId =
@@ -1047,6 +1207,7 @@ export default function NewFarm() {
       const plantingDate =
         draft.plantingDate.trim();
 
+
       const locationBoundary =
         Array.isArray(boundary) &&
         boundary.length > 0
@@ -1054,6 +1215,7 @@ export default function NewFarm() {
           : Array.isArray(points)
             ? points
             : [];
+
 
       await addCrop({
         farmId:
@@ -1157,11 +1319,13 @@ export default function NewFarm() {
           "active",
       });
 
+
       clearDraft();
 
       setSuccess(
-        "تم حفظ المشروع الزراعي بنجاح."
+        "تم حفظ المزرعة والمشروع الزراعي بنجاح."
       );
+
 
       setTimeout(
         () => {
@@ -1299,13 +1463,13 @@ export default function NewFarm() {
                   1.6,
               }}
             >
-              تسجيل وإدارة المشروع الزراعي
+              تسجيل مزرعة جديدة ومشروعها الزراعي
             </p>
           </header>
 
 
           {/* =================================================
-              1 — PROJECT INFORMATION
+              1 — NEW FARM + PROJECT
           ================================================= */}
 
           <section
@@ -1336,12 +1500,12 @@ export default function NewFarm() {
                   1.5,
               }}
             >
-              🏡 معلومات المشروع
+              🏡 معلومات المزرعة والمشروع
             </h2>
 
 
             <label
-              htmlFor="farm-select"
+              htmlFor="farm-name"
               style={{
                 fontSize:
                   "22px",
@@ -1356,21 +1520,28 @@ export default function NewFarm() {
                   "right",
               }}
             >
-              المزرعة
+              🏡 اسم المزرعة الجديدة
             </label>
 
 
-            <select
-              id="farm-select"
+            <input
+              id="farm-name"
+              type="text"
               value={
-                selectedFarmId
+                draft.farmName
               }
               onChange={
-                handleFarmChange
+                event =>
+                  updateField(
+                    "farmName",
+                    event.target.value
+                  )
               }
+              autoComplete="off"
+              placeholder="اكتب اسم المزرعة الجديدة"
               disabled={
-                savingCrop ||
-                mapLoading
+                savingFarm ||
+                savingCrop
               }
               style={{
                 width:
@@ -1400,43 +1571,10 @@ export default function NewFarm() {
                 boxSizing:
                   "border-box",
               }}
-            >
-              <option
-                value=""
-              >
-                اختر المزرعة
-              </option>
-
-              {farmList.map(
-                farm => {
-                  const id =
-                    farm?.id ??
-                    farm?._id ??
-                    farm?.farmId;
-
-                  const name =
-                    farm?.name ??
-                    farm?.farmName ??
-                    `مزرعة ${id}`;
-
-                  return (
-                    <option
-                      key={
-                        String(id)
-                      }
-                      value={
-                        String(id)
-                      }
-                    >
-                      {name}
-                    </option>
-                  );
-                }
-              )}
-            </select>
+            />
 
 
-            {selectedFarm && (
+            {draft.farmId && (
               <div
                 className="new-farm-readonly"
                 style={{
@@ -1462,7 +1600,7 @@ export default function NewFarm() {
                     "border-box",
 
                   fontSize:
-                    "20px",
+                    "19px",
 
                   fontWeight:
                     800,
@@ -1471,13 +1609,11 @@ export default function NewFarm() {
                     1.5,
                 }}
               >
-                🏡 المزرعة المختارة:
+                🏡 المزرعة الجديدة:
                 {" "}
                 <strong>
                   {
-                    selectedFarm?.name ??
-                    selectedFarm?.farmName ??
-                    ""
+                    draft.farmName
                   }
                 </strong>
               </div>
@@ -1520,6 +1656,7 @@ export default function NewFarm() {
               autoComplete="off"
               placeholder="اكتب اسم المشروع الزراعي"
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
@@ -1589,6 +1726,7 @@ export default function NewFarm() {
               autoComplete="off"
               placeholder="مثال: قمح"
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
@@ -1658,6 +1796,7 @@ export default function NewFarm() {
               autoComplete="off"
               placeholder="اكتب نوع أو صنف البذار"
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
@@ -1724,8 +1863,35 @@ export default function NewFarm() {
                   1.5,
               }}
             >
-              🌍 موقع الحقل
+              🌍 موقع المزرعة والحقل
             </h2>
+
+
+            <div
+              className="new-farm-readonly"
+              style={{
+                width:
+                  "100%",
+
+                padding:
+                  "13px 15px",
+
+                borderRadius:
+                  "15px",
+
+                fontSize:
+                  "17px",
+
+                fontWeight:
+                  700,
+
+                lineHeight:
+                  1.7,
+              }}
+            >
+              حدد موقع المزرعة يدويًا من الخريطة.
+              لا يتم اختيار موقع تلقائيًا في هذه الخطوة.
+            </div>
 
 
             <button
@@ -1735,6 +1901,7 @@ export default function NewFarm() {
                 openMap
               }
               disabled={
+                savingFarm ||
                 savingCrop ||
                 mapLoading
               }
@@ -1767,11 +1934,13 @@ export default function NewFarm() {
                   "border-box",
               }}
             >
-              {mapLoading
-                ? "جاري قراءة الموقع..."
-                : hasLocation
-                  ? "🗺️ تعديل موقع الحقل"
-                  : "🗺️ تحديد موقع الحقل من الخريطة"}
+              {savingFarm
+                ? "جاري إنشاء المزرعة الجديدة..."
+                : mapLoading
+                  ? "جاري قراءة الموقع..."
+                  : hasLocation
+                    ? "🗺️ تعديل موقع المزرعة"
+                    : "🗺️ تحديد موقع المزرعة يدويًا من الخريطة"}
             </button>
 
 
@@ -1995,7 +2164,7 @@ export default function NewFarm() {
                     "13px",
                 }}
               >
-                📍 تم تحديد الإحداثيات بنجاح
+                📍 تم تحديد موقع المزرعة بنجاح
                 {locationPointCount > 0
                   ? ` — نقاط الحدود: ${locationPointCount}`
                   : ""}
@@ -2005,7 +2174,7 @@ export default function NewFarm() {
 
 
           {/* =================================================
-              3 — CLIMATE & RECOMMENDATIONS
+              3 — CLIMATE
           ================================================= */}
 
           <section
@@ -2095,7 +2264,7 @@ export default function NewFarm() {
             >
               {climate.ready
                 ? climate.text
-                : "اكتب الدولة والمحافظة والمدينة والقرية لعرض التقدير."}
+                : "سيظهر تقدير المناخ بعد تحديد الموقع."}
             </div>
 
 
@@ -2249,8 +2418,9 @@ export default function NewFarm() {
                   )
               }
               autoComplete="off"
-              placeholder="مثال: 2,6,2026 أو 15.5.2024 أو 15-5-2024"
+              placeholder="مثال: 2,6,2026 أو 15.5.2024"
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
@@ -2356,7 +2526,7 @@ export default function NewFarm() {
               }}
             >
               {plantAge ||
-                "سيظهر تلقائياً عند إمكانية قراءة التاريخ"}
+                "سيظهر تلقائيًا عند إمكانية قراءة التاريخ"}
             </div>
           </section>
 
@@ -2434,6 +2604,7 @@ export default function NewFarm() {
               }
               placeholder="الكمية المستخدمة في الحقل"
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
@@ -2465,22 +2636,6 @@ export default function NewFarm() {
                   "border-box",
               }}
             />
-
-
-            <div
-              style={{
-                fontSize:
-                  "16px",
-
-                fontWeight:
-                  600,
-
-                lineHeight:
-                  1.6,
-              }}
-            >
-              الكمية المستخدمة في الحقل.
-            </div>
 
 
             <label
@@ -2520,6 +2675,7 @@ export default function NewFarm() {
               }
               placeholder="الكمية المستخدمة في الحقل"
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
@@ -2551,22 +2707,6 @@ export default function NewFarm() {
                   "border-box",
               }}
             />
-
-
-            <div
-              style={{
-                fontSize:
-                  "16px",
-
-                fontWeight:
-                  600,
-
-                lineHeight:
-                  1.6,
-              }}
-            >
-              الكمية المستخدمة في الحقل.
-            </div>
           </section>
 
 
@@ -2659,6 +2799,7 @@ export default function NewFarm() {
               type="submit"
               className="new-farm-save-button"
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
@@ -2689,7 +2830,7 @@ export default function NewFarm() {
             >
               {savingCrop
                 ? "جاري حفظ المشروع الزراعي..."
-                : "💾 حفظ المشروع الزراعي"}
+                : "💾 حفظ المزرعة والمشروع الزراعي"}
             </button>
 
 
@@ -2700,6 +2841,7 @@ export default function NewFarm() {
                 cancel
               }
               disabled={
+                savingFarm ||
                 savingCrop
               }
               style={{
