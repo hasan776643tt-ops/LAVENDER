@@ -17,22 +17,26 @@ import { useSettings } from "../context/SettingsContext";
 LAVENDER — useMap
 ===========================================================
 
-طريقة تحديد الأرض:
+المسؤوليات:
 
-1. اختيار المزرعة
-2. الضغط على الخريطة لإضافة النقاط
-3. ثلاث نقاط أو أكثر = حدود الأرض
-4. حساب المساحة والمحيط
-5. حفظ الموقع
+1. تحميل المزارع والمواقع.
+2. ربط الموقع بـ farmId.
+3. تحديد نقاط حدود الأرض يدويًا.
+4. حساب المساحة والمحيط.
+5. دعم GPS كموقع مرجعي فقط.
+6. Reverse Geocoding للمعلومات الوصفية.
+7. حفظ الموقع عبر mapService.
+8. لا يوجد watchPosition.
+9. لا يوجد تتبع GPS.
+10. الإحداثيات والحدود تبقى المصدر الحقيقي للموقع.
 
 مهم:
 
-- لا يوجد watchPosition
-- لا يوجد تتبع GPS أثناء رسم الأرض
-- الضغط على الخريطة يبقى يدويًا كما كان
-- latitude / longitude / boundary هي المصدر الحقيقي
-- Reverse Geocoding معلومات وصفية فقط
-- لا يوجد منطق محاصيل هنا
+- GPS لا يضيف نقطة تلقائيًا.
+- الضغط على الخريطة هو الطريقة الأساسية لإضافة نقاط الحدود.
+- latitude / longitude / boundary بيانات داخلية حقيقية.
+- Reverse Geocoding لا يستبدل الإحداثيات.
+- لا يوجد منطق خاص بالمحاصيل هنا.
 ===========================================================
 */
 
@@ -70,6 +74,10 @@ const EMPTY_FIELD = Object.freeze({
 
   placeName: "",
   locationDescription: "",
+
+  locationType: "field",
+
+  notes: "",
 
   source: "map",
   status: "active",
@@ -113,6 +121,7 @@ function isValidCoordinate(
     lng >= -180 &&
     lng <= 180
   );
+
 }
 
 
@@ -129,7 +138,9 @@ function normalizePoint(point) {
         Number(point[1]),
 
     };
+
   }
+
 
   return {
 
@@ -140,14 +151,18 @@ function normalizePoint(point) {
       Number(point?.longitude),
 
   };
+
 }
 
 
 function normalizePoints(points) {
 
   if (!Array.isArray(points)) {
+
     return [];
+
   }
+
 
   return points
     .map(normalizePoint)
@@ -158,6 +173,7 @@ function normalizePoints(points) {
           point.longitude
         )
     );
+
 }
 
 
@@ -168,11 +184,15 @@ function calculateBoundaryCenter(
   const safePoints =
     normalizePoints(points);
 
+
   if (
     safePoints.length === 0
   ) {
+
     return null;
+
   }
+
 
   const latitude =
     safePoints.reduce(
@@ -182,6 +202,7 @@ function calculateBoundaryCenter(
     ) /
     safePoints.length;
 
+
   const longitude =
     safePoints.reduce(
       (total, point) =>
@@ -190,14 +211,18 @@ function calculateBoundaryCenter(
     ) /
     safePoints.length;
 
+
   if (
     !isValidCoordinate(
       latitude,
       longitude
     )
   ) {
+
     return null;
+
   }
+
 
   return {
 
@@ -205,6 +230,7 @@ function calculateBoundaryCenter(
     longitude,
 
   };
+
 }
 
 
@@ -234,7 +260,9 @@ function normalizeAdministrativeLocation(
       locationDescription: "",
 
     };
+
   }
+
 
   const address =
     result.address &&
@@ -247,6 +275,8 @@ function normalizeAdministrativeLocation(
     cleanString(
       result.governorate ||
       result.state ||
+      result.province ||
+      address.governorate ||
       address.state ||
       address.province ||
       ""
@@ -257,7 +287,6 @@ function normalizeAdministrativeLocation(
     cleanString(
       result.region ||
       address.region ||
-      address.province ||
       ""
     );
 
@@ -304,7 +333,8 @@ function normalizeAdministrativeLocation(
     country:
       cleanString(
         result.country ||
-        address.country
+        address.country ||
+        ""
       ),
 
     governorate,
@@ -323,15 +353,19 @@ function normalizeAdministrativeLocation(
       cleanString(
         result.placeName ||
         result.name ||
-        address.road
+        address.road ||
+        ""
       ),
 
     locationDescription:
       cleanString(
-        result.displayName
+        result.displayName ||
+        result.locationDescription ||
+        ""
       ),
 
   };
+
 }
 
 
@@ -346,15 +380,21 @@ function cacheLocation(
   if (
     typeof window === "undefined"
   ) {
+
     return;
+
   }
+
 
   if (
     !location ||
     typeof location !== "object"
   ) {
+
     return;
+
   }
+
 
   try {
 
@@ -369,7 +409,9 @@ function cacheLocation(
       "Map location cache failed:",
       error
     );
+
   }
+
 }
 
 
@@ -378,8 +420,11 @@ function readSavedMapLocation() {
   if (
     typeof window === "undefined"
   ) {
+
     return null;
+
   }
+
 
   try {
 
@@ -388,12 +433,17 @@ function readSavedMapLocation() {
         LOCATION_STORAGE_KEY
       );
 
+
     if (!raw) {
+
       return null;
+
     }
+
 
     const location =
       JSON.parse(raw);
+
 
     if (
       !location ||
@@ -402,15 +452,20 @@ function readSavedMapLocation() {
         location.longitude
       )
     ) {
+
       return null;
+
     }
+
 
     return location;
 
   } catch {
 
     return null;
+
   }
+
 }
 
 
@@ -469,6 +524,26 @@ export default function useMap() {
   const [
     farmId,
     setFarmId,
+  ] = useState("");
+
+
+  // =======================================================
+  // LOCATION TYPE
+  // =======================================================
+
+  const [
+    locationType,
+    setLocationType,
+  ] = useState("field");
+
+
+  // =======================================================
+  // NOTES
+  // =======================================================
+
+  const [
+    notes,
+    setNotes,
   ] = useState("");
 
 
@@ -572,7 +647,9 @@ export default function useMap() {
 
 
         if (!active) {
+
           return;
+
         }
 
 
@@ -611,11 +688,12 @@ export default function useMap() {
 
         }
 
-
       } finally {
 
         if (active) {
+
           setLoading(false);
+
         }
 
       }
@@ -650,7 +728,9 @@ export default function useMap() {
 
 
         if (!id) {
+
           return null;
+
         }
 
 
@@ -742,9 +822,28 @@ export default function useMap() {
           );
 
 
+          setLocationType(
+            cleanString(
+              location.locationType ||
+              location.type ||
+              "field"
+            )
+          );
+
+
+          setNotes(
+            cleanString(
+              location.notes
+            )
+          );
+
+
           cacheLocation(
             {
+
               ...location,
+
+              farmId: id,
 
               latitude:
                 center?.latitude ??
@@ -766,13 +865,13 @@ export default function useMap() {
 
           return location;
 
-
         } catch (loadError) {
 
           console.warn(
             "Farm location loading failed:",
             loadError
           );
+
 
           return null;
 
@@ -786,13 +885,9 @@ export default function useMap() {
   // =======================================================
   // SELECT MAP POINT
   //
-  // هذه هي الطريقة الأصلية:
+  // الضغط على الخريطة = إضافة نقطة يدوية.
   //
-  // الضغط على الخريطة
-  // ↓
-  // إضافة نقطة
-  //
-  // لا يوجد GPS tracking هنا.
+  // GPS لا يدخل هنا.
   // =======================================================
 
   const selectMapPoint =
@@ -813,6 +908,7 @@ export default function useMap() {
             t("coordinatesRequired") ||
             "إحداثيات الموقع غير صحيحة"
           );
+
 
           return false;
 
@@ -843,9 +939,6 @@ export default function useMap() {
             ];
 
 
-            // حساب القياسات مباشرة بعد
-            // إضافة النقطة، بدون setState
-            // داخل updater.
             if (
               nextPoints.length >= 3
             ) {
@@ -888,6 +981,7 @@ export default function useMap() {
                   measurementError
                 );
 
+
                 setArea(null);
                 setPerimeter(null);
 
@@ -907,8 +1001,6 @@ export default function useMap() {
         );
 
 
-        // آخر نقطة هي نقطة الضغط الحالية.
-        // تبقى هي المركز المعروض على الخريطة.
         setLatitude(
           point.latitude
         );
@@ -930,7 +1022,11 @@ export default function useMap() {
 
 
   // =======================================================
-  // SET CENTER
+  // SET MAP CENTER
+  //
+  // يستخدمه GPS لتحريك مركز الخريطة فقط.
+  //
+  // لا يضيف نقطة إلى الحدود.
   // =======================================================
 
   const setMapCenter =
@@ -995,6 +1091,7 @@ export default function useMap() {
             t("coordinatesRequired") ||
             "إحداثيات الموقع غير صحيحة"
           );
+
 
           return false;
 
@@ -1132,7 +1229,7 @@ export default function useMap() {
 
 
   // =======================================================
-  // CLEAR
+  // CLEAR POINTS
   // =======================================================
 
   const clearPoints =
@@ -1152,6 +1249,9 @@ export default function useMap() {
             ...EMPTY_FIELD,
           }
         );
+
+        setLocationType("field");
+        setNotes("");
 
         setError("");
 
@@ -1356,6 +1456,19 @@ export default function useMap() {
         farmId: selectedFarmId,
         farmName = "",
         points: selectedPoints,
+        locationType: selectedLocationType,
+        notes: selectedNotes,
+
+        country = "",
+        governorate = "",
+        region = "",
+        district = "",
+        city = "",
+        town = "",
+        village = "",
+        placeName = "",
+        locationDescription = "",
+
       } = {}) => {
 
         const id =
@@ -1449,7 +1562,36 @@ export default function useMap() {
           // -------------------------------------------------
 
           let administrativeData = {
-            ...administrative,
+
+            country:
+              cleanString(country),
+
+            governorate:
+              cleanString(governorate),
+
+            region:
+              cleanString(region),
+
+            district:
+              cleanString(district),
+
+            city:
+              cleanString(city),
+
+            town:
+              cleanString(town),
+
+            village:
+              cleanString(village),
+
+            placeName:
+              cleanString(placeName),
+
+            locationDescription:
+              cleanString(
+                locationDescription
+              ),
+
           };
 
 
@@ -1463,10 +1605,51 @@ export default function useMap() {
               );
 
 
-            administrativeData =
+            const normalized =
               normalizeAdministrativeLocation(
                 geocoded
               );
+
+
+            administrativeData = {
+
+              country:
+                normalized.country ||
+                administrativeData.country,
+
+              governorate:
+                normalized.governorate ||
+                administrativeData.governorate,
+
+              region:
+                normalized.region ||
+                administrativeData.region,
+
+              district:
+                normalized.district ||
+                administrativeData.district,
+
+              city:
+                normalized.city ||
+                administrativeData.city,
+
+              town:
+                normalized.town ||
+                administrativeData.town,
+
+              village:
+                normalized.village ||
+                administrativeData.village,
+
+              placeName:
+                normalized.placeName ||
+                administrativeData.placeName,
+
+              locationDescription:
+                normalized.locationDescription ||
+                administrativeData.locationDescription,
+
+            };
 
           } catch (geocodeError) {
 
@@ -1481,7 +1664,11 @@ export default function useMap() {
           const farm =
             farms.find(
               item =>
-                String(item?.id) ===
+                String(
+                  item?.id ??
+                  item?._id ??
+                  item?.farmId
+                ) ===
                 id
             );
 
@@ -1494,14 +1681,20 @@ export default function useMap() {
             farmName:
               cleanString(
                 farmName ||
-                farm?.name
+                farm?.name ||
+                farm?.farmName ||
+                ""
               ),
+
 
             source:
               "map",
 
 
+            // -------------------------------------------------
             // المصدر الحقيقي
+            // -------------------------------------------------
+
             latitude:
               center.latitude,
 
@@ -1509,13 +1702,20 @@ export default function useMap() {
               center.longitude,
 
 
+            // -------------------------------------------------
             // الحدود الحقيقية
+            // -------------------------------------------------
+
             points:
               mapPoints,
 
             boundary:
               mapPoints,
 
+
+            // -------------------------------------------------
+            // القياسات
+            // -------------------------------------------------
 
             area:
               Number.isFinite(
@@ -1541,7 +1741,30 @@ export default function useMap() {
                 : null,
 
 
+            // -------------------------------------------------
+            // معلومات إدارية
+            // -------------------------------------------------
+
             ...administrativeData,
+
+
+            // -------------------------------------------------
+            // النوع والملاحظات
+            // -------------------------------------------------
+
+            locationType:
+              cleanString(
+                selectedLocationType ||
+                locationType ||
+                "field"
+              ),
+
+
+            notes:
+              cleanString(
+                selectedNotes ??
+                notes
+              ),
 
 
             status:
@@ -1587,6 +1810,16 @@ export default function useMap() {
           );
 
 
+          setLocationType(
+            locationData.locationType
+          );
+
+
+          setNotes(
+            locationData.notes
+          );
+
+
           // -------------------------------------------------
           // Cache
           // -------------------------------------------------
@@ -1597,7 +1830,6 @@ export default function useMap() {
 
 
           return locationData;
-
 
         } catch (buildError) {
 
@@ -1628,6 +1860,8 @@ export default function useMap() {
         farms,
         language,
         administrative,
+        locationType,
+        notes,
         t,
       ]
     );
@@ -1648,7 +1882,9 @@ export default function useMap() {
 
 
         if (!locationData) {
+
           return false;
+
         }
 
 
@@ -1706,7 +1942,6 @@ export default function useMap() {
 
 
           return saved;
-
 
         } catch (saveError) {
 
@@ -1791,7 +2026,6 @@ export default function useMap() {
 
           return safe;
 
-
         } catch (nearbyError) {
 
           console.warn(
@@ -1825,7 +2059,9 @@ export default function useMap() {
       async id => {
 
         if (!id) {
+
           return false;
+
         }
 
 
@@ -1842,7 +2078,9 @@ export default function useMap() {
 
 
           if (!deleted) {
+
             return false;
+
           }
 
 
@@ -1860,7 +2098,6 @@ export default function useMap() {
 
           return true;
 
-
         } catch (deleteError) {
 
           console.error(
@@ -1876,7 +2113,6 @@ export default function useMap() {
 
 
           return false;
-
 
         } finally {
 
@@ -1913,6 +2149,9 @@ export default function useMap() {
           }
         );
 
+        setLocationType("field");
+        setNotes("");
+
         setNearbyPlaces([]);
 
         setError("");
@@ -1945,6 +2184,22 @@ export default function useMap() {
     setFarmId,
 
     loadFarmLocation,
+
+
+    // =====================================================
+    // LOCATION TYPE
+    // =====================================================
+
+    locationType,
+    setLocationType,
+
+
+    // =====================================================
+    // NOTES
+    // =====================================================
+
+    notes,
+    setNotes,
 
 
     // =====================================================
