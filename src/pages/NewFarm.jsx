@@ -88,6 +88,7 @@ function readDraft() {
   }
 }
 
+
 function saveDraft(draft) {
   try {
     window.sessionStorage.setItem(
@@ -102,6 +103,7 @@ function saveDraft(draft) {
   }
 }
 
+
 function clearDraft() {
   try {
     window.sessionStorage.removeItem(
@@ -113,6 +115,17 @@ function clearDraft() {
       error
     );
   }
+}
+
+
+// =========================================================
+// SAFE STRING
+// =========================================================
+
+function cleanDraftValue(value) {
+  return String(
+    value ?? ""
+  ).trim();
 }
 
 
@@ -479,7 +492,7 @@ function estimateRecommendedSeeds({
 
 
 // =========================================================
-// FARM ID NORMALIZER
+// FARM ID
 // =========================================================
 
 function getFarmId(farm) {
@@ -497,15 +510,18 @@ function getFarmId(farm) {
 // LOCATION FARM ID
 // =========================================================
 
-function getLocationFarmId(location) {
+function getLocationFarmId(
+  location
+) {
   return (
     location?.farmId ??
-    location?.farm_id ??
     location?.farmID ??
+    location?.farm_id ??
     location?.farm_id_value ??
     location?.farm?.id ??
     location?.farm?._id ??
     location?.farm?.farmId ??
+    location?.farm?.farm_id ??
     ""
   );
 }
@@ -532,7 +548,9 @@ function getLocationValue(
       value !== undefined &&
       String(value).trim() !== ""
     ) {
-      return String(value).trim();
+      return String(
+        value
+      ).trim();
     }
   }
 
@@ -544,9 +562,37 @@ function getLocationValue(
 // NORMALIZE MAP POINT
 // =========================================================
 
-function normalizeMapPoint(point) {
+function normalizeMapPoint(
+  point
+) {
   if (!point) {
     return null;
+  }
+
+  if (
+    Array.isArray(point)
+  ) {
+    const latitude =
+      Number(point[0]);
+
+    const longitude =
+      Number(point[1]);
+
+    if (
+      !Number.isFinite(
+        latitude
+      ) ||
+      !Number.isFinite(
+        longitude
+      )
+    ) {
+      return null;
+    }
+
+    return {
+      latitude,
+      longitude,
+    };
   }
 
   const latitude =
@@ -591,20 +637,30 @@ function normalizeLocationPoints(
     return [];
   }
 
-  const rawPoints =
+  let rawPoints = [];
+
+  if (
     Array.isArray(
       location?.boundary
     )
-      ? location.boundary
-      : Array.isArray(
-          location?.points
-        )
-        ? location.points
-        : Array.isArray(
-            location?.coordinates
-          )
-          ? location.coordinates
-          : [];
+  ) {
+    rawPoints =
+      location.boundary;
+  } else if (
+    Array.isArray(
+      location?.points
+    )
+  ) {
+    rawPoints =
+      location.points;
+  } else if (
+    Array.isArray(
+      location?.coordinates
+    )
+  ) {
+    rawPoints =
+      location.coordinates;
+  }
 
   return rawPoints
     .map(
@@ -722,6 +778,10 @@ export default function NewFarm() {
   const map =
     useMap();
 
+  // =======================================================
+  // MAP STATE
+  // =======================================================
+
   const mapFarmId =
     map?.farmId ?? "";
 
@@ -732,10 +792,18 @@ export default function NewFarm() {
     map?.longitude;
 
   const points =
-    map?.points;
+    Array.isArray(
+      map?.points
+    )
+      ? map.points
+      : [];
 
   const boundary =
-    map?.boundary;
+    Array.isArray(
+      map?.boundary
+    )
+      ? map.boundary
+      : [];
 
   const country =
     map?.country ?? "";
@@ -757,7 +825,8 @@ export default function NewFarm() {
 
   const mapLoading =
     Boolean(
-      map?.loading
+      map?.loading ||
+      map?.mapLoading
     );
 
   const locations =
@@ -768,9 +837,14 @@ export default function NewFarm() {
       : [];
 
   const setMapFarmId =
-    typeof map?.setFarmId === "function"
+    typeof map?.setFarmId ===
+    "function"
       ? map.setFarmId
       : null;
+
+  // =======================================================
+  // DRAFT
+  // =======================================================
 
   const [
     draft,
@@ -805,6 +879,10 @@ export default function NewFarm() {
       "farmId"
     );
 
+  // =======================================================
+  // SELECTED FARM
+  // =======================================================
+
   const selectedFarmId =
     draft.farmId ||
     urlFarmId ||
@@ -812,7 +890,7 @@ export default function NewFarm() {
     "";
 
   // =======================================================
-  // SAVED LOCATION
+  // FIND SAVED LOCATION
   // =======================================================
 
   const savedLocation =
@@ -820,9 +898,7 @@ export default function NewFarm() {
       () => {
         if (
           !selectedFarmId ||
-          !Array.isArray(
-            locations
-          )
+          !locations.length
         ) {
           return null;
         }
@@ -840,11 +916,12 @@ export default function NewFarm() {
               )
           );
 
-        if (!matches.length) {
+        if (
+          !matches.length
+        ) {
           return null;
         }
 
-        // نأخذ آخر موقع محفوظ للمزرعة.
         return matches[
           matches.length - 1
         ];
@@ -854,6 +931,10 @@ export default function NewFarm() {
         selectedFarmId,
       ]
     );
+
+  // =======================================================
+  // SAVED LOCATION POINTS
+  // =======================================================
 
   const savedLocationPoints =
     useMemo(
@@ -865,6 +946,10 @@ export default function NewFarm() {
         savedLocation,
       ]
     );
+
+  // =======================================================
+  // SAVED LOCATION CENTER
+  // =======================================================
 
   const savedLocationCenter =
     useMemo(
@@ -878,7 +963,7 @@ export default function NewFarm() {
     );
 
   // =======================================================
-  // EFFECTIVE LOCATION
+  // EFFECTIVE COORDINATES
   // =======================================================
 
   const effectiveLatitude =
@@ -891,14 +976,19 @@ export default function NewFarm() {
     longitude ??
     "";
 
+  // =======================================================
+  // EFFECTIVE BOUNDARY
+  // =======================================================
+
   const currentBoundary =
     savedLocationPoints.length >= 3
       ? savedLocationPoints
-      : Array.isArray(boundary)
+      : boundary.length >= 3
         ? boundary
-        : Array.isArray(points)
-          ? points
-          : [];
+        : points;
+
+  const locationPointCount =
+    currentBoundary.length;
 
   const hasLocation =
     Number.isFinite(
@@ -913,9 +1003,6 @@ export default function NewFarm() {
     ) &&
     currentBoundary.length >= 3;
 
-  const locationPointCount =
-    currentBoundary.length;
-
   // =======================================================
   // ADMINISTRATIVE LOCATION
   // =======================================================
@@ -926,6 +1013,7 @@ export default function NewFarm() {
       [
         "country",
         "countryName",
+        "country_name",
       ]
     ) ||
     cleanDraftValue(
@@ -940,10 +1028,13 @@ export default function NewFarm() {
       savedLocation,
       [
         "governorate",
+        "governorateName",
         "province",
+        "provinceName",
         "region",
-        "state",
         "regionName",
+        "state",
+        "stateName",
       ]
     ) ||
     cleanDraftValue(
@@ -960,6 +1051,7 @@ export default function NewFarm() {
         "city",
         "cityName",
         "municipality",
+        "municipalityName",
       ]
     ) ||
     cleanDraftValue(
@@ -974,10 +1066,13 @@ export default function NewFarm() {
       savedLocation,
       [
         "village",
+        "villageName",
         "town",
         "townName",
         "suburb",
+        "suburbName",
         "hamlet",
+        "hamletName",
         "placeName",
         "place",
       ]
@@ -990,12 +1085,15 @@ export default function NewFarm() {
     );
 
   // =======================================================
-  // SAVED LOCATION → DRAFT
+  // IMPORTANT:
+  // SAVED LOCATION → FORM
   // =======================================================
 
   useEffect(
     () => {
-      if (!savedLocation) {
+      if (
+        !selectedFarmId
+      ) {
         return;
       }
 
@@ -1005,6 +1103,7 @@ export default function NewFarm() {
           [
             "country",
             "countryName",
+            "country_name",
           ]
         );
 
@@ -1013,10 +1112,13 @@ export default function NewFarm() {
           savedLocation,
           [
             "governorate",
+            "governorateName",
             "province",
+            "provinceName",
             "region",
-            "state",
             "regionName",
+            "state",
+            "stateName",
           ]
         );
 
@@ -1027,6 +1129,7 @@ export default function NewFarm() {
             "city",
             "cityName",
             "municipality",
+            "municipalityName",
           ]
         );
 
@@ -1035,14 +1138,50 @@ export default function NewFarm() {
           savedLocation,
           [
             "village",
+            "villageName",
             "town",
             "townName",
             "suburb",
+            "suburbName",
             "hamlet",
+            "hamletName",
             "placeName",
             "place",
           ]
         );
+
+      const fallbackCountry =
+        cleanDraftValue(
+          country
+        );
+
+      const fallbackGovernorate =
+        cleanDraftValue(
+          governorate
+        );
+
+      const fallbackCity =
+        cleanDraftValue(
+          city
+        );
+
+      const fallbackVillage =
+        cleanDraftValue(
+          village
+        );
+
+      if (
+        !nextCountry &&
+        !nextGovernorate &&
+        !nextCity &&
+        !nextVillage &&
+        !fallbackCountry &&
+        !fallbackGovernorate &&
+        !fallbackCity &&
+        !fallbackVillage
+      ) {
+        return;
+      }
 
       setDraft(
         previous => {
@@ -1057,21 +1196,25 @@ export default function NewFarm() {
 
             country:
               nextCountry ||
+              fallbackCountry ||
               previous.country ||
               "",
 
             governorate:
               nextGovernorate ||
+              fallbackGovernorate ||
               previous.governorate ||
               "",
 
             city:
               nextCity ||
+              fallbackCity ||
               previous.city ||
               "",
 
             village:
               nextVillage ||
+              fallbackVillage ||
               previous.village ||
               "",
           };
@@ -1083,15 +1226,37 @@ export default function NewFarm() {
           return next;
         }
       );
+    },
+    [
+      selectedFarmId,
+      savedLocation,
+      country,
+      governorate,
+      city,
+      village,
+    ]
+  );
+
+  // =======================================================
+  // KEEP MAP FARM ID IN SYNC
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (
+        !selectedFarmId ||
+        !setMapFarmId
+      ) {
+        return;
+      }
 
       if (
-        setMapFarmId &&
         String(
           mapFarmId
         ) !==
-          String(
-            selectedFarmId
-          )
+        String(
+          selectedFarmId
+        )
       ) {
         setMapFarmId(
           String(
@@ -1101,85 +1266,21 @@ export default function NewFarm() {
       }
     },
     [
-      savedLocation,
       selectedFarmId,
-      setMapFarmId,
       mapFarmId,
+      setMapFarmId,
     ]
   );
 
   // =======================================================
-  // MAP → DRAFT
+  // URL FARM ID → DRAFT
   // =======================================================
 
   useEffect(
     () => {
       if (
-        !country &&
-        !governorate &&
-        !city &&
-        !village
+        !urlFarmId
       ) {
-        return;
-      }
-
-      setDraft(
-        previous => {
-          const next = {
-            ...previous,
-
-            country:
-              cleanDraftValue(
-                country
-              ) ||
-              previous.country ||
-              "",
-
-            governorate:
-              cleanDraftValue(
-                governorate
-              ) ||
-              previous.governorate ||
-              "",
-
-            city:
-              cleanDraftValue(
-                city
-              ) ||
-              previous.city ||
-              "",
-
-            village:
-              cleanDraftValue(
-                village
-              ) ||
-              previous.village ||
-              "",
-          };
-
-          saveDraft(
-            next
-          );
-
-          return next;
-        }
-      );
-    },
-    [
-      country,
-      governorate,
-      city,
-      village,
-    ]
-  );
-
-  // =======================================================
-  // URL FARM
-  // =======================================================
-
-  useEffect(
-    () => {
-      if (!urlFarmId) {
         return;
       }
 
@@ -1190,6 +1291,15 @@ export default function NewFarm() {
 
       setDraft(
         previous => {
+          if (
+            String(
+              previous.farmId
+            ) ===
+            normalizedId
+          ) {
+            return previous;
+          }
+
           const next = {
             ...previous,
             farmId:
@@ -1203,16 +1313,9 @@ export default function NewFarm() {
           return next;
         }
       );
-
-      if (setMapFarmId) {
-        setMapFarmId(
-          normalizedId
-        );
-      }
     },
     [
       urlFarmId,
-      setMapFarmId,
     ]
   );
 
@@ -1303,7 +1406,7 @@ export default function NewFarm() {
     );
 
   // =======================================================
-  // UPDATE
+  // UPDATE FIELD
   // =======================================================
 
   const updateField = (
@@ -1375,8 +1478,16 @@ export default function NewFarm() {
       return;
     }
 
-    if (selectedFarmId) {
-      if (setMapFarmId) {
+    // -----------------------------------------------------
+    // EXISTING TEMPORARY FARM ID
+    // -----------------------------------------------------
+
+    if (
+      selectedFarmId
+    ) {
+      if (
+        setMapFarmId
+      ) {
         setMapFarmId(
           String(
             selectedFarmId
@@ -1396,6 +1507,10 @@ export default function NewFarm() {
 
       return;
     }
+
+    // -----------------------------------------------------
+    // CREATE FARM BEFORE OPENING MAP
+    // -----------------------------------------------------
 
     setSavingFarm(
       true
@@ -1419,7 +1534,9 @@ export default function NewFarm() {
           createdFarm
         );
 
-      if (!createdFarmId) {
+      if (
+        !createdFarmId
+      ) {
         throw new Error(
           "Farm was created without an ID."
         );
@@ -1448,7 +1565,9 @@ export default function NewFarm() {
         nextDraft
       );
 
-      if (setMapFarmId) {
+      if (
+        setMapFarmId
+      ) {
         setMapFarmId(
           normalizedId
         );
@@ -1478,7 +1597,7 @@ export default function NewFarm() {
   };
 
   // =======================================================
-  // SAVE
+  // SAVE FARM + PROJECT
   // =======================================================
 
   const saveFarm = async (
@@ -1495,7 +1614,9 @@ export default function NewFarm() {
       mapFarmId ||
       "";
 
-    if (!currentFarmId) {
+    if (
+      !currentFarmId
+    ) {
       setError(
         "أدخل اسم المزرعة الجديدة وحدد موقعها من الخريطة أولًا."
       );
@@ -1541,12 +1662,9 @@ export default function NewFarm() {
     const finalPoints =
       savedLocationPoints.length >= 3
         ? savedLocationPoints
-        : Array.isArray(boundary) &&
-            boundary.length >= 3
+        : boundary.length >= 3
           ? boundary
-          : Array.isArray(points)
-            ? points
-            : [];
+          : points;
 
     const finalLatitude =
       Number(
@@ -2371,15 +2489,4 @@ export default function NewFarm() {
       </div>
     </main>
   );
-}
-
-
-// =========================================================
-// SMALL SAFE STRING HELPER
-// =========================================================
-
-function cleanDraftValue(value) {
-  return String(
-    value ?? ""
-  ).trim();
 }
