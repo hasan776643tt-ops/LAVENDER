@@ -355,9 +355,14 @@ function estimateClimate({
   const lat =
     Number(latitude);
 
-  // الموقع الجغرافي وحده يكفي لإظهار تقدير المناخ.
+  /*
+   * الإحداثيات هي المصدر الحقيقي.
+   * لا ننتظر reverse geocoding حتى يظهر المناخ.
+   */
   if (
-    Number.isFinite(lat)
+    Number.isFinite(lat) &&
+    lat >= -90 &&
+    lat <= 90
   ) {
     if (lat >= 50) {
       return {
@@ -531,36 +536,39 @@ function getLocationFarmId(
 
 
 // =========================================================
-// VALUE FROM OBJECT
+// LOCATION SOURCE
 // =========================================================
 
-function getValueFromObject(
-  object,
-  keys
+function getLocationSources(
+  location
 ) {
   if (
-    !object ||
-    typeof object !== "object"
+    !location ||
+    typeof location !== "object"
   ) {
-    return "";
+    return [];
   }
 
-  for (const key of keys) {
-    const value =
-      object?.[key];
+  return [
+    location,
 
-    if (
-      value !== null &&
-      value !== undefined &&
-      String(value).trim() !== ""
-    ) {
-      return String(
-        value
-      ).trim();
-    }
-  }
+    location.address,
 
-  return "";
+    location.administrative,
+
+    location.reverseGeocode,
+
+    location.geocoding,
+
+    location.location,
+
+    location.geo,
+
+  ].filter(
+    source =>
+      source &&
+      typeof source === "object"
+  );
 }
 
 
@@ -572,32 +580,29 @@ function getLocationValue(
   location,
   keys
 ) {
-  if (!location) {
-    return "";
-  }
+  const sources =
+    getLocationSources(
+      location
+    );
 
-  const sources = [
-    location,
-    location?.address,
-    location?.administrative,
-    location?.administrativeInfo,
-    location?.reverseGeocode,
-    location?.reverseGeocoded,
-    location?.geocoding,
-    location?.geo,
-    location?.location,
-    location?.place,
-  ];
+  for (
+    const source of sources
+  ) {
+    for (
+      const key of keys
+    ) {
+      const value =
+        source?.[key];
 
-  for (const source of sources) {
-    const value =
-      getValueFromObject(
-        source,
-        keys
-      );
-
-    if (value) {
-      return value;
+      if (
+        value !== null &&
+        value !== undefined &&
+        String(value).trim() !== ""
+      ) {
+        return String(
+          value
+        ).trim();
+      }
     }
   }
 
@@ -606,21 +611,12 @@ function getLocationValue(
 
 
 // =========================================================
-// NORMALIZE ADMINISTRATIVE DATA
+// NORMALIZE ADMINISTRATIVE LOCATION
 // =========================================================
 
 function normalizeAdministrativeLocation(
   location
 ) {
-  if (!location) {
-    return {
-      country: "",
-      governorate: "",
-      city: "",
-      village: "",
-    };
-  }
-
   return {
     country:
       getLocationValue(
@@ -645,11 +641,7 @@ function normalizeAdministrativeLocation(
           "state",
           "stateName",
           "state_district",
-          "stateDistrict",
           "county",
-          "countyName",
-          "district",
-          "districtName",
         ]
       ),
 
@@ -661,10 +653,10 @@ function normalizeAdministrativeLocation(
           "cityName",
           "municipality",
           "municipalityName",
-          "district",
-          "districtName",
+          "city_district",
+          "locality",
           "county",
-          "countyName",
+          "district",
         ]
       ),
 
@@ -681,7 +673,8 @@ function normalizeAdministrativeLocation(
           "hamlet",
           "hamletName",
           "locality",
-          "localityName",
+          "neighbourhood",
+          "neighborhood",
           "placeName",
           "place",
         ]
@@ -769,32 +762,36 @@ function normalizeLocationPoints(
     return [];
   }
 
-  const candidates = [
-    location?.boundary,
-    location?.points,
-    location?.coordinates,
-    location?.polygon,
-  ];
+  let rawPoints = [];
 
-  for (const candidate of candidates) {
-    if (
-      Array.isArray(candidate) &&
-      candidate.length
-    ) {
-      const normalized =
-        candidate
-          .map(
-            normalizeMapPoint
-          )
-          .filter(Boolean);
-
-      if (normalized.length) {
-        return normalized;
-      }
-    }
+  if (
+    Array.isArray(
+      location?.boundary
+    )
+  ) {
+    rawPoints =
+      location.boundary;
+  } else if (
+    Array.isArray(
+      location?.points
+    )
+  ) {
+    rawPoints =
+      location.points;
+  } else if (
+    Array.isArray(
+      location?.coordinates
+    )
+  ) {
+    rawPoints =
+      location.coordinates;
   }
 
-  return [];
+  return rawPoints
+    .map(
+      normalizeMapPoint
+    )
+    .filter(Boolean);
 }
 
 
@@ -910,7 +907,7 @@ export default function NewFarm() {
     useMap();
 
   // =======================================================
-  // MAP API
+  // MAP DATA
   // =======================================================
 
   const mapFarmId =
@@ -943,21 +940,15 @@ export default function NewFarm() {
     map?.governorate ??
     map?.province ??
     map?.region ??
-    map?.state ??
     "";
 
   const city =
-    map?.city ??
-    map?.municipality ??
-    "";
+    map?.city ?? "";
 
   const village =
     map?.village ??
     map?.town ??
-    map?.suburb ??
-    map?.hamlet ??
     map?.placeName ??
-    map?.place ??
     "";
 
   const mapLoading =
@@ -973,11 +964,8 @@ export default function NewFarm() {
       ? map.locations
       : [];
 
-  const setMapFarmId =
-    typeof map?.setFarmId ===
-    "function"
-      ? map.setFarmId
-      : null;
+  const administrative =
+    map?.administrative ?? null;
 
   const loadFarmLocation =
     typeof map?.loadFarmLocation ===
@@ -991,6 +979,12 @@ export default function NewFarm() {
       ? map.reverseGeocode
       : null;
 
+  const setMapFarmId =
+    typeof map?.setFarmId ===
+    "function"
+      ? map.setFarmId
+      : null;
+
   // =======================================================
   // DRAFT
   // =======================================================
@@ -1002,16 +996,6 @@ export default function NewFarm() {
     () =>
       readDraft()
   );
-
-  const [
-    loadedLocation,
-    setLoadedLocation,
-  ] = useState(null);
-
-  const [
-    loadingSavedLocation,
-    setLoadingSavedLocation,
-  ] = useState(false);
 
   const [
     savingFarm,
@@ -1033,8 +1017,14 @@ export default function NewFarm() {
     setSuccess,
   ] = useState("");
 
-  const reverseGeocodeAttempt =
+  // يمنع تكرار reverse geocoding
+  // لنفس المزرعة ونفس المركز.
+  const geocodeKeyRef =
     useRef("");
+
+  // =======================================================
+  // URL
+  // =======================================================
 
   const urlFarmId =
     searchParams.get(
@@ -1042,7 +1032,7 @@ export default function NewFarm() {
     );
 
   // =======================================================
-  // SELECTED FARM
+  // SELECTED FARM ID
   // =======================================================
 
   const selectedFarmId =
@@ -1052,143 +1042,84 @@ export default function NewFarm() {
     "";
 
   // =======================================================
-  // FORCE LOAD SAVED FARM LOCATION
-  // =======================================================
-
-  useEffect(
-    () => {
-      if (
-        !selectedFarmId ||
-        !loadFarmLocation
-      ) {
-        return;
-      }
-
-      let active = true;
-
-      const load = async () => {
-        setLoadingSavedLocation(true);
-
-        try {
-          const result =
-            await loadFarmLocation(
-              String(
-                selectedFarmId
-              )
-            );
-
-          if (!active) {
-            return;
-          }
-
-          if (
-            result &&
-            typeof result ===
-              "object"
-          ) {
-            setLoadedLocation(
-              result
-            );
-          }
-        } catch (loadError) {
-          console.error(
-            "Failed to reload saved farm location:",
-            loadError
-          );
-        } finally {
-          if (active) {
-            setLoadingSavedLocation(
-              false
-            );
-          }
-        }
-      };
-
-      load();
-
-      return () => {
-        active = false;
-      };
-    },
-    [
-      selectedFarmId,
-      routeLocation.key,
-      routeLocation.pathname,
-      loadFarmLocation,
-    ]
-  );
-
-  // =======================================================
   // FIND SAVED LOCATION
   // =======================================================
 
   const savedLocation =
     useMemo(
       () => {
-        const candidates = [];
-
         if (
-          loadedLocation &&
-          typeof loadedLocation ===
-            "object"
+          !selectedFarmId
         ) {
-          candidates.push(
-            loadedLocation
-          );
-        }
-
-        if (
-          selectedFarmId &&
-          locations.length
-        ) {
-          const matches =
-            locations.filter(
-              location =>
-                String(
-                  getLocationFarmId(
-                    location
-                  )
-                ) ===
-                String(
-                  selectedFarmId
-                )
-            );
-
-          if (
-            matches.length
-          ) {
-            candidates.push(
-              matches[
-                matches.length - 1
-              ]
-            );
-          }
-        }
-
-        if (!candidates.length) {
           return null;
         }
 
-        const withLocation =
-          candidates.find(
+        const matches =
+          locations.filter(
             location =>
-              normalizeLocationPoints(
-                location
-              ).length >= 3 ||
-              getLocationCenter(
-                location
+              String(
+                getLocationFarmId(
+                  location
+                )
+              ) ===
+              String(
+                selectedFarmId
               )
           );
 
-        return (
-          withLocation ||
-          candidates[0]
-        );
+        if (
+          !matches.length
+        ) {
+          return null;
+        }
+
+        return matches[
+          matches.length - 1
+        ];
       },
       [
-        loadedLocation,
         locations,
         selectedFarmId,
+      ]
+    );
+
+  // =======================================================
+  // SAVED LOCATION FROM HOOK
+  // =======================================================
+
+  const hookAdministrativeLocation =
+    useMemo(
+      () => {
+        if (
+          !administrative
+        ) {
+          return null;
+        }
+
+        return {
+          country:
+            administrative.country ||
+            "",
+
+          governorate:
+            administrative.governorate ||
+            administrative.province ||
+            administrative.region ||
+            "",
+
+          city:
+            administrative.city ||
+            "",
+
+          village:
+            administrative.village ||
+            administrative.town ||
+            administrative.placeName ||
+            "",
+        };
+      },
+      [
+        administrative,
       ]
     );
 
@@ -1228,12 +1159,12 @@ export default function NewFarm() {
 
   const effectiveLatitude =
     savedLocationCenter?.latitude ??
-    Number(latitude) ??
+    Number(latitude) ||
     "";
 
   const effectiveLongitude =
     savedLocationCenter?.longitude ??
-    Number(longitude) ??
+    Number(longitude) ||
     "";
 
   // =======================================================
@@ -1264,7 +1195,7 @@ export default function NewFarm() {
     currentBoundary.length >= 3;
 
   // =======================================================
-  // ADMINISTRATIVE DATA
+  // ADMINISTRATIVE LOCATION
   // =======================================================
 
   const savedAdministrative =
@@ -1278,80 +1209,320 @@ export default function NewFarm() {
       ]
     );
 
-  const mapAdministrative =
-    useMemo(
-      () =>
-        normalizeAdministrativeLocation({
-          country,
-          governorate,
-          province:
-            map?.province,
-          region:
-            map?.region,
-          state:
-            map?.state,
-          city,
-          municipality:
-            map?.municipality,
-          village,
-          town:
-            map?.town,
-          suburb:
-            map?.suburb,
-          hamlet:
-            map?.hamlet,
-          placeName:
-            map?.placeName,
-          place:
-            map?.place,
-        }),
-      [
-        country,
-        governorate,
-        city,
-        village,
-        map?.province,
-        map?.region,
-        map?.state,
-        map?.municipality,
-        map?.town,
-        map?.suburb,
-        map?.hamlet,
-        map?.placeName,
-        map?.place,
-      ]
-    );
-
   const locationCountry =
     savedAdministrative.country ||
-    mapAdministrative.country ||
+    hookAdministrativeLocation?.country ||
+    cleanDraftValue(
+      country
+    ) ||
     cleanDraftValue(
       draft.country
     );
 
   const locationGovernorate =
     savedAdministrative.governorate ||
-    mapAdministrative.governorate ||
+    hookAdministrativeLocation?.governorate ||
+    cleanDraftValue(
+      governorate
+    ) ||
     cleanDraftValue(
       draft.governorate
     );
 
   const locationCity =
     savedAdministrative.city ||
-    mapAdministrative.city ||
+    hookAdministrativeLocation?.city ||
+    cleanDraftValue(
+      city
+    ) ||
     cleanDraftValue(
       draft.city
     );
 
   const locationVillage =
     savedAdministrative.village ||
-    mapAdministrative.village ||
+    hookAdministrativeLocation?.village ||
+    cleanDraftValue(
+      village
+    ) ||
     cleanDraftValue(
       draft.village
     );
 
   // =======================================================
-  // SAVED LOCATION → DRAFT
+  // LOAD FARM LOCATION DIRECTLY
+  //
+  // عند الرجوع من Map:
+  // NewFarm يعيد تحميل الموقع بواسطة farmId.
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (
+        !selectedFarmId ||
+        !loadFarmLocation
+      ) {
+        return;
+      }
+
+      let active = true;
+
+      const load =
+        async () => {
+          try {
+            const loaded =
+              await loadFarmLocation(
+                String(
+                  selectedFarmId
+                )
+              );
+
+            if (
+              !active
+            ) {
+              return;
+            }
+
+            if (
+              loaded
+            ) {
+              const admin =
+                normalizeAdministrativeLocation(
+                  loaded
+                );
+
+              if (
+                admin.country ||
+                admin.governorate ||
+                admin.city ||
+                admin.village
+              ) {
+                setDraft(
+                  previous => {
+                    const next = {
+                      ...previous,
+
+                      farmId:
+                        previous.farmId ||
+                        String(
+                          selectedFarmId
+                        ),
+
+                      country:
+                        admin.country ||
+                        previous.country ||
+                        "",
+
+                      governorate:
+                        admin.governorate ||
+                        previous.governorate ||
+                        "",
+
+                      city:
+                        admin.city ||
+                        previous.city ||
+                        "",
+
+                      village:
+                        admin.village ||
+                        previous.village ||
+                        "",
+                    };
+
+                    saveDraft(
+                      next
+                    );
+
+                    return next;
+                  }
+                );
+              }
+            }
+          } catch (loadError) {
+            console.warn(
+              "NewFarm location reload failed:",
+              loadError
+            );
+          }
+        };
+
+      load();
+
+      return () => {
+        active = false;
+      };
+    },
+    [
+      selectedFarmId,
+      loadFarmLocation,
+      routeLocation.key,
+    ]
+  );
+
+  // =======================================================
+  // FALLBACK REVERSE GEOCODING
+  //
+  // إذا كان الموقع محفوظًا بالإحداثيات
+  // ولكن المعلومات الإدارية غير موجودة،
+  // نطلبها مباشرة من الخريطة.
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (
+        !selectedFarmId ||
+        !reverseGeocode
+      ) {
+        return;
+      }
+
+      const lat =
+        Number(
+          effectiveLatitude
+        );
+
+      const lng =
+        Number(
+          effectiveLongitude
+        );
+
+      if (
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+        return;
+      }
+
+      const hasAdministrative =
+        Boolean(
+          locationCountry ||
+          locationGovernorate ||
+          locationCity ||
+          locationVillage
+        );
+
+      if (
+        hasAdministrative
+      ) {
+        return;
+      }
+
+      const key =
+        `${selectedFarmId}:${lat.toFixed(
+          7
+        )}:${lng.toFixed(
+          7
+        )}`;
+
+      if (
+        geocodeKeyRef.current ===
+        key
+      ) {
+        return;
+      }
+
+      geocodeKeyRef.current =
+        key;
+
+      let active = true;
+
+      const geocode =
+        async () => {
+          try {
+            const result =
+              await reverseGeocode(
+                lat,
+                lng
+              );
+
+            if (
+              !active ||
+              !result
+            ) {
+              return;
+            }
+
+            const admin =
+              normalizeAdministrativeLocation(
+                result
+              );
+
+            if (
+              !admin.country &&
+              !admin.governorate &&
+              !admin.city &&
+              !admin.village
+            ) {
+              return;
+            }
+
+            setDraft(
+              previous => {
+                const next = {
+                  ...previous,
+
+                  farmId:
+                    previous.farmId ||
+                    String(
+                      selectedFarmId
+                    ),
+
+                  country:
+                    admin.country ||
+                    previous.country ||
+                    "",
+
+                  governorate:
+                    admin.governorate ||
+                    previous.governorate ||
+                    "",
+
+                  city:
+                    admin.city ||
+                    previous.city ||
+                    "",
+
+                  village:
+                    admin.village ||
+                    previous.village ||
+                    "",
+                };
+
+                saveDraft(
+                  next
+                );
+
+                return next;
+              }
+            );
+          } catch (geocodeError) {
+            console.warn(
+              "NewFarm reverse geocoding failed:",
+              geocodeError
+            );
+          }
+        };
+
+      geocode();
+
+      return () => {
+        active = false;
+      };
+    },
+    [
+      selectedFarmId,
+      effectiveLatitude,
+      effectiveLongitude,
+      locationCountry,
+      locationGovernorate,
+      locationCity,
+      locationVillage,
+      reverseGeocode,
+    ]
+  );
+
+  // =======================================================
+  // SYNC LOCATION ADMINISTRATIVE DATA → DRAFT
   // =======================================================
 
   useEffect(
@@ -1362,52 +1533,17 @@ export default function NewFarm() {
         return;
       }
 
-      const admin =
-        normalizeAdministrativeLocation(
-          savedLocation
-        );
-
-      const fallback =
-        normalizeAdministrativeLocation({
-          country,
-          governorate,
-          province:
-            map?.province,
-          region:
-            map?.region,
-          state:
-            map?.state,
-          city,
-          municipality:
-            map?.municipality,
-          village,
-          town:
-            map?.town,
-          suburb:
-            map?.suburb,
-          hamlet:
-            map?.hamlet,
-          placeName:
-            map?.placeName,
-          place:
-            map?.place,
-        });
-
       const nextCountry =
-        admin.country ||
-        fallback.country;
+        locationCountry;
 
       const nextGovernorate =
-        admin.governorate ||
-        fallback.governorate;
+        locationGovernorate;
 
       const nextCity =
-        admin.city ||
-        fallback.city;
+        locationCity;
 
       const nextVillage =
-        admin.village ||
-        fallback.village;
+        locationVillage;
 
       if (
         !nextCountry &&
@@ -1450,14 +1586,19 @@ export default function NewFarm() {
               "",
           };
 
-          if (
-            JSON.stringify(
-              next
-            ) ===
-            JSON.stringify(
-              previous
-            )
-          ) {
+          const changed =
+            next.country !==
+              previous.country ||
+            next.governorate !==
+              previous.governorate ||
+            next.city !==
+              previous.city ||
+            next.village !==
+              previous.village ||
+            next.farmId !==
+              previous.farmId;
+
+          if (!changed) {
             return previous;
           }
 
@@ -1471,164 +1612,10 @@ export default function NewFarm() {
     },
     [
       selectedFarmId,
-      savedLocation,
-      country,
-      governorate,
-      city,
-      village,
-      map?.province,
-      map?.region,
-      map?.state,
-      map?.municipality,
-      map?.town,
-      map?.suburb,
-      map?.hamlet,
-      map?.placeName,
-      map?.place,
-    ]
-  );
-
-  // =======================================================
-  // FALLBACK REVERSE GEOCODING
-  // =======================================================
-
-  useEffect(
-    () => {
-      const lat =
-        Number(
-          effectiveLatitude
-        );
-
-      const lng =
-        Number(
-          effectiveLongitude
-        );
-
-      if (
-        !selectedFarmId ||
-        !reverseGeocode ||
-        !Number.isFinite(lat) ||
-        !Number.isFinite(lng)
-      ) {
-        return;
-      }
-
-      const alreadyHasAdministrativeData =
-        Boolean(
-          locationCountry ||
-          locationGovernorate ||
-          locationCity ||
-          locationVillage
-        );
-
-      if (
-        alreadyHasAdministrativeData
-      ) {
-        return;
-      }
-
-      const attemptKey =
-        `${selectedFarmId}:${lat.toFixed(
-          6
-        )}:${lng.toFixed(
-          6
-        )}`;
-
-      if (
-        reverseGeocodeAttempt.current ===
-        attemptKey
-      ) {
-        return;
-      }
-
-      reverseGeocodeAttempt.current =
-        attemptKey;
-
-      let active = true;
-
-      const runReverseGeocode =
-        async () => {
-          try {
-            const result =
-              await reverseGeocode(
-                lat,
-                lng
-              );
-
-            if (!active) {
-              return;
-            }
-
-            const admin =
-              normalizeAdministrativeLocation(
-                result
-              );
-
-            if (
-              !admin.country &&
-              !admin.governorate &&
-              !admin.city &&
-              !admin.village
-            ) {
-              return;
-            }
-
-            setDraft(
-              previous => {
-                const next = {
-                  ...previous,
-
-                  country:
-                    admin.country ||
-                    previous.country ||
-                    "",
-
-                  governorate:
-                    admin.governorate ||
-                    previous.governorate ||
-                    "",
-
-                  city:
-                    admin.city ||
-                    previous.city ||
-                    "",
-
-                  village:
-                    admin.village ||
-                    previous.village ||
-                    "",
-                };
-
-                saveDraft(
-                  next
-                );
-
-                return next;
-              }
-            );
-          } catch (reverseError) {
-            console.error(
-              "Fallback reverse geocoding failed:",
-              reverseError
-            );
-          }
-        };
-
-      runReverseGeocode();
-
-      return () => {
-        active = false;
-      };
-    },
-    [
-      selectedFarmId,
-      effectiveLatitude,
-      effectiveLongitude,
       locationCountry,
       locationGovernorate,
       locationCity,
       locationVillage,
-      reverseGeocode,
     ]
   );
 
@@ -1874,7 +1861,7 @@ export default function NewFarm() {
     }
 
     // -----------------------------------------------------
-    // EXISTING FARM ID CREATED FOR THIS NEW FARM
+    // EXISTING TEMPORARY FARM ID
     // -----------------------------------------------------
 
     if (
@@ -2553,13 +2540,11 @@ export default function NewFarm() {
             >
               {savingFarm
                 ? "جاري إنشاء المزرعة الجديدة..."
-                : loadingSavedLocation
-                  ? "جاري تحميل موقع المزرعة..."
-                  : mapLoading
-                    ? "جاري قراءة الموقع..."
-                    : hasLocation
-                      ? "🗺️ تعديل موقع المزرعة"
-                      : "🗺️ تحديد موقع المزرعة يدويًا من الخريطة"}
+                : mapLoading
+                  ? "جاري قراءة الموقع..."
+                  : hasLocation
+                    ? "🗺️ تعديل موقع المزرعة"
+                    : "🗺️ تحديد موقع المزرعة يدويًا من الخريطة"}
             </button>
 
             <label
@@ -2636,15 +2621,6 @@ export default function NewFarm() {
                   : ""}
               </div>
             )}
-
-            {!hasLocation &&
-              loadingSavedLocation && (
-                <div
-                  className="new-farm-readonly"
-                >
-                  ⏳ جاري تحميل الموقع المحفوظ للمزرعة...
-                </div>
-              )}
           </section>
 
           <section
