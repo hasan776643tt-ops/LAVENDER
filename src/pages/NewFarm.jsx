@@ -495,6 +495,157 @@ function getFarmId(farm) {
 
 
 // =========================================================
+// LOCATION FARM ID
+// =========================================================
+
+function getLocationFarmId(location) {
+  return (
+    location?.farmId ??
+    location?.farm_id ??
+    ""
+  );
+}
+
+
+// =========================================================
+// NORMALIZE MAP POINT
+// =========================================================
+
+function normalizeMapPoint(point) {
+  if (!point) {
+    return null;
+  }
+
+  const latitude =
+    point?.latitude ??
+    point?.lat;
+
+  const longitude =
+    point?.longitude ??
+    point?.lng ??
+    point?.lon;
+
+  const lat =
+    Number(latitude);
+
+  const lng =
+    Number(longitude);
+
+  if (
+    !Number.isFinite(lat) ||
+    !Number.isFinite(lng)
+  ) {
+    return null;
+  }
+
+  return {
+    latitude: lat,
+    longitude: lng,
+  };
+}
+
+
+// =========================================================
+// NORMALIZE LOCATION POINTS
+// =========================================================
+
+function normalizeLocationPoints(
+  location
+) {
+  const rawPoints =
+    Array.isArray(
+      location?.boundary
+    )
+      ? location.boundary
+      : Array.isArray(
+          location?.points
+        )
+        ? location.points
+        : [];
+
+  return rawPoints
+    .map(
+      normalizeMapPoint
+    )
+    .filter(Boolean);
+}
+
+
+// =========================================================
+// LOCATION CENTER
+// =========================================================
+
+function getLocationCenter(
+  location
+) {
+  const directLatitude =
+    Number(
+      location?.latitude
+    );
+
+  const directLongitude =
+    Number(
+      location?.longitude
+    );
+
+  if (
+    Number.isFinite(
+      directLatitude
+    ) &&
+    Number.isFinite(
+      directLongitude
+    )
+  ) {
+    return {
+      latitude:
+        directLatitude,
+
+      longitude:
+        directLongitude,
+    };
+  }
+
+  const points =
+    normalizeLocationPoints(
+      location
+    );
+
+  if (!points.length) {
+    return null;
+  }
+
+  const latitude =
+    points.reduce(
+      (
+        sum,
+        point
+      ) =>
+        sum +
+        point.latitude,
+      0
+    ) /
+    points.length;
+
+  const longitude =
+    points.reduce(
+      (
+        sum,
+        point
+      ) =>
+        sum +
+        point.longitude,
+      0
+    ) /
+    points.length;
+
+  return {
+    latitude,
+    longitude,
+  };
+}
+
+
+// =========================================================
 // COMPONENT
 // =========================================================
 
@@ -551,18 +702,31 @@ export default function NewFarm() {
     map?.country ?? "";
 
   const governorate =
-    map?.governorate ?? "";
+    map?.governorate ??
+    map?.province ??
+    map?.region ??
+    "";
 
   const city =
     map?.city ?? "";
 
   const village =
-    map?.village ?? "";
+    map?.village ??
+    map?.town ??
+    map?.placeName ??
+    "";
 
   const mapLoading =
     Boolean(
       map?.loading
     );
+
+  const locations =
+    Array.isArray(
+      map?.locations
+    )
+      ? map.locations
+      : [];
 
   const setMapFarmId =
     typeof map?.setFarmId === "function"
@@ -625,24 +789,130 @@ export default function NewFarm() {
 
 
   // =======================================================
+  // SAVED LOCATION FOR THIS FARM
+  // =======================================================
+
+  const savedLocation =
+    useMemo(
+      () => {
+        if (
+          !selectedFarmId ||
+          !Array.isArray(
+            locations
+          )
+        ) {
+          return null;
+        }
+
+        return (
+          locations.find(
+            location =>
+              String(
+                getLocationFarmId(
+                  location
+                )
+              ) ===
+              String(
+                selectedFarmId
+              )
+          ) ||
+          null
+        );
+      },
+      [
+        locations,
+        selectedFarmId,
+      ]
+    );
+
+
+  // =======================================================
+  // SAVED LOCATION POINTS
+  // =======================================================
+
+  const savedLocationPoints =
+    useMemo(
+      () =>
+        savedLocation
+          ? normalizeLocationPoints(
+              savedLocation
+            )
+          : [],
+      [
+        savedLocation,
+      ]
+    );
+
+
+  // =======================================================
+  // SAVED LOCATION CENTER
+  // =======================================================
+
+  const savedLocationCenter =
+    useMemo(
+      () =>
+        savedLocation
+          ? getLocationCenter(
+              savedLocation
+            )
+          : null,
+      [
+        savedLocation,
+      ]
+    );
+
+
+  // =======================================================
   // LOCATION
   // =======================================================
 
+  const effectiveLatitude =
+    savedLocation?.latitude ??
+    latitude ??
+    savedLocationCenter?.latitude ??
+    "";
+
+  const effectiveLongitude =
+    savedLocation?.longitude ??
+    longitude ??
+    savedLocationCenter?.longitude ??
+    "";
+
+
   const hasLocation =
-    Number.isFinite(
-      Number(latitude)
+    (
+      Number.isFinite(
+        Number(
+          effectiveLatitude
+        )
+      ) &&
+      Number.isFinite(
+        Number(
+          effectiveLongitude
+        )
+      )
     ) &&
-    Number.isFinite(
-      Number(longitude)
+    (
+      savedLocationPoints.length >= 3 ||
+      (
+        Array.isArray(boundary) &&
+        boundary.length >= 3
+      ) ||
+      (
+        Array.isArray(points) &&
+        points.length >= 3
+      )
     );
 
 
   const locationPointCount =
-    Array.isArray(boundary)
-      ? boundary.length
-      : Array.isArray(points)
-        ? points.length
-        : 0;
+    savedLocationPoints.length >= 3
+      ? savedLocationPoints.length
+      : Array.isArray(boundary)
+        ? boundary.length
+        : Array.isArray(points)
+          ? points.length
+          : 0;
 
 
   // =======================================================
@@ -650,24 +920,151 @@ export default function NewFarm() {
   // =======================================================
 
   const locationCountry =
-    country ||
-    draft.country ||
+    savedLocation?.country ??
+    country ??
+    draft.country ??
     "";
 
   const locationGovernorate =
-    governorate ||
-    draft.governorate ||
+    savedLocation?.governorate ??
+    savedLocation?.province ??
+    savedLocation?.region ??
+    governorate ??
+    draft.governorate ??
     "";
 
   const locationCity =
-    city ||
-    draft.city ||
+    savedLocation?.city ??
+    city ??
+    draft.city ??
     "";
 
   const locationVillage =
-    village ||
-    draft.village ||
+    savedLocation?.village ??
+    savedLocation?.town ??
+    savedLocation?.placeName ??
+    village ??
+    draft.village ??
     "";
+
+
+  // =======================================================
+  // AUTO LOAD SAVED LOCATION INTO DRAFT
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (!savedLocation) {
+        return;
+      }
+
+      setDraft(
+        previous => {
+          const next = {
+            ...previous,
+
+            farmId:
+              previous.farmId ||
+              String(
+                selectedFarmId
+              ),
+
+            country:
+              locationCountry ||
+              previous.country ||
+              "",
+
+            governorate:
+              locationGovernorate ||
+              previous.governorate ||
+              "",
+
+            city:
+              locationCity ||
+              previous.city ||
+              "",
+
+            village:
+              locationVillage ||
+              previous.village ||
+              "",
+          };
+
+          saveDraft(
+            next
+          );
+
+          return next;
+        }
+      );
+    },
+    [
+      savedLocation,
+      selectedFarmId,
+      locationCountry,
+      locationGovernorate,
+      locationCity,
+      locationVillage,
+    ]
+  );
+
+
+  // =======================================================
+  // MAP → DRAFT LOCATION
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (
+        !country &&
+        !governorate &&
+        !city &&
+        !village
+      ) {
+        return;
+      }
+
+      setDraft(
+        previous => {
+          const next = {
+            ...previous,
+
+            country:
+              country ||
+              previous.country ||
+              "",
+
+            governorate:
+              governorate ||
+              previous.governorate ||
+              "",
+
+            city:
+              city ||
+              previous.city ||
+              "",
+
+            village:
+              village ||
+              previous.village ||
+              "",
+          };
+
+          saveDraft(
+            next
+          );
+
+          return next;
+        }
+      );
+    },
+    [
+      country,
+      governorate,
+      city,
+      village,
+    ]
+  );
 
 
   // =======================================================
@@ -691,14 +1088,14 @@ export default function NewFarm() {
             locationVillage,
 
           latitude:
-            latitude,
+            effectiveLatitude,
         }),
       [
         locationCountry,
         locationGovernorate,
         locationCity,
         locationVillage,
-        latitude,
+        effectiveLatitude,
       ]
     );
 
@@ -784,64 +1181,6 @@ export default function NewFarm() {
     [
       urlFarmId,
       setMapFarmId,
-    ]
-  );
-
-
-  // =======================================================
-  // MAP → DRAFT LOCATION
-  // =======================================================
-
-  useEffect(
-    () => {
-      if (
-        !country &&
-        !governorate &&
-        !city &&
-        !village
-      ) {
-        return;
-      }
-
-      setDraft(
-        previous => {
-          const next = {
-            ...previous,
-
-            country:
-              country ||
-              previous.country ||
-              "",
-
-            governorate:
-              governorate ||
-              previous.governorate ||
-              "",
-
-            city:
-              city ||
-              previous.city ||
-              "",
-
-            village:
-              village ||
-              previous.village ||
-              "",
-          };
-
-          saveDraft(
-            next
-          );
-
-          return next;
-        }
-      );
-    },
-    [
-      country,
-      governorate,
-      city,
-      village,
     ]
   );
 
@@ -936,8 +1275,7 @@ export default function NewFarm() {
 
 
     // -------------------------------------------------------
-    // If this new farm already has an ID,
-    // continue directly to the map.
+    // EXISTING NEW FARM ID
     // -------------------------------------------------------
 
     if (selectedFarmId) {
@@ -954,7 +1292,9 @@ export default function NewFarm() {
           String(
             selectedFarmId
           )
-        )}&return=new-farm`
+        )}&return=new-farm&farmName=${encodeURIComponent(
+          farmName
+        )}`
       );
 
       return;
@@ -962,8 +1302,7 @@ export default function NewFarm() {
 
 
     // -------------------------------------------------------
-    // Create the NEW farm identity.
-    // Existing farms are never selected here.
+    // CREATE NEW FARM ID
     // -------------------------------------------------------
 
     setSavingFarm(
@@ -983,7 +1322,6 @@ export default function NewFarm() {
             "active",
         });
 
-
       const createdFarmId =
         getFarmId(
           createdFarm
@@ -999,7 +1337,6 @@ export default function NewFarm() {
         String(
           createdFarmId
         );
-
 
       const nextDraft = {
         ...draft,
@@ -1019,20 +1356,19 @@ export default function NewFarm() {
         nextDraft
       );
 
-
       if (setMapFarmId) {
         setMapFarmId(
           normalizedId
         );
       }
 
-
       navigate(
         `/map?farmId=${encodeURIComponent(
           normalizedId
-        )}&return=new-farm`
+        )}&return=new-farm&farmName=${encodeURIComponent(
+          farmName
+        )}`
       );
-
     } catch (err) {
       console.error(
         "Failed to create new farm:",
@@ -1042,7 +1378,6 @@ export default function NewFarm() {
       setError(
         "تعذر إنشاء المزرعة الجديدة. حاول مرة أخرى."
       );
-
     } finally {
       setSavingFarm(
         false
@@ -1063,13 +1398,11 @@ export default function NewFarm() {
     setError("");
     setSuccess("");
 
-
     const currentFarmId =
       draft.farmId ||
       urlFarmId ||
       mapFarmId ||
       "";
-
 
     // -------------------------------------------------------
     // FARM
@@ -1083,7 +1416,6 @@ export default function NewFarm() {
       return;
     }
 
-
     if (
       !draft.farmName.trim()
     ) {
@@ -1093,7 +1425,6 @@ export default function NewFarm() {
 
       return;
     }
-
 
     // -------------------------------------------------------
     // PROJECT
@@ -1109,7 +1440,6 @@ export default function NewFarm() {
       return;
     }
 
-
     if (
       !draft.plantType.trim()
     ) {
@@ -1119,7 +1449,6 @@ export default function NewFarm() {
 
       return;
     }
-
 
     if (
       !draft.seedType.trim()
@@ -1131,12 +1460,41 @@ export default function NewFarm() {
       return;
     }
 
-
     // -------------------------------------------------------
     // LOCATION
     // -------------------------------------------------------
 
-    if (!hasLocation) {
+    const finalPoints =
+      savedLocationPoints.length >= 3
+        ? savedLocationPoints
+        : Array.isArray(boundary) &&
+            boundary.length >= 3
+          ? boundary
+          : Array.isArray(points)
+            ? points
+            : [];
+
+    const finalLatitude =
+      Number(
+        effectiveLatitude
+      );
+
+    const finalLongitude =
+      Number(
+        effectiveLongitude
+      );
+
+    const validCoordinates =
+      Number.isFinite(
+        finalLatitude
+      ) &&
+      Number.isFinite(
+        finalLongitude
+      );
+
+    if (
+      !validCoordinates
+    ) {
       setError(
         "يجب تحديد موقع الحقل يدويًا من الخريطة أولًا."
       );
@@ -1144,9 +1502,8 @@ export default function NewFarm() {
       return;
     }
 
-
     if (
-      locationPointCount < 3
+      finalPoints.length < 3
     ) {
       setError(
         "يجب تحديد 3 نقاط حدود على الأقل في الخريطة."
@@ -1154,7 +1511,6 @@ export default function NewFarm() {
 
       return;
     }
-
 
     // -------------------------------------------------------
     // DATE
@@ -1170,7 +1526,6 @@ export default function NewFarm() {
       return;
     }
 
-
     if (
       !parseManualDate(
         draft.plantingDate
@@ -1183,11 +1538,9 @@ export default function NewFarm() {
       return;
     }
 
-
     setSavingCrop(
       true
     );
-
 
     try {
       const normalizedFarmId =
@@ -1206,16 +1559,6 @@ export default function NewFarm() {
 
       const plantingDate =
         draft.plantingDate.trim();
-
-
-      const locationBoundary =
-        Array.isArray(boundary) &&
-        boundary.length > 0
-          ? boundary
-          : Array.isArray(points)
-            ? points
-            : [];
-
 
       await addCrop({
         farmId:
@@ -1283,16 +1626,16 @@ export default function NewFarm() {
           0,
 
         latitude:
-          Number(latitude),
+          finalLatitude,
 
         longitude:
-          Number(longitude),
+          finalLongitude,
 
         boundary:
-          locationBoundary,
+          finalPoints,
 
         points:
-          locationBoundary,
+          finalPoints,
 
         country:
           locationCountry,
@@ -1319,13 +1662,11 @@ export default function NewFarm() {
           "active",
       });
 
-
       clearDraft();
 
       setSuccess(
         "تم حفظ المزرعة والمشروع الزراعي بنجاح."
       );
-
 
       setTimeout(
         () => {
@@ -1339,7 +1680,6 @@ export default function NewFarm() {
         },
         700
       );
-
     } catch (err) {
       console.error(
         "Failed to save agricultural project:",
@@ -1349,7 +1689,6 @@ export default function NewFarm() {
       setError(
         "تعذر حفظ المشروع الزراعي. حاول مرة أخرى."
       );
-
     } finally {
       setSavingCrop(
         false
@@ -1503,7 +1842,6 @@ export default function NewFarm() {
               🏡 معلومات المزرعة والمشروع
             </h2>
 
-
             <label
               htmlFor="farm-name"
               style={{
@@ -1522,7 +1860,6 @@ export default function NewFarm() {
             >
               🏡 اسم المزرعة الجديدة
             </label>
-
 
             <input
               id="farm-name"
@@ -1573,7 +1910,6 @@ export default function NewFarm() {
               }}
             />
 
-
             {draft.farmId && (
               <div
                 className="new-farm-readonly"
@@ -1619,7 +1955,6 @@ export default function NewFarm() {
               </div>
             )}
 
-
             <label
               htmlFor="project-name"
               style={{
@@ -1638,7 +1973,6 @@ export default function NewFarm() {
             >
               🌱 اسم المشروع الزراعي
             </label>
-
 
             <input
               id="project-name"
@@ -1689,7 +2023,6 @@ export default function NewFarm() {
               }}
             />
 
-
             <label
               htmlFor="plant-type"
               style={{
@@ -1708,7 +2041,6 @@ export default function NewFarm() {
             >
               🌾 نوع النبات المزروع
             </label>
-
 
             <input
               id="plant-type"
@@ -1759,7 +2091,6 @@ export default function NewFarm() {
               }}
             />
 
-
             <label
               htmlFor="seed-type"
               style={{
@@ -1778,7 +2109,6 @@ export default function NewFarm() {
             >
               🌱 نوع البذار المختار
             </label>
-
 
             <input
               id="seed-type"
@@ -1866,7 +2196,6 @@ export default function NewFarm() {
               🌍 موقع المزرعة والحقل
             </h2>
 
-
             <div
               className="new-farm-readonly"
               style={{
@@ -1892,7 +2221,6 @@ export default function NewFarm() {
               حدد موقع المزرعة يدويًا من الخريطة.
               لا يتم اختيار موقع تلقائيًا في هذه الخطوة.
             </div>
-
 
             <button
               type="button"
@@ -1943,7 +2271,6 @@ export default function NewFarm() {
                     : "🗺️ تحديد موقع المزرعة يدويًا من الخريطة"}
             </button>
 
-
             <label
               htmlFor="location-country"
               style={{
@@ -1956,7 +2283,6 @@ export default function NewFarm() {
             >
               الدولة
             </label>
-
 
             <input
               id="location-country"
@@ -1993,7 +2319,6 @@ export default function NewFarm() {
               }}
             />
 
-
             <label
               htmlFor="location-governorate"
               style={{
@@ -2006,7 +2331,6 @@ export default function NewFarm() {
             >
               المحافظة
             </label>
-
 
             <input
               id="location-governorate"
@@ -2043,7 +2367,6 @@ export default function NewFarm() {
               }}
             />
 
-
             <label
               htmlFor="location-city"
               style={{
@@ -2056,7 +2379,6 @@ export default function NewFarm() {
             >
               المدينة
             </label>
-
 
             <input
               id="location-city"
@@ -2093,7 +2415,6 @@ export default function NewFarm() {
               }}
             />
 
-
             <label
               htmlFor="location-village"
               style={{
@@ -2106,7 +2427,6 @@ export default function NewFarm() {
             >
               القرية / البلدة
             </label>
-
 
             <input
               id="location-village"
@@ -2142,7 +2462,6 @@ export default function NewFarm() {
                   "border-box",
               }}
             />
-
 
             {hasLocation && (
               <div
@@ -2208,7 +2527,6 @@ export default function NewFarm() {
               🌤️ المناخ والتوصيات
             </h2>
 
-
             <label
               style={{
                 fontSize:
@@ -2226,7 +2544,6 @@ export default function NewFarm() {
             >
               🌤️ المناخ
             </label>
-
 
             <div
               className="new-farm-readonly"
@@ -2267,7 +2584,6 @@ export default function NewFarm() {
                 : "سيظهر تقدير المناخ بعد تحديد الموقع."}
             </div>
 
-
             <label
               style={{
                 fontSize:
@@ -2285,7 +2601,6 @@ export default function NewFarm() {
             >
               💡 التوصيات الزراعية
             </label>
-
 
             <div
               className="new-farm-readonly"
@@ -2382,7 +2697,6 @@ export default function NewFarm() {
               📅 الزراعة وعمر النبات
             </h2>
 
-
             <label
               htmlFor="planting-date"
               style={{
@@ -2401,7 +2715,6 @@ export default function NewFarm() {
             >
               📅 تاريخ الزراعة
             </label>
-
 
             <input
               id="planting-date"
@@ -2453,7 +2766,6 @@ export default function NewFarm() {
               }}
             />
 
-
             <div
               style={{
                 fontSize:
@@ -2470,7 +2782,6 @@ export default function NewFarm() {
               مثال: 2,6,2026 أو 15.5.2024 أو
               15-5-2024 أو 15/5/2024 أو 15 5 2024.
             </div>
-
 
             <label
               style={{
@@ -2489,7 +2800,6 @@ export default function NewFarm() {
             >
               ⏳ عمر النبات
             </label>
-
 
             <div
               className="new-farm-readonly"
@@ -2566,7 +2876,6 @@ export default function NewFarm() {
               🌱 الكميات المستخدمة
             </h2>
 
-
             <label
               htmlFor="seed-quantity"
               style={{
@@ -2585,7 +2894,6 @@ export default function NewFarm() {
             >
               🌱 كمية البذار
             </label>
-
 
             <input
               id="seed-quantity"
@@ -2637,7 +2945,6 @@ export default function NewFarm() {
               }}
             />
 
-
             <label
               htmlFor="fertilizer-quantity"
               style={{
@@ -2656,7 +2963,6 @@ export default function NewFarm() {
             >
               🧪 كمية السماد
             </label>
-
 
             <input
               id="fertilizer-quantity"
@@ -2741,7 +3047,6 @@ export default function NewFarm() {
               ⚠️ {error}
             </div>
           )}
-
 
           {success && (
             <div
@@ -2833,7 +3138,6 @@ export default function NewFarm() {
                 : "💾 حفظ المزرعة والمشروع الزراعي"}
             </button>
 
-
             <button
               type="button"
               className="new-farm-cancel-button"
@@ -2873,7 +3177,6 @@ export default function NewFarm() {
               إلغاء
             </button>
           </div>
-
         </form>
       </div>
     </main>
