@@ -6,10 +6,12 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 
 import {
+  useLocation,
   useNavigate,
   useSearchParams,
 } from "react-router-dom";
@@ -350,24 +352,10 @@ function estimateClimate({
   village,
   latitude,
 }) {
-  const hasAdministrativeInfo =
-    Boolean(
-      String(country || "").trim() ||
-      String(governorate || "").trim() ||
-      String(city || "").trim() ||
-      String(village || "").trim()
-    );
-
-  if (!hasAdministrativeInfo) {
-    return {
-      text: "",
-      ready: false,
-    };
-  }
-
   const lat =
     Number(latitude);
 
+  // الموقع الجغرافي وحده يكفي لإظهار تقدير المناخ.
   if (
     Number.isFinite(lat)
   ) {
@@ -388,6 +376,21 @@ function estimateClimate({
     return {
       text: "مناخ حار",
       ready: true,
+    };
+  }
+
+  const hasAdministrativeInfo =
+    Boolean(
+      String(country || "").trim() ||
+      String(governorate || "").trim() ||
+      String(city || "").trim() ||
+      String(village || "").trim()
+    );
+
+  if (!hasAdministrativeInfo) {
+    return {
+      text: "",
+      ready: false,
     };
   }
 
@@ -528,20 +531,23 @@ function getLocationFarmId(
 
 
 // =========================================================
-// LOCATION VALUE
+// VALUE FROM OBJECT
 // =========================================================
 
-function getLocationValue(
-  location,
+function getValueFromObject(
+  object,
   keys
 ) {
-  if (!location) {
+  if (
+    !object ||
+    typeof object !== "object"
+  ) {
     return "";
   }
 
   for (const key of keys) {
     const value =
-      location?.[key];
+      object?.[key];
 
     if (
       value !== null &&
@@ -555,6 +561,132 @@ function getLocationValue(
   }
 
   return "";
+}
+
+
+// =========================================================
+// LOCATION VALUE
+// =========================================================
+
+function getLocationValue(
+  location,
+  keys
+) {
+  if (!location) {
+    return "";
+  }
+
+  const sources = [
+    location,
+    location?.address,
+    location?.administrative,
+    location?.administrativeInfo,
+    location?.reverseGeocode,
+    location?.reverseGeocoded,
+    location?.geocoding,
+    location?.geo,
+    location?.location,
+    location?.place,
+  ];
+
+  for (const source of sources) {
+    const value =
+      getValueFromObject(
+        source,
+        keys
+      );
+
+    if (value) {
+      return value;
+    }
+  }
+
+  return "";
+}
+
+
+// =========================================================
+// NORMALIZE ADMINISTRATIVE DATA
+// =========================================================
+
+function normalizeAdministrativeLocation(
+  location
+) {
+  if (!location) {
+    return {
+      country: "",
+      governorate: "",
+      city: "",
+      village: "",
+    };
+  }
+
+  return {
+    country:
+      getLocationValue(
+        location,
+        [
+          "country",
+          "countryName",
+          "country_name",
+        ]
+      ),
+
+    governorate:
+      getLocationValue(
+        location,
+        [
+          "governorate",
+          "governorateName",
+          "province",
+          "provinceName",
+          "region",
+          "regionName",
+          "state",
+          "stateName",
+          "state_district",
+          "stateDistrict",
+          "county",
+          "countyName",
+          "district",
+          "districtName",
+        ]
+      ),
+
+    city:
+      getLocationValue(
+        location,
+        [
+          "city",
+          "cityName",
+          "municipality",
+          "municipalityName",
+          "district",
+          "districtName",
+          "county",
+          "countyName",
+        ]
+      ),
+
+    village:
+      getLocationValue(
+        location,
+        [
+          "village",
+          "villageName",
+          "town",
+          "townName",
+          "suburb",
+          "suburbName",
+          "hamlet",
+          "hamletName",
+          "locality",
+          "localityName",
+          "placeName",
+          "place",
+        ]
+      ),
+  };
 }
 
 
@@ -637,36 +769,32 @@ function normalizeLocationPoints(
     return [];
   }
 
-  let rawPoints = [];
+  const candidates = [
+    location?.boundary,
+    location?.points,
+    location?.coordinates,
+    location?.polygon,
+  ];
 
-  if (
-    Array.isArray(
-      location?.boundary
-    )
-  ) {
-    rawPoints =
-      location.boundary;
-  } else if (
-    Array.isArray(
-      location?.points
-    )
-  ) {
-    rawPoints =
-      location.points;
-  } else if (
-    Array.isArray(
-      location?.coordinates
-    )
-  ) {
-    rawPoints =
-      location.coordinates;
+  for (const candidate of candidates) {
+    if (
+      Array.isArray(candidate) &&
+      candidate.length
+    ) {
+      const normalized =
+        candidate
+          .map(
+            normalizeMapPoint
+          )
+          .filter(Boolean);
+
+      if (normalized.length) {
+        return normalized;
+      }
+    }
   }
 
-  return rawPoints
-    .map(
-      normalizeMapPoint
-    )
-    .filter(Boolean);
+  return [];
 }
 
 
@@ -763,6 +891,9 @@ export default function NewFarm() {
   const navigate =
     useNavigate();
 
+  const routeLocation =
+    useLocation();
+
   const [
     searchParams,
   ] = useSearchParams();
@@ -779,7 +910,7 @@ export default function NewFarm() {
     useMap();
 
   // =======================================================
-  // MAP STATE
+  // MAP API
   // =======================================================
 
   const mapFarmId =
@@ -812,15 +943,21 @@ export default function NewFarm() {
     map?.governorate ??
     map?.province ??
     map?.region ??
+    map?.state ??
     "";
 
   const city =
-    map?.city ?? "";
+    map?.city ??
+    map?.municipality ??
+    "";
 
   const village =
     map?.village ??
     map?.town ??
+    map?.suburb ??
+    map?.hamlet ??
     map?.placeName ??
+    map?.place ??
     "";
 
   const mapLoading =
@@ -842,6 +979,18 @@ export default function NewFarm() {
       ? map.setFarmId
       : null;
 
+  const loadFarmLocation =
+    typeof map?.loadFarmLocation ===
+    "function"
+      ? map.loadFarmLocation
+      : null;
+
+  const reverseGeocode =
+    typeof map?.reverseGeocode ===
+    "function"
+      ? map.reverseGeocode
+      : null;
+
   // =======================================================
   // DRAFT
   // =======================================================
@@ -853,6 +1002,16 @@ export default function NewFarm() {
     () =>
       readDraft()
   );
+
+  const [
+    loadedLocation,
+    setLoadedLocation,
+  ] = useState(null);
+
+  const [
+    loadingSavedLocation,
+    setLoadingSavedLocation,
+  ] = useState(false);
 
   const [
     savingFarm,
@@ -874,6 +1033,9 @@ export default function NewFarm() {
     setSuccess,
   ] = useState("");
 
+  const reverseGeocodeAttempt =
+    useRef("");
+
   const urlFarmId =
     searchParams.get(
       "farmId"
@@ -890,43 +1052,141 @@ export default function NewFarm() {
     "";
 
   // =======================================================
+  // FORCE LOAD SAVED FARM LOCATION
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (
+        !selectedFarmId ||
+        !loadFarmLocation
+      ) {
+        return;
+      }
+
+      let active = true;
+
+      const load = async () => {
+        setLoadingSavedLocation(true);
+
+        try {
+          const result =
+            await loadFarmLocation(
+              String(
+                selectedFarmId
+              )
+            );
+
+          if (!active) {
+            return;
+          }
+
+          if (
+            result &&
+            typeof result ===
+              "object"
+          ) {
+            setLoadedLocation(
+              result
+            );
+          }
+        } catch (loadError) {
+          console.error(
+            "Failed to reload saved farm location:",
+            loadError
+          );
+        } finally {
+          if (active) {
+            setLoadingSavedLocation(
+              false
+            );
+          }
+        }
+      };
+
+      load();
+
+      return () => {
+        active = false;
+      };
+    },
+    [
+      selectedFarmId,
+      routeLocation.key,
+      routeLocation.pathname,
+      loadFarmLocation,
+    ]
+  );
+
+  // =======================================================
   // FIND SAVED LOCATION
   // =======================================================
 
   const savedLocation =
     useMemo(
       () => {
+        const candidates = [];
+
         if (
-          !selectedFarmId ||
-          !locations.length
+          loadedLocation &&
+          typeof loadedLocation ===
+            "object"
         ) {
+          candidates.push(
+            loadedLocation
+          );
+        }
+
+        if (
+          selectedFarmId &&
+          locations.length
+        ) {
+          const matches =
+            locations.filter(
+              location =>
+                String(
+                  getLocationFarmId(
+                    location
+                  )
+                ) ===
+                String(
+                  selectedFarmId
+                )
+            );
+
+          if (
+            matches.length
+          ) {
+            candidates.push(
+              matches[
+                matches.length - 1
+              ]
+            );
+          }
+        }
+
+        if (!candidates.length) {
           return null;
         }
 
-        const matches =
-          locations.filter(
+        const withLocation =
+          candidates.find(
             location =>
-              String(
-                getLocationFarmId(
-                  location
-                )
-              ) ===
-              String(
-                selectedFarmId
+              normalizeLocationPoints(
+                location
+              ).length >= 3 ||
+              getLocationCenter(
+                location
               )
           );
 
-        if (
-          !matches.length
-        ) {
-          return null;
-        }
-
-        return matches[
-          matches.length - 1
-        ];
+        return (
+          withLocation ||
+          candidates[0]
+        );
       },
       [
+        loadedLocation,
         locations,
         selectedFarmId,
       ]
@@ -968,12 +1228,12 @@ export default function NewFarm() {
 
   const effectiveLatitude =
     savedLocationCenter?.latitude ??
-    latitude ??
+    Number(latitude) ??
     "";
 
   const effectiveLongitude =
     savedLocationCenter?.longitude ??
-    longitude ??
+    Number(longitude) ??
     "";
 
   // =======================================================
@@ -1004,89 +1264,94 @@ export default function NewFarm() {
     currentBoundary.length >= 3;
 
   // =======================================================
-  // ADMINISTRATIVE LOCATION
+  // ADMINISTRATIVE DATA
   // =======================================================
 
-  const locationCountry =
-    getLocationValue(
-      savedLocation,
+  const savedAdministrative =
+    useMemo(
+      () =>
+        normalizeAdministrativeLocation(
+          savedLocation
+        ),
       [
-        "country",
-        "countryName",
-        "country_name",
+        savedLocation,
       ]
-    ) ||
-    cleanDraftValue(
-      country
-    ) ||
+    );
+
+  const mapAdministrative =
+    useMemo(
+      () =>
+        normalizeAdministrativeLocation({
+          country,
+          governorate,
+          province:
+            map?.province,
+          region:
+            map?.region,
+          state:
+            map?.state,
+          city,
+          municipality:
+            map?.municipality,
+          village,
+          town:
+            map?.town,
+          suburb:
+            map?.suburb,
+          hamlet:
+            map?.hamlet,
+          placeName:
+            map?.placeName,
+          place:
+            map?.place,
+        }),
+      [
+        country,
+        governorate,
+        city,
+        village,
+        map?.province,
+        map?.region,
+        map?.state,
+        map?.municipality,
+        map?.town,
+        map?.suburb,
+        map?.hamlet,
+        map?.placeName,
+        map?.place,
+      ]
+    );
+
+  const locationCountry =
+    savedAdministrative.country ||
+    mapAdministrative.country ||
     cleanDraftValue(
       draft.country
     );
 
   const locationGovernorate =
-    getLocationValue(
-      savedLocation,
-      [
-        "governorate",
-        "governorateName",
-        "province",
-        "provinceName",
-        "region",
-        "regionName",
-        "state",
-        "stateName",
-      ]
-    ) ||
-    cleanDraftValue(
-      governorate
-    ) ||
+    savedAdministrative.governorate ||
+    mapAdministrative.governorate ||
     cleanDraftValue(
       draft.governorate
     );
 
   const locationCity =
-    getLocationValue(
-      savedLocation,
-      [
-        "city",
-        "cityName",
-        "municipality",
-        "municipalityName",
-      ]
-    ) ||
-    cleanDraftValue(
-      city
-    ) ||
+    savedAdministrative.city ||
+    mapAdministrative.city ||
     cleanDraftValue(
       draft.city
     );
 
   const locationVillage =
-    getLocationValue(
-      savedLocation,
-      [
-        "village",
-        "villageName",
-        "town",
-        "townName",
-        "suburb",
-        "suburbName",
-        "hamlet",
-        "hamletName",
-        "placeName",
-        "place",
-      ]
-    ) ||
-    cleanDraftValue(
-      village
-    ) ||
+    savedAdministrative.village ||
+    mapAdministrative.village ||
     cleanDraftValue(
       draft.village
     );
 
   // =======================================================
-  // IMPORTANT:
-  // SAVED LOCATION → FORM
+  // SAVED LOCATION → DRAFT
   // =======================================================
 
   useEffect(
@@ -1097,88 +1362,58 @@ export default function NewFarm() {
         return;
       }
 
-      const nextCountry =
-        getLocationValue(
-          savedLocation,
-          [
-            "country",
-            "countryName",
-            "country_name",
-          ]
+      const admin =
+        normalizeAdministrativeLocation(
+          savedLocation
         );
+
+      const fallback =
+        normalizeAdministrativeLocation({
+          country,
+          governorate,
+          province:
+            map?.province,
+          region:
+            map?.region,
+          state:
+            map?.state,
+          city,
+          municipality:
+            map?.municipality,
+          village,
+          town:
+            map?.town,
+          suburb:
+            map?.suburb,
+          hamlet:
+            map?.hamlet,
+          placeName:
+            map?.placeName,
+          place:
+            map?.place,
+        });
+
+      const nextCountry =
+        admin.country ||
+        fallback.country;
 
       const nextGovernorate =
-        getLocationValue(
-          savedLocation,
-          [
-            "governorate",
-            "governorateName",
-            "province",
-            "provinceName",
-            "region",
-            "regionName",
-            "state",
-            "stateName",
-          ]
-        );
+        admin.governorate ||
+        fallback.governorate;
 
       const nextCity =
-        getLocationValue(
-          savedLocation,
-          [
-            "city",
-            "cityName",
-            "municipality",
-            "municipalityName",
-          ]
-        );
+        admin.city ||
+        fallback.city;
 
       const nextVillage =
-        getLocationValue(
-          savedLocation,
-          [
-            "village",
-            "villageName",
-            "town",
-            "townName",
-            "suburb",
-            "suburbName",
-            "hamlet",
-            "hamletName",
-            "placeName",
-            "place",
-          ]
-        );
-
-      const fallbackCountry =
-        cleanDraftValue(
-          country
-        );
-
-      const fallbackGovernorate =
-        cleanDraftValue(
-          governorate
-        );
-
-      const fallbackCity =
-        cleanDraftValue(
-          city
-        );
-
-      const fallbackVillage =
-        cleanDraftValue(
-          village
-        );
+        admin.village ||
+        fallback.village;
 
       if (
         !nextCountry &&
         !nextGovernorate &&
         !nextCity &&
-        !nextVillage &&
-        !fallbackCountry &&
-        !fallbackGovernorate &&
-        !fallbackCity &&
-        !fallbackVillage
+        !nextVillage
       ) {
         return;
       }
@@ -1196,28 +1431,35 @@ export default function NewFarm() {
 
             country:
               nextCountry ||
-              fallbackCountry ||
               previous.country ||
               "",
 
             governorate:
               nextGovernorate ||
-              fallbackGovernorate ||
               previous.governorate ||
               "",
 
             city:
               nextCity ||
-              fallbackCity ||
               previous.city ||
               "",
 
             village:
               nextVillage ||
-              fallbackVillage ||
               previous.village ||
               "",
           };
+
+          if (
+            JSON.stringify(
+              next
+            ) ===
+            JSON.stringify(
+              previous
+            )
+          ) {
+            return previous;
+          }
 
           saveDraft(
             next
@@ -1234,6 +1476,159 @@ export default function NewFarm() {
       governorate,
       city,
       village,
+      map?.province,
+      map?.region,
+      map?.state,
+      map?.municipality,
+      map?.town,
+      map?.suburb,
+      map?.hamlet,
+      map?.placeName,
+      map?.place,
+    ]
+  );
+
+  // =======================================================
+  // FALLBACK REVERSE GEOCODING
+  // =======================================================
+
+  useEffect(
+    () => {
+      const lat =
+        Number(
+          effectiveLatitude
+        );
+
+      const lng =
+        Number(
+          effectiveLongitude
+        );
+
+      if (
+        !selectedFarmId ||
+        !reverseGeocode ||
+        !Number.isFinite(lat) ||
+        !Number.isFinite(lng)
+      ) {
+        return;
+      }
+
+      const alreadyHasAdministrativeData =
+        Boolean(
+          locationCountry ||
+          locationGovernorate ||
+          locationCity ||
+          locationVillage
+        );
+
+      if (
+        alreadyHasAdministrativeData
+      ) {
+        return;
+      }
+
+      const attemptKey =
+        `${selectedFarmId}:${lat.toFixed(
+          6
+        )}:${lng.toFixed(
+          6
+        )}`;
+
+      if (
+        reverseGeocodeAttempt.current ===
+        attemptKey
+      ) {
+        return;
+      }
+
+      reverseGeocodeAttempt.current =
+        attemptKey;
+
+      let active = true;
+
+      const runReverseGeocode =
+        async () => {
+          try {
+            const result =
+              await reverseGeocode(
+                lat,
+                lng
+              );
+
+            if (!active) {
+              return;
+            }
+
+            const admin =
+              normalizeAdministrativeLocation(
+                result
+              );
+
+            if (
+              !admin.country &&
+              !admin.governorate &&
+              !admin.city &&
+              !admin.village
+            ) {
+              return;
+            }
+
+            setDraft(
+              previous => {
+                const next = {
+                  ...previous,
+
+                  country:
+                    admin.country ||
+                    previous.country ||
+                    "",
+
+                  governorate:
+                    admin.governorate ||
+                    previous.governorate ||
+                    "",
+
+                  city:
+                    admin.city ||
+                    previous.city ||
+                    "",
+
+                  village:
+                    admin.village ||
+                    previous.village ||
+                    "",
+                };
+
+                saveDraft(
+                  next
+                );
+
+                return next;
+              }
+            );
+          } catch (reverseError) {
+            console.error(
+              "Fallback reverse geocoding failed:",
+              reverseError
+            );
+          }
+        };
+
+      runReverseGeocode();
+
+      return () => {
+        active = false;
+      };
+    },
+    [
+      selectedFarmId,
+      effectiveLatitude,
+      effectiveLongitude,
+      locationCountry,
+      locationGovernorate,
+      locationCity,
+      locationVillage,
+      reverseGeocode,
     ]
   );
 
@@ -1479,7 +1874,7 @@ export default function NewFarm() {
     }
 
     // -----------------------------------------------------
-    // EXISTING TEMPORARY FARM ID
+    // EXISTING FARM ID CREATED FOR THIS NEW FARM
     // -----------------------------------------------------
 
     if (
@@ -2158,11 +2553,13 @@ export default function NewFarm() {
             >
               {savingFarm
                 ? "جاري إنشاء المزرعة الجديدة..."
-                : mapLoading
-                  ? "جاري قراءة الموقع..."
-                  : hasLocation
-                    ? "🗺️ تعديل موقع المزرعة"
-                    : "🗺️ تحديد موقع المزرعة يدويًا من الخريطة"}
+                : loadingSavedLocation
+                  ? "جاري تحميل موقع المزرعة..."
+                  : mapLoading
+                    ? "جاري قراءة الموقع..."
+                    : hasLocation
+                      ? "🗺️ تعديل موقع المزرعة"
+                      : "🗺️ تحديد موقع المزرعة يدويًا من الخريطة"}
             </button>
 
             <label
@@ -2239,6 +2636,15 @@ export default function NewFarm() {
                   : ""}
               </div>
             )}
+
+            {!hasLocation &&
+              loadingSavedLocation && (
+                <div
+                  className="new-farm-readonly"
+                >
+                  ⏳ جاري تحميل الموقع المحفوظ للمزرعة...
+                </div>
+              )}
           </section>
 
           <section
