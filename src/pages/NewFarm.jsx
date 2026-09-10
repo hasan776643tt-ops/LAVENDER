@@ -532,7 +532,7 @@ function getLocationFarmId(
 
 
 // =========================================================
-// LOCATION SOURCE
+// LOCATION SOURCES
 // =========================================================
 
 function getLocationSources(
@@ -545,15 +545,23 @@ function getLocationSources(
     return [];
   }
 
-  return [
+  const sources = [
     location,
     location.address,
     location.administrative,
     location.reverseGeocode,
+    location.reverse_geocode,
     location.geocoding,
     location.location,
     location.geo,
-  ].filter(
+    location.properties,
+    location.properties?.address,
+    location.properties?.administrative,
+    location.result,
+    location.result?.address,
+  ];
+
+  return sources.filter(
     source =>
       source &&
       typeof source === "object"
@@ -623,14 +631,22 @@ function normalizeAdministrativeLocation(
         [
           "governorate",
           "governorateName",
+          "governorate_name",
           "province",
           "provinceName",
+          "province_name",
           "region",
           "regionName",
+          "region_name",
           "state",
           "stateName",
+          "state_name",
           "state_district",
+          "stateDistrict",
           "county",
+          "countyName",
+          "district",
+          "districtName",
         ]
       ),
 
@@ -640,12 +656,15 @@ function normalizeAdministrativeLocation(
         [
           "city",
           "cityName",
+          "city_name",
           "municipality",
           "municipalityName",
+          "municipality_name",
           "city_district",
+          "cityDistrict",
           "locality",
-          "county",
-          "district",
+          "localityName",
+          "locality_name",
         ]
       ),
 
@@ -655,20 +674,85 @@ function normalizeAdministrativeLocation(
         [
           "village",
           "villageName",
+          "village_name",
           "town",
           "townName",
+          "town_name",
           "suburb",
           "suburbName",
+          "suburb_name",
           "hamlet",
           "hamletName",
+          "hamlet_name",
           "locality",
+          "localityName",
           "neighbourhood",
           "neighborhood",
           "placeName",
+          "place_name",
           "place",
         ]
       ),
   };
+}
+
+
+// =========================================================
+// MERGE ADMINISTRATIVE LOCATION
+// =========================================================
+
+function mergeAdministrativeLocation(
+  ...locationsToMerge
+) {
+  const result = {
+    country: "",
+    governorate: "",
+    city: "",
+    village: "",
+  };
+
+  for (
+    const location of locationsToMerge
+  ) {
+    const normalized =
+      normalizeAdministrativeLocation(
+        location
+      );
+
+    if (
+      !result.country &&
+      normalized.country
+    ) {
+      result.country =
+        normalized.country;
+    }
+
+    if (
+      !result.governorate &&
+      normalized.governorate
+    ) {
+      result.governorate =
+        normalized.governorate;
+    }
+
+    if (
+      !result.city &&
+      normalized.city
+    ) {
+      result.city =
+        normalized.city;
+    }
+
+    if (
+      !result.village &&
+      normalized.village
+    ) {
+      result.village =
+        normalized.village;
+    }
+  }
+
+  return result;
 }
 
 
@@ -774,6 +858,13 @@ function normalizeLocationPoints(
   ) {
     rawPoints =
       location.coordinates;
+  } else if (
+    Array.isArray(
+      location?.geometry?.coordinates
+    )
+  ) {
+    rawPoints =
+      location.geometry.coordinates;
   }
 
   return rawPoints
@@ -975,6 +1066,19 @@ export default function NewFarm() {
       : null;
 
   // =======================================================
+  // LOCAL LOADED LOCATION
+  //
+  // مهم:
+  // Map و NewFarm يملكان نسختين منفصلتين من useMap.
+  // لذلك نحفظ نتيجة loadFarmLocation محليًا.
+  // =======================================================
+
+  const [
+    loadedLocation,
+    setLoadedLocation,
+  ] = useState(null);
+
+  // =======================================================
   // DRAFT
   // =======================================================
 
@@ -1071,42 +1175,44 @@ export default function NewFarm() {
     );
 
   // =======================================================
+  // EFFECTIVE SAVED LOCATION
+  //
+  // نعطي الأولوية للموقع الذي تم تحميله مباشرة من repository.
+  // =======================================================
+
+  const effectiveSavedLocation =
+    loadedLocation ||
+    savedLocation;
+
+  // =======================================================
   // HOOK ADMINISTRATIVE DATA
   // =======================================================
 
   const hookAdministrativeLocation =
     useMemo(
-      () => {
-        if (
-          !administrative
-        ) {
-          return null;
-        }
-
-        return {
-          country:
-            administrative.country ||
-            "",
-
-          governorate:
-            administrative.governorate ||
-            administrative.province ||
-            administrative.region ||
-            "",
-
-          city:
-            administrative.city ||
-            "",
-
-          village:
-            administrative.village ||
-            administrative.town ||
-            administrative.placeName ||
-            "",
-        };
-      },
+      () =>
+        mergeAdministrativeLocation(
+          administrative
+        ),
       [
         administrative,
+      ]
+    );
+
+  // =======================================================
+  // LOADED ADMINISTRATIVE DATA
+  // =======================================================
+
+  const loadedAdministrativeLocation =
+    useMemo(
+      () =>
+        mergeAdministrativeLocation(
+          effectiveSavedLocation,
+          loadedLocation
+        ),
+      [
+        effectiveSavedLocation,
+        loadedLocation,
       ]
     );
 
@@ -1118,10 +1224,10 @@ export default function NewFarm() {
     useMemo(
       () =>
         normalizeLocationPoints(
-          savedLocation
+          effectiveSavedLocation
         ),
       [
-        savedLocation,
+        effectiveSavedLocation,
       ]
     );
 
@@ -1133,10 +1239,10 @@ export default function NewFarm() {
     useMemo(
       () =>
         getLocationCenter(
-          savedLocation
+          effectiveSavedLocation
         ),
       [
-        savedLocation,
+        effectiveSavedLocation,
       ]
     );
 
@@ -1201,59 +1307,61 @@ export default function NewFarm() {
   // ADMINISTRATIVE LOCATION
   // =======================================================
 
-  const savedAdministrative =
+  const locationAdministrative =
     useMemo(
       () =>
-        normalizeAdministrativeLocation(
-          savedLocation
+        mergeAdministrativeLocation(
+          effectiveSavedLocation,
+          loadedLocation,
+          administrative,
+          {
+            country,
+            governorate,
+            city,
+            village,
+          },
+          draft
         ),
       [
-        savedLocation,
+        effectiveSavedLocation,
+        loadedLocation,
+        administrative,
+        country,
+        governorate,
+        city,
+        village,
+        draft.country,
+        draft.governorate,
+        draft.city,
+        draft.village,
       ]
     );
 
   const locationCountry =
-    savedAdministrative.country ||
-    hookAdministrativeLocation?.country ||
     cleanDraftValue(
-      country
-    ) ||
-    cleanDraftValue(
-      draft.country
+      locationAdministrative.country
     );
 
   const locationGovernorate =
-    savedAdministrative.governorate ||
-    hookAdministrativeLocation?.governorate ||
     cleanDraftValue(
-      governorate
-    ) ||
-    cleanDraftValue(
-      draft.governorate
+      locationAdministrative.governorate
     );
 
   const locationCity =
-    savedAdministrative.city ||
-    hookAdministrativeLocation?.city ||
     cleanDraftValue(
-      city
-    ) ||
-    cleanDraftValue(
-      draft.city
+      locationAdministrative.city
     );
 
   const locationVillage =
-    savedAdministrative.village ||
-    hookAdministrativeLocation?.village ||
     cleanDraftValue(
-      village
-    ) ||
-    cleanDraftValue(
-      draft.village
+      locationAdministrative.village
     );
 
   // =======================================================
   // LOAD FARM LOCATION DIRECTLY
+  //
+  // عند الرجوع من Map:
+  // نعيد تحميل الموقع من المصدر الحقيقي بواسطة farmId.
   // =======================================================
 
   useEffect(
@@ -1267,73 +1375,81 @@ export default function NewFarm() {
 
       let active = true;
 
+      const farmId =
+        String(
+          selectedFarmId
+        );
+
       const load =
         async () => {
           try {
             const loaded =
               await loadFarmLocation(
-                String(
-                  selectedFarmId
-                )
+                farmId
               );
 
             if (
-              !active ||
-              !loaded
+              !active
             ) {
               return;
             }
 
-            const admin =
-              normalizeAdministrativeLocation(
+            if (
+              loaded
+            ) {
+              setLoadedLocation(
                 loaded
               );
 
-            if (
-              admin.country ||
-              admin.governorate ||
-              admin.city ||
-              admin.village
-            ) {
-              setDraft(
-                previous => {
-                  const next = {
-                    ...previous,
+              const admin =
+                mergeAdministrativeLocation(
+                  loaded
+                );
 
-                    farmId:
-                      previous.farmId ||
-                      String(
-                        selectedFarmId
-                      ),
+              if (
+                admin.country ||
+                admin.governorate ||
+                admin.city ||
+                admin.village
+              ) {
+                setDraft(
+                  previous => {
+                    const next = {
+                      ...previous,
 
-                    country:
-                      admin.country ||
-                      previous.country ||
-                      "",
+                      farmId:
+                        previous.farmId ||
+                        farmId,
 
-                    governorate:
-                      admin.governorate ||
-                      previous.governorate ||
-                      "",
+                      country:
+                        admin.country ||
+                        previous.country ||
+                        "",
 
-                    city:
-                      admin.city ||
-                      previous.city ||
-                      "",
+                      governorate:
+                        admin.governorate ||
+                        previous.governorate ||
+                        "",
 
-                    village:
-                      admin.village ||
-                      previous.village ||
-                      "",
-                  };
+                      city:
+                        admin.city ||
+                        previous.city ||
+                        "",
 
-                  saveDraft(
-                    next
-                  );
+                      village:
+                        admin.village ||
+                        previous.village ||
+                        "",
+                    };
 
-                  return next;
-                }
-              );
+                    saveDraft(
+                      next
+                    );
+
+                    return next;
+                  }
+                );
+              }
             }
           } catch (loadError) {
             console.warn(
@@ -1436,7 +1552,7 @@ export default function NewFarm() {
             }
 
             const admin =
-              normalizeAdministrativeLocation(
+              mergeAdministrativeLocation(
                 result
               );
 
@@ -1448,6 +1564,13 @@ export default function NewFarm() {
             ) {
               return;
             }
+
+            setLoadedLocation(
+              previous => ({
+                ...(previous || {}),
+                ...result,
+              })
+            );
 
             setDraft(
               previous => {
@@ -1526,23 +1649,11 @@ export default function NewFarm() {
         return;
       }
 
-      const nextCountry =
-        locationCountry;
-
-      const nextGovernorate =
-        locationGovernorate;
-
-      const nextCity =
-        locationCity;
-
-      const nextVillage =
-        locationVillage;
-
       if (
-        !nextCountry &&
-        !nextGovernorate &&
-        !nextCity &&
-        !nextVillage
+        !locationCountry &&
+        !locationGovernorate &&
+        !locationCity &&
+        !locationVillage
       ) {
         return;
       }
@@ -1559,22 +1670,22 @@ export default function NewFarm() {
               ),
 
             country:
-              nextCountry ||
+              locationCountry ||
               previous.country ||
               "",
 
             governorate:
-              nextGovernorate ||
+              locationGovernorate ||
               previous.governorate ||
               "",
 
             city:
-              nextCity ||
+              locationCity ||
               previous.city ||
               "",
 
             village:
-              nextVillage ||
+              locationVillage ||
               previous.village ||
               "",
           };
