@@ -23,8 +23,6 @@ import {
   useMapEvents,
 } from "react-leaflet";
 
-import L from "leaflet";
-
 import "leaflet/dist/leaflet.css";
 import "../styles/Map.css";
 
@@ -44,7 +42,10 @@ import {
 // CONSTANTS
 // =========================================================
 
-const DEFAULT_POSITION = [36.7, 38.7];
+const DEFAULT_POSITION = [
+  36.7,
+  38.7,
+];
 
 const DEFAULT_ZOOM = 14;
 const GPS_ZOOM = 18;
@@ -61,12 +62,20 @@ const GPS_ACCEPTABLE_ACCURACY = 100;
 // =========================================================
 
 function cleanString(value) {
-  return String(value ?? "").trim();
+  return String(
+    value ?? ""
+  ).trim();
 }
 
-function isValidCoordinate(lat, lng) {
-  const latitude = Number(lat);
-  const longitude = Number(lng);
+function isValidCoordinate(
+  lat,
+  lng
+) {
+  const latitude =
+    Number(lat);
+
+  const longitude =
+    Number(lng);
 
   return (
     Number.isFinite(latitude) &&
@@ -79,20 +88,27 @@ function isValidCoordinate(lat, lng) {
 }
 
 function normalizePoint(point) {
-  if (!point) return null;
+  if (!point) {
+    return null;
+  }
 
   const latitude =
-    point.latitude ??
-    point.lat ??
-    point.y;
+    point?.latitude ??
+    point?.lat ??
+    point?.y;
 
   const longitude =
-    point.longitude ??
-    point.lng ??
-    point.lon ??
-    point.x;
+    point?.longitude ??
+    point?.lng ??
+    point?.lon ??
+    point?.x;
 
-  if (!isValidCoordinate(latitude, longitude)) {
+  if (
+    !isValidCoordinate(
+      latitude,
+      longitude
+    )
+  ) {
     return null;
   }
 
@@ -108,87 +124,142 @@ function normalizePoints(points) {
   }
 
   return points
-    .map(normalizePoint)
+    .map(
+      normalizePoint
+    )
     .filter(Boolean);
 }
 
-function getCenterFromPoints(points) {
-  const normalized = normalizePoints(points);
+function getCenterFromPoints(
+  points
+) {
+  const normalized =
+    normalizePoints(
+      points
+    );
 
   if (!normalized.length) {
     return DEFAULT_POSITION;
   }
 
   try {
-    if (typeof calculateCenter === "function") {
-      const center = calculateCenter(normalized);
+    if (
+      typeof calculateCenter ===
+      "function"
+    ) {
+      const center =
+        calculateCenter(
+          normalized
+        );
 
-      const normalizedCenter = normalizePoint(center);
+      const normalizedCenter =
+        normalizePoint(
+          center
+        );
 
       if (normalizedCenter) {
         return normalizedCenter;
       }
     }
   } catch {
-    // fallback below
+    // fallback
   }
 
-  const lat =
+  const latitude =
     normalized.reduce(
-      (sum, point) => sum + point[0],
+      (
+        sum,
+        point
+      ) =>
+        sum + point[0],
       0
-    ) / normalized.length;
+    ) /
+    normalized.length;
 
-  const lng =
+  const longitude =
     normalized.reduce(
-      (sum, point) => sum + point[1],
+      (
+        sum,
+        point
+      ) =>
+        sum + point[1],
       0
-    ) / normalized.length;
+    ) /
+    normalized.length;
 
-  return [lat, lng];
+  return [
+    latitude,
+    longitude,
+  ];
 }
 
-function getMapLocationCenter(location) {
+function getMapLocationCenter(
+  location
+) {
   if (!location) {
     return null;
   }
 
-  const direct = normalizePoint(location);
+  const direct =
+    normalizePoint(
+      location
+    );
 
   if (direct) {
     return direct;
   }
 
-  const center = normalizePoint({
-    latitude:
-      location.latitude ??
-      location.center?.latitude ??
-      location.center?.lat ??
-      location.lat,
+  const center =
+    normalizePoint({
+      latitude:
+        location?.latitude ??
+        location?.center?.latitude ??
+        location?.center?.lat ??
+        location?.lat,
 
-    longitude:
-      location.longitude ??
-      location.center?.longitude ??
-      location.center?.lng ??
-      location.lng,
-  });
+      longitude:
+        location?.longitude ??
+        location?.center?.longitude ??
+        location?.center?.lng ??
+        location?.lng,
+    });
 
   if (center) {
     return center;
   }
 
   const points =
-    location.points ??
-    location.boundary ??
+    location?.points ??
+    location?.boundary ??
+    location?.coordinates ??
     [];
 
-  const normalized = normalizePoints(points);
+  const normalized =
+    normalizePoints(
+      points
+    );
 
   if (normalized.length) {
-    return getCenterFromPoints(normalized);
+    return getCenterFromPoints(
+      normalized
+    );
   }
 
   return null;
+}
+
+function getLocationFarmId(
+  location
+) {
+  return (
+    location?.farmId ??
+    location?.farm_id ??
+    location?.farmID ??
+    location?.farm?.id ??
+    location?.farm?._id ??
+    location?.farm?.farmId ??
+    ""
+  );
 }
 
 
@@ -228,15 +299,26 @@ function MapLayers() {
 // =========================================================
 
 function MapResizeHandler() {
-  const map = useMap();
+  const map =
+    useMap();
 
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      map.invalidateSize();
-    }, 200);
+  useEffect(
+    () => {
+      const timer =
+        setTimeout(
+          () => {
+            map.invalidateSize();
+          },
+          200
+        );
 
-    return () => clearTimeout(timer);
-  }, [map]);
+      return () =>
+        clearTimeout(
+          timer
+        );
+    },
+    [map]
+  );
 
   return null;
 }
@@ -246,46 +328,87 @@ function MapResizeHandler() {
 // MAP CENTER CONTROLLER
 // =========================================================
 
-function MapCenterController({ center, zoom }) {
-  const map = useMap();
+function MapCenterController({
+  center,
+  zoom,
+}) {
+  const map =
+    useMap();
 
-  const lastCenterRef = useRef(null);
+  const lastCenterRef =
+    useRef(null);
 
-  useEffect(() => {
-    if (!center || !Array.isArray(center)) {
-      return;
-    }
-
-    const lat = Number(center[0]);
-    const lng = Number(center[1]);
-
-    if (!isValidCoordinate(lat, lng)) {
-      return;
-    }
-
-    const key = `${lat.toFixed(7)}:${lng.toFixed(7)}:${zoom}`;
-
-    if (lastCenterRef.current === key) {
-      return;
-    }
-
-    lastCenterRef.current = key;
-
-    map.setView(
-      [lat, lng],
-      zoom ?? map.getZoom(),
-      {
-        animate: true,
+  useEffect(
+    () => {
+      if (
+        !center ||
+        !Array.isArray(center)
+      ) {
+        return;
       }
-    );
-  }, [center, zoom, map]);
+
+      const latitude =
+        Number(
+          center[0]
+        );
+
+      const longitude =
+        Number(
+          center[1]
+        );
+
+      if (
+        !isValidCoordinate(
+          latitude,
+          longitude
+        )
+      ) {
+        return;
+      }
+
+      const key =
+        `${latitude.toFixed(
+          7
+        )}:${longitude.toFixed(
+          7
+        )}:${zoom}`;
+
+      if (
+        lastCenterRef.current ===
+        key
+      ) {
+        return;
+      }
+
+      lastCenterRef.current =
+        key;
+
+      map.setView(
+        [
+          latitude,
+          longitude,
+        ],
+        zoom ??
+          map.getZoom(),
+        {
+          animate:
+            true,
+        }
+      );
+    },
+    [
+      center,
+      zoom,
+      map,
+    ]
+  );
 
   return null;
 }
 
 
 // =========================================================
-// MANUAL BOUNDARY POINT SELECTOR
+// MANUAL BOUNDARY SELECTOR
 // =========================================================
 
 function BoundaryPointSelector({
@@ -309,221 +432,6 @@ function BoundaryPointSelector({
 
 
 // =========================================================
-// GPS CONTROLLER
-// =========================================================
-
-function GPSController({
-  onLocation,
-  onError,
-  active,
-}) {
-  const attemptsRef = useRef(0);
-  const bestPositionRef = useRef(null);
-  const timerRef = useRef(null);
-
-  useEffect(() => {
-    if (!active) {
-      return undefined;
-    }
-
-    if (
-      typeof navigator === "undefined" ||
-      !navigator.geolocation
-    ) {
-      onError?.(
-        "GPS غير متوفر على هذا الجهاز."
-      );
-
-      return undefined;
-    }
-
-    let cancelled = false;
-
-    attemptsRef.current = 0;
-    bestPositionRef.current = null;
-
-    const clearRetry = () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-        timerRef.current = null;
-      }
-    };
-
-    const finishWithBest = () => {
-      if (cancelled) {
-        return;
-      }
-
-      if (bestPositionRef.current) {
-        onLocation?.(
-          bestPositionRef.current
-        );
-
-        return;
-      }
-
-      onError?.(
-        "تعذر الحصول على موقع الهاتف."
-      );
-    };
-
-    const request = () => {
-      if (cancelled) {
-        return;
-      }
-
-      attemptsRef.current += 1;
-
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          if (cancelled) {
-            return;
-          }
-
-          const latitude =
-            position?.coords?.latitude;
-
-          const longitude =
-            position?.coords?.longitude;
-
-          const accuracy =
-            position?.coords?.accuracy;
-
-          if (
-            !isValidCoordinate(
-              latitude,
-              longitude
-            )
-          ) {
-            if (
-              attemptsRef.current <
-              GPS_MAX_ATTEMPTS
-            ) {
-              timerRef.current =
-                setTimeout(
-                  request,
-                  GPS_RETRY_WAIT
-                );
-            } else {
-              finishWithBest();
-            }
-
-            return;
-          }
-
-          const current = {
-            latitude: Number(latitude),
-            longitude: Number(longitude),
-            accuracy:
-              Number.isFinite(
-                Number(accuracy)
-              )
-                ? Number(accuracy)
-                : null,
-          };
-
-          const previous =
-            bestPositionRef.current;
-
-          if (
-            !previous ||
-            (
-              current.accuracy != null &&
-              (
-                previous.accuracy == null ||
-                current.accuracy <
-                  previous.accuracy
-              )
-            )
-          ) {
-            bestPositionRef.current =
-              current;
-          }
-
-          if (
-            current.accuracy != null &&
-            current.accuracy <=
-              GPS_GOOD_ACCURACY
-          ) {
-            onLocation?.(current);
-            return;
-          }
-
-          if (
-            attemptsRef.current >=
-            GPS_MAX_ATTEMPTS
-          ) {
-            finishWithBest();
-            return;
-          }
-
-          timerRef.current =
-            setTimeout(
-              request,
-              GPS_RETRY_WAIT
-            );
-        },
-
-        error => {
-          if (cancelled) {
-            return;
-          }
-
-          if (
-            attemptsRef.current <
-            GPS_MAX_ATTEMPTS
-          ) {
-            timerRef.current =
-              setTimeout(
-                request,
-                GPS_RETRY_WAIT
-              );
-
-            return;
-          }
-
-          let message =
-            "تعذر تحديد موقع الهاتف.";
-
-          if (error?.code === 1) {
-            message =
-              "يرجى السماح للتطبيق باستخدام الموقع.";
-          } else if (error?.code === 2) {
-            message =
-              "تعذر تحديد موقع الهاتف حاليًا.";
-          } else if (error?.code === 3) {
-            message =
-              "انتهت مهلة تحديد الموقع.";
-          }
-
-          onError?.(message);
-        },
-
-        {
-          enableHighAccuracy: true,
-          timeout: 12000,
-          maximumAge: 0,
-        }
-      );
-    };
-
-    request();
-
-    return () => {
-      cancelled = true;
-      clearRetry();
-    };
-  }, [
-    active,
-    onLocation,
-    onError,
-  ]);
-
-  return null;
-}
-
-
-// =========================================================
 // GPS VISUAL
 // =========================================================
 
@@ -540,31 +448,46 @@ function GPSLocationVisual({
   ];
 
   const accuracy =
-    Number(position.accuracy);
+    Number(
+      position.accuracy
+    );
 
   return (
     <>
-      {Number.isFinite(accuracy) &&
+      {Number.isFinite(
+        accuracy
+      ) &&
       accuracy > 0 ? (
         <Circle
-          center={center}
-          radius={accuracy}
+          center={
+            center
+          }
+          radius={
+            accuracy
+          }
           pathOptions={{
-            fillOpacity: 0.12,
-            opacity: 0.5,
+            fillOpacity:
+              0.12,
+            opacity:
+              0.5,
           }}
         />
       ) : null}
 
       <CircleMarker
-        center={center}
+        center={
+          center
+        }
         radius={7}
         pathOptions={{
           weight: 3,
           fillOpacity: 1,
         }}
       >
-        <Tooltip permanent direction="top">
+        <Tooltip
+          permanent
+          direction="top"
+        >
           📍 موقعي الحالي
         </Tooltip>
       </CircleMarker>
@@ -586,7 +509,9 @@ function Field({
 }) {
   return (
     <div className="map-field">
-      <label>{label}</label>
+      <label>
+        {label}
+      </label>
 
       {textarea ? (
         <textarea
@@ -596,7 +521,9 @@ function Field({
               event.target.value
             )
           }
-          placeholder={placeholder}
+          placeholder={
+            placeholder
+          }
           rows={3}
         />
       ) : (
@@ -608,7 +535,9 @@ function Field({
               event.target.value
             )
           }
-          placeholder={placeholder}
+          placeholder={
+            placeholder
+          }
         />
       )}
     </div>
@@ -641,43 +570,59 @@ function TextLocationForm({
       <Field
         label="🌍 الدولة"
         value={country}
-        onChange={setCountry}
+        onChange={
+          setCountry
+        }
         placeholder="مثال: سوريا"
       />
 
       <Field
         label="🏛️ المحافظة"
         value={province}
-        onChange={setProvince}
+        onChange={
+          setProvince
+        }
         placeholder="مثال: الرقة"
       />
 
       <Field
         label="🏙️ المدينة"
         value={city}
-        onChange={setCity}
+        onChange={
+          setCity
+        }
         placeholder="اسم المدينة"
       />
 
       <Field
         label="🏘️ القرية"
         value={town}
-        onChange={setTown}
+        onChange={
+          setTown
+        }
         placeholder="اسم القرية أو البلدة"
       />
 
       <Field
         label="📍 وصف الموقع"
-        value={description}
-        onChange={setDescription}
+        value={
+          description
+        }
+        onChange={
+          setDescription
+        }
         placeholder="وصف يساعد على معرفة مكان الأرض"
         textarea
       />
 
       <Field
         label="🧭 الحدود أو المعالم القريبة"
-        value={neighbors}
-        onChange={setNeighbors}
+        value={
+          neighbors
+        }
+        onChange={
+          setNeighbors
+        }
         placeholder="طريق، نهر، مزرعة، قرية..."
         textarea
       />
@@ -685,7 +630,9 @@ function TextLocationForm({
       <Field
         label="📝 ملاحظات"
         value={notes}
-        onChange={setNotes}
+        onChange={
+          setNotes
+        }
         placeholder="أي ملاحظات إضافية"
         textarea
       />
@@ -705,8 +652,12 @@ function GPSButton({
   return (
     <Button
       type="button"
-      onClick={onClick}
-      disabled={loading}
+      onClick={
+        onClick
+      }
+      disabled={
+        loading
+      }
     >
       {loading
         ? "⏳ جارٍ تحديد موقعي..."
@@ -724,7 +675,6 @@ function FieldMapEditor({
   points,
   setPoints,
   gpsPosition,
-  setGpsPosition,
   gpsLoading,
   requestGPS,
   gpsError,
@@ -734,7 +684,9 @@ function FieldMapEditor({
 }) {
   const center =
     points.length > 0
-      ? getCenterFromPoints(points)
+      ? getCenterFromPoints(
+          points
+        )
       : gpsPosition
         ? [
             gpsPosition.latitude,
@@ -743,76 +695,123 @@ function FieldMapEditor({
         : DEFAULT_POSITION;
 
   const zoom =
-    gpsPosition || points.length
+    gpsPosition ||
+    points.length
       ? GPS_ZOOM
       : DEFAULT_ZOOM;
 
-  const area = useMemo(() => {
-    if (points.length < 3) {
-      return 0;
-    }
+  const area =
+    useMemo(
+      () => {
+        if (
+          points.length < 3
+        ) {
+          return 0;
+        }
 
-    try {
-      return Number(
-        calculateArea(points) || 0
-      );
-    } catch {
-      return 0;
-    }
-  }, [points]);
+        try {
+          return Number(
+            calculateArea(
+              points
+            ) || 0
+          );
+        } catch {
+          return 0;
+        }
+      },
+      [points]
+    );
 
-  const perimeter = useMemo(() => {
-    if (points.length < 2) {
-      return 0;
-    }
+  const perimeter =
+    useMemo(
+      () => {
+        if (
+          points.length < 2
+        ) {
+          return 0;
+        }
 
-    try {
-      return Number(
-        calculatePerimeter(points) || 0
-      );
-    } catch {
-      return 0;
-    }
-  }, [points]);
+        try {
+          return Number(
+            calculatePerimeter(
+              points
+            ) || 0
+          );
+        } catch {
+          return 0;
+        }
+      },
+      [points]
+    );
 
   const handlePoint = (
     latitude,
     longitude
   ) => {
-    setPoints(current => [
-      ...current,
-      [
-        Number(latitude),
-        Number(longitude),
-      ],
-    ]);
-  };
+    if (
+      !isValidCoordinate(
+        latitude,
+        longitude
+      )
+    ) {
+      return;
+    }
 
-  const removeLastPoint = () => {
-    setPoints(current =>
-      current.slice(0, -1)
+    setPoints(
+      current => [
+        ...current,
+        [
+          Number(
+            latitude
+          ),
+          Number(
+            longitude
+          ),
+        ],
+      ]
     );
   };
 
-  const clearPoints = () => {
-    setPoints([]);
-  };
+  const removeLastPoint =
+    () => {
+      setPoints(
+        current =>
+          current.slice(
+            0,
+            -1
+          )
+      );
+    };
+
+  const clearPoints =
+    () => {
+      setPoints([]);
+    };
 
   const movePoint = (
     index,
     latitude,
     longitude
   ) => {
-    setPoints(current =>
-      current.map(
-        (point, pointIndex) =>
-          pointIndex === index
-            ? [
-                Number(latitude),
-                Number(longitude),
-              ]
-            : point
-      )
+    setPoints(
+      current =>
+        current.map(
+          (
+            point,
+            pointIndex
+          ) =>
+            pointIndex ===
+            index
+              ? [
+                  Number(
+                    latitude
+                  ),
+                  Number(
+                    longitude
+                  ),
+                ]
+              : point
+        )
     );
   };
 
@@ -826,14 +825,18 @@ function FieldMapEditor({
             </h2>
 
             <p>
-              حرّك الخريطة يدويًا ثم اضغط
+              اضغط «تحديد موقعي الآن»
+              لاستخدام GPS كمرجع، ثم
+              حرّك الخريطة يدويًا واضغط
               على حدود الأرض لإضافة النقاط.
             </p>
           </div>
 
           <Button
             type="button"
-            onClick={onCancel}
+            onClick={
+              onCancel
+            }
           >
             ✕
           </Button>
@@ -845,7 +848,9 @@ function FieldMapEditor({
               setGpsError?.("");
               requestGPS();
             }}
-            loading={gpsLoading}
+            loading={
+              gpsLoading
+            }
           />
 
           <Button
@@ -861,23 +866,33 @@ function FieldMapEditor({
                 gpsPosition.longitude
               );
             }}
-            disabled={!gpsPosition}
+            disabled={
+              !gpsPosition
+            }
           >
             📍 إضافة نقطة من GPS
           </Button>
 
           <Button
             type="button"
-            onClick={removeLastPoint}
-            disabled={!points.length}
+            onClick={
+              removeLastPoint
+            }
+            disabled={
+              !points.length
+            }
           >
             ↩️ تراجع
           </Button>
 
           <Button
             type="button"
-            onClick={clearPoints}
-            disabled={!points.length}
+            onClick={
+              clearPoints
+            }
+            disabled={
+              !points.length
+            }
           >
             🗑️ مسح النقاط
           </Button>
@@ -891,32 +906,43 @@ function FieldMapEditor({
 
         <div className="map-editor-info">
           <span>
-            📌 النقاط: {points.length}
+            📌 النقاط:{" "}
+            {points.length}
           </span>
 
           <span>
             📐 المساحة:{" "}
             {area > 0
-              ? `${area.toFixed(2)} م²`
+              ? `${area.toFixed(
+                  2
+                )} م²`
               : "—"}
           </span>
 
           <span>
             📏 المحيط:{" "}
             {perimeter > 0
-              ? `${perimeter.toFixed(2)} م`
+              ? `${perimeter.toFixed(
+                  2
+                )} م`
               : "—"}
           </span>
         </div>
 
         <div className="map-editor-map">
           <MapContainer
-            center={center}
-            zoom={zoom}
+            center={
+              center
+            }
+            zoom={
+              zoom
+            }
             scrollWheelZoom
             style={{
-              width: "100%",
-              height: "100%",
+              width:
+                "100%",
+              height:
+                "100%",
             }}
           >
             <MapLayers />
@@ -924,17 +950,25 @@ function FieldMapEditor({
             <MapResizeHandler />
 
             <MapCenterController
-              center={center}
-              zoom={zoom}
+              center={
+                center
+              }
+              zoom={
+                zoom
+              }
             />
 
             <BoundaryPointSelector
-              onSelect={handlePoint}
+              onSelect={
+                handlePoint
+              }
             />
 
             {points.length >= 2 ? (
               <Polyline
-                positions={points}
+                positions={
+                  points
+                }
                 pathOptions={{
                   weight: 3,
                 }}
@@ -943,22 +977,32 @@ function FieldMapEditor({
 
             {points.length >= 3 ? (
               <Polygon
-                positions={points}
+                positions={
+                  points
+                }
                 pathOptions={{
-                  fillOpacity: 0.2,
+                  fillOpacity:
+                    0.2,
                   weight: 3,
                 }}
               />
             ) : null}
 
             {points.map(
-              (point, index) => (
+              (
+                point,
+                index
+              ) => (
                 <Marker
                   key={`${index}-${point[0]}-${point[1]}`}
-                  position={point}
+                  position={
+                    point
+                  }
                   draggable
                   eventHandlers={{
-                    dragend(event) {
+                    dragend(
+                      event
+                    ) {
                       const marker =
                         event.target;
 
@@ -974,30 +1018,28 @@ function FieldMapEditor({
                   }}
                 >
                   <Tooltip>
-                    النقطة {index + 1}
+                    النقطة{" "}
+                    {index + 1}
                   </Tooltip>
                 </Marker>
               )
             )}
 
             <GPSLocationVisual
-              position={gpsPosition}
-            />
-
-            <GPSController
-              active={false}
-              onLocation={() => {}}
-              onError={() => {}}
+              position={
+                gpsPosition
+              }
             />
           </MapContainer>
         </div>
 
         <div className="map-editor-footer">
           <div>
-            {points.length < 3 ? (
+            {points.length <
+            3 ? (
               <span className="map-warning">
-                يجب تحديد 3 نقاط على الأقل لحفظ
-                حدود الأرض.
+                يجب تحديد 3 نقاط على الأقل
+                لحفظ حدود الأرض.
               </span>
             ) : (
               <span className="map-success">
@@ -1009,15 +1051,21 @@ function FieldMapEditor({
           <div className="map-editor-actions">
             <Button
               type="button"
-              onClick={onCancel}
+              onClick={
+                onCancel
+              }
             >
               إلغاء
             </Button>
 
             <Button
               type="button"
-              onClick={onSave}
-              disabled={points.length < 3}
+              onClick={
+                onSave
+              }
+              disabled={
+                points.length < 3
+              }
             >
               💾 حفظ الموقع
             </Button>
@@ -1045,155 +1093,183 @@ export default function Map() {
     reverseGeocode,
   } = useMapHook();
 
-  // ---------------------------------------------------------
-  // URL CONTEXT
-  // ---------------------------------------------------------
+  // =======================================================
+  // URL
+  // =======================================================
 
-  const params = useMemo(
-    () => new URLSearchParams(
-      window.location.search
-    ),
-    []
-  );
+  const params =
+    useMemo(
+      () =>
+        new URLSearchParams(
+          window.location.search
+        ),
+      []
+    );
 
   const urlFarmId =
-    params.get("farmId") || "";
+    params.get(
+      "farmId"
+    ) || "";
 
   const urlReturn =
-    params.get("return") || "";
+    params.get(
+      "return"
+    ) || "";
 
   const urlFarmName =
-    params.get("farmName") || "";
-
-  const getReturnPath = () => {
-    const value =
-      cleanString(urlReturn)
-        .toLowerCase();
-
-    if (
-      value === "crop" ||
-      value === "crops"
-    ) {
-      return "crops";
-    }
-
-    if (
-      value === "new-farm" ||
-      value === "newfarm"
-    ) {
-      return "new-farm";
-    }
-
-    if (
-      value === "weather" ||
-      value === "weather-page"
-    ) {
-      return "weather";
-    }
-
-    if (
-      value === "irrigation" ||
-      value === "irrigation-page"
-    ) {
-      return "irrigation";
-    }
-
-    return "";
-  };
+    params.get(
+      "farmName"
+    ) || "";
 
   const returnPath =
-    getReturnPath();
+    cleanString(
+      urlReturn
+    ).toLowerCase();
 
   const isNewFarmFlow =
-    returnPath === "new-farm";
+    returnPath ===
+      "new-farm" ||
+    returnPath ===
+      "newfarm";
 
-  // ---------------------------------------------------------
-  // LOCAL STATE
-  // ---------------------------------------------------------
+  // =======================================================
+  // STATE
+  // =======================================================
 
-  const [locationType, setLocationType] =
-    useState("field");
+  const [
+    locationType,
+    setLocationType,
+  ] = useState(
+    "field"
+  );
 
-  const [notes, setNotes] =
-    useState("");
+  const [
+    notes,
+    setNotes,
+  ] = useState("");
 
-  const [country, setCountry] =
-    useState("");
+  const [
+    country,
+    setCountry,
+  ] = useState("");
 
-  const [province, setProvince] =
-    useState("");
+  const [
+    province,
+    setProvince,
+  ] = useState("");
 
-  const [city, setCity] =
-    useState("");
+  const [
+    city,
+    setCity,
+  ] = useState("");
 
-  const [town, setTown] =
-    useState("");
+  const [
+    town,
+    setTown,
+  ] = useState("");
 
-  const [description, setDescription] =
-    useState("");
+  const [
+    description,
+    setDescription,
+  ] = useState("");
 
-  const [neighbors, setNeighbors] =
-    useState("");
+  const [
+    neighbors,
+    setNeighbors,
+  ] = useState("");
 
-  const [locationMethod, setLocationMethod] =
-    useState("map");
+  const [
+    locationMethod,
+    setLocationMethod,
+  ] = useState("map");
 
-  const [points, setPoints] =
-    useState([]);
+  const [
+    points,
+    setPoints,
+  ] = useState([]);
 
-  const [mapOpen, setMapOpen] =
-    useState(false);
+  const [
+    mapOpen,
+    setMapOpen,
+  ] = useState(false);
 
-  const [gpsPosition, setGpsPosition] =
-    useState(null);
+  const [
+    gpsPosition,
+    setGpsPosition,
+  ] = useState(null);
 
-  const [gpsLoading, setGpsLoading] =
-    useState(false);
+  const [
+    gpsLoading,
+    setGpsLoading,
+  ] = useState(false);
 
-  const [gpsError, setGpsError] =
-    useState("");
+  const [
+    gpsError,
+    setGpsError,
+  ] = useState("");
 
-  const [saving, setSaving] =
-    useState(false);
+  const [
+    saving,
+    setSaving,
+  ] = useState(false);
 
-  const [message, setMessage] =
-    useState("");
+  const [
+    message,
+    setMessage,
+  ] = useState("");
 
-  const [error, setError] =
-    useState("");
+  const [
+    error,
+    setError,
+  ] = useState("");
 
-  const [currentCenter, setCurrentCenter] =
-    useState(DEFAULT_POSITION);
+  const [
+    currentCenter,
+    setCurrentCenter,
+  ] = useState(
+    DEFAULT_POSITION
+  );
 
-  // ---------------------------------------------------------
+  // =======================================================
   // FARM
-  // ---------------------------------------------------------
+  // =======================================================
 
-  const selectedFarm = useMemo(() => {
-    const id =
-      farmId ||
-      urlFarmId;
+  const selectedFarm =
+    useMemo(
+      () => {
+        const id =
+          farmId ||
+          urlFarmId;
 
-    if (!id) {
-      return null;
-    }
+        if (!id) {
+          return null;
+        }
 
-    return farms.find(farm => {
-      const candidate =
-        farm?.id ??
-        farm?._id ??
-        farm?.farmId;
+        return (
+          farms.find(
+            farm => {
+              const candidate =
+                farm?.id ??
+                farm?._id ??
+                farm?.farmId ??
+                farm?.farm_id;
 
-      return (
-        String(candidate) ===
-        String(id)
-      );
-    }) || null;
-  }, [
-    farms,
-    farmId,
-    urlFarmId,
-  ]);
+              return (
+                String(
+                  candidate
+                ) ===
+                String(id)
+              );
+            }
+          ) || null
+        );
+      },
+      [
+        farms,
+        farmId,
+        urlFarmId,
+      ]
+    );
 
   const currentFarmId =
     farmId ||
@@ -1212,320 +1288,418 @@ export default function Map() {
     );
 
   const hasValidFarm =
-    Boolean(currentFarmId);
+    Boolean(
+      currentFarmId
+    );
 
-  // ---------------------------------------------------------
-  // SELECT FARM FROM NORMAL MAP PAGE
-  // ---------------------------------------------------------
+  // =======================================================
+  // FARM CHANGE
+  // =======================================================
 
-  const handleFarmChange = event => {
-    const value =
-      event.target.value;
+  const handleFarmChange =
+    event => {
+      const value =
+        event.target.value;
 
-    setFarmId?.(value);
-
-    setError("");
-    setMessage("");
-
-    if (!value) {
-      return;
-    }
-
-    const farm =
-      farms.find(item => {
-        const id =
-          item?.id ??
-          item?._id ??
-          item?.farmId;
-
-        return (
-          String(id) ===
-          String(value)
-        );
-      });
-
-    if (farm) {
-      const location =
-        locations.find(item => {
-          const id =
-            item?.farmId ??
-            item?.farm_id;
-
-          return (
-            String(id) ===
-            String(value)
-          );
-        });
-
-      if (location) {
-        const center =
-          getMapLocationCenter(
-            location
-          );
-
-        if (center) {
-          setCurrentCenter(center);
-        }
-
-        const savedPoints =
-          normalizePoints(
-            location.points ??
-            location.boundary
-          );
-
-        if (savedPoints.length) {
-          setPoints(savedPoints);
-        }
-
-        setCountry(
-          location.country ??
-          ""
-        );
-
-        setProvince(
-          location.province ??
-          location.region ??
-          ""
-
-        );
-
-        setCity(
-          location.city ??
-          ""
-        );
-
-        setTown(
-          location.town ??
-          location.village ??
-          location.placeName ??
-          ""
-        );
-
-        setDescription(
-          location.description ??
-          ""
-        );
-
-        setNeighbors(
-          location.neighbors ??
-          ""
-        );
-
-        setNotes(
-          location.notes ??
-          ""
-        );
-      }
-    }
-  };
-
-  // ---------------------------------------------------------
-  // GPS
-  // ---------------------------------------------------------
-
-  const requestGPS = () => {
-    if (
-      typeof navigator === "undefined" ||
-      !navigator.geolocation
-    ) {
-      setGpsError(
-        "GPS غير متوفر على هذا الجهاز."
+      setFarmId?.(
+        value
       );
 
-      return;
-    }
+      setError("");
+      setMessage("");
 
-    setGpsLoading(true);
-    setGpsError("");
+      if (!value) {
+        return;
+      }
 
-    let attempts = 0;
-    let best = null;
-
-    const tryGetPosition = () => {
-      attempts += 1;
-
-      navigator.geolocation.getCurrentPosition(
-        position => {
-          const latitude =
-            position?.coords?.latitude;
-
-          const longitude =
-            position?.coords?.longitude;
-
-          const accuracy =
-            position?.coords?.accuracy;
-
-          if (
-            !isValidCoordinate(
-              latitude,
-              longitude
-            )
-          ) {
-            if (
-              attempts <
-              GPS_MAX_ATTEMPTS
-            ) {
-              setTimeout(
-                tryGetPosition,
-                GPS_RETRY_WAIT
-              );
-            } else {
-              setGpsLoading(false);
-
-              setGpsError(
-                "تعذر الحصول على موقع صالح."
-              );
-            }
-
-            return;
-          }
-
-          const result = {
-            latitude: Number(latitude),
-            longitude: Number(longitude),
-            accuracy:
-              Number.isFinite(
-                Number(accuracy)
+      const location =
+        locations.find(
+          item =>
+            String(
+              getLocationFarmId(
+                item
               )
-                ? Number(accuracy)
-                : null,
-          };
-
-          if (
-            !best ||
-            (
-              result.accuracy != null &&
-              (
-                best.accuracy == null ||
-                result.accuracy <
-                  best.accuracy
-              )
+            ) ===
+            String(
+              value
             )
-          ) {
-            best = result;
-          }
+        );
 
-          if (
-            result.accuracy != null &&
-            result.accuracy <=
-              GPS_GOOD_ACCURACY
-          ) {
-            setGpsPosition(result);
+      if (!location) {
+        setPoints([]);
+        setCountry("");
+        setProvince("");
+        setCity("");
+        setTown("");
+        setDescription("");
+        setNeighbors("");
+        setNotes("");
+        return;
+      }
 
-            setCurrentCenter([
-              result.latitude,
-              result.longitude,
-            ]);
+      const center =
+        getMapLocationCenter(
+          location
+        );
 
-            setGpsLoading(false);
+      if (center) {
+        setCurrentCenter(
+          center
+        );
+      }
 
-            return;
-          }
+      const savedPoints =
+        normalizePoints(
+          location.points ??
+          location.boundary ??
+          location.coordinates
+        );
 
-          if (
-            attempts <
-            GPS_MAX_ATTEMPTS
-          ) {
-            setTimeout(
-              tryGetPosition,
-              GPS_RETRY_WAIT
-            );
+      setPoints(
+        savedPoints
+      );
 
-            return;
-          }
+      setCountry(
+        location.country ??
+        location.countryName ??
+        ""
+      );
 
-          if (best) {
-            setGpsPosition(best);
+      setProvince(
+        location.governorate ??
+        location.province ??
+        location.region ??
+        location.state ??
+        ""
+      );
 
-            setCurrentCenter([
-              best.latitude,
-              best.longitude,
-            ]);
+      setCity(
+        location.city ??
+        location.cityName ??
+        ""
+      );
 
-            if (
-              best.accuracy >
-              GPS_ACCEPTABLE_ACCURACY
-            ) {
-              setGpsError(
-                "تم تحديد الموقع، لكن دقة GPS منخفضة نسبيًا. استخدمه كمرجع ثم حرّك الخريطة يدويًا."
-              );
-            }
-          }
+      setTown(
+        location.village ??
+        location.town ??
+        location.suburb ??
+        location.hamlet ??
+        location.placeName ??
+        ""
+      );
 
-          setGpsLoading(false);
-        },
+      setDescription(
+        location.description ??
+        ""
+      );
 
-        error => {
-          if (
-            attempts <
-            GPS_MAX_ATTEMPTS
-          ) {
-            setTimeout(
-              tryGetPosition,
-              GPS_RETRY_WAIT
-            );
+      setNeighbors(
+        location.neighbors ??
+        ""
+      );
 
-            return;
-          }
-
-          setGpsLoading(false);
-
-          if (error?.code === 1) {
-            setGpsError(
-              "يرجى السماح للتطبيق باستخدام الموقع."
-            );
-          } else if (
-            error?.code === 2
-          ) {
-            setGpsError(
-              "تعذر تحديد موقع الهاتف."
-            );
-          } else if (
-            error?.code === 3
-          ) {
-            setGpsError(
-              "انتهت مهلة تحديد الموقع."
-            );
-          } else {
-            setGpsError(
-              "تعذر تحديد موقع الهاتف."
-            );
-          }
-        },
-
-        {
-          enableHighAccuracy: true,
-          timeout: 12000,
-          maximumAge: 0,
-        }
+      setNotes(
+        location.notes ??
+        ""
       );
     };
 
-    tryGetPosition();
-  };
+  // =======================================================
+  // GPS
+  // =======================================================
 
-  // ---------------------------------------------------------
-  // OPEN MAP
-  // ---------------------------------------------------------
+  const requestGPS =
+    () => {
+      if (
+        typeof navigator ===
+          "undefined" ||
+        !navigator.geolocation
+      ) {
+        setGpsError(
+          "GPS غير متوفر على هذا الجهاز."
+        );
 
-  const openMap = () => {
-    setError("");
-    setMessage("");
+        return;
+      }
 
-    if (!hasValidFarm) {
-      setError(
-        "يجب تحديد المزرعة أولًا."
+      setGpsLoading(
+        true
       );
 
-      return;
-    }
+      setGpsError("");
 
-    setMapOpen(true);
-  };
+      let attempts = 0;
+      let best = null;
+      let finished = false;
 
-  // ---------------------------------------------------------
+      const timers = [];
+
+      const finish =
+        position => {
+          if (finished) {
+            return;
+          }
+
+          finished = true;
+
+          if (position) {
+            setGpsPosition(
+              position
+            );
+
+            setCurrentCenter([
+              position.latitude,
+              position.longitude,
+            ]);
+          }
+
+          setGpsLoading(
+            false
+          );
+        };
+
+      const fail =
+        text => {
+          if (finished) {
+            return;
+          }
+
+          finished = true;
+
+          setGpsLoading(
+            false
+          );
+
+          setGpsError(
+            text
+          );
+        };
+
+      const tryGetPosition =
+        () => {
+          if (finished) {
+            return;
+          }
+
+          attempts += 1;
+
+          navigator.geolocation.getCurrentPosition(
+            position => {
+              if (finished) {
+                return;
+              }
+
+              const latitude =
+                position?.coords?.latitude;
+
+              const longitude =
+                position?.coords?.longitude;
+
+              const accuracy =
+                position?.coords?.accuracy;
+
+              if (
+                !isValidCoordinate(
+                  latitude,
+                  longitude
+                )
+              ) {
+                if (
+                  attempts <
+                  GPS_MAX_ATTEMPTS
+                ) {
+                  timers.push(
+                    setTimeout(
+                      tryGetPosition,
+                      GPS_RETRY_WAIT
+                    )
+                  );
+                } else {
+                  fail(
+                    "تعذر الحصول على موقع صالح."
+                  );
+                }
+
+                return;
+              }
+
+              const result = {
+                latitude:
+                  Number(
+                    latitude
+                  ),
+
+                longitude:
+                  Number(
+                    longitude
+                  ),
+
+                accuracy:
+                  Number.isFinite(
+                    Number(
+                      accuracy
+                    )
+                  )
+                    ? Number(
+                        accuracy
+                      )
+                    : null,
+              };
+
+              if (
+                !best ||
+                (
+                  result.accuracy !=
+                    null &&
+                  (
+                    best.accuracy ==
+                      null ||
+                    result.accuracy <
+                      best.accuracy
+                  )
+                )
+              ) {
+                best =
+                  result;
+              }
+
+              if (
+                result.accuracy !=
+                  null &&
+                result.accuracy <=
+                  GPS_GOOD_ACCURACY
+              ) {
+                finish(
+                  result
+                );
+
+                return;
+              }
+
+              if (
+                attempts <
+                GPS_MAX_ATTEMPTS
+              ) {
+                timers.push(
+                  setTimeout(
+                    tryGetPosition,
+                    GPS_RETRY_WAIT
+                  )
+                );
+
+                return;
+              }
+
+              if (best) {
+                finish(
+                  best
+                );
+
+                if (
+                  best.accuracy !=
+                    null &&
+                  best.accuracy >
+                    GPS_ACCEPTABLE_ACCURACY
+                ) {
+                  setGpsError(
+                    "تم تحديد موقع الهاتف، لكن دقة GPS منخفضة نسبيًا. استخدمه كمرجع ثم حرّك الخريطة يدويًا."
+                  );
+                }
+              } else {
+                fail(
+                  "تعذر تحديد موقع الهاتف."
+                );
+              }
+            },
+
+            geoError => {
+              if (finished) {
+                return;
+              }
+
+              if (
+                attempts <
+                GPS_MAX_ATTEMPTS
+              ) {
+                timers.push(
+                  setTimeout(
+                    tryGetPosition,
+                    GPS_RETRY_WAIT
+                  )
+                );
+
+                return;
+              }
+
+              if (
+                geoError?.code ===
+                1
+              ) {
+                fail(
+                  "يرجى السماح للمتصفح باستخدام الموقع من إعدادات الهاتف."
+                );
+              } else if (
+                geoError?.code ===
+                2
+              ) {
+                fail(
+                  "تعذر تحديد موقع الهاتف حاليًا."
+                );
+              } else if (
+                geoError?.code ===
+                3
+              ) {
+                fail(
+                  "انتهت مهلة تحديد الموقع."
+                );
+              } else {
+                fail(
+                  "تعذر تحديد موقع الهاتف."
+                );
+              }
+            },
+
+            {
+              enableHighAccuracy:
+                true,
+
+              timeout:
+                12000,
+
+              maximumAge:
+                0,
+            }
+          );
+        };
+
+      tryGetPosition();
+    };
+
+  // =======================================================
+  // OPEN MAP
+  // =======================================================
+
+  const openMap =
+    () => {
+      setError("");
+      setMessage("");
+
+      if (!hasValidFarm) {
+        setError(
+          "يجب تحديد المزرعة أولًا."
+        );
+
+        return;
+      }
+
+      setMapOpen(
+        true
+      );
+    };
+
+  // =======================================================
   // REVERSE GEOCODING
-  // ---------------------------------------------------------
+  // =======================================================
 
   const fillAdministrativeData =
     async selectedPoints => {
@@ -1543,7 +1717,9 @@ export default function Map() {
           normalized
         );
 
-      setCurrentCenter(center);
+      setCurrentCenter(
+        center
+      );
 
       if (
         typeof reverseGeocode !==
@@ -1575,9 +1751,11 @@ export default function Map() {
 
         const nextProvince =
           cleanString(
+            data.governorate ??
             data.province ??
             data.state ??
             data.region ??
+            result.governorate ??
             result.province ??
             result.region
           );
@@ -1598,11 +1776,14 @@ export default function Map() {
             data.hamlet ??
             data.place ??
             result.village ??
-            result.town
+            result.town ??
+            result.placeName
           );
 
         if (nextCountry) {
-          setCountry(nextCountry);
+          setCountry(
+            nextCountry
+          );
         }
 
         if (nextProvince) {
@@ -1612,11 +1793,15 @@ export default function Map() {
         }
 
         if (nextCity) {
-          setCity(nextCity);
+          setCity(
+            nextCity
+          );
         }
 
         if (nextTown) {
-          setTown(nextTown);
+          setTown(
+            nextTown
+          );
         }
 
         return result;
@@ -1625,352 +1810,470 @@ export default function Map() {
       }
     };
 
-  // ---------------------------------------------------------
-  // BUILD CANONICAL LOCATION DATA
-  // ---------------------------------------------------------
+  // =======================================================
+  // BUILD LOCATION
+  // =======================================================
 
-  const buildLocationData = async ({
-    selectedPoints = [],
-    source = "manual",
-  } = {}) => {
-    const normalized =
-      normalizePoints(
-        selectedPoints
-      );
-
-    const hasBoundary =
-      normalized.length >= 3;
-
-    let center =
-      normalized.length
-        ? getCenterFromPoints(
-            normalized
-          )
-        : currentCenter;
-
-    let reverseData = null;
-
-    if (hasBoundary) {
-      try {
-        reverseData =
-          await reverseGeocode?.(
-            center[0],
-            center[1]
-          );
-      } catch {
-        reverseData = null;
-      }
-    }
-
-    const reverseAddress =
-      reverseData?.address ??
-      reverseData ??
-      {};
-
-    const finalCountry =
-      cleanString(
-        country ||
-        reverseAddress.country
-      );
-
-    const finalProvince =
-      cleanString(
-        province ||
-        reverseAddress.province ||
-        reverseAddress.state ||
-        reverseAddress.region
-      );
-
-    const finalCity =
-      cleanString(
-        city ||
-        reverseAddress.city ||
-        reverseAddress.municipality ||
-        reverseAddress.city_district
-      );
-
-    const finalTown =
-      cleanString(
-        town ||
-        reverseAddress.village ||
-        reverseAddress.town ||
-        reverseAddress.suburb ||
-        reverseAddress.hamlet ||
-        reverseAddress.place
-      );
-
-    let area = null;
-    let perimeter = null;
-
-    if (hasBoundary) {
-      try {
-        area = Number(
-          calculateArea(
-            normalized
-          ) || 0
-        );
-      } catch {
-        area = 0;
-      }
-
-      try {
-        perimeter = Number(
-          calculatePerimeter(
-            normalized
-          ) || 0
-        );
-      } catch {
-        perimeter = 0;
-      }
-    }
-
-    const firstPoint =
-      normalized[0] ?? null;
-
-    return {
-      farmId: currentFarmId,
-
-      farmName:
-        currentFarmName ||
-        urlFarmName ||
-        "المزرعة الجديدة",
-
-      type: locationType,
-
-      source,
-
-      country:
-        finalCountry,
-
-      region:
-        finalProvince,
-
-      province:
-        finalProvince,
-
-      city:
-        finalCity,
-
-      town:
-        finalTown,
-
-      village:
-        finalTown,
-
-      placeName:
-        finalTown,
-
-      description:
-        cleanString(description),
-
-      neighbors:
-        cleanString(neighbors),
-
-      latitude:
-        hasBoundary && firstPoint
-          ? firstPoint[0]
-          : null,
-
-      longitude:
-        hasBoundary && firstPoint
-          ? firstPoint[1]
-          : null,
-
-      points:
-        hasBoundary
-          ? normalized.map(point => ({
-              latitude: point[0],
-              longitude: point[1],
-            }))
-          : [],
-
-      boundary:
-        hasBoundary
-          ? normalized.map(point => ({
-              latitude: point[0],
-              longitude: point[1],
-            }))
-          : [],
-
-      area:
-        hasBoundary
-          ? area
-          : null,
-
-      perimeter:
-        hasBoundary
-          ? perimeter
-          : null,
-
-      notes:
-        cleanString(notes),
-
-      status: "active",
-    };
-  };
-
-  // ---------------------------------------------------------
-  // RETURN TO SOURCE
-  // ---------------------------------------------------------
-
-  const returnToSource = () => {
-    if (!returnPath) {
-      return;
-    }
-
-    window.history.back();
-  };
-
-  // ---------------------------------------------------------
-  // SAVE LOCATION
-  // ---------------------------------------------------------
-
-  const persistLocation = async ({
-    selectedPoints = [],
-    source = "manual",
-    returnAfterSave = false,
-  } = {}) => {
-    setSaving(true);
-    setError("");
-    setMessage("");
-
-    try {
+  const buildLocationData =
+    async ({
+      selectedPoints = [],
+      source = "map",
+    } = {}) => {
       const normalized =
         normalizePoints(
           selectedPoints
         );
 
-      if (
-        source === "map" &&
-        normalized.length < 3
-      ) {
-        throw new Error(
-          "يجب تحديد 3 نقاط على الأقل لحفظ حدود الأرض."
-        );
+      const hasBoundary =
+        normalized.length >= 3;
+
+      const center =
+        normalized.length
+          ? getCenterFromPoints(
+              normalized
+            )
+          : currentCenter;
+
+      let reverseData =
+        null;
+
+      if (hasBoundary) {
+        try {
+          reverseData =
+            await reverseGeocode?.(
+              center[0],
+              center[1]
+            );
+        } catch {
+          reverseData =
+            null;
+        }
       }
 
-      if (!hasValidFarm) {
-        throw new Error(
-          "لا توجد مزرعة مرتبطة بهذا الموقع."
+      const reverseAddress =
+        reverseData?.address ??
+        reverseData ??
+        {};
+
+      const finalCountry =
+        cleanString(
+          country ||
+          reverseAddress.country
         );
+
+      const finalProvince =
+        cleanString(
+          province ||
+          reverseAddress.governorate ||
+          reverseAddress.province ||
+          reverseAddress.state ||
+          reverseAddress.region
+        );
+
+      const finalCity =
+        cleanString(
+          city ||
+          reverseAddress.city ||
+          reverseAddress.municipality ||
+          reverseAddress.city_district
+        );
+
+      const finalTown =
+        cleanString(
+          town ||
+          reverseAddress.village ||
+          reverseAddress.town ||
+          reverseAddress.suburb ||
+          reverseAddress.hamlet ||
+          reverseAddress.place ||
+          reverseAddress.placeName
+        );
+
+      let area = null;
+      let perimeter = null;
+
+      if (hasBoundary) {
+        try {
+          area =
+            Number(
+              calculateArea(
+                normalized
+              ) || 0
+            );
+        } catch {
+          area = 0;
+        }
+
+        try {
+          perimeter =
+            Number(
+              calculatePerimeter(
+                normalized
+              ) || 0
+            );
+        } catch {
+          perimeter = 0;
+        }
       }
 
-      const locationData =
-        await buildLocationData({
-          selectedPoints:
-            normalized,
-          source,
-        });
+      const centerLatitude =
+        hasBoundary
+          ? center[0]
+          : null;
 
-      const saved =
-        await addLocation(
-          locationData
-        );
+      const centerLongitude =
+        hasBoundary
+          ? center[1]
+          : null;
 
-      if (!saved) {
-        throw new Error(
-          "تعذر حفظ الموقع."
-        );
+      const canonicalPoints =
+        hasBoundary
+          ? normalized.map(
+              point => ({
+                latitude:
+                  point[0],
+
+                longitude:
+                  point[1],
+              })
+            )
+          : [];
+
+      return {
+        farmId:
+          String(
+            currentFarmId
+          ),
+
+        farmName:
+          currentFarmName ||
+          urlFarmName ||
+          "المزرعة الجديدة",
+
+        type:
+          locationType,
+
+        source,
+
+        country:
+          finalCountry,
+
+        governorate:
+          finalProvince,
+
+        region:
+          finalProvince,
+
+        province:
+          finalProvince,
+
+        city:
+          finalCity,
+
+        town:
+          finalTown,
+
+        village:
+          finalTown,
+
+        placeName:
+          finalTown,
+
+        description:
+          cleanString(
+            description
+          ),
+
+        neighbors:
+          cleanString(
+            neighbors
+          ),
+
+        latitude:
+          centerLatitude,
+
+        longitude:
+          centerLongitude,
+
+        points:
+          canonicalPoints,
+
+        boundary:
+          canonicalPoints,
+
+        area:
+          hasBoundary
+            ? area
+            : null,
+
+        perimeter:
+          hasBoundary
+            ? perimeter
+            : null,
+
+        notes:
+          cleanString(
+            notes
+          ),
+
+        status:
+          "active",
+      };
+    };
+
+  // =======================================================
+  // RETURN
+  // =======================================================
+
+  const returnToSource =
+    () => {
+      if (!returnPath) {
+        return;
       }
 
-      const savedCenter =
-        getMapLocationCenter(
-          saved
+      window.history.back();
+    };
+
+  // =======================================================
+  // SAVE LOCATION
+  // =======================================================
+
+  const persistLocation =
+    async ({
+      selectedPoints = [],
+      source = "map",
+      returnAfterSave = false,
+    } = {}) => {
+      setSaving(
+        true
+      );
+
+      setError("");
+      setMessage("");
+
+      try {
+        const normalized =
+          normalizePoints(
+            selectedPoints
+          );
+
+        if (
+          source === "map" &&
+          normalized.length < 3
+        ) {
+          throw new Error(
+            "يجب تحديد 3 نقاط على الأقل لحفظ حدود الأرض."
+          );
+        }
+
+        if (!hasValidFarm) {
+          throw new Error(
+            "لا توجد مزرعة مرتبطة بهذا الموقع."
+          );
+        }
+
+        const locationData =
+          await buildLocationData({
+            selectedPoints:
+              normalized,
+
+            source,
+          });
+
+        const saved =
+          await addLocation(
+            locationData
+          );
+
+        if (!saved) {
+          throw new Error(
+            "تعذر حفظ الموقع."
+          );
+        }
+
+        const savedCenter =
+          getMapLocationCenter(
+            saved
+          );
+
+        if (savedCenter) {
+          setCurrentCenter(
+            savedCenter
+          );
+        }
+
+        if (
+          returnAfterSave &&
+          returnPath
+        ) {
+          /*
+           * الموقع أصبح محفوظًا الآن.
+           * نعود للصفحة التي فتحت الخريطة.
+           */
+          window.history.back();
+
+          return saved;
+        }
+
+        setMessage(
+          "تم حفظ موقع الأرض بنجاح."
         );
 
-      if (savedCenter) {
-        setCurrentCenter(
-          savedCenter
-        );
-      }
-
-      if (
-        returnAfterSave &&
-        returnPath
-      ) {
-        window.history.back();
         return saved;
+      } catch (err) {
+        setError(
+          err?.message ||
+          "حدث خطأ أثناء حفظ الموقع."
+        );
+
+        throw err;
+      } finally {
+        setSaving(
+          false
+        );
       }
+    };
 
-      setMessage(
-        "تم حفظ موقع الأرض بنجاح."
-      );
+  // =======================================================
+  // SAVE MAP
+  // =======================================================
 
-      return saved;
-    } catch (err) {
-      setError(
-        err?.message ||
-        "حدث خطأ أثناء حفظ الموقع."
-      );
+  const saveMap =
+    async () => {
+      setError("");
+      setMessage("");
 
-      throw err;
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  // ---------------------------------------------------------
-  // SAVE FROM MAP EDITOR
-  // ---------------------------------------------------------
-
-  const saveMap = async () => {
-    if (points.length < 3) {
-      setError(
-        "يجب تحديد 3 نقاط على الأقل."
-      );
-
-      return;
-    }
-
-    try {
-      if (returnPath) {
-        await persistLocation({
-          selectedPoints: points,
-          source: "map",
-          returnAfterSave: true,
-        });
+      if (
+        points.length < 3
+      ) {
+        setError(
+          "يجب تحديد 3 نقاط على الأقل."
+        );
 
         return;
       }
 
-      await fillAdministrativeData(
-        points
-      );
+      try {
+        /*
+         * أولًا نحاول قراءة البيانات الإدارية
+         * من مركز حدود الأرض.
+         */
+        await fillAdministrativeData(
+          points
+        );
 
-      setMapOpen(false);
+        /*
+         * ثم نحفظ الموقع.
+         * buildLocationData يعيد قراءة
+         * reverse geocoding أيضًا ويخزن
+         * جميع الأسماء بصيغ موحدة.
+         */
+        await persistLocation({
+          selectedPoints:
+            points,
 
-      setMessage(
-        "تم تحديد الموقع. اضغط «حفظ الموقع» لتثبيته."
-      );
-    } catch {
-      // error already displayed
-    }
-  };
+          source:
+            "map",
 
-  // ---------------------------------------------------------
+          returnAfterSave:
+            Boolean(
+              returnPath
+            ),
+        });
+
+        if (!returnPath) {
+          setMapOpen(
+            false
+          );
+
+          setMessage(
+            "تم حفظ موقع الأرض بنجاح."
+          );
+        }
+      } catch {
+        // الخطأ معروض للمستخدم
+      }
+    };
+
+  // =======================================================
   // MAIN SAVE
-  // ---------------------------------------------------------
+  // =======================================================
 
-  const handleSave = async event => {
-    event?.preventDefault();
+  const handleSave =
+    async event => {
+      event?.preventDefault();
 
-    setError("");
-    setMessage("");
+      setError("");
+      setMessage("");
 
-    if (!hasValidFarm) {
-      setError(
-        "يجب تحديد المزرعة أولًا."
-      );
-
-      return;
-    }
-
-    if (
-      locationMethod === "map"
-    ) {
-      if (points.length < 3) {
+      if (!hasValidFarm) {
         setError(
-          "يجب تحديد 3 نقاط على الأقل من الخريطة."
+          "يجب تحديد المزرعة أولًا."
+        );
+
+        return;
+      }
+
+      if (
+        locationMethod ===
+        "map"
+      ) {
+        if (
+          points.length < 3
+        ) {
+          setError(
+            "يجب تحديد 3 نقاط على الأقل من الخريطة."
+          );
+
+          return;
+        }
+
+        try {
+          await persistLocation({
+            selectedPoints:
+              points,
+
+            source:
+              "map",
+
+            returnAfterSave:
+              Boolean(
+                returnPath
+              ),
+          });
+        } catch {
+          // الخطأ معروض
+        }
+
+        return;
+      }
+
+      /*
+       * الكتابة اليدوية تحفظ البيانات الإدارية
+       * بدون اختراع إحداثيات أو حدود.
+       */
+      const hasTextLocation =
+        Boolean(
+          cleanString(
+            country
+          ) ||
+          cleanString(
+            province
+          ) ||
+          cleanString(
+            city
+          ) ||
+          cleanString(
+            town
+          ) ||
+          cleanString(
+            description
+          )
+        );
+
+      if (!hasTextLocation) {
+        setError(
+          "أدخل معلومات الموقع أو استخدم الخريطة."
         );
 
         return;
@@ -1978,196 +2281,201 @@ export default function Map() {
 
       try {
         await persistLocation({
-          selectedPoints: points,
-          source: "map",
+          selectedPoints:
+            [],
+
+          source:
+            "manual",
+
           returnAfterSave:
-            Boolean(returnPath),
+            Boolean(
+              returnPath
+            ),
         });
       } catch {
-        // error already displayed
+        // الخطأ معروض
+      }
+    };
+
+  // =======================================================
+  // DELETE
+  // =======================================================
+
+  const handleDelete =
+    async location => {
+      const id =
+        location?.id ??
+        location?._id ??
+        location?.locationId;
+
+      if (!id) {
+        return;
       }
 
-      return;
-    }
-
-    const hasTextLocation =
-      Boolean(
-        cleanString(country) ||
-        cleanString(province) ||
-        cleanString(city) ||
-        cleanString(town) ||
-        cleanString(description)
-      );
-
-    if (!hasTextLocation) {
-      setError(
-        "أدخل معلومات الموقع أو استخدم الخريطة."
-      );
-
-      return;
-    }
-
-    try {
-      await persistLocation({
-        selectedPoints: [],
-        source: "manual",
-        returnAfterSave:
-          Boolean(returnPath),
-      });
-    } catch {
-      // error already displayed
-    }
-  };
-
-  // ---------------------------------------------------------
-  // DELETE LOCATION
-  // ---------------------------------------------------------
-
-  const handleDelete = async location => {
-    const id =
-      location?.id ??
-      location?._id ??
-      location?.locationId;
-
-    if (!id) {
-      return;
-    }
-
-    const confirmed =
-      window.confirm(
-        "هل تريد حذف هذا الموقع؟"
-      );
-
-    if (!confirmed) {
-      return;
-    }
-
-    try {
-      await deleteLocation(id);
-
-      setMessage(
-        "تم حذف الموقع."
-      );
-    } catch (err) {
-      setError(
-        err?.message ||
-        "تعذر حذف الموقع."
-      );
-    }
-  };
-
-  // ---------------------------------------------------------
-  // LOAD URL FARM ID
-  // ---------------------------------------------------------
-
-  useEffect(() => {
-    if (!urlFarmId) {
-      return;
-    }
-
-    setFarmId?.(urlFarmId);
-  }, [
-    urlFarmId,
-    setFarmId,
-  ]);
-
-  // ---------------------------------------------------------
-  // LOAD SAVED LOCATION FOR SELECTED FARM
-  // ---------------------------------------------------------
-
-  useEffect(() => {
-    if (!currentFarmId) {
-      return;
-    }
-
-    const saved =
-      locations.find(location => {
-        const id =
-          location?.farmId ??
-          location?.farm_id;
-
-        return (
-          String(id) ===
-          String(currentFarmId)
+      const confirmed =
+        window.confirm(
+          "هل تريد حذف هذا الموقع؟"
         );
-      });
 
-    if (!saved) {
-      return;
-    }
+      if (!confirmed) {
+        return;
+      }
 
-    const savedPoints =
-      normalizePoints(
-        saved.points ??
-        saved.boundary
-      );
+      try {
+        await deleteLocation(
+          id
+        );
 
-    if (savedPoints.length) {
-      setPoints(savedPoints);
+        setMessage(
+          "تم حذف الموقع."
+        );
+      } catch (err) {
+        setError(
+          err?.message ||
+          "تعذر حذف الموقع."
+        );
+      }
+    };
 
-      setCurrentCenter(
-        getCenterFromPoints(
-          savedPoints
+  // =======================================================
+  // LOAD URL FARM
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (!urlFarmId) {
+        return;
+      }
+
+      setFarmId?.(
+        String(
+          urlFarmId
         )
       );
-    } else {
-      const savedCenter =
-        getMapLocationCenter(
-          saved
-        );
+    },
+    [
+      urlFarmId,
+      setFarmId,
+    ]
+  );
 
-      if (savedCenter) {
-        setCurrentCenter(
-          savedCenter
-        );
+  // =======================================================
+  // LOAD SAVED LOCATION
+  // =======================================================
+
+  useEffect(
+    () => {
+      if (!currentFarmId) {
+        return;
       }
-    }
 
-    setCountry(
-      saved.country ??
-      ""
-    );
+      const matches =
+        locations.filter(
+          location =>
+            String(
+              getLocationFarmId(
+                location
+              )
+            ) ===
+            String(
+              currentFarmId
+            )
+        );
 
-    setProvince(
-      saved.province ??
-      saved.region ??
-      ""
-    );
+      if (!matches.length) {
+        return;
+      }
 
-    setCity(
-      saved.city ??
-      ""
-    );
+      const saved =
+        matches[
+          matches.length - 1
+        ];
 
-    setTown(
-      saved.town ??
-      saved.village ??
-      saved.placeName ??
-      ""
-    );
+      const savedPoints =
+        normalizePoints(
+          saved.points ??
+          saved.boundary ??
+          saved.coordinates
+        );
 
-    setDescription(
-      saved.description ??
-      ""
-    );
+      if (
+        savedPoints.length
+      ) {
+        setPoints(
+          savedPoints
+        );
 
-    setNeighbors(
-      saved.neighbors ??
-      ""
-    );
+        setCurrentCenter(
+          getCenterFromPoints(
+            savedPoints
+          )
+        );
+      } else {
+        const savedCenter =
+          getMapLocationCenter(
+            saved
+          );
 
-    setNotes(
-      saved.notes ??
-      ""
-    );
-  }, [
-    currentFarmId,
-    locations,
-  ]);
+        if (savedCenter) {
+          setCurrentCenter(
+            savedCenter
+          );
+        }
+      }
 
-  // ---------------------------------------------------------
+      setCountry(
+        saved.country ??
+        saved.countryName ??
+        ""
+      );
+
+      setProvince(
+        saved.governorate ??
+        saved.province ??
+        saved.region ??
+        saved.state ??
+        ""
+      );
+
+      setCity(
+        saved.city ??
+        saved.cityName ??
+        ""
+      );
+
+      setTown(
+        saved.village ??
+        saved.town ??
+        saved.suburb ??
+        saved.hamlet ??
+        saved.placeName ??
+        ""
+      );
+
+      setDescription(
+        saved.description ??
+        ""
+      );
+
+      setNeighbors(
+        saved.neighbors ??
+        ""
+      );
+
+      setNotes(
+        saved.notes ??
+        ""
+      );
+    },
+    [
+      currentFarmId,
+      locations,
+    ]
+  );
+
+  // =======================================================
   // RENDER
-  // ---------------------------------------------------------
+  // =======================================================
 
   return (
     <div className="map-page">
@@ -2204,43 +2512,52 @@ export default function Map() {
             </label>
 
             <select
-              value={currentFarmId}
-              onChange={handleFarmChange}
-              disabled={loading}
+              value={
+                currentFarmId
+              }
+              onChange={
+                handleFarmChange
+              }
+              disabled={
+                loading
+              }
             >
               <option value="">
                 اختر المزرعة
               </option>
 
-              {farms.map(farm => {
-                const id =
-                  farm?.id ??
-                  farm?._id ??
-                  farm?.farmId;
+              {farms.map(
+                farm => {
+                  const id =
+                    farm?.id ??
+                    farm?._id ??
+                    farm?.farmId ??
+                    farm?.farm_id;
 
-                const name =
-                  farm?.name ??
-                  farm?.farmName ??
-                  farm?.title ??
-                  "مزرعة";
+                  const name =
+                    farm?.name ??
+                    farm?.farmName ??
+                    farm?.title ??
+                    "مزرعة";
 
-                return (
-                  <option
-                    key={id}
-                    value={id}
-                  >
-                    {name}
-                  </option>
-                );
-              })}
+                  return (
+                    <option
+                      key={id}
+                      value={id}
+                    >
+                      {name}
+                    </option>
+                  );
+                }
+              )}
             </select>
           </div>
         )}
 
         {!hasValidFarm ? (
           <div className="map-warning">
-            اختر المزرعة أولًا حتى يتم ربط
-            الموقع بها.
+            اختر المزرعة أولًا حتى يتم
+            ربط الموقع بها.
           </div>
         ) : null}
 
@@ -2257,7 +2574,9 @@ export default function Map() {
         ) : null}
 
         <form
-          onSubmit={handleSave}
+          onSubmit={
+            handleSave
+          }
           className="map-main-form"
         >
           <div className="map-method-section">
@@ -2269,7 +2588,9 @@ export default function Map() {
               <Button
                 type="button"
                 onClick={() =>
-                  setLocationMethod("map")
+                  setLocationMethod(
+                    "map"
+                  )
                 }
               >
                 🗺️ تحديد على الخريطة
@@ -2278,7 +2599,9 @@ export default function Map() {
               <Button
                 type="button"
                 onClick={() =>
-                  setLocationMethod("text")
+                  setLocationMethod(
+                    "text"
+                  )
                 }
               >
                 ✍️ كتابة الموقع
@@ -2286,7 +2609,8 @@ export default function Map() {
             </div>
           </div>
 
-          {locationMethod === "map" ? (
+          {locationMethod ===
+          "map" ? (
             <div className="map-selection-section">
               <div className="map-gps-help">
                 <strong>
@@ -2294,25 +2618,34 @@ export default function Map() {
                 </strong>
 
                 <p>
-                  عند الضغط على «تحديد موقعي
-                  الآن» سيظهر موقع الهاتف على
-                  الخريطة ويتمركز عليها فقط.
-                  لن تتم إضافة نقطة تلقائيًا.
-                  بعد ذلك يمكنك تحريك الخريطة
-                  يدويًا والنقر على حدود الأرض.
+                  اضغط «تحديد موقعي الآن»
+                  ليتم تحديد موقع الهاتف
+                  على الخريطة فقط.
+                  لن تتم إضافة نقطة حدود
+                  تلقائيًا. بعد ذلك حرّك
+                  الخريطة يدويًا وانقر على
+                  حدود الأرض لإضافة النقاط.
                 </p>
               </div>
 
               <div className="map-selection-actions">
                 <GPSButton
-                  onClick={requestGPS}
-                  loading={gpsLoading}
+                  onClick={
+                    requestGPS
+                  }
+                  loading={
+                    gpsLoading
+                  }
                 />
 
                 <Button
                   type="button"
-                  onClick={openMap}
-                  disabled={!hasValidFarm}
+                  onClick={
+                    openMap
+                  }
+                  disabled={
+                    !hasValidFarm
+                  }
                 >
                   🗺️ فتح الخريطة وتحديد الحدود
                 </Button>
@@ -2334,20 +2667,48 @@ export default function Map() {
           ) : null}
 
           <TextLocationForm
-            country={country}
-            setCountry={setCountry}
-            province={province}
-            setProvince={setProvince}
-            city={city}
-            setCity={setCity}
-            town={town}
-            setTown={setTown}
-            description={description}
-            setDescription={setDescription}
-            neighbors={neighbors}
-            setNeighbors={setNeighbors}
-            notes={notes}
-            setNotes={setNotes}
+            country={
+              country
+            }
+            setCountry={
+              setCountry
+            }
+            province={
+              province
+            }
+            setProvince={
+              setProvince
+            }
+            city={
+              city
+            }
+            setCity={
+              setCity
+            }
+            town={
+              town
+            }
+            setTown={
+              setTown
+            }
+            description={
+              description
+            }
+            setDescription={
+              setDescription
+            }
+            neighbors={
+              neighbors
+            }
+            setNeighbors={
+              setNeighbors
+            }
+            notes={
+              notes
+            }
+            setNotes={
+              setNotes
+            }
           />
 
           <div className="map-save-section">
@@ -2367,7 +2728,9 @@ export default function Map() {
         </form>
 
         {!isNewFarmFlow &&
-        Array.isArray(locations) &&
+        Array.isArray(
+          locations
+        ) &&
         locations.length > 0 ? (
           <div className="map-saved-locations">
             <h2>
@@ -2382,21 +2745,29 @@ export default function Map() {
                   location?.locationId;
 
                 const locationFarmId =
-                  location?.farmId ??
-                  location?.farm_id;
+                  getLocationFarmId(
+                    location
+                  );
 
                 const farm =
-                  farms.find(item => {
-                    const farmId =
-                      item?.id ??
-                      item?._id ??
-                      item?.farmId;
+                  farms.find(
+                    item => {
+                      const farmId =
+                        item?.id ??
+                        item?._id ??
+                        item?.farmId ??
+                        item?.farm_id;
 
-                    return (
-                      String(farmId) ===
-                      String(locationFarmId)
-                    );
-                  });
+                      return (
+                        String(
+                          farmId
+                        ) ===
+                        String(
+                          locationFarmId
+                        )
+                      );
+                    }
+                  );
 
                 const name =
                   farm?.name ??
@@ -2408,12 +2779,15 @@ export default function Map() {
                   location?.village ??
                   location?.town ??
                   location?.city ??
+                  location?.governorate ??
                   location?.province ??
                   "";
 
                 return (
                   <div
-                    key={id}
+                    key={
+                      id
+                    }
                     className="map-saved-location"
                   >
                     <div>
@@ -2449,17 +2823,34 @@ export default function Map() {
 
       {mapOpen ? (
         <FieldMapEditor
-          points={points}
-          setPoints={setPoints}
-          gpsPosition={gpsPosition}
-          setGpsPosition={setGpsPosition}
-          gpsLoading={gpsLoading}
-          requestGPS={requestGPS}
-          gpsError={gpsError}
-          setGpsError={setGpsError}
-          onSave={saveMap}
+          points={
+            points
+          }
+          setPoints={
+            setPoints
+          }
+          gpsPosition={
+            gpsPosition
+          }
+          gpsLoading={
+            gpsLoading
+          }
+          requestGPS={
+            requestGPS
+          }
+          gpsError={
+            gpsError
+          }
+          setGpsError={
+            setGpsError
+          }
+          onSave={
+            saveMap
+          }
           onCancel={() =>
-            setMapOpen(false)
+            setMapOpen(
+              false
+            )
           }
         />
       ) : null}
