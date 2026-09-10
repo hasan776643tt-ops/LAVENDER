@@ -355,10 +355,6 @@ function estimateClimate({
   const lat =
     Number(latitude);
 
-  /*
-   * الإحداثيات هي المصدر الحقيقي.
-   * لا ننتظر reverse geocoding حتى يظهر المناخ.
-   */
   if (
     Number.isFinite(lat) &&
     lat >= -90 &&
@@ -551,19 +547,12 @@ function getLocationSources(
 
   return [
     location,
-
     location.address,
-
     location.administrative,
-
     location.reverseGeocode,
-
     location.geocoding,
-
     location.location,
-
     location.geo,
-
   ].filter(
     source =>
       source &&
@@ -1017,8 +1006,6 @@ export default function NewFarm() {
     setSuccess,
   ] = useState("");
 
-  // يمنع تكرار reverse geocoding
-  // لنفس المزرعة ونفس المركز.
   const geocodeKeyRef =
     useRef("");
 
@@ -1084,7 +1071,7 @@ export default function NewFarm() {
     );
 
   // =======================================================
-  // SAVED LOCATION FROM HOOK
+  // HOOK ADMINISTRATIVE DATA
   // =======================================================
 
   const hookAdministrativeLocation =
@@ -1157,15 +1144,31 @@ export default function NewFarm() {
   // EFFECTIVE COORDINATES
   // =======================================================
 
+  const numericLatitude =
+    Number(latitude);
+
+  const numericLongitude =
+    Number(longitude);
+
   const effectiveLatitude =
     savedLocationCenter?.latitude ??
-    Number(latitude) ||
-    "";
+    (
+      Number.isFinite(
+        numericLatitude
+      )
+        ? numericLatitude
+        : ""
+    );
 
   const effectiveLongitude =
     savedLocationCenter?.longitude ??
-    Number(longitude) ||
-    "";
+    (
+      Number.isFinite(
+        numericLongitude
+      )
+        ? numericLongitude
+        : ""
+    );
 
   // =======================================================
   // EFFECTIVE BOUNDARY
@@ -1251,9 +1254,6 @@ export default function NewFarm() {
 
   // =======================================================
   // LOAD FARM LOCATION DIRECTLY
-  //
-  // عند الرجوع من Map:
-  // NewFarm يعيد تحميل الموقع بواسطة farmId.
   // =======================================================
 
   useEffect(
@@ -1278,65 +1278,62 @@ export default function NewFarm() {
               );
 
             if (
-              !active
+              !active ||
+              !loaded
             ) {
               return;
             }
 
+            const admin =
+              normalizeAdministrativeLocation(
+                loaded
+              );
+
             if (
-              loaded
+              admin.country ||
+              admin.governorate ||
+              admin.city ||
+              admin.village
             ) {
-              const admin =
-                normalizeAdministrativeLocation(
-                  loaded
-                );
+              setDraft(
+                previous => {
+                  const next = {
+                    ...previous,
 
-              if (
-                admin.country ||
-                admin.governorate ||
-                admin.city ||
-                admin.village
-              ) {
-                setDraft(
-                  previous => {
-                    const next = {
-                      ...previous,
+                    farmId:
+                      previous.farmId ||
+                      String(
+                        selectedFarmId
+                      ),
 
-                      farmId:
-                        previous.farmId ||
-                        String(
-                          selectedFarmId
-                        ),
+                    country:
+                      admin.country ||
+                      previous.country ||
+                      "",
 
-                      country:
-                        admin.country ||
-                        previous.country ||
-                        "",
+                    governorate:
+                      admin.governorate ||
+                      previous.governorate ||
+                      "",
 
-                      governorate:
-                        admin.governorate ||
-                        previous.governorate ||
-                        "",
+                    city:
+                      admin.city ||
+                      previous.city ||
+                      "",
 
-                      city:
-                        admin.city ||
-                        previous.city ||
-                        "",
+                    village:
+                      admin.village ||
+                      previous.village ||
+                      "",
+                  };
 
-                      village:
-                        admin.village ||
-                        previous.village ||
-                        "",
-                    };
+                  saveDraft(
+                    next
+                  );
 
-                    saveDraft(
-                      next
-                    );
-
-                    return next;
-                  }
-                );
-              }
+                  return next;
+                }
+              );
             }
           } catch (loadError) {
             console.warn(
@@ -1361,10 +1358,6 @@ export default function NewFarm() {
 
   // =======================================================
   // FALLBACK REVERSE GEOCODING
-  //
-  // إذا كان الموقع محفوظًا بالإحداثيات
-  // ولكن المعلومات الإدارية غير موجودة،
-  // نطلبها مباشرة من الخريطة.
   // =======================================================
 
   useEffect(
@@ -1522,7 +1515,7 @@ export default function NewFarm() {
   );
 
   // =======================================================
-  // SYNC LOCATION ADMINISTRATIVE DATA → DRAFT
+  // SYNC LOCATION → DRAFT
   // =======================================================
 
   useEffect(
@@ -1860,10 +1853,6 @@ export default function NewFarm() {
       return;
     }
 
-    // -----------------------------------------------------
-    // EXISTING TEMPORARY FARM ID
-    // -----------------------------------------------------
-
     if (
       selectedFarmId
     ) {
@@ -1889,10 +1878,6 @@ export default function NewFarm() {
 
       return;
     }
-
-    // -----------------------------------------------------
-    // CREATE FARM BEFORE OPENING MAP
-    // -----------------------------------------------------
 
     setSavingFarm(
       true
