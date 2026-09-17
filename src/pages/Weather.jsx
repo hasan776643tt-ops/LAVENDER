@@ -32,6 +32,19 @@ function getFarmId(farm) {
   );
 }
 
+function getFarmName(farm) {
+  if (!farm) {
+    return "";
+  }
+
+  return String(
+    farm.name ??
+      farm.farmName ??
+      farm.title ??
+      ""
+  ).trim();
+}
+
 function getLocationFarmId(location) {
   if (!location) {
     return "";
@@ -46,6 +59,19 @@ function getLocationFarmId(location) {
       location.farm?.farmId ??
       ""
   );
+}
+
+function getLocationFarmName(location) {
+  if (!location) {
+    return "";
+  }
+
+  return String(
+    location.farmName ??
+      location.farm?.name ??
+      location.farm?.farmName ??
+      ""
+  ).trim();
 }
 
 function getLatitude(location) {
@@ -144,8 +170,7 @@ export default function Weather() {
 
   const selectedFarmName = useMemo(() => {
     return (
-      selectedFarmObject?.name ||
-      selectedFarmObject?.farmName ||
+      getFarmName(selectedFarmObject) ||
       "المزرعة"
     );
   }, [selectedFarmObject]);
@@ -159,14 +184,48 @@ export default function Weather() {
       return null;
     }
 
-    return (
+    const selectedId =
+      String(selectedFarm);
+
+    // -----------------------------------------------------
+    // 1. البحث حسب farmId
+    // -----------------------------------------------------
+
+    const byFarmId =
       locations.find(
         (location) =>
           getLocationFarmId(location) ===
-          String(selectedFarm)
-      ) || null
-    );
-  }, [locations, selectedFarm]);
+          selectedId
+      );
+
+    if (byFarmId) {
+      return byFarmId;
+    }
+
+    // -----------------------------------------------------
+    // 2. البحث القديم حسب farmName
+    // -----------------------------------------------------
+
+    if (selectedFarmName) {
+      const byFarmName =
+        locations.find(
+          (location) =>
+            !getLocationFarmId(location) &&
+            getLocationFarmName(location) ===
+              selectedFarmName
+        );
+
+      if (byFarmName) {
+        return byFarmName;
+      }
+    }
+
+    return null;
+  }, [
+    locations,
+    selectedFarm,
+    selectedFarmName,
+  ]);
 
   // =======================================================
   // Get weather
@@ -196,16 +255,19 @@ export default function Weather() {
       let currentFarmLocation = null;
 
       // ---------------------------------------------------
-      // 1. البحث المباشر عن موقع المزرعة
+      // 1. البحث حسب farmId ثم farmName
       // ---------------------------------------------------
 
       currentFarmLocation =
         await locationActions.getLatestByFarmId(
-          selectedFarm
+          selectedFarm,
+          selectedFarmName
         );
 
       // ---------------------------------------------------
       // 2. إذا لم نجده، نعيد تحميل المواقع
+      //    ثم نبحث حسب farmId
+      //    ثم farmName للسجلات القديمة
       // ---------------------------------------------------
 
       if (!currentFarmLocation) {
@@ -215,6 +277,7 @@ export default function Weather() {
         if (
           Array.isArray(freshLocations)
         ) {
+          // أولًا: farmId
           currentFarmLocation =
             freshLocations.find(
               (location) =>
@@ -223,11 +286,37 @@ export default function Weather() {
                 ) ===
                 String(selectedFarm)
             ) || null;
+
+          // ثانيًا: farmName
+          if (
+            !currentFarmLocation &&
+            selectedFarmName
+          ) {
+            currentFarmLocation =
+              freshLocations.find(
+                (location) =>
+                  !getLocationFarmId(
+                    location
+                  ) &&
+                  getLocationFarmName(
+                    location
+                  ) === selectedFarmName
+              ) || null;
+          }
         }
       }
 
       // ---------------------------------------------------
-      // 3. التحقق من وجود الموقع
+      // 3. محاولة أخيرة من المواقع الموجودة في Context
+      // ---------------------------------------------------
+
+      if (!currentFarmLocation) {
+        currentFarmLocation =
+          farmLocation || null;
+      }
+
+      // ---------------------------------------------------
+      // 4. التحقق من وجود الموقع
       // ---------------------------------------------------
 
       if (!currentFarmLocation) {
@@ -238,7 +327,7 @@ export default function Weather() {
       }
 
       // ---------------------------------------------------
-      // 4. استخراج الإحداثيات
+      // 5. استخراج الإحداثيات
       // ---------------------------------------------------
 
       const latitude =
@@ -252,7 +341,7 @@ export default function Weather() {
         );
 
       // ---------------------------------------------------
-      // 5. التحقق من الإحداثيات
+      // 6. التحقق من الإحداثيات
       // ---------------------------------------------------
 
       if (
@@ -272,7 +361,7 @@ export default function Weather() {
       }
 
       // ---------------------------------------------------
-      // 6. التحقق من نطاق الإحداثيات
+      // 7. التحقق من نطاق الإحداثيات
       // ---------------------------------------------------
 
       if (
@@ -289,7 +378,7 @@ export default function Weather() {
       }
 
       // ---------------------------------------------------
-      // 7. تحميل الطقس
+      // 8. تحميل الطقس باستخدام GPS
       // ---------------------------------------------------
 
       await getWeather({
@@ -370,8 +459,7 @@ export default function Weather() {
                 key={farmId}
                 value={farmId}
               >
-                {farm.name ||
-                  farm.farmName ||
+                {getFarmName(farm) ||
                   "مزرعة بدون اسم"}
               </option>
             );
