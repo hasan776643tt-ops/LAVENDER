@@ -5,6 +5,7 @@
 
 import {
   createContext,
+  useCallback,
   useEffect,
   useMemo,
   useState,
@@ -32,8 +33,13 @@ function createActions(setData, controller) {
   return {
     load: async () => {
       const result = await controller.getAll();
-      const safeResult = Array.isArray(result) ? result : [];
+
+      const safeResult = Array.isArray(result)
+        ? result
+        : [];
+
       setData(safeResult);
+
       return safeResult;
     },
 
@@ -48,7 +54,10 @@ function createActions(setData, controller) {
     },
 
     update: async (id, data) => {
-      const result = await controller.update(id, data);
+      const result = await controller.update(
+        id,
+        data
+      );
 
       if (result) {
         setData((prev) =>
@@ -77,20 +86,31 @@ function createActions(setData, controller) {
     },
 
     count: async () => {
-      if (typeof controller.count === "function") {
+      if (
+        typeof controller.count ===
+        "function"
+      ) {
         return controller.count();
       }
 
       const result = await controller.getAll();
-      return Array.isArray(result) ? result.length : 0;
+
+      return Array.isArray(result)
+        ? result.length
+        : 0;
     },
 
     exists: async (id) => {
-      if (typeof controller.exists === "function") {
+      if (
+        typeof controller.exists ===
+        "function"
+      ) {
         return controller.exists(id);
       }
 
-      const result = await controller.getById(id);
+      const result =
+        await controller.getById(id);
+
       return Boolean(result);
     },
   };
@@ -109,191 +129,400 @@ export function FarmProvider({ children }) {
   const [fields, setFields] = useState([]);
   const [locations, setLocations] = useState([]);
 
-  const [irrigations, setIrrigations] = useState([]);
-  const [fertilizers, setFertilizers] = useState([]);
-  const [pesticides, setPesticides] = useState([]);
-  const [diseases, setDiseases] = useState([]);
-  const [expenses, setExpenses] = useState([]);
-  const [harvests, setHarvests] = useState([]);
-  const [inventory, setInventory] = useState([]);
+  const [irrigations, setIrrigations] =
+    useState([]);
 
-  const [consultations, setConsultations] = useState([]);
-  const [aiQuestions, setAiQuestions] = useState([]);
+  const [fertilizers, setFertilizers] =
+    useState([]);
+
+  const [pesticides, setPesticides] =
+    useState([]);
+
+  const [diseases, setDiseases] =
+    useState([]);
+
+  const [expenses, setExpenses] =
+    useState([]);
+
+  const [harvests, setHarvests] =
+    useState([]);
+
+  const [inventory, setInventory] =
+    useState([]);
+
+  const [consultations, setConsultations] =
+    useState([]);
+
+  const [aiQuestions, setAiQuestions] =
+    useState([]);
 
   // -------------------------------------------------------
-  // Actions
+  // Generic actions
   // -------------------------------------------------------
 
-  const farmActions = createActions(
-    setFarms,
-    farmController
+  const farmActions = useMemo(
+    () =>
+      createActions(
+        setFarms,
+        farmController
+      ),
+    []
   );
 
-  const fieldActions = createActions(
-    setFields,
-    fieldController
+  const fieldActions = useMemo(
+    () =>
+      createActions(
+        setFields,
+        fieldController
+      ),
+    []
   );
 
-  const irrigationActions = createActions(
-    setIrrigations,
-    irrigationController
+  const irrigationActions = useMemo(
+    () =>
+      createActions(
+        setIrrigations,
+        irrigationController
+      ),
+    []
   );
 
-  const fertilizerActions = createActions(
-    setFertilizers,
-    fertilizerController
+  const fertilizerActions = useMemo(
+    () =>
+      createActions(
+        setFertilizers,
+        fertilizerController
+      ),
+    []
   );
 
-  const pesticideActions = createActions(
-    setPesticides,
-    pesticideController
+  const pesticideActions = useMemo(
+    () =>
+      createActions(
+        setPesticides,
+        pesticideController
+      ),
+    []
   );
 
-  const diseaseActions = createActions(
-    setDiseases,
-    diseaseController
+  const diseaseActions = useMemo(
+    () =>
+      createActions(
+        setDiseases,
+        diseaseController
+      ),
+    []
   );
 
-  const expenseActions = createActions(
-    setExpenses,
-    expenseController
+  const expenseActions = useMemo(
+    () =>
+      createActions(
+        setExpenses,
+        expenseController
+      ),
+    []
   );
 
-  const harvestActions = createActions(
-    setHarvests,
-    harvestController
+  const harvestActions = useMemo(
+    () =>
+      createActions(
+        setHarvests,
+        harvestController
+      ),
+    []
   );
 
-  const inventoryActions = createActions(
-    setInventory,
-    inventoryController
+  const inventoryActions = useMemo(
+    () =>
+      createActions(
+        setInventory,
+        inventoryController
+      ),
+    []
+  );
+
+  // =======================================================
+  // LOCATION HELPERS
+  // =======================================================
+
+  const getLocationFarmId = useCallback(
+    (location) => {
+      if (!location) {
+        return "";
+      }
+
+      return String(
+        location.farmId ??
+          location.farmID ??
+          location.farm_id ??
+          location.farm?.id ??
+          location.farm?._id ??
+          location.farm?.farmId ??
+          ""
+      );
+    },
+    []
+  );
+
+  const normalizeLocation = useCallback(
+    (location) => {
+      if (!location) {
+        return null;
+      }
+
+      const farmId =
+        getLocationFarmId(location);
+
+      const latitude =
+        location.latitude ??
+        location.lat ??
+        location.center?.latitude ??
+        location.center?.lat;
+
+      const longitude =
+        location.longitude ??
+        location.lng ??
+        location.lon ??
+        location.center?.longitude ??
+        location.center?.lng;
+
+      return {
+        ...location,
+
+        farmId:
+          farmId || location.farmId,
+
+        latitude,
+        longitude,
+
+        lat: latitude,
+        lng: longitude,
+      };
+    },
+    [getLocationFarmId]
   );
 
   // =======================================================
   // LOCATION ACTIONS
-  // Page → Context → Service → Repository → Storage
+  //
+  // Page
+  //   ↓
+  // Context
+  //   ↓
+  // mapService
+  //   ↓
+  // mapRepository
+  //   ↓
+  // storage
   // =======================================================
 
-  const locationActions = {
-    load: async () => {
-      const result = await mapService.getAllLocations();
+  const locationActions = useMemo(
+    () => ({
+      // ---------------------------------------------------
+      // Load ALL locations from storage
+      // ---------------------------------------------------
 
-      const safeResult = Array.isArray(result)
-        ? result
-        : [];
+      load: async () => {
+        const result =
+          await mapService.getAllLocations();
 
-      setLocations(safeResult);
-
-      return safeResult;
-    },
-
-    getByFarmId: async (farmId) => {
-      if (!farmId) {
-        return [];
-      }
-
-      const result =
-        await mapService.getLocationsByFarmId(
-          farmId
-        );
-
-      return Array.isArray(result)
-        ? result
-        : [];
-    },
-
-    getLatestByFarmId: async (farmId) => {
-      if (!farmId) {
-        return null;
-      }
-
-      return mapService.getLocationByFarmId(
-        farmId
-      );
-    },
-
-    create: async (data) => {
-      const result =
-        await mapService.createLocation(data);
-
-      if (result) {
-        setLocations((prev) => {
-          const filtered = prev.filter(
-            (item) =>
-              String(item.farmId) !==
-              String(result.farmId)
-          );
-
-          return [...filtered, result];
-        });
-      }
-
-      return result;
-    },
-
-    update: async (id, data) => {
-      const result =
-        await mapService.updateLocation(
-          id,
-          data
-        );
-
-      if (result) {
-        setLocations((prev) => {
-          const exists = prev.some(
-            (item) =>
-              String(item.id) === String(id)
-          );
-
-          if (!exists) {
-            return [...prev, result];
-          }
-
-          return prev.map((item) =>
-            String(item.id) === String(id)
-              ? result
-              : item
-          );
-        });
-      }
-
-      return result;
-    },
-
-    delete: async (id) => {
-      const result =
-        await mapService.deleteLocation(id);
-
-      setLocations((prev) =>
-        prev.filter(
-          (item) =>
-            String(item.id) !== String(id)
+        const safeResult = Array.isArray(
+          result
         )
-      );
+          ? result
+              .map(normalizeLocation)
+              .filter(Boolean)
+          : [];
 
-      return result;
-    },
+        setLocations(safeResult);
 
-    count: async () => {
-      const result =
-        await mapService.getAllLocations();
+        return safeResult;
+      },
 
-      return Array.isArray(result)
-        ? result.length
-        : 0;
-    },
+      // ---------------------------------------------------
+      // Get locations for ONE farm
+      // ---------------------------------------------------
 
-    exists: async (id) => {
-      if (!id) {
-        return false;
-      }
+      getByFarmId: async (farmId) => {
+        if (
+          farmId === null ||
+          farmId === undefined ||
+          farmId === ""
+        ) {
+          return [];
+        }
 
-      const result =
-        await mapService.getLocationById(id);
+        const result =
+          await mapService.getLocationsByFarmId(
+            farmId
+          );
 
-      return Boolean(result);
-    },
-  };
+        const safeResult = Array.isArray(
+          result
+        )
+          ? result
+              .map(normalizeLocation)
+              .filter(Boolean)
+          : [];
+
+        return safeResult;
+      },
+
+      // ---------------------------------------------------
+      // Get latest location for ONE farm
+      // ---------------------------------------------------
+
+      getLatestByFarmId: async (
+        farmId
+      ) => {
+        if (
+          farmId === null ||
+          farmId === undefined ||
+          farmId === ""
+        ) {
+          return null;
+        }
+
+        const result =
+          await mapService.getLocationByFarmId(
+            farmId
+          );
+
+        return normalizeLocation(result);
+      },
+
+      // ---------------------------------------------------
+      // Create / replace farm location
+      // ---------------------------------------------------
+
+      create: async (data) => {
+        const result =
+          await mapService.createLocation(
+            data
+          );
+
+        const normalized =
+          normalizeLocation(result);
+
+        if (normalized) {
+          setLocations((prev) => {
+            const farmId =
+              getLocationFarmId(
+                normalized
+              );
+
+            const filtered =
+              prev.filter(
+                (item) =>
+                  getLocationFarmId(
+                    item
+                  ) !== farmId
+              );
+
+            return [
+              ...filtered,
+              normalized,
+            ];
+          });
+        }
+
+        return normalized;
+      },
+
+      // ---------------------------------------------------
+      // Update location
+      // ---------------------------------------------------
+
+      update: async (id, data) => {
+        const result =
+          await mapService.updateLocation(
+            id,
+            data
+          );
+
+        const normalized =
+          normalizeLocation(result);
+
+        if (normalized) {
+          setLocations((prev) => {
+            const exists = prev.some(
+              (item) =>
+                String(item.id) ===
+                String(normalized.id)
+            );
+
+            if (!exists) {
+              return [
+                ...prev,
+                normalized,
+              ];
+            }
+
+            return prev.map((item) =>
+              String(item.id) ===
+              String(normalized.id)
+                ? normalized
+                : item
+            );
+          });
+        }
+
+        return normalized;
+      },
+
+      // ---------------------------------------------------
+      // Delete location
+      // ---------------------------------------------------
+
+      delete: async (id) => {
+        const result =
+          await mapService.deleteLocation(
+            id
+          );
+
+        setLocations((prev) =>
+          prev.filter(
+            (item) =>
+              String(item.id) !==
+              String(id)
+          )
+        );
+
+        return result;
+      },
+
+      // ---------------------------------------------------
+      // Count
+      // ---------------------------------------------------
+
+      count: async () => {
+        const result =
+          await mapService.getAllLocations();
+
+        return Array.isArray(result)
+          ? result.length
+          : 0;
+      },
+
+      // ---------------------------------------------------
+      // Exists
+      // ---------------------------------------------------
+
+      exists: async (id) => {
+        if (!id) {
+          return false;
+        }
+
+        const result =
+          await mapService.getLocationById(
+            id
+          );
+
+        return Boolean(result);
+      },
+    }),
+    [getLocationFarmId, normalizeLocation]
+  );
 
   // =======================================================
   // Initial loading
@@ -345,49 +574,67 @@ export function FarmProvider({ children }) {
         );
 
         setLocations(
-          Array.isArray(locationsResult)
+          Array.isArray(
+            locationsResult
+          )
             ? locationsResult
+                .map(normalizeLocation)
+                .filter(Boolean)
             : []
         );
 
         setIrrigations(
-          Array.isArray(irrigationsResult)
+          Array.isArray(
+            irrigationsResult
+          )
             ? irrigationsResult
             : []
         );
 
         setFertilizers(
-          Array.isArray(fertilizersResult)
+          Array.isArray(
+            fertilizersResult
+          )
             ? fertilizersResult
             : []
         );
 
         setPesticides(
-          Array.isArray(pesticidesResult)
+          Array.isArray(
+            pesticidesResult
+          )
             ? pesticidesResult
             : []
         );
 
         setDiseases(
-          Array.isArray(diseasesResult)
+          Array.isArray(
+            diseasesResult
+          )
             ? diseasesResult
             : []
         );
 
         setExpenses(
-          Array.isArray(expensesResult)
+          Array.isArray(
+            expensesResult
+          )
             ? expensesResult
             : []
         );
 
         setHarvests(
-          Array.isArray(harvestsResult)
+          Array.isArray(
+            harvestsResult
+          )
             ? harvestsResult
             : []
         );
 
         setInventory(
-          Array.isArray(inventoryResult)
+          Array.isArray(
+            inventoryResult
+          )
             ? inventoryResult
             : []
         );
@@ -404,7 +651,7 @@ export function FarmProvider({ children }) {
     return () => {
       mounted = false;
     };
-  }, []);
+  }, [normalizeLocation]);
 
   // =======================================================
   // Context value
@@ -460,15 +707,35 @@ export function FarmProvider({ children }) {
     }),
     [
       farms,
+      farmActions,
+
       fields,
+      fieldActions,
+
       locations,
+      locationActions,
+
       irrigations,
+      irrigationActions,
+
       fertilizers,
+      fertilizerActions,
+
       pesticides,
+      pesticideActions,
+
       diseases,
+      diseaseActions,
+
       expenses,
+      expenseActions,
+
       harvests,
+      harvestActions,
+
       inventory,
+      inventoryActions,
+
       consultations,
       aiQuestions,
     ]
