@@ -15,6 +15,80 @@ import useWeather from "../hooks/useWeather.js";
 import Card from "../components/ui/Card.jsx";
 import Button from "../components/ui/Button.jsx";
 
+// =========================================================
+// Helpers
+// =========================================================
+
+function getFarmId(farm) {
+  if (!farm) {
+    return "";
+  }
+
+  return String(
+    farm.id ??
+      farm.farmId ??
+      farm._id ??
+      ""
+  );
+}
+
+function getLocationFarmId(location) {
+  if (!location) {
+    return "";
+  }
+
+  return String(
+    location.farmId ??
+      location.farmID ??
+      location.farm_id ??
+      location.farm?.id ??
+      location.farm?._id ??
+      location.farm?.farmId ??
+      ""
+  );
+}
+
+function getLatitude(location) {
+  if (!location) {
+    return null;
+  }
+
+  const value =
+    location.latitude ??
+    location.lat ??
+    location.center?.latitude ??
+    location.center?.lat;
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function getLongitude(location) {
+  if (!location) {
+    return null;
+  }
+
+  const value =
+    location.longitude ??
+    location.lng ??
+    location.lon ??
+    location.center?.longitude ??
+    location.center?.lng;
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+// =========================================================
+// Weather Page
+// =========================================================
+
 export default function Weather() {
   // =======================================================
   // Context
@@ -45,8 +119,39 @@ export default function Weather() {
   const [selectedFarm, setSelectedFarm] =
     useState("");
 
+  const [
+    checkingLocation,
+    setCheckingLocation,
+  ] = useState(false);
+
   // =======================================================
-  // Current location from context
+  // Selected farm object
+  // =======================================================
+
+  const selectedFarmObject = useMemo(() => {
+    return (
+      farms.find(
+        (farm) =>
+          getFarmId(farm) ===
+          String(selectedFarm)
+      ) || null
+    );
+  }, [farms, selectedFarm]);
+
+  // =======================================================
+  // Selected farm name
+  // =======================================================
+
+  const selectedFarmName = useMemo(() => {
+    return (
+      selectedFarmObject?.name ||
+      selectedFarmObject?.farmName ||
+      "المزرعة"
+    );
+  }, [selectedFarmObject]);
+
+  // =======================================================
+  // Location currently in Context
   // =======================================================
 
   const farmLocation = useMemo(() => {
@@ -57,32 +162,14 @@ export default function Weather() {
     return (
       locations.find(
         (location) =>
-          String(location.farmId) ===
+          getLocationFarmId(location) ===
           String(selectedFarm)
       ) || null
     );
   }, [locations, selectedFarm]);
 
   // =======================================================
-  // Get selected farm name
-  // =======================================================
-
-  const selectedFarmName = useMemo(() => {
-    const farm = farms.find(
-      (item) =>
-        String(item.id) ===
-        String(selectedFarm)
-    );
-
-    return (
-      farm?.name ||
-      farm?.farmName ||
-      "المزرعة"
-    );
-  }, [farms, selectedFarm]);
-
-  // =======================================================
-  // Load weather
+  // Get weather
   // =======================================================
 
   const handleGetWeather = async () => {
@@ -91,45 +178,119 @@ export default function Weather() {
       return;
     }
 
-    try {
-      // تحميل أحدث المواقع من خلال Context
-      // حتى لا نعتمد على بيانات قديمة في الذاكرة.
-      const freshLocations =
-        await locationActions.load();
+    if (
+      !locationActions ||
+      typeof locationActions
+        .getLatestByFarmId !==
+        "function"
+    ) {
+      alert(
+        "نظام مواقع المزارع غير متاح حاليًا"
+      );
+      return;
+    }
 
-      const currentFarmLocation =
-        freshLocations.find(
-          (location) =>
-            String(location.farmId) ===
-            String(selectedFarm)
-        ) || null;
+    setCheckingLocation(true);
+
+    try {
+      let currentFarmLocation = null;
+
+      // ---------------------------------------------------
+      // 1. البحث المباشر عن موقع المزرعة
+      // ---------------------------------------------------
+
+      currentFarmLocation =
+        await locationActions.getLatestByFarmId(
+          selectedFarm
+        );
+
+      // ---------------------------------------------------
+      // 2. إذا لم نجده، نعيد تحميل المواقع
+      // ---------------------------------------------------
+
+      if (!currentFarmLocation) {
+        const freshLocations =
+          await locationActions.load();
+
+        if (
+          Array.isArray(freshLocations)
+        ) {
+          currentFarmLocation =
+            freshLocations.find(
+              (location) =>
+                getLocationFarmId(
+                  location
+                ) ===
+                String(selectedFarm)
+            ) || null;
+        }
+      }
+
+      // ---------------------------------------------------
+      // 3. التحقق من وجود الموقع
+      // ---------------------------------------------------
 
       if (!currentFarmLocation) {
         alert(
-          "لا يوجد موقع GPS مرتبط بهذه المزرعة"
+          "لا يوجد موقع GPS مرتبط بهذه المزرعة. افتح الخريطة واحفظ موقع المزرعة أولاً."
         );
         return;
       }
 
+      // ---------------------------------------------------
+      // 4. استخراج الإحداثيات
+      // ---------------------------------------------------
+
       const latitude =
-        currentFarmLocation.latitude ??
-        currentFarmLocation.lat;
+        getLatitude(
+          currentFarmLocation
+        );
 
       const longitude =
-        currentFarmLocation.longitude ??
-        currentFarmLocation.lng;
+        getLongitude(
+          currentFarmLocation
+        );
+
+      // ---------------------------------------------------
+      // 5. التحقق من الإحداثيات
+      // ---------------------------------------------------
 
       if (
         latitude === null ||
-        latitude === undefined ||
-        longitude === null ||
-        longitude === undefined
+        longitude === null
       ) {
-        alert(
-          "الموقع موجود، لكن إحداثيات GPS غير صالحة"
+        console.error(
+          "LAVENDER Weather invalid location:",
+          currentFarmLocation
         );
+
+        alert(
+          "الموقع محفوظ، لكن إحداثيات GPS غير صالحة."
+        );
+
         return;
       }
+
+      // ---------------------------------------------------
+      // 6. التحقق من نطاق الإحداثيات
+      // ---------------------------------------------------
+
+      if (
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
+        alert(
+          "إحداثيات GPS المحفوظة غير صحيحة."
+        );
+
+        return;
+      }
+
+      // ---------------------------------------------------
+      // 7. تحميل الطقس
+      // ---------------------------------------------------
 
       await getWeather({
         latitude,
@@ -143,8 +304,10 @@ export default function Weather() {
 
       alert(
         err?.message ||
-          "تعذر تحميل موقع المزرعة"
+          "تعذر تحميل بيانات الطقس"
       );
+    } finally {
+      setCheckingLocation(false);
     }
   };
 
@@ -162,19 +325,23 @@ export default function Weather() {
         padding: "20px",
       }}
     >
-      <h1>🌤️ طقس المزرعة</h1>
+      <h1>
+        ☀️ نظام الطقس الزراعي الذكي
+      </h1>
 
       <p>
-        اختر المزرعة لعرض حالة الطقس حسب موقعها
-        الجغرافي.
+        تحليل الظروف الجوية وتأثيرها على
+        المحاصيل.
       </p>
 
       {/* =================================================
-          Farm selection
+          Farm Selection
       ================================================= */}
 
       <Card>
-        <h2>🏡 اختيار المزرعة</h2>
+        <h2>
+          📍 اختيار المزرعة
+        </h2>
 
         <select
           value={selectedFarm}
@@ -187,22 +354,28 @@ export default function Weather() {
             width: "100%",
             padding: "12px",
             marginBottom: "15px",
+            fontSize: "16px",
           }}
         >
           <option value="">
             اختر المزرعة
           </option>
 
-          {farms.map((farm) => (
-            <option
-              key={farm.id}
-              value={farm.id}
-            >
-              {farm.name ||
-                farm.farmName ||
-                "مزرعة بدون اسم"}
-            </option>
-          ))}
+          {farms.map((farm) => {
+            const farmId =
+              getFarmId(farm);
+
+            return (
+              <option
+                key={farmId}
+                value={farmId}
+              >
+                {farm.name ||
+                  farm.farmName ||
+                  "مزرعة بدون اسم"}
+              </option>
+            );
+          })}
         </select>
 
         {selectedFarm && (
@@ -216,13 +389,61 @@ export default function Weather() {
 
         <Button
           onClick={handleGetWeather}
-          disabled={loading}
+          disabled={
+            loading ||
+            checkingLocation
+          }
         >
-          {loading
-            ? "جاري تحميل الطقس..."
-            : "🌤️ عرض الطقس"}
+          {loading || checkingLocation
+            ? "جاري تحليل الطقس..."
+            : "🌦️ تحليل الطقس"}
         </Button>
       </Card>
+
+      {/* =================================================
+          Location Status
+      ================================================= */}
+
+      {selectedFarm && (
+        <Card>
+          <h3>
+            📍 موقع المزرعة
+          </h3>
+
+          {farmLocation ? (
+            <>
+              <p>
+                ✅ يوجد موقع محفوظ للمزرعة.
+              </p>
+
+              {getLatitude(
+                farmLocation
+              ) !== null &&
+                getLongitude(
+                  farmLocation
+                ) !== null && (
+                  <p>
+                    📌 إحداثيات GPS:{" "}
+                    {getLatitude(
+                      farmLocation
+                    )}{" "}
+                    ,{" "}
+                    {getLongitude(
+                      farmLocation
+                    )}
+                  </p>
+                )}
+            </>
+          ) : (
+            <p>
+              ⚠️ لم يتم العثور على موقع في
+              ذاكرة الصفحة. عند الضغط على
+              تحليل الطقس سيتم البحث مباشرة
+              في الموقع المحفوظ للمزرعة.
+            </p>
+          )}
+        </Card>
+      )}
 
       {/* =================================================
           Error
@@ -240,7 +461,7 @@ export default function Weather() {
       )}
 
       {/* =================================================
-          Weather
+          Weather Result
       ================================================= */}
 
       {weather && (
@@ -253,10 +474,12 @@ export default function Weather() {
             <p>
               📍 الموقع:{" "}
               {weather.location.latitude ??
-                weather.location.lat}{" "}
+                weather.location.lat ??
+                "--"}{" "}
               ,{" "}
               {weather.location.longitude ??
-                weather.location.lng}
+                weather.location.lng ??
+                "--"}
             </p>
           )}
 
@@ -290,7 +513,7 @@ export default function Weather() {
       )}
 
       {/* =================================================
-          Farm advice
+          Farm Advice
       ================================================= */}
 
       {weather &&
@@ -314,28 +537,36 @@ export default function Weather() {
         )}
 
       {/* =================================================
-          Location status
+          Future Development
       ================================================= */}
 
-      {selectedFarm && (
-        <Card>
-          <h3>
-            📍 حالة موقع المزرعة
-          </h3>
+      <Card>
+        <h2>
+          🚀 جاهزية التطوير المستقبلي
+        </h2>
 
-          {farmLocation ? (
-            <p>
-              ✅ يوجد موقع GPS محفوظ لهذه
-              المزرعة.
-            </p>
-          ) : (
-            <p>
-              ⚠️ لم يتم العثور على موقع محفوظ
-              لهذه المزرعة.
-            </p>
-          )}
-        </Card>
-      )}
+        <p>
+          🌍 ربط API طقس عالمي.
+        </p>
+
+        <p>
+          📡 تحديث تلقائي عبر GPS.
+        </p>
+
+        <p>
+          🤖 توقع احتياجات الري بالذكاء
+          الاصطناعي.
+        </p>
+
+        <p>
+          🌡️ ربط حساسات التربة والبيوت
+          الزراعية.
+        </p>
+
+        <p>
+          🔔 إرسال تنبيهات للمزارع.
+        </p>
+      </Card>
     </div>
   );
 }
