@@ -1,37 +1,131 @@
+// =========================================================
+// LAVENDER — MAP REPOSITORY
 // src/repositories/mapRepository.js
+// =========================================================
+//
+// المسؤول فقط عن تخزين واسترجاع مواقع المزارع.
+//
+// العلاقة الأساسية:
+//
+// farmId → LocationData
+//
+// القاعدة:
+//
+// لكل مزرعة موقع واحد فعّال.
+// عند حفظ موقع جديد لنفس farmId يتم تحديث الموقع
+// الموجود بدل إنشاء موقع مكرر.
+//
+// لا يحتوي هذا الملف على:
+// - React
+// - Leaflet
+// - Nominatim
+// - Weather
+// - Crops
+// - UI
+// - حسابات جغرافية
+//
+// المسار:
+//
+// Map Page
+//    ↓
+// useMap
+//    ↓
+// mapService
+//    ↓
+// mapRepository
+//    ↓
+// storageService
+//
+// =========================================================
 
 import { storageService } from "../storage";
 
 
 // =========================================================
-// LAVENDER — MAP REPOSITORY
+// CONSTANTS
 // =========================================================
-//
-// المسؤول فقط عن تخزين واسترجاع LocationData.
-//
-// لا يحتوي على:
-// - MapModel
-// - Leaflet
-// - Nominatim
-// - حسابات جغرافية
-// - React
-// - منطق المحاصيل
-//
-// العلاقة:
-// farmId → LocationData
-//
-// القاعدة:
-// لكل مزرعة LocationData واحد فعّال.
-// عند حفظ موقع جديد لنفس farmId يتم تحديث الموقع
-// الموجود بدل إنشاء سجل مكرر.
-//
-// =========================================================
-
 
 const LOCATIONS_KEY = "locations";
 
 
+// =========================================================
+// HELPERS
+// =========================================================
+
+function normalizeFarmId(value) {
+
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+
+  return String(value).trim();
+
+}
+
+
+function getFarmId(item) {
+
+  if (
+    !item ||
+    typeof item !== "object"
+  ) {
+    return "";
+  }
+
+  return normalizeFarmId(
+
+    item.farmId ??
+    item.farmID ??
+    item.farm_id ??
+    item.farm?.id ??
+    item.farm?.farmId ??
+    ""
+
+  );
+
+}
+
+
+function normalizeCoordinates(data) {
+
+  if (
+    !data ||
+    typeof data !== "object"
+  ) {
+    return {
+      latitude: null,
+      longitude: null,
+    };
+  }
+
+  const latitude =
+    data.latitude ??
+    data.lat ??
+    null;
+
+  const longitude =
+    data.longitude ??
+    data.lng ??
+    data.lon ??
+    null;
+
+  return {
+    latitude,
+    longitude,
+  };
+
+}
+
+
+// =========================================================
+// MAP REPOSITORY
+// =========================================================
+
 class MapRepository {
+
 
   // =======================================================
   // GET ALL
@@ -54,18 +148,6 @@ class MapRepository {
 
     }
 
-
-    /*
-     * -----------------------------------------------------
-     * تنظيف السجلات المكررة القديمة
-     * -----------------------------------------------------
-     *
-     * إذا كان هناك أكثر من LocationData لنفس farmId،
-     * نحتفظ بأحدث سجل فقط.
-     *
-     * هذا يعالج السجلات التي تم إنشاؤها سابقًا
-     * قبل تطبيق قاعدة عدم التكرار.
-     */
 
     const latestByFarm =
       new Map();
@@ -90,15 +172,11 @@ class MapRepository {
 
 
       const farmId =
-        item?.farmId
-          ? String(
-              item.farmId
-            )
-          : "";
+        getFarmId(item);
 
 
       /*
-       * السجلات القديمة التي لا تحتوي farmId
+       * السجلات التي لا تحتوي farmId
        * لا نحذفها تلقائيًا.
        */
 
@@ -115,6 +193,19 @@ class MapRepository {
       }
 
 
+      /*
+       * توحيد farmId داخل السجل.
+       */
+
+      const normalizedItem = {
+
+        ...item,
+
+        farmId,
+
+      };
+
+
       const existing =
         latestByFarm.get(
           farmId
@@ -127,7 +218,7 @@ class MapRepository {
 
         latestByFarm.set(
           farmId,
-          item
+          normalizedItem
         );
 
         continue;
@@ -137,16 +228,16 @@ class MapRepository {
 
       const existingTime =
         new Date(
-          existing?.updatedAt ||
-          existing?.createdAt ||
+          existing.updatedAt ||
+          existing.createdAt ||
           0
         ).getTime();
 
 
       const currentTime =
         new Date(
-          item?.updatedAt ||
-          item?.createdAt ||
+          normalizedItem.updatedAt ||
+          normalizedItem.createdAt ||
           0
         ).getTime();
 
@@ -158,7 +249,7 @@ class MapRepository {
 
         latestByFarm.set(
           farmId,
-          item
+          normalizedItem
         );
 
       }
@@ -176,12 +267,22 @@ class MapRepository {
 
 
     /*
-     * حفظ النسخة النظيفة إذا كان هناك تكرار.
+     * إذا تم تنظيف سجلات مكررة
+     * أو توحيد farmId،
+     * نحفظ البيانات الجديدة.
      */
 
+    const originalSerialized =
+      JSON.stringify(data);
+
+
+    const cleanedSerialized =
+      JSON.stringify(locations);
+
+
     if (
-      locations.length !==
-      data.length
+      originalSerialized !==
+      cleanedSerialized
     ) {
 
       await storageService.save(
@@ -206,7 +307,9 @@ class MapRepository {
   ) {
 
     if (
-      !id
+      id === null ||
+      id === undefined ||
+      id === ""
     ) {
 
       return null;
@@ -219,31 +322,38 @@ class MapRepository {
 
 
     return (
+
       locations.find(
         item =>
           String(
             item?.id
           ) ===
-          String(
-            id
-          )
+          String(id)
       ) ||
+
       null
+
     );
 
   }
 
 
   // =======================================================
-  // GET BY FARM
+  // GET BY FARM ID
   // =======================================================
 
   async getByFarmId(
     farmId
   ) {
 
+    const wantedFarmId =
+      normalizeFarmId(
+        farmId
+      );
+
+
     if (
-      !farmId
+      !wantedFarmId
     ) {
 
       return [];
@@ -257,33 +367,20 @@ class MapRepository {
 
     return locations.filter(
       item =>
-        String(
-          item?.farmId
-        ) ===
-        String(
-          farmId
-        )
+        getFarmId(item) ===
+        wantedFarmId
     );
 
   }
 
 
   // =======================================================
-  // GET ACTIVE LOCATION BY FARM
+  // GET LATEST LOCATION BY FARM
   // =======================================================
 
   async getLatestByFarmId(
     farmId
   ) {
-
-    if (
-      !farmId
-    ) {
-
-      return null;
-
-    }
-
 
     const locations =
       await this.getByFarmId(
@@ -292,13 +389,18 @@ class MapRepository {
 
 
     if (
-      !locations.length
+      locations.length === 0
     ) {
 
       return null;
 
     }
 
+
+    /*
+     * نحاول أولًا استخدام الموقع
+     * غير المؤرشف.
+     */
 
     const active =
       locations.filter(
@@ -309,30 +411,46 @@ class MapRepository {
 
 
     const source =
-      active.length
+      active.length > 0
         ? active
         : locations;
 
 
-    return (
-      [
-        ...source,
-      ].sort(
-        (
-          a,
-          b
-        ) =>
-          new Date(
-            b?.updatedAt ||
-            b?.createdAt ||
-            0
-          ) -
+    const sorted = [
+      ...source,
+    ].sort(
+      (
+        a,
+        b
+      ) => {
+
+        const dateA =
           new Date(
             a?.updatedAt ||
             a?.createdAt ||
             0
-          )
-      )[0] ||
+          ).getTime();
+
+
+        const dateB =
+          new Date(
+            b?.updatedAt ||
+            b?.createdAt ||
+            0
+          ).getTime();
+
+
+        return (
+          dateB -
+          dateA
+        );
+
+      }
+    );
+
+
+    return (
+      sorted[0] ||
       null
     );
 
@@ -343,11 +461,16 @@ class MapRepository {
   // CREATE / UPDATE BY FARM
   // =======================================================
   //
-  // إذا كان للمزرعة موقع موجود:
-  // يتم تحديثه.
+  // هذه هي النقطة الأساسية لربط GPS بالمزرعة.
   //
-  // إذا لم يكن للمزرعة موقع:
-  // يتم إنشاء موقع جديد.
+  // إذا كان farmId موجودًا:
+  // نبحث عن الموقع الخاص بهذه المزرعة.
+  //
+  // إذا وجدناه:
+  // نحدث نفس الموقع.
+  //
+  // إذا لم نجده:
+  // ننشئ موقعًا جديدًا.
   //
   // =======================================================
 
@@ -367,8 +490,12 @@ class MapRepository {
     }
 
 
+    const farmId =
+      getFarmId(data);
+
+
     if (
-      !data.farmId
+      !farmId
     ) {
 
       throw new Error(
@@ -378,26 +505,36 @@ class MapRepository {
     }
 
 
+    const coordinates =
+      normalizeCoordinates(
+        data
+      );
+
+
+    if (
+      coordinates.latitude === null ||
+      coordinates.longitude === null
+    ) {
+
+      throw new Error(
+        "MAP_COORDINATES_REQUIRED"
+      );
+
+    }
+
+
     const locations =
       await this.getAll();
 
 
-    const farmId =
-      String(
-        data.farmId
-      );
-
-
     /*
-     * البحث عن موقع موجود لنفس المزرعة.
+     * البحث عن الموقع بواسطة farmId.
      */
 
     const existingIndex =
       locations.findIndex(
         item =>
-          String(
-            item?.farmId
-          ) ===
+          getFarmId(item) ===
           farmId
       );
 
@@ -411,8 +548,7 @@ class MapRepository {
     // =====================================================
 
     if (
-      existingIndex !==
-      -1
+      existingIndex !== -1
     ) {
 
       const existing =
@@ -428,33 +564,52 @@ class MapRepository {
         ...data,
 
         /*
-         * نحافظ على ID الأصلي.
+         * نثبت ID الأصلي.
          */
 
         id:
           existing.id,
 
-        /*
-         * farmId لا يتغير.
-         */
-
-        farmId:
-          farmId,
 
         /*
-         * تاريخ الإنشاء الأصلي يبقى محفوظًا.
+         * نثبت farmId.
          */
+
+        farmId,
+
+
+        /*
+         * نوحد الإحداثيات.
+         */
+
+        latitude:
+          coordinates.latitude,
+
+        longitude:
+          coordinates.longitude,
+
+
+        /*
+         * نبقي الإحداثيات القديمة
+         * بصيغة lat/lng أيضًا
+         * للتوافق مع الأكواد القديمة.
+         */
+
+        lat:
+          coordinates.latitude,
+
+        lng:
+          coordinates.longitude,
+
 
         createdAt:
           existing.createdAt ||
           now,
 
-        /*
-         * تاريخ التعديل يتحدث.
-         */
 
         updatedAt:
           now,
+
 
         status:
           data.status ||
@@ -486,11 +641,15 @@ class MapRepository {
     // =====================================================
 
     const id =
+
       typeof crypto !==
         "undefined" &&
+
       typeof crypto.randomUUID ===
         "function"
+
         ? crypto.randomUUID()
+
         : `${Date.now()}-${Math.random()
             .toString(36)
             .slice(2)}`;
@@ -500,17 +659,47 @@ class MapRepository {
 
       id,
 
+
       ...data,
 
-      farmId:
-        farmId,
+
+      /*
+       * farmId الموحد.
+       */
+
+      farmId,
+
+
+      /*
+       * GPS.
+       */
+
+      latitude:
+        coordinates.latitude,
+
+      longitude:
+        coordinates.longitude,
+
+
+      /*
+       * توافق مع lat/lng.
+       */
+
+      lat:
+        coordinates.latitude,
+
+      lng:
+        coordinates.longitude,
+
 
       createdAt:
         data.createdAt ||
         now,
 
+
       updatedAt:
         now,
+
 
       status:
         data.status ||
@@ -545,7 +734,9 @@ class MapRepository {
   ) {
 
     if (
-      !id
+      id === null ||
+      id === undefined ||
+      id === ""
     ) {
 
       return null;
@@ -575,9 +766,7 @@ class MapRepository {
           String(
             item?.id
           ) ===
-          String(
-            id
-          )
+          String(id)
       );
 
 
@@ -590,24 +779,103 @@ class MapRepository {
     }
 
 
+    const existing =
+      locations[index];
+
+
+    /*
+     * farmId الجديد، إن وجد.
+     */
+
+    const farmId =
+      normalizeFarmId(
+
+        data.farmId ??
+        data.farmID ??
+        data.farm_id ??
+        existing.farmId ??
+        existing.farmID ??
+        existing.farm_id ??
+        existing.farm?.id ??
+        ""
+
+      );
+
+
+    if (
+      !farmId
+    ) {
+
+      throw new Error(
+        "MAP_FARM_REQUIRED"
+      );
+
+    }
+
+
+    const coordinates =
+      normalizeCoordinates({
+
+        ...existing,
+
+        ...data,
+
+      });
+
+
+    if (
+      coordinates.latitude === null ||
+      coordinates.longitude === null
+    ) {
+
+      throw new Error(
+        "MAP_COORDINATES_REQUIRED"
+      );
+
+    }
+
+
     const updated = {
 
-      ...locations[index],
+      ...existing,
 
       ...data,
 
-      id:
-        locations[index].id,
 
-      farmId:
-        String(
-          data.farmId ??
-          locations[index].farmId ??
-          ""
-        ),
+      id:
+        existing.id,
+
+
+      farmId,
+
+
+      latitude:
+        coordinates.latitude,
+
+      longitude:
+        coordinates.longitude,
+
+
+      lat:
+        coordinates.latitude,
+
+      lng:
+        coordinates.longitude,
+
+
+      createdAt:
+        existing.createdAt ||
+        new Date().toISOString(),
+
 
       updatedAt:
         new Date().toISOString(),
+
+
+      status:
+        data.status ||
+        existing.status ||
+        "active",
 
     };
 
@@ -636,7 +904,9 @@ class MapRepository {
   ) {
 
     if (
-      !id
+      id === null ||
+      id === undefined ||
+      id === ""
     ) {
 
       return false;
@@ -654,9 +924,7 @@ class MapRepository {
           String(
             item?.id
           ) !==
-          String(
-            id
-          )
+          String(id)
       );
 
 
@@ -689,10 +957,14 @@ class MapRepository {
     id
   ) {
 
-    return Boolean(
+    const location =
       await this.getById(
         id
-      )
+      );
+
+
+    return Boolean(
+      location
     );
 
   }
@@ -722,6 +994,10 @@ class MapRepository {
 const mapRepository =
   new MapRepository();
 
+
+// =========================================================
+// EXPORT
+// =========================================================
 
 export default Object.freeze(
   mapRepository
