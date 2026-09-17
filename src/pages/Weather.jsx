@@ -13,7 +13,6 @@ import { FarmContext } from "../context/FarmContext.jsx";
 import useWeather from "../hooks/useWeather.js";
 
 import Card from "../components/ui/Card.jsx";
-import Button from "../components/ui/Button.jsx";
 
 // =========================================================
 // Helpers
@@ -203,7 +202,7 @@ export default function Weather() {
     }
 
     // -----------------------------------------------------
-    // 2. البحث القديم حسب farmName
+    // 2. البحث في السجلات القديمة حسب farmName
     // -----------------------------------------------------
 
     if (selectedFarmName) {
@@ -265,9 +264,7 @@ export default function Weather() {
         );
 
       // ---------------------------------------------------
-      // 2. إذا لم نجده، نعيد تحميل المواقع
-      //    ثم نبحث حسب farmId
-      //    ثم farmName للسجلات القديمة
+      // 2. إعادة تحميل المواقع إذا لم نجد الموقع
       // ---------------------------------------------------
 
       if (!currentFarmLocation) {
@@ -277,7 +274,7 @@ export default function Weather() {
         if (
           Array.isArray(freshLocations)
         ) {
-          // أولًا: farmId
+          // farmId أولاً
           currentFarmLocation =
             freshLocations.find(
               (location) =>
@@ -287,7 +284,7 @@ export default function Weather() {
                 String(selectedFarm)
             ) || null;
 
-          // ثانيًا: farmName
+          // farmName للسجلات القديمة
           if (
             !currentFarmLocation &&
             selectedFarmName
@@ -307,7 +304,7 @@ export default function Weather() {
       }
 
       // ---------------------------------------------------
-      // 3. محاولة أخيرة من المواقع الموجودة في Context
+      // 3. محاولة أخيرة من Context
       // ---------------------------------------------------
 
       if (!currentFarmLocation) {
@@ -327,7 +324,7 @@ export default function Weather() {
       }
 
       // ---------------------------------------------------
-      // 5. استخراج الإحداثيات
+      // 5. استخراج GPS
       // ---------------------------------------------------
 
       const latitude =
@@ -341,7 +338,7 @@ export default function Weather() {
         );
 
       // ---------------------------------------------------
-      // 6. التحقق من الإحداثيات
+      // 6. التحقق من GPS
       // ---------------------------------------------------
 
       if (
@@ -361,7 +358,7 @@ export default function Weather() {
       }
 
       // ---------------------------------------------------
-      // 7. التحقق من نطاق الإحداثيات
+      // 7. التحقق من نطاق GPS
       // ---------------------------------------------------
 
       if (
@@ -378,7 +375,7 @@ export default function Weather() {
       }
 
       // ---------------------------------------------------
-      // 8. تحميل الطقس باستخدام GPS
+      // 8. تحميل الطقس
       // ---------------------------------------------------
 
       await getWeather({
@@ -475,17 +472,31 @@ export default function Weather() {
           </p>
         )}
 
-        <Button
+        <button
+          type="button"
           onClick={handleGetWeather}
           disabled={
             loading ||
             checkingLocation
           }
+          style={{
+            width: "100%",
+            padding: "13px 16px",
+            fontSize: "16px",
+            cursor:
+              loading || checkingLocation
+                ? "not-allowed"
+                : "pointer",
+            opacity:
+              loading || checkingLocation
+                ? 0.7
+                : 1,
+          }}
         >
           {loading || checkingLocation
             ? "جاري تحليل الطقس..."
             : "🌦️ تحليل الطقس"}
-        </Button>
+        </button>
       </Card>
 
       {/* =================================================
