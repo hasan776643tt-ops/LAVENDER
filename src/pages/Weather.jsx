@@ -1,4 +1,7 @@
+// =========================================================
+// LAVENDER — WEATHER PAGE
 // src/pages/Weather.jsx
+// =========================================================
 
 import {
   useContext,
@@ -6,27 +9,26 @@ import {
   useState,
 } from "react";
 
-import {
-  FarmContext,
-} from "../context/FarmContext";
+import { FarmContext } from "../context/FarmContext.jsx";
+import useWeather from "../hooks/useWeather.js";
 
-import useWeather
-  from "../hooks/useWeather.js";
-
-import Card
-  from "../components/Card";
-
-import Button
-  from "../components/Button";
-
+import Card from "../components/ui/Card.jsx";
+import Button from "../components/ui/Button.jsx";
 
 export default function Weather() {
+  // =======================================================
+  // Context
+  // =======================================================
 
   const {
     farms = [],
     locations = [],
+    locationActions,
   } = useContext(FarmContext);
 
+  // =======================================================
+  // Weather hook
+  // =======================================================
 
   const {
     weather,
@@ -36,376 +38,304 @@ export default function Weather() {
     farmAdvice,
   } = useWeather();
 
+  // =======================================================
+  // Selected farm
+  // =======================================================
 
   const [selectedFarm, setSelectedFarm] =
     useState("");
 
-
-  // =========================
-  // Farm Location
-  // =========================
+  // =======================================================
+  // Current location from context
+  // =======================================================
 
   const farmLocation = useMemo(() => {
+    if (!selectedFarm) {
+      return null;
+    }
 
-    return locations.find(
+    return (
+      locations.find(
+        (location) =>
+          String(location.farmId) ===
+          String(selectedFarm)
+      ) || null
+    );
+  }, [locations, selectedFarm]);
 
-      location =>
-        String(location.farmId) ===
+  // =======================================================
+  // Get selected farm name
+  // =======================================================
+
+  const selectedFarmName = useMemo(() => {
+    const farm = farms.find(
+      (item) =>
+        String(item.id) ===
         String(selectedFarm)
+    );
 
-    ) || null;
+    return (
+      farm?.name ||
+      farm?.farmName ||
+      "المزرعة"
+    );
+  }, [farms, selectedFarm]);
 
-  }, [
-
-    locations,
-
-    selectedFarm
-
-  ]);
-
-
-
-  // =========================
-  // Get Weather
-  // =========================
+  // =======================================================
+  // Load weather
+  // =======================================================
 
   const handleGetWeather = async () => {
-
     if (!selectedFarm) {
-
-      alert(
-        "اختر المزرعة أولاً"
-      );
-
+      alert("اختر المزرعة أولاً");
       return;
-
     }
-
-
-    if (!farmLocation) {
-
-      alert(
-        "لا يوجد موقع GPS مرتبط بهذه المزرعة"
-      );
-
-      return;
-
-    }
-
 
     try {
+      // تحميل أحدث المواقع من خلال Context
+      // حتى لا نعتمد على بيانات قديمة في الذاكرة.
+      const freshLocations =
+        await locationActions.load();
+
+      const currentFarmLocation =
+        freshLocations.find(
+          (location) =>
+            String(location.farmId) ===
+            String(selectedFarm)
+        ) || null;
+
+      if (!currentFarmLocation) {
+        alert(
+          "لا يوجد موقع GPS مرتبط بهذه المزرعة"
+        );
+        return;
+      }
+
+      const latitude =
+        currentFarmLocation.latitude ??
+        currentFarmLocation.lat;
+
+      const longitude =
+        currentFarmLocation.longitude ??
+        currentFarmLocation.lng;
+
+      if (
+        latitude === null ||
+        latitude === undefined ||
+        longitude === null ||
+        longitude === undefined
+      ) {
+        alert(
+          "الموقع موجود، لكن إحداثيات GPS غير صالحة"
+        );
+        return;
+      }
 
       await getWeather({
-
-        latitude:
-          farmLocation.latitude ??
-          farmLocation.lat,
-
-        longitude:
-          farmLocation.longitude ??
-          farmLocation.lng,
-
+        latitude,
+        longitude,
       });
-
     } catch (err) {
-
       console.error(
-        "Weather error:",
+        "LAVENDER Weather page error:",
         err
       );
 
+      alert(
+        err?.message ||
+          "تعذر تحميل موقع المزرعة"
+      );
     }
-
   };
 
-
-
-  // =========================
-  // UI
-  // =========================
+  // =======================================================
+  // Render
+  // =======================================================
 
   return (
-
-    <div>
-
-      <h1>
-        ☀️ نظام الطقس الزراعي الذكي
-      </h1>
-
+    <div
+      dir="rtl"
+      style={{
+        width: "100%",
+        maxWidth: "1100px",
+        margin: "0 auto",
+        padding: "20px",
+      }}
+    >
+      <h1>🌤️ طقس المزرعة</h1>
 
       <p>
-        تحليل الظروف الجوية وتأثيرها على المحاصيل.
+        اختر المزرعة لعرض حالة الطقس حسب موقعها
+        الجغرافي.
       </p>
 
+      {/* =================================================
+          Farm selection
+      ================================================= */}
 
-
-      <Card
-        title="📍 اختيار المزرعة"
-      >
+      <Card>
+        <h2>🏡 اختيار المزرعة</h2>
 
         <select
-
           value={selectedFarm}
-
-          onChange={(e) =>
+          onChange={(event) => {
             setSelectedFarm(
-              e.target.value
-            )
-          }
-
+              event.target.value
+            );
+          }}
+          style={{
+            width: "100%",
+            padding: "12px",
+            marginBottom: "15px",
+          }}
         >
-
           <option value="">
             اختر المزرعة
           </option>
 
-
-          {farms.map(
-
-            farm => (
-
-              <option
-
-                key={farm.id}
-
-                value={farm.id}
-
-              >
-
-                {farm.name}
-
-              </option>
-
-            )
-
-          )}
-
+          {farms.map((farm) => (
+            <option
+              key={farm.id}
+              value={farm.id}
+            >
+              {farm.name ||
+                farm.farmName ||
+                "مزرعة بدون اسم"}
+            </option>
+          ))}
         </select>
 
-
-        <br />
-        <br />
-
+        {selectedFarm && (
+          <p>
+            🏡 المزرعة المختارة:{" "}
+            <strong>
+              {selectedFarmName}
+            </strong>
+          </p>
+        )}
 
         <Button
           onClick={handleGetWeather}
           disabled={loading}
         >
-
           {loading
-
-            ? "⏳ جاري التحليل..."
-
-            : "🌦️ تحليل الطقس"
-
-          }
-
+            ? "جاري تحميل الطقس..."
+            : "🌤️ عرض الطقس"}
         </Button>
-
-
       </Card>
 
-
+      {/* =================================================
+          Error
+      ================================================= */}
 
       {error && (
-
-        <Card
-          title="⚠️ خطأ في الطقس"
-        >
-
+        <Card>
           <p>
-            {error.message ||
-              "حدث خطأ أثناء جلب بيانات الطقس."}
+            ⚠️{" "}
+            {error?.message ||
+              error ||
+              "حدث خطأ أثناء تحميل الطقس"}
           </p>
-
         </Card>
-
       )}
 
-
+      {/* =================================================
+          Weather
+      ================================================= */}
 
       {weather && (
-
-        <Card
-          title="🌤️ البيانات الجوية"
-        >
+        <Card>
+          <h2>
+            🌤️ حالة الطقس
+          </h2>
 
           {weather.location && (
-
-            <>
-
-              <p>
-                📍 الموقع:
-                {" "}
-                {typeof weather.location === "object"
-
-                  ? (
-                      weather.location.latitude ??
-                      weather.location.lat
-                    )
-                  : weather.location
-
-                }
-
-                {typeof weather.location === "object" &&
-                  (
-
-                    weather.location.longitude ??
-                    weather.location.lng
-
-                  ) != null && (
-
-                    <>
-                      {" , "}
-
-                      {
-                        weather.location.longitude ??
-                        weather.location.lng
-                      }
-
-                    </>
-
-                  )
-
-                }
-
-              </p>
-
-            </>
-
+            <p>
+              📍 الموقع:{" "}
+              {weather.location.latitude ??
+                weather.location.lat}{" "}
+              ,{" "}
+              {weather.location.longitude ??
+                weather.location.lng}
+            </p>
           )}
 
-
-
           <p>
-            🌡️ الحرارة الحالية:
-            {" "}
-            {weather.temperature ?? "--"}
+            🌡️ الحرارة:{" "}
+            {weather.temperature ??
+              weather.temp ??
+              "--"}
             °C
           </p>
 
-
-
           <p>
-            🔽 الصغرى:
-            {" "}
-            {weather.minTemperature ?? "--"}
-            °C
+            💧 الرطوبة:{" "}
+            {weather.humidity ?? "--"}%
           </p>
 
-
-
           <p>
-            🔼 العظمى:
-            {" "}
-            {weather.maxTemperature ?? "--"}
-            °C
+            🌧️ احتمال المطر:{" "}
+            {weather.rainChance ??
+              weather.rainProbability ??
+              "--"}%
           </p>
 
-
-
-          <p>
-            💧 الرطوبة:
-            {" "}
-            {weather.humidity ?? "--"}
-            %
-          </p>
-
-
-
-          <p>
-            💨 سرعة الرياح:
-            {" "}
-            {weather.windSpeed ?? "--"}
-            كم/ساعة
-          </p>
-
-
-
-          <p>
-            🌧️ احتمال المطر:
-            {" "}
-            {weather.rainChance ?? "--"}
-            %
-          </p>
-
-
-
-          <p>
-            ☀️ الحالة:
-            {" "}
-            {weather.condition ?? "--"}
-          </p>
-
-
-
-          <p>
-            🕒 آخر تحديث:
-            {" "}
-            {
-              weather.updated ??
-              weather.updatedAt ??
-              "--"
-            }
-
-          </p>
-
-
+          {weather.description && (
+            <p>
+              ☁️ الحالة:{" "}
+              {weather.description}
+            </p>
+          )}
         </Card>
-
       )}
 
+      {/* =================================================
+          Farm advice
+      ================================================= */}
 
+      {weather &&
+        Array.isArray(farmAdvice) &&
+        farmAdvice.length > 0 && (
+          <Card>
+            <h2>
+              🌱 نصائح للمزرعة
+            </h2>
 
-      {weather && (
+            <ul>
+              {farmAdvice.map(
+                (advice, index) => (
+                  <li key={index}>
+                    {advice}
+                  </li>
+                )
+              )}
+            </ul>
+          </Card>
+        )}
 
-        <Card
-          title="🌱 التوصيات الزراعية الذكية"
-        >
+      {/* =================================================
+          Location status
+      ================================================= */}
 
-          <p>
-            {farmAdvice()}
-          </p>
+      {selectedFarm && (
+        <Card>
+          <h3>
+            📍 حالة موقع المزرعة
+          </h3>
 
+          {farmLocation ? (
+            <p>
+              ✅ يوجد موقع GPS محفوظ لهذه
+              المزرعة.
+            </p>
+          ) : (
+            <p>
+              ⚠️ لم يتم العثور على موقع محفوظ
+              لهذه المزرعة.
+            </p>
+          )}
         </Card>
-
       )}
-
-
-
-      <Card
-        title="🚀 جاهزية التطوير المستقبلي"
-      >
-
-        <p>
-          🌍 ربط API طقس عالمي.
-        </p>
-
-
-        <p>
-          📡 تحديث تلقائي عبر GPS.
-        </p>
-
-
-        <p>
-          🤖 توقع احتياجات الري بالذكاء الاصطناعي.
-        </p>
-
-
-        <p>
-          🌡️ ربط حساسات التربة والبيوت الزراعية.
-        </p>
-
-
-        <p>
-          🔔 إرسال تنبيهات للمزارع.
-        </p>
-
-      </Card>
-
-
     </div>
-
   );
-
 }
