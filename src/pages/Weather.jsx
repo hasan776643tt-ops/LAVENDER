@@ -11,7 +11,6 @@ import {
 
 import { FarmContext } from "../context/FarmContext.jsx";
 import useWeather from "../hooks/useWeather.js";
-
 import Card from "../components/ui/Card.jsx";
 
 // =========================================================
@@ -19,10 +18,7 @@ import Card from "../components/ui/Card.jsx";
 // =========================================================
 
 function clean(value) {
-  if (
-    value === null ||
-    value === undefined
-  ) {
+  if (value === null || value === undefined) {
     return "";
   }
 
@@ -36,10 +32,10 @@ function getFarmId(farm) {
 
   return clean(
     farm.id ??
-    farm.farmId ??
-    farm._id ??
-    farm.farm_id ??
-    ""
+      farm.farmId ??
+      farm._id ??
+      farm.farm_id ??
+      ""
   );
 }
 
@@ -50,9 +46,25 @@ function getFarmName(farm) {
 
   return clean(
     farm.name ??
-    farm.farmName ??
-    farm.title ??
-    ""
+      farm.farmName ??
+      farm.title ??
+      ""
+  );
+}
+
+function getLocationFarmId(location) {
+  if (!location) {
+    return "";
+  }
+
+  return clean(
+    location.farmId ??
+      location.farmID ??
+      location.farm_id ??
+      location.farm?.id ??
+      location.farm?._id ??
+      location.farm?.farmId ??
+      ""
   );
 }
 
@@ -71,9 +83,7 @@ function getLatitude(location) {
 
   const number = Number(value);
 
-  return Number.isFinite(number)
-    ? number
-    : null;
+  return Number.isFinite(number) ? number : null;
 }
 
 function getLongitude(location) {
@@ -92,17 +102,12 @@ function getLongitude(location) {
 
   const number = Number(value);
 
-  return Number.isFinite(number)
-    ? number
-    : null;
+  return Number.isFinite(number) ? number : null;
 }
 
 function hasValidCoordinates(location) {
-  const latitude =
-    getLatitude(location);
-
-  const longitude =
-    getLongitude(location);
+  const latitude = getLatitude(location);
+  const longitude = getLongitude(location);
 
   return (
     latitude !== null &&
@@ -119,9 +124,9 @@ function hasValidCoordinates(location) {
 // =========================================================
 
 export default function Weather() {
-
   const {
     farms = [],
+    locations = [],
     locationActions,
   } = useContext(FarmContext);
 
@@ -152,244 +157,226 @@ export default function Weather() {
   // Selected Farm
   // =======================================================
 
-  const selectedFarmObject =
-    useMemo(() => {
+  const selectedFarmObject = useMemo(() => {
+    const wantedId = clean(selectedFarm);
 
-      const wantedId =
-        clean(selectedFarm);
+    if (!wantedId) {
+      return null;
+    }
 
-      if (!wantedId) {
-        return null;
-      }
+    return (
+      farms.find(
+        (farm) =>
+          getFarmId(farm) === wantedId
+      ) || null
+    );
+  }, [farms, selectedFarm]);
 
-      return (
-        farms.find(
-          farm =>
-            getFarmId(farm) ===
-            wantedId
-        ) || null
-      );
+  const selectedFarmName = useMemo(() => {
+    return getFarmName(selectedFarmObject);
+  }, [selectedFarmObject]);
 
-    }, [
-      farms,
-      selectedFarm,
-    ]);
+  // =======================================================
+  // Find location from already loaded locations
+  // =======================================================
 
-  const selectedFarmName =
-    useMemo(() => {
+  const findLoadedLocation = (farmId) => {
+    const wantedId = clean(farmId);
 
-      return getFarmName(
-        selectedFarmObject
-      );
+    if (!wantedId || !Array.isArray(locations)) {
+      return null;
+    }
 
-    }, [
-      selectedFarmObject,
-    ]);
+    const matches = locations.filter(
+      (location) =>
+        getLocationFarmId(location) ===
+        wantedId
+    );
+
+    if (matches.length === 0) {
+      return null;
+    }
+
+    const withCoordinates = matches.filter(
+      (location) =>
+        hasValidCoordinates(location)
+    );
+
+    if (withCoordinates.length > 0) {
+      return withCoordinates[
+        withCoordinates.length - 1
+      ];
+    }
+
+    return matches[matches.length - 1];
+  };
 
   // =======================================================
   // GET WEATHER
   // =======================================================
 
-  const handleGetWeather =
-    async () => {
+  const handleGetWeather = async () => {
+    if (!selectedFarm) {
+      alert("اختر المزرعة أولاً");
+      return;
+    }
 
-      if (!selectedFarm) {
+    setCheckingLocation(true);
+    setCurrentLocation(null);
+
+    try {
+      const farmId = clean(selectedFarm);
+      const farmName = clean(selectedFarmName);
+
+      let location = null;
+
+      // ---------------------------------------------------
+      // أولاً:
+      // استخدم الموقع المحمّل أصلًا من FarmContext.
+      // ---------------------------------------------------
+
+      location = findLoadedLocation(farmId);
+
+      // ---------------------------------------------------
+      // ثانيًا:
+      // اطلب الموقع من locationActions إذا لم نجده.
+      // ---------------------------------------------------
+
+      if (
+        !location &&
+        locationActions &&
+        typeof locationActions.getLatestByFarmId ===
+          "function"
+      ) {
+        location =
+          await locationActions.getLatestByFarmId(
+            farmId,
+            farmName
+          );
+      }
+
+      // ---------------------------------------------------
+      // ثالثًا:
+      // محاولة أخيرة من قائمة المواقع الحالية.
+      // ---------------------------------------------------
+
+      if (!location) {
+        location = findLoadedLocation(farmId);
+      }
+
+      console.log(
+        "LAVENDER WEATHER — FARM ID:",
+        farmId
+      );
+
+      console.log(
+        "LAVENDER WEATHER — FARM NAME:",
+        farmName
+      );
+
+      console.log(
+        "LAVENDER WEATHER — LOCATION:",
+        location
+      );
+
+      // ---------------------------------------------------
+      // لم نجد موقعًا
+      // ---------------------------------------------------
+
+      if (!location) {
         alert(
-          "اختر المزرعة أولاً"
+          `لا يوجد موقع محفوظ لهذه المزرعة.\n\n` +
+            `المزرعة: ${
+              farmName || "المختارة"
+            }\n\n` +
+            `Farm ID: ${farmId}\n\n` +
+            `افتح الخريطة، اختر هذه المزرعة، ` +
+            `واحفظ موقعها أولاً.`
         );
+
         return;
       }
 
-      setCheckingLocation(true);
-      setCurrentLocation(null);
+      // ---------------------------------------------------
+      // استخراج الإحداثيات
+      // ---------------------------------------------------
 
-      try {
+      const latitude = getLatitude(location);
+      const longitude = getLongitude(location);
 
-        const farmId =
-          clean(selectedFarm);
-
-        const farmName =
-          clean(selectedFarmName);
-
-        // -------------------------------------------------
-        // التحقق من وجود نظام المواقع في FarmContext
-        // -------------------------------------------------
-
-        if (
-          !locationActions ||
-          typeof locationActions
-            .getLatestByFarmId !==
-          "function"
-        ) {
-
-          console.error(
-            "LAVENDER WEATHER — locationActions غير متاحة"
-          );
-
-          alert(
-            "تعذر الوصول إلى نظام مواقع المزرعة."
-          );
-
-          return;
+      console.log(
+        "LAVENDER WEATHER — COORDINATES:",
+        {
+          farmId,
+          latitude,
+          longitude,
+          location,
         }
+      );
 
-        // -------------------------------------------------
-        // المصدر الرسمي لموقع المزرعة
-        //
-        // farmId هو الأساس.
-        // farmName يستخدم فقط لمعالجة البيانات القديمة
-        // وفق القواعد الموجودة في FarmContext.
-        // -------------------------------------------------
+      // ---------------------------------------------------
+      // التحقق من الإحداثيات
+      // ---------------------------------------------------
 
-        console.log(
-          "LAVENDER WEATHER — FARM ID:",
-          farmId
-        );
-
-        console.log(
-          "LAVENDER WEATHER — FARM:",
-          selectedFarmObject
-        );
-
-        console.log(
-          "LAVENDER WEATHER — FARM NAME:",
-          farmName
-        );
-
-        const location =
-          await locationActions
-            .getLatestByFarmId(
-              farmId,
-              farmName
-            );
-
-        console.log(
-          "LAVENDER WEATHER — RESOLVED LOCATION:",
-          location
-        );
-
-        // -------------------------------------------------
-        // لم نجد موقعًا
-        // -------------------------------------------------
-
-        if (!location) {
-
-          alert(
-            `لا يوجد موقع GPS مرتبط بهذه المزرعة.\n\n` +
-            `المزرعة: ${
-              farmName ||
-              "المختارة"
-            }\n\n` +
-            `Farm ID:\n${farmId}\n\n` +
-            `افتح الخريطة لهذه المزرعة وتأكد من حفظ الموقع.`
-          );
-
-          return;
-        }
-
-        // -------------------------------------------------
-        // استخراج GPS
-        // -------------------------------------------------
-
-        const latitude =
-          getLatitude(location);
-
-        const longitude =
-          getLongitude(location);
-
-        console.log(
-          "LAVENDER WEATHER — LOCATION DATA:",
-          {
-            farmId,
-            farmName,
-            location,
-            locationFarmId:
-              clean(
-                location.farmId
-              ),
-            locationFarmName:
-              clean(
-                location.farmName
-              ),
-            latitude,
-            longitude,
-          }
-        );
-
-        // -------------------------------------------------
-        // التحقق من GPS
-        // -------------------------------------------------
-
-        if (
-          !hasValidCoordinates(
-            location
-          )
-        ) {
-
-          console.error(
-            "LAVENDER WEATHER — INVALID OR MISSING GPS:",
-            location
-          );
-
-          alert(
-            "تم العثور على موقع المزرعة، لكن إحداثيات GPS المحفوظة غير موجودة أو غير صحيحة."
-          );
-
-          return;
-        }
-
-        // -------------------------------------------------
-        // حفظ الموقع للعرض
-        // -------------------------------------------------
-
-        setCurrentLocation(
-          location
-        );
-
-        // -------------------------------------------------
-        // إرسال GPS إلى نظام الطقس
-        // -------------------------------------------------
-
-        console.log(
-          "LAVENDER WEATHER — USING GPS:",
-          {
-            farmId,
-            farmName,
-            latitude,
-            longitude,
-          }
-        );
-
-        const result =
-          await getWeather({
-            latitude,
-            longitude,
-          });
-
-        if (!result) {
-          console.error(
-            "LAVENDER WEATHER — WEATHER RESULT IS EMPTY"
-          );
-        }
-
-      } catch (err) {
-
-        console.error(
-          "LAVENDER WEATHER ERROR:",
-          err
-        );
-
+      if (
+        latitude === null ||
+        longitude === null ||
+        latitude < -90 ||
+        latitude > 90 ||
+        longitude < -180 ||
+        longitude > 180
+      ) {
         alert(
-          err?.message ||
-          "تعذر تحميل بيانات الطقس"
+          "تم العثور على موقع المزرعة، لكن إحداثيات GPS المحفوظة غير صحيحة."
         );
 
-      } finally {
-
-        setCheckingLocation(false);
-
+        return;
       }
-    };
+
+      // ---------------------------------------------------
+      // عرض الموقع المستخدم
+      // ---------------------------------------------------
+
+      setCurrentLocation({
+        ...location,
+        farmId:
+          getLocationFarmId(location) ||
+          farmId,
+        farmName:
+          clean(location.farmName) ||
+          farmName,
+        latitude,
+        longitude,
+      });
+
+      // ---------------------------------------------------
+      // إرسال الإحداثيات إلى نظام الطقس
+      // ---------------------------------------------------
+
+      const result = await getWeather({
+        latitude,
+        longitude,
+      });
+
+      if (!result) {
+        console.error(
+          "LAVENDER WEATHER — EMPTY WEATHER RESULT"
+        );
+      }
+    } catch (err) {
+      console.error(
+        "LAVENDER WEATHER ERROR:",
+        err
+      );
+
+      alert(
+        err?.message ||
+          "تعذر تحميل بيانات الطقس"
+      );
+    } finally {
+      setCheckingLocation(false);
+    }
+  };
 
   // =======================================================
   // RENDER
@@ -405,14 +392,13 @@ export default function Weather() {
         padding: "20px",
       }}
     >
-
       <h1>
         ☀️ نظام الطقس الزراعي الذكي
       </h1>
 
       <p>
-        تحليل الظروف الجوية وتأثيرها على
-        المحاصيل.
+        تحليل الطقس اعتمادًا على الموقع
+        المحفوظ للمزرعة من نظام الخريطة.
       </p>
 
       {/* =================================================
@@ -420,23 +406,15 @@ export default function Weather() {
       ================================================= */}
 
       <Card>
-
-        <h2>
-          📍 اختيار المزرعة
-        </h2>
+        <h2>🏡 اختيار المزرعة</h2>
 
         <select
           value={selectedFarm}
-          onChange={event => {
-
+          onChange={(event) => {
             setSelectedFarm(
               event.target.value
             );
-
-            setCurrentLocation(
-              null
-            );
-
+            setCurrentLocation(null);
           }}
           style={{
             width: "100%",
@@ -445,48 +423,39 @@ export default function Weather() {
             fontSize: "16px",
           }}
         >
-
           <option value="">
             اختر المزرعة
           </option>
 
-          {farms.map(
-            (farm, index) => {
+          {farms.map((farm, index) => {
+            const farmId =
+              getFarmId(farm);
 
-              const farmId =
-                getFarmId(farm);
+            const farmName =
+              getFarmName(farm) ||
+              "مزرعة بدون اسم";
 
-              const farmName =
-                getFarmName(farm) ||
-                "مزرعة بدون اسم";
-
-              return (
-                <option
-                  key={
-                    farmId ||
-                    `farm-${index}`
-                  }
-                  value={farmId}
-                >
-                  {farmName}
-                </option>
-              );
-
-            }
-          )}
-
+            return (
+              <option
+                key={
+                  farmId ||
+                  `farm-${index}`
+                }
+                value={farmId}
+              >
+                {farmName}
+              </option>
+            );
+          })}
         </select>
 
         {selectedFarm && (
           <div>
-
             <p>
               🏡 المزرعة المختارة:{" "}
               <strong>
-                {
-                  selectedFarmName ||
-                  "المزرعة"
-                }
+                {selectedFarmName ||
+                  "المزرعة"}
               </strong>
             </p>
 
@@ -496,18 +465,14 @@ export default function Weather() {
                 opacity: 0.7,
               }}
             >
-              Farm ID:{" "}
-              {selectedFarm}
+              Farm ID: {selectedFarm}
             </p>
-
           </div>
         )}
 
         <button
           type="button"
-          onClick={
-            handleGetWeather
-          }
+          onClick={handleGetWeather}
           disabled={
             loading ||
             checkingLocation
@@ -528,14 +493,11 @@ export default function Weather() {
                 : 1,
           }}
         >
-
           {loading ||
           checkingLocation
             ? "جاري تحليل الطقس..."
             : "🌦️ تحليل الطقس"}
-
         </button>
-
       </Card>
 
       {/* =================================================
@@ -544,24 +506,22 @@ export default function Weather() {
 
       {selectedFarm && (
         <Card>
-
           <h3>
-            📍 موقع المزرعة
+            📍 موقع المزرعة المستخدم
           </h3>
 
           {!currentLocation && (
             <p>
-              اضغط «تحليل الطقس» لجلب موقع
-              المزرعة مباشرة من نظام مواقع
-              LAVENDER.
+              سيتم استخدام الموقع المحفوظ
+              لهذه المزرعة من نظام الخريطة.
             </p>
           )}
 
           {currentLocation && (
             <>
               <p>
-                ✅ تم العثور على موقع GPS
-                للمزرعة.
+                ✅ تم العثور على الموقع
+                المحفوظ للمزرعة.
               </p>
 
               <p>
@@ -584,29 +544,29 @@ export default function Weather() {
                   opacity: 0.7,
                 }}
               >
-                Farm ID المحفوظ:{" "}
+                Farm ID:{" "}
                 {clean(
                   currentLocation.farmId
-                ) ||
-                  "غير موجود"}
+                ) || selectedFarm}
               </p>
 
-              {currentLocation.farmName && (
+              {clean(
+                currentLocation.farmName
+              ) && (
                 <p
                   style={{
                     fontSize: "13px",
                     opacity: 0.7,
                   }}
                 >
-                  اسم المزرعة في الموقع:{" "}
-                  {
+                  اسم المزرعة:{" "}
+                  {clean(
                     currentLocation.farmName
-                  }
+                  )}
                 </p>
               )}
             </>
           )}
-
         </Card>
       )}
 
@@ -616,14 +576,12 @@ export default function Weather() {
 
       {error && (
         <Card>
-
           <p>
             ⚠️{" "}
             {error?.message ||
               error ||
               "حدث خطأ أثناء تحميل الطقس"}
           </p>
-
         </Card>
       )}
 
@@ -633,14 +591,11 @@ export default function Weather() {
 
       {weather && (
         <Card>
-
-          <h2>
-            🌤️ حالة الطقس
-          </h2>
+          <h2>🌤️ حالة الطقس</h2>
 
           {weather.location && (
             <p>
-              📍 الموقع:{" "}
+              📍 الإحداثيات المستخدمة:{" "}
               {weather.location.latitude ??
                 weather.location.lat ??
                 "--"}{" "}
@@ -661,9 +616,7 @@ export default function Weather() {
 
           <p>
             💧 الرطوبة:{" "}
-            {weather.humidity ??
-              "--"}
-            %
+            {weather.humidity ?? "--"}%
           </p>
 
           <p>
@@ -680,7 +633,6 @@ export default function Weather() {
               {weather.description}
             </p>
           )}
-
         </Card>
       )}
 
@@ -689,86 +641,51 @@ export default function Weather() {
       ================================================= */}
 
       {weather &&
-        Array.isArray(
-          farmAdvice
-        ) &&
+        Array.isArray(farmAdvice) &&
         farmAdvice.length > 0 && (
-
           <Card>
-
             <h2>
               🌱 نصائح للمزرعة
             </h2>
 
             <ul>
-
               {farmAdvice.map(
-                (
-                  advice,
-                  index
-                ) => (
-                  <li
-                    key={index}
-                  >
+                (advice, index) => (
+                  <li key={index}>
                     {advice}
                   </li>
                 )
               )}
-
             </ul>
-
           </Card>
-
         )}
 
       {/* =================================================
-          FUTURE
+          INFORMATION
       ================================================= */}
 
       <Card>
-
         <h2>
-          🚀 جاهزية التطوير المستقبلي
+          📡 مصدر بيانات الموقع
         </h2>
 
         <p>
-          🌍 ربط API طقس عالمي.
+          يستخدم نظام الطقس إحداثيات الموقع
+          المحفوظة في الخريطة للمزرعة
+          المختارة.
         </p>
 
         <p>
-          📡 تحديث تلقائي عبر GPS.
+          لا يطلب نظام الطقس موقع GPS جديدًا
+          من الهاتف.
         </p>
 
         <p>
-          🤖 توقع احتياجات الري بالذكاء
-          الاصطناعي.
+          المزرعة يتم تحديدها بواسطة
+          <strong> Farm ID </strong>
+          وليس بواسطة اسم المزرعة.
         </p>
-
-        <p>
-          🌡️ ربط حساسات التربة والبيوت
-          الزراعية.
-        </p>
-
-        <p>
-          🔔 إرسال تنبيهات للمزارع.
-        </p>
-
       </Card>
-
     </div>
   );
 }
-
-[/writing]
-
-الآن فقط
-
-1. استبدل "src/pages/Weather.jsx" بهذا الكود.
-2. احفظ في GitHub.
-3. انتظر Vercel حتى ينتهي Deploy.
-4. افتح التطبيق.
-5. اختر أي مزرعة.
-6. اضغط 🌦️ تحليل الطقس.
-
-لا ترسل لي أي ملف آخر الآن.
-قل لي فقط ماذا ظهر بعد الضغط: هل ظهر الطقس، أم ما زالت رسالة «لا يوجد موقع GPS»؟
