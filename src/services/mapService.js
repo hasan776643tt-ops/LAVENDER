@@ -2,67 +2,32 @@
 
 import mapRepository from "../repositories/mapRepository.js";
 
-
-// =========================================================
-// LAVENDER — MAP SERVICE
-// =========================================================
-//
-// المسؤول عن:
-// - منطق المواقع
-// - الحسابات الجغرافية
-// - Reverse Geocoding
-// - توحيد بيانات الموقع الإداري
-//
-// لا يحتوي على React.
-// لا يحتوي على UI.
-// لا يحتوي على منطق المحاصيل.
-// =========================================================
-
-
-// =========================================================
-// CONSTANTS
-// =========================================================
-
-const EARTH_RADIUS =
-  6378137;
-
-const NOMINATIM_URL =
-  "https://nominatim.openstreetmap.org";
-
-
-// =========================================================
-// HELPERS
-// =========================================================
+const EARTH_RADIUS = 6378137;
+const NOMINATIM_URL = "https://nominatim.openstreetmap.org";
 
 function toNumber(value) {
-
-  const number =
-    Number(value);
-
-  return Number.isFinite(number)
-    ? number
-    : null;
+  const number = Number(value);
+  return Number.isFinite(number) ? number : null;
 }
-
 
 function cleanString(value) {
-
-  return String(
-    value ?? ""
-  ).trim();
+  return String(value ?? "").trim();
 }
 
+function getFarmId(data) {
+  return cleanString(
+    data?.farmId ??
+    data?.farmID ??
+    data?.farm_id ??
+    data?.farm?.id ??
+    data?.farm?.farmId ??
+    ""
+  );
+}
 
-function validateCoordinates(
-  latitude,
-  longitude
-) {
-
-  const lat =
-    toNumber(latitude);
-
-  const lng =
-    toNumber(longitude);
+function validateCoordinates(latitude, longitude) {
+  const lat = toNumber(latitude);
+  const lng = toNumber(longitude);
 
   return (
     lat !== null &&
@@ -74,292 +39,188 @@ function validateCoordinates(
   );
 }
 
-
 function normalizePoint(point) {
-
   if (Array.isArray(point)) {
-
     return {
-
-      latitude:
-        toNumber(point[0]),
-
-      longitude:
-        toNumber(point[1]),
-
+      latitude: toNumber(point[0]),
+      longitude: toNumber(point[1]),
     };
   }
 
-  if (
-    point &&
-    typeof point === "object"
-  ) {
-
+  if (point && typeof point === "object") {
     return {
-
-      latitude:
-        toNumber(
-          point.latitude ??
-          point.lat
-        ),
-
-      longitude:
-        toNumber(
-          point.longitude ??
-          point.lng ??
-          point.lon
-        ),
-
+      latitude: toNumber(
+        point.latitude ??
+        point.lat
+      ),
+      longitude: toNumber(
+        point.longitude ??
+        point.lng ??
+        point.lon
+      ),
     };
   }
 
   return {
-
     latitude: null,
-
     longitude: null,
-
   };
 }
 
-
 function normalizePoints(points) {
-
   if (!Array.isArray(points)) {
     return [];
   }
 
   return points
     .map(normalizePoint)
-    .filter(
-      point =>
-        validateCoordinates(
-          point.latitude,
-          point.longitude
-        )
+    .filter(point =>
+      validateCoordinates(
+        point.latitude,
+        point.longitude
+      )
     );
 }
 
-
-// =========================================================
-// ADMINISTRATIVE NORMALIZATION
-// =========================================================
-
-function normalizeAdministrativeLocation(
-  result = {}
-) {
-
+function normalizeAdministrativeLocation(result = {}) {
   const address =
     result?.address &&
     typeof result.address === "object"
       ? result.address
       : {};
 
-
-  const country =
-    cleanString(
+  return {
+    country: cleanString(
       result.country ||
       address.country ||
       ""
-    );
+    ),
 
-
-  const governorate =
-    cleanString(
+    governorate: cleanString(
       result.governorate ||
       result.state ||
       result.province ||
       address.state ||
       address.province ||
       ""
-    );
+    ),
 
-
-  const region =
-    cleanString(
+    region: cleanString(
       result.region ||
       address.region ||
       ""
-    );
+    ),
 
-
-  const district =
-    cleanString(
+    district: cleanString(
       result.district ||
       address.district ||
       address.county ||
       address.municipality ||
       address.city_district ||
       ""
-    );
+    ),
 
-
-  const city =
-    cleanString(
+    city: cleanString(
       result.city ||
       address.city ||
       ""
-    );
+    ),
 
-
-  const town =
-    cleanString(
+    town: cleanString(
       result.town ||
       address.town ||
       ""
-    );
+    ),
 
-
-  const village =
-    cleanString(
+    village: cleanString(
       result.village ||
       address.village ||
       result.hamlet ||
       address.hamlet ||
       ""
-    );
+    ),
 
-
-  const placeName =
-    cleanString(
+    placeName: cleanString(
       result.placeName ||
       result.name ||
       address.road ||
       ""
-    );
+    ),
 
-
-  const locationDescription =
-    cleanString(
+    locationDescription: cleanString(
       result.locationDescription ||
       result.displayName ||
       ""
-    );
-
-
-  return {
-
-    country,
-
-    governorate,
-
-    region,
-
-    district,
-
-    city,
-
-    town,
-
-    village,
-
-    placeName,
-
-    locationDescription,
-
+    ),
   };
 }
 
+function normalizeLocationData(data = {}) {
+  const points = normalizePoints(
+    data.points ??
+    data.boundary ??
+    []
+  );
 
-// =========================================================
-// NORMALIZE LOCATION DATA
-// =========================================================
+  const latitude = toNumber(
+    data.latitude ??
+    data.lat
+  );
 
-function normalizeLocationData(
-  data = {}
-) {
+  const longitude = toNumber(
+    data.longitude ??
+    data.lng ??
+    data.lon
+  );
 
-  const points =
-    normalizePoints(
-      data.points ??
-      data.boundary ??
-      []
-    );
-
-
-  const latitude =
-    toNumber(
-      data.latitude
-    );
-
-
-  const longitude =
-    toNumber(
-      data.longitude
-    );
-
+  const farmId = getFarmId(data);
 
   return {
-
     ...data,
 
-    farmId:
-      cleanString(
-        data.farmId
-      ),
+    farmId,
 
     latitude,
 
     longitude,
 
+    lat: latitude,
+
+    lng: longitude,
+
     points,
 
-    boundary:
-      points,
+    boundary: points,
 
-    area:
-      toNumber(
-        data.area
-      ),
+    area: toNumber(data.area),
 
-    perimeter:
-      toNumber(
-        data.perimeter
-      ),
+    perimeter: toNumber(data.perimeter),
 
-    ...normalizeAdministrativeLocation(
-      data
-    ),
-
+    ...normalizeAdministrativeLocation(data),
   };
 }
 
-
-// =========================================================
-// CENTER
-// =========================================================
-
-function calculateCenter(
-  points
-) {
-
+function calculateCenter(points) {
   const safePoints =
     normalizePoints(points);
 
-  if (
-    safePoints.length === 0
-  ) {
+  if (!safePoints.length) {
     return null;
   }
-
 
   const latitude =
     safePoints.reduce(
       (sum, point) =>
         sum + point.latitude,
       0
-    ) /
-    safePoints.length;
-
+    ) / safePoints.length;
 
   const longitude =
     safePoints.reduce(
       (sum, point) =>
         sum + point.longitude,
       0
-    ) /
-    safePoints.length;
-
+    ) / safePoints.length;
 
   if (
     !validateCoordinates(
@@ -370,32 +231,15 @@ function calculateCenter(
     return null;
   }
 
-
   return {
-
     latitude,
-
     longitude,
-
   };
 }
 
-
-// =========================================================
-// HAVERSINE
-// =========================================================
-
-function calculateDistance(
-  pointA,
-  pointB
-) {
-
-  const a =
-    normalizePoint(pointA);
-
-  const b =
-    normalizePoint(pointB);
-
+function calculateDistance(pointA, pointB) {
+  const a = normalizePoint(pointA);
+  const b = normalizePoint(pointB);
 
   if (
     !validateCoordinates(
@@ -407,120 +251,71 @@ function calculateDistance(
       b.longitude
     )
   ) {
-
     return 0;
   }
 
-
   const lat1 =
-    (
-      a.latitude *
-      Math.PI
-    ) /
-    180;
-
+    (a.latitude * Math.PI) / 180;
 
   const lat2 =
-    (
-      b.latitude *
-      Math.PI
-    ) /
-    180;
-
+    (b.latitude * Math.PI) / 180;
 
   const deltaLat =
-    (
-      b.latitude -
-      a.latitude
-    ) *
-    Math.PI /
+    ((b.latitude - a.latitude) *
+      Math.PI) /
     180;
-
 
   const deltaLng =
-    (
-      b.longitude -
-      a.longitude
-    ) *
-    Math.PI /
+    ((b.longitude - a.longitude) *
+      Math.PI) /
     180;
 
-
   const sinLat =
-    Math.sin(
-      deltaLat / 2
-    );
-
+    Math.sin(deltaLat / 2);
 
   const sinLng =
-    Math.sin(
-      deltaLng / 2
-    );
-
+    Math.sin(deltaLng / 2);
 
   const h =
     sinLat * sinLat +
     Math.cos(lat1) *
-    Math.cos(lat2) *
-    sinLng *
-    sinLng;
-
+      Math.cos(lat2) *
+      sinLng *
+      sinLng;
 
   const c =
     2 *
     Math.atan2(
       Math.sqrt(h),
-      Math.sqrt(
-        1 - h
-      )
+      Math.sqrt(1 - h)
     );
 
-
-  return (
-    EARTH_RADIUS *
-    c
-  );
+  return EARTH_RADIUS * c;
 }
 
-
-// =========================================================
-// PERIMETER
-// =========================================================
-
-function calculatePerimeter(
-  points
-) {
-
+function calculatePerimeter(points) {
   const safePoints =
     normalizePoints(points);
 
-
-  if (
-    safePoints.length < 2
-  ) {
+  if (safePoints.length < 2) {
     return 0;
   }
 
-
   let perimeter = 0;
-
 
   for (
     let index = 0;
     index < safePoints.length;
     index += 1
   ) {
-
     const current =
       safePoints[index];
-
 
     const next =
       safePoints[
         (index + 1) %
-        safePoints.length
+          safePoints.length
       ];
-
 
     perimeter +=
       calculateDistance(
@@ -529,218 +324,146 @@ function calculatePerimeter(
       );
   }
 
-
   return perimeter;
 }
 
-
-// =========================================================
-// AREA
-// =========================================================
-
-function calculateArea(
-  points
-) {
-
+function calculateArea(points) {
   const safePoints =
     normalizePoints(points);
 
-
-  if (
-    safePoints.length < 3
-  ) {
+  if (safePoints.length < 3) {
     return 0;
   }
 
-
   const center =
-    calculateCenter(
-      safePoints
-    );
-
+    calculateCenter(safePoints);
 
   if (!center) {
     return 0;
   }
 
-
   const latFactor =
-    Math.PI /
-    180;
-
+    Math.PI / 180;
 
   const metersPerDegreeLatitude =
-    EARTH_RADIUS *
-    latFactor;
-
+    EARTH_RADIUS * latFactor;
 
   const metersPerDegreeLongitude =
     EARTH_RADIUS *
     Math.cos(
-      center.latitude *
-      latFactor
+      center.latitude * latFactor
     ) *
     latFactor;
 
-
   const projected =
-    safePoints.map(
-      point => ({
+    safePoints.map(point => ({
+      x:
+        (point.longitude -
+          center.longitude) *
+        metersPerDegreeLongitude,
 
-        x:
-          (
-            point.longitude -
-            center.longitude
-          ) *
-          metersPerDegreeLongitude,
-
-        y:
-          (
-            point.latitude -
-            center.latitude
-          ) *
-          metersPerDegreeLatitude,
-
-      })
-    );
-
+      y:
+        (point.latitude -
+          center.latitude) *
+        metersPerDegreeLatitude,
+    }));
 
   let area = 0;
-
 
   for (
     let index = 0;
     index < projected.length;
     index += 1
   ) {
-
     const current =
       projected[index];
-
 
     const next =
       projected[
         (index + 1) %
-        projected.length
+          projected.length
       ];
 
-
     area +=
-      current.x *
-      next.y -
-      next.x *
-      current.y;
+      current.x * next.y -
+      next.x * current.y;
   }
 
-
-  return Math.abs(
-    area / 2
-  );
+  return Math.abs(area / 2);
 }
-
-
-// =========================================================
-// REVERSE GEOCODING
-// =========================================================
 
 async function reverseGeocode(
   latitude,
   longitude,
   language = "ar"
 ) {
-
   if (
     !validateCoordinates(
       latitude,
       longitude
     )
   ) {
-
     throw new Error(
       "INVALID_COORDINATES"
     );
   }
 
-
-  const url =
-    new URL(
-      "/reverse",
-      NOMINATIM_URL
-    );
-
+  const url = new URL(
+    "/reverse",
+    NOMINATIM_URL
+  );
 
   url.searchParams.set(
     "format",
     "jsonv2"
   );
 
-
   url.searchParams.set(
     "lat",
     String(latitude)
   );
-
 
   url.searchParams.set(
     "lon",
     String(longitude)
   );
 
-
   url.searchParams.set(
     "zoom",
     "18"
   );
-
 
   url.searchParams.set(
     "addressdetails",
     "1"
   );
 
-
   url.searchParams.set(
     "accept-language",
     language || "ar"
   );
-
 
   const response =
     await fetch(
       url.toString(),
       {
         headers: {
-
           Accept:
             "application/json",
-
         },
       }
     );
 
-
-  if (
-    !response.ok
-  ) {
-
+  if (!response.ok) {
     throw new Error(
       `NOMINATIM_${response.status}`
     );
   }
 
-
   const data =
     await response.json();
 
-
-  const administrative =
-    normalizeAdministrativeLocation(
-      data
-    );
-
-
   return {
-
     ...data,
 
     latitude:
@@ -755,51 +478,49 @@ async function reverseGeocode(
         longitude
       ),
 
-    ...administrative,
-
+    ...normalizeAdministrativeLocation(
+      data
+    ),
   };
 }
 
-
 // =========================================================
-// GET ALL
+// GET ALL LOCATIONS
 // =========================================================
 
 async function getAllLocations() {
-
   const data =
     await mapRepository.getAll();
 
+  if (!Array.isArray(data)) {
+    return [];
+  }
 
-  return Array.isArray(data)
-    ? data.map(
-        normalizeLocationData
-      )
-    : [];
+  return data.map(
+    normalizeLocationData
+  );
 }
-
 
 // =========================================================
 // GET BY ID
 // =========================================================
 
-async function getLocationById(
-  id
-) {
+async function getLocationById(id) {
+  if (
+    id === null ||
+    id === undefined ||
+    id === ""
+  ) {
+    return null;
+  }
 
   const data =
-    await mapRepository.getById(
-      id
-    );
-
+    await mapRepository.getById(id);
 
   return data
-    ? normalizeLocationData(
-        data
-      )
+    ? normalizeLocationData(data)
     : null;
 }
-
 
 // =========================================================
 // GET BY FARM
@@ -808,76 +529,90 @@ async function getLocationById(
 async function getLocationsByFarmId(
   farmId
 ) {
+  const wantedFarmId =
+    cleanString(farmId);
 
-  if (!farmId) {
+  if (!wantedFarmId) {
     return [];
   }
 
-
   const data =
     await mapRepository.getByFarmId(
-      farmId
+      wantedFarmId
     );
 
+  if (!Array.isArray(data)) {
+    return [];
+  }
 
-  return Array.isArray(data)
-    ? data.map(
-        normalizeLocationData
-      )
-    : [];
+  return data
+    .map(normalizeLocationData)
+    .filter(
+      location =>
+        cleanString(
+          location.farmId
+        ) === wantedFarmId
+    );
 }
 
-
 // =========================================================
-// GET LATEST BY FARM
+// GET ONE LOCATION BY FARM
 // =========================================================
 
 async function getLocationByFarmId(
   farmId
 ) {
+  const wantedFarmId =
+    cleanString(farmId);
 
-  if (!farmId) {
+  if (!wantedFarmId) {
     return null;
   }
 
-
   const data =
     await mapRepository.getLatestByFarmId(
-      farmId
+      wantedFarmId
     );
 
+  if (!data) {
+    return null;
+  }
 
-  return data
-    ? normalizeLocationData(
-        data
-      )
-    : null;
+  const location =
+    normalizeLocationData(data);
+
+  if (
+    cleanString(location.farmId) !==
+    wantedFarmId
+  ) {
+    return null;
+  }
+
+  if (
+    !validateCoordinates(
+      location.latitude,
+      location.longitude
+    )
+  ) {
+    return null;
+  }
+
+  return location;
 }
-
 
 // =========================================================
 // CREATE
 // =========================================================
 
-async function createLocation(
-  data
-) {
-
+async function createLocation(data) {
   const normalized =
-    normalizeLocationData(
-      data
-    );
+    normalizeLocationData(data);
 
-
-  if (
-    !normalized.farmId
-  ) {
-
+  if (!normalized.farmId) {
     throw new Error(
       "MAP_FARM_REQUIRED"
     );
   }
-
 
   if (
     !validateCoordinates(
@@ -885,24 +620,20 @@ async function createLocation(
       normalized.longitude
     )
   ) {
-
     throw new Error(
       "MAP_COORDINATES_REQUIRED"
     );
   }
-
 
   const created =
     await mapRepository.create(
       normalized
     );
 
-
   return normalizeLocationData(
     created
   );
 }
-
 
 // =========================================================
 // UPDATE
@@ -912,12 +643,35 @@ async function updateLocation(
   id,
   data
 ) {
+  const existing =
+    await mapRepository.getById(id);
+
+  if (!existing) {
+    return null;
+  }
 
   const normalized =
-    normalizeLocationData(
-      data
-    );
+    normalizeLocationData({
+      ...existing,
+      ...data,
+    });
 
+  if (!normalized.farmId) {
+    throw new Error(
+      "MAP_FARM_REQUIRED"
+    );
+  }
+
+  if (
+    !validateCoordinates(
+      normalized.latitude,
+      normalized.longitude
+    )
+  ) {
+    throw new Error(
+      "MAP_COORDINATES_REQUIRED"
+    );
+  }
 
   const updated =
     await mapRepository.update(
@@ -925,31 +679,21 @@ async function updateLocation(
       normalized
     );
 
-
   return updated
-    ? normalizeLocationData(
-        updated
-      )
+    ? normalizeLocationData(updated)
     : null;
 }
-
 
 // =========================================================
 // DELETE
 // =========================================================
 
-async function deleteLocation(
-  id
-) {
-
-  return mapRepository.delete(
-    id
-  );
+async function deleteLocation(id) {
+  return mapRepository.delete(id);
 }
 
-
 // =========================================================
-// NEARBY
+// NEARBY PLACES
 // =========================================================
 
 async function getNearbyPlaces(
@@ -958,7 +702,6 @@ async function getNearbyPlaces(
   radius = 1000,
   language = "ar"
 ) {
-
   if (
     !validateCoordinates(
       latitude,
@@ -968,17 +711,28 @@ async function getNearbyPlaces(
     return [];
   }
 
+  const safeRadius =
+    Math.max(
+      1,
+      Number(radius) || 1000
+    );
 
-  const query =
-    `
+  const query = `
     [out:json];
     (
-      node(around:${Number(radius)},${Number(latitude)},${Number(longitude)});
-      way(around:${Number(radius)},${Number(latitude)},${Number(longitude)});
+      node(
+        around:${safeRadius},
+        ${Number(latitude)},
+        ${Number(longitude)}
+      );
+      way(
+        around:${safeRadius},
+        ${Number(latitude)},
+        ${Number(longitude)}
+      );
     );
     out center tags;
-    `;
-
+  `;
 
   const response =
     await fetch(
@@ -987,7 +741,6 @@ async function getNearbyPlaces(
         method: "POST",
 
         headers: {
-
           "Content-Type":
             "text/plain",
 
@@ -996,29 +749,20 @@ async function getNearbyPlaces(
 
           "Accept-Language":
             language || "ar",
-
         },
 
-        body:
-          query,
-
+        body: query,
       }
     );
 
-
-  if (
-    !response.ok
-  ) {
-
+  if (!response.ok) {
     throw new Error(
       `OVERPASS_${response.status}`
     );
   }
 
-
   const data =
     await response.json();
-
 
   const elements =
     Array.isArray(
@@ -1027,76 +771,52 @@ async function getNearbyPlaces(
       ? data.elements
       : [];
 
+  return elements.map(item => ({
+    id: item.id,
 
-  return elements.map(
-    item => ({
+    type: item.type,
 
-      id:
-        item.id,
+    name: cleanString(
+      item.tags?.name || ""
+    ),
 
-      type:
-        item.type,
+    latitude: toNumber(
+      item.lat ??
+      item.center?.lat
+    ),
 
-      name:
-        cleanString(
-          item.tags?.name ||
-          ""
-        ),
+    longitude: toNumber(
+      item.lon ??
+      item.center?.lon
+    ),
 
-      latitude:
-        toNumber(
-          item.lat ??
-          item.center?.lat
-        ),
-
-      longitude:
-        toNumber(
-          item.lon ??
-          item.center?.lon
-        ),
-
-      tags:
-        item.tags || {},
-
-    })
-  );
+    tags: item.tags || {},
+  }));
 }
-
 
 // =========================================================
 // EXPORT
 // =========================================================
 
 const mapService = {
-
   getAllLocations,
-
   getLocationById,
-
   getLocationsByFarmId,
-
   getLocationByFarmId,
 
   createLocation,
-
   updateLocation,
-
   deleteLocation,
 
   reverseGeocode,
 
   calculateCenter,
-
   calculateDistance,
-
   calculatePerimeter,
-
   calculateArea,
 
   getNearbyPlaces,
-
 };
-
 
 export default Object.freeze(
   mapService
