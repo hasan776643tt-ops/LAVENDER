@@ -33,13 +33,11 @@ function createActions(setData, controller) {
   return {
     load: async () => {
       const result = await controller.getAll();
-
       const safeResult = Array.isArray(result)
         ? result
         : [];
 
       setData(safeResult);
-
       return safeResult;
     },
 
@@ -54,10 +52,8 @@ function createActions(setData, controller) {
     },
 
     update: async (id, data) => {
-      const result = await controller.update(
-        id,
-        data
-      );
+      const result =
+        await controller.update(id, data);
 
       if (result) {
         setData((prev) =>
@@ -73,7 +69,8 @@ function createActions(setData, controller) {
     },
 
     delete: async (id) => {
-      const result = await controller.delete(id);
+      const result =
+        await controller.delete(id);
 
       setData((prev) =>
         prev.filter(
@@ -93,7 +90,8 @@ function createActions(setData, controller) {
         return controller.count();
       }
 
-      const result = await controller.getAll();
+      const result =
+        await controller.getAll();
 
       return Array.isArray(result)
         ? result.length
@@ -113,6 +111,114 @@ function createActions(setData, controller) {
 
       return Boolean(result);
     },
+  };
+}
+
+// =========================================================
+// LOCATION HELPERS
+// =========================================================
+
+function normalizeFarmId(value) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+function getLocationFarmId(location) {
+  if (!location) {
+    return "";
+  }
+
+  return normalizeFarmId(
+    location.farmId ??
+      location.farmID ??
+      location.farm_id ??
+      location.farm?.id ??
+      location.farm?._id ??
+      location.farm?.farmId ??
+      ""
+  );
+}
+
+function getLocationFarmName(location) {
+  if (!location) {
+    return "";
+  }
+
+  return String(
+    location.farmName ??
+      location.farm?.name ??
+      location.farm?.farmName ??
+      ""
+  ).trim();
+}
+
+function getLatitude(location) {
+  if (!location) {
+    return null;
+  }
+
+  const value =
+    location.latitude ??
+    location.lat ??
+    location.center?.latitude ??
+    location.center?.lat;
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function getLongitude(location) {
+  if (!location) {
+    return null;
+  }
+
+  const value =
+    location.longitude ??
+    location.lng ??
+    location.lon ??
+    location.center?.longitude ??
+    location.center?.lng;
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function normalizeLocation(location) {
+  if (!location) {
+    return null;
+  }
+
+  const latitude =
+    getLatitude(location);
+
+  const longitude =
+    getLongitude(location);
+
+  const farmId =
+    getLocationFarmId(location);
+
+  return {
+    ...location,
+
+    farmId,
+
+    latitude,
+    longitude,
+
+    lat: latitude,
+    lng: longitude,
   };
 }
 
@@ -242,97 +348,25 @@ export function FarmProvider({ children }) {
   );
 
   // =======================================================
-  // LOCATION HELPERS
-  // =======================================================
-
-  const getLocationFarmId = useCallback(
-    (location) => {
-      if (!location) {
-        return "";
-      }
-
-      return String(
-        location.farmId ??
-          location.farmID ??
-          location.farm_id ??
-          location.farm?.id ??
-          location.farm?._id ??
-          location.farm?.farmId ??
-          ""
-      );
-    },
-    []
-  );
-
-  const normalizeLocation = useCallback(
-    (location) => {
-      if (!location) {
-        return null;
-      }
-
-      const farmId =
-        getLocationFarmId(location);
-
-      const latitude =
-        location.latitude ??
-        location.lat ??
-        location.center?.latitude ??
-        location.center?.lat;
-
-      const longitude =
-        location.longitude ??
-        location.lng ??
-        location.lon ??
-        location.center?.longitude ??
-        location.center?.lng;
-
-      return {
-        ...location,
-
-        farmId:
-          farmId || location.farmId,
-
-        latitude,
-        longitude,
-
-        lat: latitude,
-        lng: longitude,
-      };
-    },
-    [getLocationFarmId]
-  );
-
-  // =======================================================
   // LOCATION ACTIONS
-  //
-  // Page
-  //   ↓
-  // Context
-  //   ↓
-  // mapService
-  //   ↓
-  // mapRepository
-  //   ↓
-  // storage
   // =======================================================
 
   const locationActions = useMemo(
     () => ({
       // ---------------------------------------------------
-      // Load ALL locations from storage
+      // Load all locations
       // ---------------------------------------------------
 
       load: async () => {
         const result =
           await mapService.getAllLocations();
 
-        const safeResult = Array.isArray(
-          result
-        )
-          ? result
-              .map(normalizeLocation)
-              .filter(Boolean)
-          : [];
+        const safeResult =
+          Array.isArray(result)
+            ? result
+                .map(normalizeLocation)
+                .filter(Boolean)
+            : [];
 
         setLocations(safeResult);
 
@@ -340,59 +374,151 @@ export function FarmProvider({ children }) {
       },
 
       // ---------------------------------------------------
-      // Get locations for ONE farm
+      // Get locations by farm ID
       // ---------------------------------------------------
 
       getByFarmId: async (farmId) => {
+        const wantedFarmId =
+          normalizeFarmId(farmId);
+
+        if (!wantedFarmId) {
+          return [];
+        }
+
+        const allLocations =
+          await mapService.getAllLocations();
+
         if (
-          farmId === null ||
-          farmId === undefined ||
-          farmId === ""
+          !Array.isArray(
+            allLocations
+          )
         ) {
           return [];
         }
 
-        const result =
-          await mapService.getLocationsByFarmId(
-            farmId
+        return allLocations
+          .map(normalizeLocation)
+          .filter(Boolean)
+          .filter(
+            (location) =>
+              getLocationFarmId(
+                location
+              ) === wantedFarmId
           );
-
-        const safeResult = Array.isArray(
-          result
-        )
-          ? result
-              .map(normalizeLocation)
-              .filter(Boolean)
-          : [];
-
-        return safeResult;
       },
 
       // ---------------------------------------------------
-      // Get latest location for ONE farm
+      // Get latest location
+      //
+      // farmName is optional and is used only
+      // to recover old location records whose
+      // farmId is missing/different.
       // ---------------------------------------------------
 
       getLatestByFarmId: async (
-        farmId
+        farmId,
+        farmName = ""
       ) => {
+        const wantedFarmId =
+          normalizeFarmId(farmId);
+
+        const wantedFarmName =
+          String(
+            farmName ?? ""
+          ).trim();
+
+        if (!wantedFarmId) {
+          return null;
+        }
+
+        // -----------------------------------------------
+        // اقرأ التخزين مباشرة عبر service
+        // -----------------------------------------------
+
+        const allLocations =
+          await mapService.getAllLocations();
+
         if (
-          farmId === null ||
-          farmId === undefined ||
-          farmId === ""
+          !Array.isArray(
+            allLocations
+          )
         ) {
           return null;
         }
 
-        const result =
-          await mapService.getLocationByFarmId(
-            farmId
+        const normalizedLocations =
+          allLocations
+            .map(normalizeLocation)
+            .filter(Boolean);
+
+        // -----------------------------------------------
+        // البحث الأساسي بواسطة farmId
+        // -----------------------------------------------
+
+        const byFarmId =
+          normalizedLocations.filter(
+            (location) =>
+              getLocationFarmId(
+                location
+              ) === wantedFarmId
           );
 
-        return normalizeLocation(result);
+        if (byFarmId.length > 0) {
+          return byFarmId
+            .sort(
+              (a, b) =>
+                new Date(
+                  b.updatedAt ||
+                    b.createdAt ||
+                    0
+                ).getTime() -
+                new Date(
+                  a.updatedAt ||
+                    a.createdAt ||
+                    0
+                ).getTime()
+            )[0];
+        }
+
+        // -----------------------------------------------
+        // بحث احتياطي للمواقع القديمة
+        // بواسطة اسم المزرعة
+        // -----------------------------------------------
+
+        if (wantedFarmName) {
+          const byFarmName =
+            normalizedLocations.filter(
+              (location) =>
+                getLocationFarmName(
+                  location
+                ) === wantedFarmName
+            );
+
+          if (
+            byFarmName.length > 0
+          ) {
+            return byFarmName
+              .sort(
+                (a, b) =>
+                  new Date(
+                    b.updatedAt ||
+                      b.createdAt ||
+                      0
+                  ).getTime() -
+                  new Date(
+                    a.updatedAt ||
+                      a.createdAt ||
+                      0
+                  ).getTime()
+              )[0];
+          }
+        }
+
+        return null;
       },
 
       // ---------------------------------------------------
-      // Create / replace farm location
+      // Create
       // ---------------------------------------------------
 
       create: async (data) => {
@@ -430,7 +556,7 @@ export function FarmProvider({ children }) {
       },
 
       // ---------------------------------------------------
-      // Update location
+      // Update
       // ---------------------------------------------------
 
       update: async (id, data) => {
@@ -445,11 +571,12 @@ export function FarmProvider({ children }) {
 
         if (normalized) {
           setLocations((prev) => {
-            const exists = prev.some(
-              (item) =>
-                String(item.id) ===
-                String(normalized.id)
-            );
+            const exists =
+              prev.some(
+                (item) =>
+                  String(item.id) ===
+                  String(normalized.id)
+              );
 
             if (!exists) {
               return [
@@ -471,7 +598,7 @@ export function FarmProvider({ children }) {
       },
 
       // ---------------------------------------------------
-      // Delete location
+      // Delete
       // ---------------------------------------------------
 
       delete: async (id) => {
@@ -521,7 +648,7 @@ export function FarmProvider({ children }) {
         return Boolean(result);
       },
     }),
-    [getLocationFarmId, normalizeLocation]
+    []
   );
 
   // =======================================================
@@ -651,7 +778,7 @@ export function FarmProvider({ children }) {
     return () => {
       mounted = false;
     };
-  }, [normalizeLocation]);
+  }, []);
 
   // =======================================================
   // Context value
@@ -708,34 +835,24 @@ export function FarmProvider({ children }) {
     [
       farms,
       farmActions,
-
       fields,
       fieldActions,
-
       locations,
       locationActions,
-
       irrigations,
       irrigationActions,
-
       fertilizers,
       fertilizerActions,
-
       pesticides,
       pesticideActions,
-
       diseases,
       diseaseActions,
-
       expenses,
       expenseActions,
-
       harvests,
       harvestActions,
-
       inventory,
       inventoryActions,
-
       consultations,
       aiQuestions,
     ]
