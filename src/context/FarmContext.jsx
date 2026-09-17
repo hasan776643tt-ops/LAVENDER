@@ -5,9 +5,8 @@
 
 import {
   createContext,
-  useCallback,
-  useEffect,
   useMemo,
+  useEffect,
   useState,
 } from "react";
 
@@ -26,39 +25,348 @@ import mapService from "../services/mapService.js";
 export const FarmContext = createContext(null);
 
 // =========================================================
-// Generic actions
+// Generic helpers
 // =========================================================
 
-function createActions(setData, controller) {
+function clean(value) {
+  if (
+    value === null ||
+    value === undefined
+  ) {
+    return "";
+  }
+
+  return String(value).trim();
+}
+
+function normalizeFarmId(value) {
+  return clean(value);
+}
+
+function getFarmId(farm) {
+  if (!farm) {
+    return "";
+  }
+
+  return normalizeFarmId(
+    farm.id ??
+      farm.farmId ??
+      farm._id ??
+      farm.farm_id ??
+      ""
+  );
+}
+
+function getFarmName(farm) {
+  if (!farm) {
+    return "";
+  }
+
+  return clean(
+    farm.name ??
+      farm.farmName ??
+      farm.title ??
+      ""
+  );
+}
+
+// =========================================================
+// Location helpers
+// =========================================================
+
+function getLocationFarmId(location) {
+  if (!location) {
+    return "";
+  }
+
+  return normalizeFarmId(
+    location.farmId ??
+      location.farmID ??
+      location.farm_id ??
+      location.farm?.id ??
+      location.farm?._id ??
+      location.farm?.farmId ??
+      ""
+  );
+}
+
+function getLocationFarmName(location) {
+  if (!location) {
+    return "";
+  }
+
+  return clean(
+    location.farmName ??
+      location.farm?.name ??
+      location.farm?.farmName ??
+      location.name ??
+      ""
+  );
+}
+
+function getLatitude(location) {
+  if (!location) {
+    return null;
+  }
+
+  const value =
+    location.latitude ??
+    location.lat ??
+    location.center?.latitude ??
+    location.center?.lat ??
+    location.coordinates?.latitude ??
+    location.coordinates?.lat;
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function getLongitude(location) {
+  if (!location) {
+    return null;
+  }
+
+  const value =
+    location.longitude ??
+    location.lng ??
+    location.lon ??
+    location.center?.longitude ??
+    location.center?.lng ??
+    location.coordinates?.longitude ??
+    location.coordinates?.lng;
+
+  const number = Number(value);
+
+  return Number.isFinite(number)
+    ? number
+    : null;
+}
+
+function hasValidCoordinates(location) {
+  const latitude =
+    getLatitude(location);
+
+  const longitude =
+    getLongitude(location);
+
+  return (
+    latitude !== null &&
+    longitude !== null &&
+    latitude >= -90 &&
+    latitude <= 90 &&
+    longitude >= -180 &&
+    longitude <= 180
+  );
+}
+
+function getLocationDate(location) {
+  if (!location) {
+    return 0;
+  }
+
+  const date =
+    location.updatedAt ??
+    location.createdAt ??
+    location.savedAt ??
+    location.timestamp ??
+    0;
+
+  const parsed =
+    Date.parse(date);
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : 0;
+}
+
+function normalizeLocation(location) {
+  if (!location) {
+    return null;
+  }
+
+  const latitude =
+    getLatitude(location);
+
+  const longitude =
+    getLongitude(location);
+
+  return {
+    ...location,
+
+    farmId:
+      getLocationFarmId(location),
+
+    farmName:
+      getLocationFarmName(location),
+
+    latitude,
+    longitude,
+
+    lat: latitude,
+    lng: longitude,
+  };
+}
+
+// =========================================================
+// Resolve farm location
+// =========================================================
+//
+// القاعدة:
+//
+// 1. farmId هو المصدر الأساسي.
+// 2. إذا لم يوجد farmId مطابق:
+//    نستخدم farmName فقط للسجل القديم.
+// 3. إذا كان الاسم مكررًا، لا نختار موقعًا عشوائيًا.
+// 4. يجب أن يحتوي الموقع على GPS صالح.
+// =========================================================
+
+function resolveFarmLocation(
+  locationList,
+  farmId,
+  farmName
+) {
+  if (!Array.isArray(locationList)) {
+    return null;
+  }
+
+  const wantedFarmId =
+    normalizeFarmId(farmId);
+
+  const wantedFarmName =
+    clean(farmName);
+
+  const normalized =
+    locationList
+      .map(normalizeLocation)
+      .filter(Boolean)
+      .filter(hasValidCoordinates);
+
+  // -------------------------------------------------------
+  // 1. المطابقة الأساسية بواسطة farmId
+  // -------------------------------------------------------
+
+  if (wantedFarmId) {
+    const byFarmId =
+      normalized
+        .filter(
+          (location) =>
+            getLocationFarmId(
+              location
+            ) === wantedFarmId
+        )
+        .sort(
+          (a, b) =>
+            getLocationDate(b) -
+            getLocationDate(a)
+        );
+
+    if (byFarmId.length > 0) {
+      return byFarmId[0];
+    }
+  }
+
+  // -------------------------------------------------------
+  // 2. السجلات القديمة التي لا تحتوي farmId
+  // -------------------------------------------------------
+
+  if (wantedFarmName) {
+    const legacyByName =
+      normalized.filter(
+        (location) =>
+          !getLocationFarmId(
+            location
+          ) &&
+          getLocationFarmName(
+            location
+          ) === wantedFarmName
+      );
+
+    if (legacyByName.length === 1) {
+      return legacyByName[0];
+    }
+  }
+
+  // -------------------------------------------------------
+  // 3. توافق مع البيانات القديمة
+  //
+  // إذا كان farmName فريدًا تمامًا في المواقع،
+  // يمكن استخدامه كحل احتياطي.
+  //
+  // لا نستخدمه عندما توجد عدة مواقع بنفس الاسم.
+  // -------------------------------------------------------
+
+  if (wantedFarmName) {
+    const sameName =
+      normalized.filter(
+        (location) =>
+          getLocationFarmName(
+            location
+          ) === wantedFarmName
+      );
+
+    if (sameName.length === 1) {
+      return sameName[0];
+    }
+  }
+
+  return null;
+}
+
+// =========================================================
+// Generic Actions
+// =========================================================
+
+function createActions(
+  setData,
+  controller
+) {
   return {
     load: async () => {
-      const result = await controller.getAll();
-      const safeResult = Array.isArray(result)
-        ? result
-        : [];
+      const result =
+        await controller.getAll();
+
+      const safeResult =
+        Array.isArray(result)
+          ? result
+          : [];
 
       setData(safeResult);
+
       return safeResult;
     },
 
     create: async (data) => {
-      const result = await controller.create(data);
+      const result =
+        await controller.create(data);
 
       if (result) {
-        setData((prev) => [...prev, result]);
+        setData((prev) => [
+          ...prev,
+          result,
+        ]);
       }
 
       return result;
     },
 
-    update: async (id, data) => {
+    update: async (
+      id,
+      data
+    ) => {
       const result =
-        await controller.update(id, data);
+        await controller.update(
+          id,
+          data
+        );
 
       if (result) {
         setData((prev) =>
           prev.map((item) =>
-            String(item.id) === String(id)
+            String(item.id) ===
+            String(id)
               ? result
               : item
           )
@@ -75,7 +383,8 @@ function createActions(setData, controller) {
       setData((prev) =>
         prev.filter(
           (item) =>
-            String(item.id) !== String(id)
+            String(item.id) !==
+            String(id)
         )
       );
 
@@ -115,125 +424,24 @@ function createActions(setData, controller) {
 }
 
 // =========================================================
-// LOCATION HELPERS
-// =========================================================
-
-function normalizeFarmId(value) {
-  if (
-    value === null ||
-    value === undefined
-  ) {
-    return "";
-  }
-
-  return String(value).trim();
-}
-
-function getLocationFarmId(location) {
-  if (!location) {
-    return "";
-  }
-
-  return normalizeFarmId(
-    location.farmId ??
-      location.farmID ??
-      location.farm_id ??
-      location.farm?.id ??
-      location.farm?._id ??
-      location.farm?.farmId ??
-      ""
-  );
-}
-
-function getLocationFarmName(location) {
-  if (!location) {
-    return "";
-  }
-
-  return String(
-    location.farmName ??
-      location.farm?.name ??
-      location.farm?.farmName ??
-      ""
-  ).trim();
-}
-
-function getLatitude(location) {
-  if (!location) {
-    return null;
-  }
-
-  const value =
-    location.latitude ??
-    location.lat ??
-    location.center?.latitude ??
-    location.center?.lat;
-
-  const number = Number(value);
-
-  return Number.isFinite(number)
-    ? number
-    : null;
-}
-
-function getLongitude(location) {
-  if (!location) {
-    return null;
-  }
-
-  const value =
-    location.longitude ??
-    location.lng ??
-    location.lon ??
-    location.center?.longitude ??
-    location.center?.lng;
-
-  const number = Number(value);
-
-  return Number.isFinite(number)
-    ? number
-    : null;
-}
-
-function normalizeLocation(location) {
-  if (!location) {
-    return null;
-  }
-
-  const latitude =
-    getLatitude(location);
-
-  const longitude =
-    getLongitude(location);
-
-  const farmId =
-    getLocationFarmId(location);
-
-  return {
-    ...location,
-
-    farmId,
-
-    latitude,
-    longitude,
-
-    lat: latitude,
-    lng: longitude,
-  };
-}
-
-// =========================================================
 // Provider
 // =========================================================
 
-export function FarmProvider({ children }) {
+export function FarmProvider({
+  children,
+}) {
   // -------------------------------------------------------
-  // Data
+  // State
   // -------------------------------------------------------
 
-  const [farms, setFarms] = useState([]);
-  const [fields, setFields] = useState([]);
-  const [locations, setLocations] = useState([]);
+  const [farms, setFarms] =
+    useState([]);
+
+  const [fields, setFields] =
+    useState([]);
+
+  const [locations, setLocations] =
+    useState([]);
 
   const [irrigations, setIrrigations] =
     useState([]);
@@ -262,9 +470,9 @@ export function FarmProvider({ children }) {
   const [aiQuestions, setAiQuestions] =
     useState([]);
 
-  // -------------------------------------------------------
+  // =======================================================
   // Generic actions
-  // -------------------------------------------------------
+  // =======================================================
 
   const farmActions = useMemo(
     () =>
@@ -284,68 +492,75 @@ export function FarmProvider({ children }) {
     []
   );
 
-  const irrigationActions = useMemo(
-    () =>
-      createActions(
-        setIrrigations,
-        irrigationController
-      ),
-    []
-  );
+  const irrigationActions =
+    useMemo(
+      () =>
+        createActions(
+          setIrrigations,
+          irrigationController
+        ),
+      []
+    );
 
-  const fertilizerActions = useMemo(
-    () =>
-      createActions(
-        setFertilizers,
-        fertilizerController
-      ),
-    []
-  );
+  const fertilizerActions =
+    useMemo(
+      () =>
+        createActions(
+          setFertilizers,
+          fertilizerController
+        ),
+      []
+    );
 
-  const pesticideActions = useMemo(
-    () =>
-      createActions(
-        setPesticides,
-        pesticideController
-      ),
-    []
-  );
+  const pesticideActions =
+    useMemo(
+      () =>
+        createActions(
+          setPesticides,
+          pesticideController
+        ),
+      []
+    );
 
-  const diseaseActions = useMemo(
-    () =>
-      createActions(
-        setDiseases,
-        diseaseController
-      ),
-    []
-  );
+  const diseaseActions =
+    useMemo(
+      () =>
+        createActions(
+          setDiseases,
+          diseaseController
+        ),
+      []
+    );
 
-  const expenseActions = useMemo(
-    () =>
-      createActions(
-        setExpenses,
-        expenseController
-      ),
-    []
-  );
+  const expenseActions =
+    useMemo(
+      () =>
+        createActions(
+          setExpenses,
+          expenseController
+        ),
+      []
+    );
 
-  const harvestActions = useMemo(
-    () =>
-      createActions(
-        setHarvests,
-        harvestController
-      ),
-    []
-  );
+  const harvestActions =
+    useMemo(
+      () =>
+        createActions(
+          setHarvests,
+          harvestController
+        ),
+      []
+    );
 
-  const inventoryActions = useMemo(
-    () =>
-      createActions(
-        setInventory,
-        inventoryController
-      ),
-    []
-  );
+  const inventoryActions =
+    useMemo(
+      () =>
+        createActions(
+          setInventory,
+          inventoryController
+        ),
+      []
+    );
 
   // =======================================================
   // LOCATION ACTIONS
@@ -364,161 +579,197 @@ export function FarmProvider({ children }) {
         const safeResult =
           Array.isArray(result)
             ? result
-                .map(normalizeLocation)
+                .map(
+                  normalizeLocation
+                )
                 .filter(Boolean)
             : [];
 
-        setLocations(safeResult);
+        setLocations(
+          safeResult
+        );
 
         return safeResult;
       },
 
       // ---------------------------------------------------
-      // Get locations by farm ID
+      // Get locations by farmId
       // ---------------------------------------------------
 
-      getByFarmId: async (farmId) => {
-        const wantedFarmId =
-          normalizeFarmId(farmId);
-
-        if (!wantedFarmId) {
-          return [];
-        }
-
-        const allLocations =
-          await mapService.getAllLocations();
-
-        if (
-          !Array.isArray(
-            allLocations
-          )
-        ) {
-          return [];
-        }
-
-        return allLocations
-          .map(normalizeLocation)
-          .filter(Boolean)
-          .filter(
-            (location) =>
-              getLocationFarmId(
-                location
-              ) === wantedFarmId
-          );
-      },
-
-      // ---------------------------------------------------
-      // Get latest location
-      //
-      // farmName is optional and is used only
-      // to recover old location records whose
-      // farmId is missing/different.
-      // ---------------------------------------------------
-
-      getLatestByFarmId: async (
-        farmId,
-        farmName = ""
-      ) => {
-        const wantedFarmId =
-          normalizeFarmId(farmId);
-
-        const wantedFarmName =
-          String(
-            farmName ?? ""
-          ).trim();
-
-        if (!wantedFarmId) {
-          return null;
-        }
-
-        // -----------------------------------------------
-        // اقرأ التخزين مباشرة عبر service
-        // -----------------------------------------------
-
-        const allLocations =
-          await mapService.getAllLocations();
-
-        if (
-          !Array.isArray(
-            allLocations
-          )
-        ) {
-          return null;
-        }
-
-        const normalizedLocations =
-          allLocations
-            .map(normalizeLocation)
-            .filter(Boolean);
-
-        // -----------------------------------------------
-        // البحث الأساسي بواسطة farmId
-        // -----------------------------------------------
-
-        const byFarmId =
-          normalizedLocations.filter(
-            (location) =>
-              getLocationFarmId(
-                location
-              ) === wantedFarmId
-          );
-
-        if (byFarmId.length > 0) {
-          return byFarmId
-            .sort(
-              (a, b) =>
-                new Date(
-                  b.updatedAt ||
-                    b.createdAt ||
-                    0
-                ).getTime() -
-                new Date(
-                  a.updatedAt ||
-                    a.createdAt ||
-                    0
-                ).getTime()
-            )[0];
-        }
-
-        // -----------------------------------------------
-        // بحث احتياطي للمواقع القديمة
-        // بواسطة اسم المزرعة
-        // -----------------------------------------------
-
-        if (wantedFarmName) {
-          const byFarmName =
-            normalizedLocations.filter(
-              (location) =>
-                getLocationFarmName(
-                  location
-                ) === wantedFarmName
+      getByFarmId:
+        async (farmId) => {
+          const wantedFarmId =
+            normalizeFarmId(
+              farmId
             );
 
-          if (
-            byFarmName.length > 0
-          ) {
-            return byFarmName
-              .sort(
-                (a, b) =>
-                  new Date(
-                    b.updatedAt ||
-                      b.createdAt ||
-                      0
-                  ).getTime() -
-                  new Date(
-                    a.updatedAt ||
-                      a.createdAt ||
-                      0
-                  ).getTime()
-              )[0];
+          if (!wantedFarmId) {
+            return [];
           }
-        }
 
-        return null;
-      },
+          // نطلب من service البحث المباشر
+          if (
+            typeof mapService
+              .getLocationsByFarmId ===
+            "function"
+          ) {
+            const directResult =
+              await mapService.getLocationsByFarmId(
+                wantedFarmId
+              );
+
+            if (
+              Array.isArray(
+                directResult
+              )
+            ) {
+              return directResult
+                .map(
+                  normalizeLocation
+                )
+                .filter(Boolean)
+                .filter(
+                  hasValidCoordinates
+                );
+            }
+          }
+
+          // fallback
+          const all =
+            await mapService.getAllLocations();
+
+          return Array.isArray(all)
+            ? all
+                .map(
+                  normalizeLocation
+                )
+                .filter(Boolean)
+                .filter(
+                  (location) =>
+                    getLocationFarmId(
+                      location
+                    ) ===
+                    wantedFarmId
+                )
+                .filter(
+                  hasValidCoordinates
+                )
+            : [];
+        },
 
       // ---------------------------------------------------
-      // Create
+      // Get latest location for farm
+      // ---------------------------------------------------
+
+      getLatestByFarmId:
+        async (
+          farmId,
+          farmName = ""
+        ) => {
+          const wantedFarmId =
+            normalizeFarmId(
+              farmId
+            );
+
+          const wantedFarmName =
+            clean(farmName);
+
+          if (!wantedFarmId) {
+            return null;
+          }
+
+          // -----------------------------------------------
+          // 1. البحث المباشر في service
+          // -----------------------------------------------
+
+          if (
+            typeof mapService
+              .getLocationByFarmId ===
+            "function"
+          ) {
+            try {
+              const direct =
+                await mapService.getLocationByFarmId(
+                  wantedFarmId
+                );
+
+              if (
+                direct &&
+                hasValidCoordinates(
+                  direct
+                )
+              ) {
+                return normalizeLocation(
+                  direct
+                );
+              }
+            } catch (error) {
+              console.error(
+                "LAVENDER direct farm location error:",
+                error
+              );
+            }
+          }
+
+          // -----------------------------------------------
+          // 2. getLocationsByFarmId
+          // -----------------------------------------------
+
+          try {
+            const directList =
+              await mapService.getLocationsByFarmId(
+                wantedFarmId
+              );
+
+            const resolved =
+              resolveFarmLocation(
+                directList,
+                wantedFarmId,
+                wantedFarmName
+              );
+
+            if (resolved) {
+              return resolved;
+            }
+          } catch (error) {
+            console.error(
+              "LAVENDER farm locations error:",
+              error
+            );
+          }
+
+          // -----------------------------------------------
+          // 3. تحميل جميع المواقع
+          // -----------------------------------------------
+
+          let allLocations = [];
+
+          try {
+            allLocations =
+              await mapService.getAllLocations();
+          } catch (error) {
+            console.error(
+              "LAVENDER all locations error:",
+              error
+            );
+          }
+
+          const resolved =
+            resolveFarmLocation(
+              allLocations,
+              wantedFarmId,
+              wantedFarmName
+            );
+
+          if (resolved) {
+            return resolved;
+          }
+
+          return null;
+        },
+
+      // ---------------------------------------------------
+      // Create location
       // ---------------------------------------------------
 
       create: async (data) => {
@@ -532,17 +783,24 @@ export function FarmProvider({ children }) {
 
         if (normalized) {
           setLocations((prev) => {
-            const farmId =
+            const newFarmId =
               getLocationFarmId(
                 normalized
               );
+
+            if (!newFarmId) {
+              return [
+                ...prev,
+                normalized,
+              ];
+            }
 
             const filtered =
               prev.filter(
                 (item) =>
                   getLocationFarmId(
                     item
-                  ) !== farmId
+                  ) !== newFarmId
               );
 
             return [
@@ -556,49 +814,62 @@ export function FarmProvider({ children }) {
       },
 
       // ---------------------------------------------------
-      // Update
+      // Update location
       // ---------------------------------------------------
 
-      update: async (id, data) => {
-        const result =
-          await mapService.updateLocation(
-            id,
-            data
-          );
-
-        const normalized =
-          normalizeLocation(result);
-
-        if (normalized) {
-          setLocations((prev) => {
-            const exists =
-              prev.some(
-                (item) =>
-                  String(item.id) ===
-                  String(normalized.id)
-              );
-
-            if (!exists) {
-              return [
-                ...prev,
-                normalized,
-              ];
-            }
-
-            return prev.map((item) =>
-              String(item.id) ===
-              String(normalized.id)
-                ? normalized
-                : item
+      update:
+        async (
+          id,
+          data
+        ) => {
+          const result =
+            await mapService.updateLocation(
+              id,
+              data
             );
-          });
-        }
 
-        return normalized;
-      },
+          const normalized =
+            normalizeLocation(result);
+
+          if (normalized) {
+            setLocations((prev) => {
+              const exists =
+                prev.some(
+                  (item) =>
+                    String(
+                      item.id
+                    ) ===
+                    String(
+                      normalized.id
+                    )
+                );
+
+              if (!exists) {
+                return [
+                  ...prev,
+                  normalized,
+                ];
+              }
+
+              return prev.map(
+                (item) =>
+                  String(
+                    item.id
+                  ) ===
+                  String(
+                    normalized.id
+                  )
+                    ? normalized
+                    : item
+              );
+            });
+          }
+
+          return normalized;
+        },
 
       // ---------------------------------------------------
-      // Delete
+      // Delete location
       // ---------------------------------------------------
 
       delete: async (id) => {
@@ -610,8 +881,9 @@ export function FarmProvider({ children }) {
         setLocations((prev) =>
           prev.filter(
             (item) =>
-              String(item.id) !==
-              String(id)
+              String(
+                item.id
+              ) !== String(id)
           )
         );
 
@@ -689,13 +961,17 @@ export function FarmProvider({ children }) {
         }
 
         setFarms(
-          Array.isArray(farmsResult)
+          Array.isArray(
+            farmsResult
+          )
             ? farmsResult
             : []
         );
 
         setFields(
-          Array.isArray(fieldsResult)
+          Array.isArray(
+            fieldsResult
+          )
             ? fieldsResult
             : []
         );
@@ -705,7 +981,9 @@ export function FarmProvider({ children }) {
             locationsResult
           )
             ? locationsResult
-                .map(normalizeLocation)
+                .map(
+                  normalizeLocation
+                )
                 .filter(Boolean)
             : []
         );
@@ -835,31 +1113,43 @@ export function FarmProvider({ children }) {
     [
       farms,
       farmActions,
+
       fields,
       fieldActions,
+
       locations,
       locationActions,
+
       irrigations,
       irrigationActions,
+
       fertilizers,
       fertilizerActions,
+
       pesticides,
       pesticideActions,
+
       diseases,
       diseaseActions,
+
       expenses,
       expenseActions,
+
       harvests,
       harvestActions,
+
       inventory,
       inventoryActions,
+
       consultations,
       aiQuestions,
     ]
   );
 
   return (
-    <FarmContext.Provider value={value}>
+    <FarmContext.Provider
+      value={value}
+    >
       {children}
     </FarmContext.Provider>
   );
