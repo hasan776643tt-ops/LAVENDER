@@ -1,158 +1,154 @@
+// =========================================================
+// LAVENDER — WEATHER HOOK
 // src/hooks/useWeather.js
+// =========================================================
 
 import {
-  useState,
   useCallback,
+  useState,
 } from "react";
 
-import weatherService
-  from "../services/weatherService.js";
-
+import weatherService from "../services/weatherService.js";
 
 export default function useWeather() {
+  const [weather, setWeather] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  const [weather, setWeather] =
-    useState(null);
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState(null);
-
+  // =======================================================
+  // Get weather
+  // Supports:
+  // getWeather({ latitude, longitude })
+  // and old:
+  // getWeather(latitude, longitude)
+  // =======================================================
 
   const getWeather = useCallback(
-
     async (
-      latitude,
-      longitude
+      locationOrLatitude,
+      maybeLongitude
     ) => {
+      setLoading(true);
+      setError(null);
 
       try {
+        let latitude;
+        let longitude;
 
-        setLoading(true);
+        if (
+          locationOrLatitude &&
+          typeof locationOrLatitude === "object"
+        ) {
+          latitude =
+            locationOrLatitude.latitude ??
+            locationOrLatitude.lat;
 
-        setError(null);
+          longitude =
+            locationOrLatitude.longitude ??
+            locationOrLatitude.lng;
+        } else {
+          latitude = locationOrLatitude;
+          longitude = maybeLongitude;
+        }
 
-
-        const data =
+        const result =
           await weatherService.getCurrentWeather({
-
             latitude,
-
             longitude,
-
           });
 
+        setWeather(result);
 
-        setWeather(data);
-
-
-        return data;
-
-
+        return result;
       } catch (err) {
+        console.error(
+          "LAVENDER Weather error:",
+          err
+        );
 
         setError(
           err?.message ||
-          "حدث خطأ أثناء جلب بيانات الطقس."
+            "تعذر تحميل بيانات الطقس"
         );
 
-        throw err;
-
-
-      } finally {
-
-        setLoading(false);
-
-      }
-
-    },
-
-    []
-
-  );
-
-
-  const farmAdvice = useCallback(
-
-    () => {
-
-      if (!weather) {
-
         return null;
-
+      } finally {
+        setLoading(false);
       }
-
-
-      const {
-        temperature,
-        humidity,
-        rainChance,
-      } = weather;
-
-
-      if (
-        temperature != null &&
-        temperature >= 35
-      ) {
-
-        return "⚠️ الحرارة مرتفعة، يفضل زيادة مراقبة الري.";
-
-      }
-
-
-      if (
-        humidity != null &&
-        humidity < 30
-      ) {
-
-        return "💧 الرطوبة منخفضة، يفضل فحص الري.";
-
-      }
-
-
-      if (
-        rainChance != null &&
-        rainChance > 70
-      ) {
-
-        return "🌧️ احتمال الأمطار مرتفع، راقب عمليات الري.";
-
-      }
-
-
-      if (
-        rainChance != null &&
-        rainChance < 20
-      ) {
-
-        return "🌱 الأمطار قليلة، راجع خطة الري.";
-
-      }
-
-
-      return "✅ الظروف الجوية مناسبة.";
-
     },
-
-    [weather]
-
+    []
   );
 
+  // =======================================================
+  // Farm advice
+  // =======================================================
+
+  const farmAdvice = useCallback(() => {
+    if (!weather) {
+      return [];
+    }
+
+    const advice = [];
+
+    const temperature =
+      Number(
+        weather.temperature ??
+        weather.temp ??
+        0
+      );
+
+    const humidity =
+      Number(
+        weather.humidity ?? 0
+      );
+
+    const rainChance =
+      Number(
+        weather.rainChance ??
+        weather.rainProbability ??
+        0
+      );
+
+    if (temperature >= 35) {
+      advice.push(
+        "الحرارة مرتفعة، راقب رطوبة التربة ووقت الري."
+      );
+    } else if (temperature <= 5) {
+      advice.push(
+        "الحرارة منخفضة، راقب احتمال تأثر النبات بالبرد."
+      );
+    }
+
+    if (humidity >= 80) {
+      advice.push(
+        "الرطوبة مرتفعة، راقب الأمراض الفطرية."
+      );
+    } else if (humidity <= 30) {
+      advice.push(
+        "الرطوبة منخفضة، راقب احتياج النبات للماء."
+      );
+    }
+
+    if (rainChance >= 70) {
+      advice.push(
+        "احتمال المطر مرتفع، راجع قرار الري قبل تشغيله."
+      );
+    }
+
+    if (advice.length === 0) {
+      advice.push(
+        "الظروف الحالية لا تتطلب تنبيهًا زراعيًا خاصًا."
+      );
+    }
+
+    return advice;
+  }, [weather]);
 
   return {
-
     weather,
-
     loading,
-
     error,
-
     getWeather,
-
-    farmAdvice,
-
+    farmAdvice: farmAdvice(),
   };
-
 }
