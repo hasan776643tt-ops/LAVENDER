@@ -8,18 +8,18 @@ const MAX_LATITUDE = 90;
 const MIN_LONGITUDE = -180;
 const MAX_LONGITUDE = 180;
 
-const isFiniteNumber = value =>
+const isFiniteNumber = (value) =>
   Number.isFinite(Number(value));
 
-const toRadians = degrees =>
+const toRadians = (degrees) =>
   Number(degrees) * Math.PI / 180;
 
-const toDegrees = radians =>
+const toDegrees = (radians) =>
   Number(radians) * 180 / Math.PI;
 
 
 /**
- * التحقق من إحداثيات جغرافية صحيحة.
+ * التحقق من صحة الإحداثيات.
  */
 export function validateCoordinates(latitude, longitude) {
   const lat = Number(latitude);
@@ -52,25 +52,25 @@ export function calculateDistanceMeters(
     return 0;
   }
 
-  const φ1 = toRadians(lat1);
-  const φ2 = toRadians(lat2);
+  const phi1 = toRadians(lat1);
+  const phi2 = toRadians(lat2);
 
-  const Δφ = toRadians(
+  const deltaPhi = toRadians(
     Number(lat2) - Number(lat1)
   );
 
-  const Δλ = toRadians(
+  const deltaLambda = toRadians(
     Number(lon2) - Number(lon1)
   );
 
-  const sinLat = Math.sin(Δφ / 2);
-  const sinLon = Math.sin(Δλ / 2);
+  const sinLat = Math.sin(deltaPhi / 2);
+  const sinLon = Math.sin(deltaLambda / 2);
 
   const a =
     sinLat * sinLat +
-    Math.cos(φ1) *
-    Math.cos(φ2) *
-    sinLon * sinLon;
+    Math.cos(phi1) *
+      Math.cos(phi2) *
+      sinLon * sinLon;
 
   const safeA = Math.min(
     1,
@@ -89,8 +89,8 @@ export function calculateDistanceMeters(
 
 
 /**
- * النسخة القديمة كانت تعيد المسافة بالكيلومتر.
- * نحافظ عليها للتوافق مع الأكواد الموجودة.
+ * حساب المسافة بالكيلومتر.
+ * للتوافق مع الأكواد القديمة.
  */
 export function calculateDistance(
   lat1,
@@ -123,17 +123,24 @@ export function normalizePoint(point) {
   const latitude = Number(point[0]);
   const longitude = Number(point[1]);
 
-  return validateCoordinates(
+  if (
+    !validateCoordinates(
+      latitude,
+      longitude
+    )
+  ) {
+    return null;
+  }
+
+  return [
     latitude,
-    longitude
-  )
-    ? [latitude, longitude]
-    : null;
+    longitude,
+  ];
 }
 
 
 /**
- * تطبيع مجموعة نقاط حدود الأرض.
+ * تطبيع مجموعة نقاط.
  */
 export function normalizePoints(points) {
   if (!Array.isArray(points)) {
@@ -147,7 +154,7 @@ export function normalizePoints(points) {
 
 
 /**
- * تحويل نقطة إلى كائن قابل للحفظ.
+ * تحويل نقطة إلى كائن.
  */
 export function createLocationObject(
   latitude,
@@ -156,15 +163,16 @@ export function createLocationObject(
 ) {
   const lat = Number(latitude);
   const lon = Number(longitude);
+  const numericAccuracy = Number(accuracy);
 
   if (
-    !validateCoordinates(lat, lon)
+    !validateCoordinates(
+      lat,
+      lon
+    )
   ) {
     return null;
   }
-
-  const numericAccuracy =
-    Number(accuracy);
 
   return {
     latitude: lat,
@@ -179,7 +187,7 @@ export function createLocationObject(
 
 
 /**
- * إنشاء نقطة حدودية قابلة للحفظ.
+ * إنشاء نقطة حدود.
  */
 export function createBoundaryPoint(
   latitude,
@@ -205,25 +213,20 @@ export function createBoundaryPoint(
 
 
 /**
- * تحويل نقاط Leaflet:
- *
- * [lat, lng]
- *
- * إلى:
- *
- * { latitude, longitude }
+ * تحويل نقاط Leaflet إلى كائنات.
  */
 export function pointsToObjects(points) {
-  return normalizePoints(points)
-    .map(([latitude, longitude]) => ({
+  return normalizePoints(points).map(
+    ([latitude, longitude]) => ({
       latitude,
       longitude,
-    }));
+    })
+  );
 }
 
 
 /**
- * تحويل نقاط الحفظ إلى نقاط Leaflet.
+ * تحويل الكائنات إلى نقاط Leaflet.
  */
 export function objectsToPoints(points) {
   if (!Array.isArray(points)) {
@@ -231,7 +234,7 @@ export function objectsToPoints(points) {
   }
 
   return points
-    .map(point => {
+    .map((point) => {
       if (!point) {
         return null;
       }
@@ -246,7 +249,7 @@ export function objectsToPoints(points) {
 
 
 /**
- * حساب محيط مضلع الأرض بالمتر.
+ * حساب محيط الأرض بالمتر.
  */
 export function calculatePerimeter(points) {
   const normalized =
@@ -268,7 +271,8 @@ export function calculatePerimeter(points) {
 
     const next =
       normalized[
-        (i + 1) % normalized.length
+        (i + 1) %
+          normalized.length
       ];
 
     perimeter +=
@@ -286,9 +290,6 @@ export function calculatePerimeter(points) {
 
 /**
  * حساب مساحة الأرض بالمتر المربع.
- *
- * إسقاط محلي مناسب للمضلعات الزراعية
- * ذات المساحة الصغيرة والمتوسطة.
  */
 export function calculateArea(points) {
   const normalized =
@@ -303,10 +304,9 @@ export function calculateArea(points) {
       (sum, point) =>
         sum + point[0],
       0
-    ) /
-    normalized.length;
+    ) / normalized.length;
 
-  const meanLatRad =
+  const meanLatitudeRadians =
     toRadians(meanLatitude);
 
   const coordinates =
@@ -314,7 +314,9 @@ export function calculateArea(points) {
       ([latitude, longitude]) => [
         EARTH_RADIUS_M *
           toRadians(longitude) *
-          Math.cos(meanLatRad),
+          Math.cos(
+            meanLatitudeRadians
+          ),
 
         EARTH_RADIUS_M *
           toRadians(latitude),
@@ -334,7 +336,7 @@ export function calculateArea(points) {
     const next =
       coordinates[
         (i + 1) %
-        coordinates.length
+          coordinates.length
       ];
 
     area +=
@@ -376,7 +378,8 @@ export function getBoundingBox(
     cosLatitude === 0
       ? 180
       : radius /
-        (111.32 * Math.abs(cosLatitude));
+        (111.32 *
+          Math.abs(cosLatitude));
 
   return {
     north: Math.min(
@@ -418,6 +421,7 @@ export function getCenter(points) {
       (center, [lat, lon]) => ({
         latitude:
           center.latitude + lat,
+
         longitude:
           center.longitude + lon,
       }),
@@ -438,13 +442,23 @@ export function getCenter(points) {
 
 
 /**
+ * اسم بديل للتوافق مع Map.jsx.
+ *
+ * Map.jsx يستخدم calculateCenter
+ * بينما بعض الأكواد تستخدم getCenter.
+ */
+export function calculateCenter(points) {
+  return getCenter(points);
+}
+
+
+/**
  * فحص دقة GPS.
  */
 export function classifyAccuracy(
   accuracy
 ) {
-  const value =
-    Number(accuracy);
+  const value = Number(accuracy);
 
   if (
     !Number.isFinite(value) ||
@@ -474,28 +488,26 @@ export function classifyAccuracy(
 
 
 /**
- * هل دقة GPS جيدة بما يكفي؟
+ * هل دقة GPS جيدة؟
  */
 export function isGoodAccuracy(
   accuracy,
   maximum = 50
 ) {
-  const value =
-    Number(accuracy);
+  const value = Number(accuracy);
+  const max = Number(maximum);
 
   return (
     Number.isFinite(value) &&
     value >= 0 &&
-    value <= Number(maximum)
+    Number.isFinite(max) &&
+    value <= max
   );
 }
 
 
 /**
  * اختيار أفضل قراءة GPS.
- *
- * لا نستبدل GPS باسم قرية أو مدينة.
- * الأفضلية دائمًا لأقل accuracy.
  */
 export function selectBestPosition(
   positions
@@ -506,7 +518,7 @@ export function selectBestPosition(
 
   const valid =
     positions.filter(
-      position =>
+      (position) =>
         position &&
         validateCoordinates(
           position.latitude,
@@ -532,13 +544,12 @@ export function selectBestPosition(
 
 
 /**
- * تنسيق المسافة للعرض.
+ * تنسيق المسافة.
  */
 export function formatDistance(
   meters
 ) {
-  const value =
-    Number(meters);
+  const value = Number(meters);
 
   if (
     !Number.isFinite(value) ||
@@ -558,7 +569,7 @@ export function formatDistance(
 
 
 /**
- * تنسيق المساحة للعرض.
+ * تنسيق المساحة.
  */
 export function formatArea(
   squareMeters
@@ -584,7 +595,7 @@ export function formatArea(
 
 
 /**
- * فحص صلاحية مضلع الأرض.
+ * فحص صلاحية المضلع.
  */
 export function isValidPolygon(
   points
@@ -597,7 +608,7 @@ export function isValidPolygon(
 
 
 /**
- * بناء ملخص هندسي كامل للأرض.
+ * ملخص هندسي كامل.
  */
 export function getGeometrySummary(
   points
@@ -607,22 +618,27 @@ export function getGeometrySummary(
 
   return {
     points: normalized,
+
     pointCount:
       normalized.length,
+
     valid:
       normalized.length >= 3,
+
     area:
       calculateArea(normalized),
+
     perimeter:
       calculatePerimeter(normalized),
+
     center:
-      getCenter(normalized),
+      calculateCenter(normalized),
   };
 }
 
 
 /**
- * ثوابت مفيدة عند الحاجة.
+ * الثوابت.
  */
 export {
   EARTH_RADIUS_M,
@@ -631,6 +647,7 @@ export {
   MAX_LATITUDE,
   MIN_LONGITUDE,
   MAX_LONGITUDE,
+  toRadians,
   toDegrees,
 };
 
@@ -643,6 +660,8 @@ export default {
   calculateDistanceMeters,
   calculatePerimeter,
   calculateArea,
+  calculateCenter,
+  getCenter,
 
   toRadians,
   toDegrees,
@@ -659,7 +678,6 @@ export default {
   objectsToPoints,
 
   getBoundingBox,
-  getCenter,
 
   classifyAccuracy,
   isGoodAccuracy,
